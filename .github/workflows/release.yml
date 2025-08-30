@@ -142,8 +142,8 @@ jobs:
       - name: Flutter pub get
         run: flutter pub get
 
-      - name: Build macOS (release, universal)
-        run: flutter build macos --release --darwin-arch=x86_64,arm64
+      - name: Build macOS (release)
+        run: flutter build macos --release
 
       - name: Package macOS .app to zip (unsigned)
         run: |
