@@ -15,6 +15,7 @@ class XTextButton extends StatelessWidget {
   final TextStyle? textStyle;
   final XTextButtonType type;
   final XTextButtonSize size;
+  final FocusNode? focusNode;
   final String? tooltipMessage;
 
   const XTextButton(
@@ -28,7 +29,8 @@ class XTextButton extends StatelessWidget {
       this.textStyle,
       this.type = XTextButtonType.defaultType, // 默认类型为 defaultType
       this.size = XTextButtonSize.defaultSize, // 默认尺寸为 defaultSize (之前的 small)
-      this.tooltipMessage})
+      this.tooltipMessage,
+      this.focusNode})
       : super(key: key);
 
   Color _getBackgroundColor(BuildContext context, bool isFocus) {
@@ -42,7 +44,7 @@ class XTextButton extends StatelessWidget {
       case XTextButtonType.defaultType:
       default:
         return isFocus
-            ? Colors.white.withOpacity(0.25)
+            ? Colors.white.withOpacity(0.35)
             : Colors.white.withOpacity(0.15);
     }
   }
@@ -94,6 +96,7 @@ class XTextButton extends StatelessWidget {
   Widget build(BuildContext context) {
     return XBaseButton(
       tooltipMessage: tooltipMessage,
+      focusNode: focusNode,
       onPressed: onPressed,
       onMore: onMore,
       child: (bool isFocus) {
@@ -107,6 +110,14 @@ class XTextButton extends StatelessWidget {
           decoration: BoxDecoration(
             color: _getBackgroundColor(context, isFocus),
             borderRadius: BorderRadius.circular(24.0),
+            boxShadow: isFocus
+                ? [
+                    BoxShadow(
+                      color: Colors.white.withOpacity(0.06),
+                      blurRadius: 8,
+                    )
+                  ]
+                : null,
           ),
           alignment: Alignment.center,
           child: Text(

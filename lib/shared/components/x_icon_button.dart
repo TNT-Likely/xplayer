@@ -15,6 +15,7 @@ class XIconButton extends StatelessWidget {
   final XIconButtonSize buttonSize;
   final bool hoverBgOnly;
   final String? tooltipMessage;
+  final FocusNode? focusNode;
 
   const XIconButton(
       {Key? key,
@@ -26,7 +27,8 @@ class XIconButton extends StatelessWidget {
       this.type = XIconButtonType.defaultType,
       this.buttonSize = XIconButtonSize.defaultSize,
       this.hoverBgOnly = false,
-      this.tooltipMessage})
+      this.tooltipMessage,
+      this.focusNode})
       : super(key: key);
 
   Color _getBackgroundColor(BuildContext context, bool isFocus) {
@@ -59,6 +61,7 @@ class XIconButton extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return XBaseButton(
+      focusNode: focusNode,
       tooltipMessage: tooltipMessage,
       onPressed: onPressed,
       child: (bool isFocus) {
