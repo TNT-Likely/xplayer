@@ -320,7 +320,8 @@ jobs:
           prerelease: ${{ steps.meta.outputs.prerelease == 'true' }}
           body_path: ${{ steps.notes.outputs.notes_file }}
           files: |
-            dist/android/*
+            dist/android/**/*.apk
+            dist/android/**/*.aab
             dist/windows/*
             dist/macos/*
             dist/ios/*
