@@ -14,6 +14,7 @@ class XBaseButton extends StatefulWidget {
   final VoidCallback? onMore; // 新增的回调函数
   final String? tooltipMessage;
   final ValueChanged<bool>? onFocusChange; // 新增的焦点变化回调
+  final FocusNode? focusNode;
 
   const XBaseButton({
     Key? key,
@@ -22,6 +23,7 @@ class XBaseButton extends StatefulWidget {
     this.onMore, // 可选的更多操作回调
     this.tooltipMessage, // 可选的 Tooltip 消息
     this.onFocusChange, // 焦点变化时的回调
+    this.focusNode,
   }) : super(key: key);
 
   @override
@@ -43,7 +45,12 @@ class _XBaseButtonState extends State<XBaseButton> with WidgetsBindingObserver {
   @override
   void initState() {
     super.initState();
-    _focusNode = FocusNode();
+    _focusNode = widget.focusNode ?? FocusNode();
+    // initialize isFocus from the focus node's current state so that when an
+    // external FocusNode is passed and already focused, the visual state
+    // reflects it immediately.
+    _isFocus = _focusNode.hasFocus || _isHovered;
+
     WidgetsBinding.instance.addObserver(this);
 
     _focusNode.addListener(() {
@@ -64,9 +71,15 @@ class _XBaseButtonState extends State<XBaseButton> with WidgetsBindingObserver {
   @override
   void dispose() {
     WidgetsBinding.instance.removeObserver(this);
-    _focusNode.dispose();
+    if (widget.focusNode == null) {
+      _focusNode.dispose();
+    }
     super.dispose();
   }
+
+  // Note: Ancestor-focus subscription removed. Focus ownership should be
+  // explicit: pass a FocusNode into this widget when external control is
+  // needed. Internally-created FocusNode will be disposed by this state.
 
   DateTime? start;
 
@@ -171,17 +184,20 @@ class _XBaseButtonState extends State<XBaseButton> with WidgetsBindingObserver {
         });
         _toggleTooltip(false); // 鼠标移出时隐藏 Tooltip
       },
-      child: widget.child(_isFocus || _isHovered),
+      child: Builder(builder: (context) {
+        final bool isFocus = _focusNode.hasFocus || _isHovered;
+        return widget.child(isFocus);
+      }),
     );
 
     // 如果提供了 tooltipMessage，则包裹在 Tooltip 中，并设置为手动触发
-    final Widget wrappedContent = widget.tooltipMessage != null
+    final Widget contentWithTooltip = widget.tooltipMessage != null
         ? Tooltip(
             key: _tooltipKey,
             message: widget.tooltipMessage!,
             triggerMode: TooltipTriggerMode.manual,
-            showDuration: const Duration(seconds: 2), // 显示持续时间
-            waitDuration: Duration.zero, // 不等待立即显示
+            showDuration: const Duration(seconds: 2),
+            waitDuration: Duration.zero,
             child: content,
           )
         : content;
@@ -190,10 +206,13 @@ class _XBaseButtonState extends State<XBaseButton> with WidgetsBindingObserver {
       onTap: _handleTap,
       onLongPress: _handleLongPress, // 触控屏长按
       child: RawKeyboardListener(
-          focusNode: _focusNode,
-          onKey: _handleKeyPress,
-          child: Listener(
-              onPointerDown: _handleRightClick, child: wrappedContent)),
+        focusNode: _focusNode,
+        onKey: _handleKeyPress,
+        child: Listener(
+          onPointerDown: _handleRightClick,
+          child: contentWithTooltip,
+        ),
+      ),
     );
   }
 
