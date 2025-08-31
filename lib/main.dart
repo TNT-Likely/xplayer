@@ -10,6 +10,9 @@ import 'package:xplayer/providers/media_provider.dart';
 import 'package:bot_toast/bot_toast.dart';
 import 'package:sqflite_common_ffi/sqflite_ffi.dart';
 import 'dart:io';
+import 'package:xplayer/providers/remote_provider.dart';
+import 'package:xplayer/presentation/screens/remote_input.dart';
+import 'package:xplayer/shared/navigation.dart';
 
 void main() {
   WidgetsFlutterBinding.ensureInitialized();
@@ -20,7 +23,8 @@ void main() {
   runApp(MultiProvider(providers: [
     ChangeNotifierProvider(create: (_) => MediaProvider()),
     ChangeNotifierProvider(create: (_) => LocaleProvider()..loadLocale()),
-    ChangeNotifierProvider(create: (_) => GlobalProvider()..loadDeviceInfo())
+    ChangeNotifierProvider(create: (_) => GlobalProvider()..loadDeviceInfo()),
+    ChangeNotifierProvider(create: (_) => RemoteProvider()),
   ], child: const MyApp()));
 }
 
@@ -33,6 +37,7 @@ class MyApp extends StatelessWidget {
 
     return MaterialApp(
       title: 'Flutter Demo',
+      navigatorKey: AppNav.key,
       localizationsDelegates: const [
         AppLocalizations.delegate,
         GlobalMaterialLocalizations.delegate,
@@ -57,6 +62,7 @@ class MyApp extends StatelessWidget {
         '/': (context) => const SplashScreen(),
         // '/': (context) => const FocusTestPage(),
         '/playlists': (context) => const PlaylistListScreen(),
+        '/remote': (context) => const RemoteInputScreen(),
       },
     );
   }

@@ -16,6 +16,8 @@ import 'package:xplayer/providers/media_provider.dart';
 import 'package:provider/provider.dart';
 import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 import 'package:url_launcher/url_launcher.dart';
+import 'package:xplayer/providers/remote_provider.dart';
+import 'package:xplayer/providers/global_provider.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -33,6 +35,17 @@ class _HomeScreenState extends State<HomeScreen> {
     // 确保在页面加载时调用 MediaProvider 的 initialize 方法
     final mediaProvider = Provider.of<MediaProvider>(context, listen: false);
     mediaProvider.initialize();
+
+    // 如果是 TV 端，启动远程输入服务（非 TV 不开启被发现服务）
+    final globalProvider = Provider.of<GlobalProvider>(context, listen: false);
+    WidgetsBinding.instance.addPostFrameCallback((_) async {
+      if (!globalProvider.isMobile) {
+        try {
+          await Provider.of<RemoteProvider>(context, listen: false)
+              .startServer(serviceName: 'XPlayer TV');
+        } catch (_) {}
+      }
+    });
   }
 
   @override
@@ -166,7 +179,7 @@ class _HomeScreenState extends State<HomeScreen> {
                           options: playlist
                               .map(
                                 (playlist) => {
-                                  'label': playlist.name ?? '',
+                                  'label': playlist.name,
                                   'value': playlist.id.toString(),
                                 },
                               )
@@ -194,6 +207,7 @@ class _HomeScreenState extends State<HomeScreen> {
                     );
                   },
                 ),
+                // 远程输入菜单：仅在手机端显示，放在播放列表之后
                 XBaseButton(
                   child: animeContainer(
                     ListTile(
@@ -272,6 +286,25 @@ class _HomeScreenState extends State<HomeScreen> {
                     ),
                   ),
                 ),
+                Consumer<GlobalProvider>(builder: (context, g, _) {
+                  if (g.isTV) return const SizedBox.shrink();
+                  return XBaseButton(
+                    child: animeContainer(
+                      ListTile(
+                        leading:
+                            const Icon(Icons.phonelink, color: Colors.white),
+                        title: Text(
+                          AppLocalizations.of(context)!.remoteInput,
+                          style: const TextStyle(color: Colors.white),
+                        ),
+                      ),
+                    ),
+                    onPressed: () {
+                      Navigator.of(context).pop();
+                      Navigator.pushNamed(context, '/remote');
+                    },
+                  );
+                }),
                 XBaseButton(
                   child: animeContainer(
                     ListTile(
