@@ -15,7 +15,7 @@
 ![WX20250217-170655](https://github.com/user-attachments/assets/fe341b2a-66f7-42b6-b3d0-6ece3dd47203)
 ![WX20250217-170720](https://github.com/user-attachments/assets/8632dff6-dc7a-4717-99ca-a39e9efddd04)
 ![WX20250217-171053](https://github.com/user-attachments/assets/a14b1e50-65b9-45a1-b495-ada3983b01e9)
-![remotecontrol](assets/remote-control.jpg)
+![remotecontrol](assets/preview/remote-control.jpg)
 
 ---
 

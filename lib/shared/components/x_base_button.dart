@@ -15,6 +15,11 @@ class XBaseButton extends StatefulWidget {
   final String? tooltipMessage;
   final ValueChanged<bool>? onFocusChange; // 新增的焦点变化回调
   final FocusNode? focusNode;
+  // 方向键回调（TV 遥控）
+  final VoidCallback? onArrowUp;
+  final VoidCallback? onArrowDown;
+  final VoidCallback? onArrowLeft;
+  final VoidCallback? onArrowRight;
 
   const XBaseButton({
     Key? key,
@@ -24,6 +29,10 @@ class XBaseButton extends StatefulWidget {
     this.tooltipMessage, // 可选的 Tooltip 消息
     this.onFocusChange, // 焦点变化时的回调
     this.focusNode,
+    this.onArrowUp,
+    this.onArrowDown,
+    this.onArrowLeft,
+    this.onArrowRight,
   }) : super(key: key);
 
   @override
@@ -97,6 +106,29 @@ class _XBaseButtonState extends State<XBaseButton> with WidgetsBindingObserver {
   }
 
   void _handleKeyPress(RawKeyEvent event) {
+    // 方向键
+    if (event is RawKeyDownEvent) {
+      if (event.logicalKey == LogicalKeyboardKey.arrowUp &&
+          widget.onArrowUp != null) {
+        widget.onArrowUp!();
+        return;
+      }
+      if (event.logicalKey == LogicalKeyboardKey.arrowDown &&
+          widget.onArrowDown != null) {
+        widget.onArrowDown!();
+        return;
+      }
+      if (event.logicalKey == LogicalKeyboardKey.arrowLeft &&
+          widget.onArrowLeft != null) {
+        widget.onArrowLeft!();
+        return;
+      }
+      if (event.logicalKey == LogicalKeyboardKey.arrowRight &&
+          widget.onArrowRight != null) {
+        widget.onArrowRight!();
+        return;
+      }
+    }
     // 记录按下时间
     if (event is RawKeyDownEvent &&
         event.logicalKey == LogicalKeyboardKey.select) {

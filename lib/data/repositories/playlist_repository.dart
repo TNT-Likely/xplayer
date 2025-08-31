@@ -1,6 +1,7 @@
 // lib/data/repositories/playlist_repository.dart
 
 import 'dart:async';
+import 'dart:io';
 import 'package:sqflite/sqflite.dart';
 import 'package:path/path.dart';
 import 'package:path_provider/path_provider.dart';
@@ -126,15 +127,32 @@ class PlaylistRepository {
 
   /// 从给定的URL下载M3U文件并解析它。
   Future<M3uList> loadM3UFromUrl(String url) async {
-    final response = await http.get(Uri.parse(url));
-    if (response.statusCode == 200) {
-      // 解析M3U内容
-      final m3uContent = utf8.decode(response.bodyBytes);
-      final m3uList = M3uList.load(m3uContent);
-      return m3uList;
-    } else {
-      throw Exception(
-          'Failed to load M3U file, status code: ${response.statusCode}');
+    // 支持 http/https 与 本地文件(file:// 或 直接路径)
+    final uri = Uri.tryParse(url);
+    try {
+      if (uri != null && (uri.scheme == 'http' || uri.scheme == 'https')) {
+        final response = await http.get(uri);
+        if (response.statusCode == 200) {
+          final m3uContent = utf8.decode(response.bodyBytes);
+          return M3uList.load(m3uContent);
+        } else {
+          throw Exception(
+              'Failed to load M3U file, status code: ${response.statusCode}');
+        }
+      } else {
+        // 处理本地文件: file:// 或无 scheme 的本地绝对/相对路径
+        final String filePath =
+            (uri != null && uri.scheme == 'file') ? uri.toFilePath() : url;
+        final file = File(filePath);
+        if (!await file.exists()) {
+          throw Exception('Local M3U file not found: $filePath');
+        }
+        final bytes = await file.readAsBytes();
+        final m3uContent = utf8.decode(bytes);
+        return M3uList.load(m3uContent);
+      }
+    } catch (e) {
+      rethrow;
     }
   }
 

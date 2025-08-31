@@ -15,6 +15,12 @@ allprojects {
         google()
         mavenCentral()
     }
+
+    configurations.all {
+        resolutionStrategy {
+            force 'net.bytebuddy:byte-buddy:1.12.22'
+        }
+    }
 }
 
 rootProject.buildDir = '../build'

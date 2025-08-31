@@ -70,5 +70,7 @@
     "right": "右",
     "ok": "确定",
     "deleteKey": "删除",
-    "inputPlaceholder": "输入文本发送到 TV"
+    "inputPlaceholder": "输入文本发送到 TV",
+    "pickLocalM3u": "选择本地 M3U",
+    "nameAndUrlOrFileRequired": "名称和 URL 或本地文件必须填写其一"
 }

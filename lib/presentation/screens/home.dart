@@ -339,7 +339,7 @@ class _HomeScreenState extends State<HomeScreen> {
                 ),
                 const ListTile(
                   leading: Icon(Icons.info, color: Colors.white),
-                  title: Text('1.0.0', style: TextStyle(color: Colors.white)),
+                  title: Text('1.2.0', style: TextStyle(color: Colors.white)),
                 ),
               ],
             ),

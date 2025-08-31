@@ -5,6 +5,10 @@ import 'package:xplayer/shared/components/x_text_button.dart';
 import 'package:xplayer/utils/toast.dart';
 import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 import 'package:flutter/services.dart';
+import 'dart:io';
+import 'package:file_picker/file_picker.dart';
+import 'package:path/path.dart' as p;
+import 'package:path_provider/path_provider.dart';
 
 typedef OnSuccessCallback = void Function(Playlist playlist);
 
@@ -30,11 +34,13 @@ class _PlaylistDialogState extends State<PlaylistDialog> {
   late final FocusNode _cancelFocus;
   late final FocusNode _okFocus;
   late final FocusNode _listenerFocus;
+  late final FocusNode _pickFocus;
 
   final _nameOrder = const NumericFocusOrder(1.0);
   final _urlOrder = const NumericFocusOrder(2.0);
   final _cancelOrder = const NumericFocusOrder(3.0);
   final _okOrder = const NumericFocusOrder(4.0);
+  final _pickOrder = const NumericFocusOrder(2.5);
 
   final PlaylistRepository _repository = PlaylistRepository();
 
@@ -51,6 +57,7 @@ class _PlaylistDialogState extends State<PlaylistDialog> {
     _cancelFocus = FocusNode();
     _okFocus = FocusNode();
     _listenerFocus = FocusNode();
+    _pickFocus = FocusNode();
 
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (mounted) {
@@ -69,6 +76,7 @@ class _PlaylistDialogState extends State<PlaylistDialog> {
     _cancelFocus.dispose();
     _okFocus.dispose();
     _listenerFocus.dispose();
+    _pickFocus.dispose();
     super.dispose();
   }
 
@@ -91,17 +99,21 @@ class _PlaylistDialogState extends State<PlaylistDialog> {
       if (primary == _nameFocus) {
         _urlFocus.requestFocus();
       } else if (primary == _urlFocus) {
-        _cancelFocus.requestFocus();
+        _pickFocus.requestFocus();
       } else if (primary == _cancelFocus) {
         _okFocus.requestFocus();
+      } else if (primary == _pickFocus) {
+        _cancelFocus.requestFocus();
       }
     } else if (key == LogicalKeyboardKey.arrowUp) {
       if (primary == _okFocus) {
         _cancelFocus.requestFocus();
       } else if (primary == _cancelFocus) {
-        _urlFocus.requestFocus();
+        _pickFocus.requestFocus();
       } else if (primary == _urlFocus) {
         _nameFocus.requestFocus();
+      } else if (primary == _pickFocus) {
+        _urlFocus.requestFocus();
       }
     } else if (key == LogicalKeyboardKey.enter ||
         key == LogicalKeyboardKey.select) {
@@ -109,6 +121,8 @@ class _PlaylistDialogState extends State<PlaylistDialog> {
         _onSubmit();
       } else if (primary == _cancelFocus) {
         Navigator.of(context).pop();
+      } else if (_pickFocus.hasFocus) {
+        _pickLocalM3u();
       }
     }
   }
@@ -121,7 +135,7 @@ class _PlaylistDialogState extends State<PlaylistDialog> {
     );
 
     if (newPlaylist.name.isEmpty || newPlaylist.url.isEmpty) {
-      showToast(AppLocalizations.of(context)!.nameAndUrlRequired);
+      showToast(AppLocalizations.of(context)!.nameAndUrlOrFileRequired);
       return;
     }
 
@@ -139,6 +153,53 @@ class _PlaylistDialogState extends State<PlaylistDialog> {
     }
   }
 
+  Future<void> _pickLocalM3u() async {
+    try {
+      final result = await FilePicker.platform.pickFiles(
+        type: FileType.custom,
+        allowedExtensions: ['m3u', 'm3u8'],
+      );
+      if (result == null || result.files.isEmpty) return;
+
+      final picked = result.files.single;
+      final filePath = picked.path;
+
+      // 将文件复制到应用文档目录，保证长期可访问
+      final docs = await getApplicationDocumentsDirectory();
+      final targetDir = Directory(p.join(docs.path, 'm3u'));
+      if (!await targetDir.exists()) {
+        await targetDir.create(recursive: true);
+      }
+      final originalName = p.basename(
+          filePath ?? (picked.name.isNotEmpty ? picked.name : 'playlist.m3u'));
+      final baseName = p.basenameWithoutExtension(originalName).isEmpty
+          ? 'playlist'
+          : p.basenameWithoutExtension(originalName);
+      final ext = p.extension(originalName).isEmpty
+          ? '.m3u'
+          : p.extension(originalName);
+      final ts = DateTime.now().millisecondsSinceEpoch;
+      final safeName = '${baseName}_$ts$ext';
+      final targetPath = p.join(targetDir.path, safeName);
+      if (filePath != null) {
+        final sourceFile = File(filePath);
+        await sourceFile.copy(targetPath);
+      } else if (picked.bytes != null) {
+        final out = File(targetPath);
+        await out.writeAsBytes(picked.bytes!);
+      } else {
+        throw Exception('No readable content from picker.');
+      }
+
+      final fileUri = Uri.file(targetPath).toString();
+      setState(() {
+        _urlController.text = fileUri; // 使用 file:// URL
+      });
+    } catch (e) {
+      showToast('${AppLocalizations.of(context)!.loadingFailed}: $e');
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return RawKeyboardListener(
@@ -153,7 +214,7 @@ class _PlaylistDialogState extends State<PlaylistDialog> {
         ),
         backgroundColor: const Color.fromRGBO(34, 34, 34, 1),
         content: FocusTraversalGroup(
-          policy: ReadingOrderTraversalPolicy(),
+          policy: OrderedTraversalPolicy(),
           child: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
@@ -191,7 +252,7 @@ class _PlaylistDialogState extends State<PlaylistDialog> {
                   onKey: (node, event) {
                     if (event is RawKeyDownEvent) {
                       if (event.logicalKey == LogicalKeyboardKey.arrowDown) {
-                        _cancelFocus.requestFocus();
+                        _pickFocus.requestFocus();
                         return KeyEventResult.handled;
                       } else if (event.logicalKey ==
                           LogicalKeyboardKey.arrowUp) {
@@ -215,6 +276,60 @@ class _PlaylistDialogState extends State<PlaylistDialog> {
                   ),
                 ),
               ),
+              const SizedBox(height: 8),
+              FocusTraversalOrder(
+                order: _pickOrder,
+                child: Focus(
+                  focusNode: _pickFocus,
+                  onFocusChange: (_) => setState(() {}),
+                  onKey: (node, event) {
+                    if (event is RawKeyDownEvent) {
+                      if (event.logicalKey == LogicalKeyboardKey.arrowDown) {
+                        _cancelFocus.requestFocus();
+                        return KeyEventResult.handled;
+                      } else if (event.logicalKey ==
+                          LogicalKeyboardKey.arrowUp) {
+                        _urlFocus.requestFocus();
+                        return KeyEventResult.handled;
+                      }
+                    }
+                    return KeyEventResult.ignored;
+                  },
+                  child: Align(
+                    alignment: Alignment.centerLeft,
+                    child: Builder(builder: (context) {
+                      final bool isFocused = _pickFocus.hasFocus;
+                      return TextButton.icon(
+                        onPressed: _pickLocalM3u,
+                        icon: Icon(
+                          Icons.folder_open,
+                          color: isFocused ? Colors.white : Colors.white70,
+                        ),
+                        label: Text(
+                          AppLocalizations.of(context)!.pickLocalM3u,
+                          style: TextStyle(
+                            color: isFocused ? Colors.white : Colors.white70,
+                            fontWeight:
+                                isFocused ? FontWeight.w600 : FontWeight.w400,
+                          ),
+                        ),
+                        style: TextButton.styleFrom(
+                          foregroundColor:
+                              isFocused ? Colors.white : Colors.white70,
+                          backgroundColor: isFocused
+                              ? Colors.white.withOpacity(0.12)
+                              : Colors.transparent,
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(20),
+                          ),
+                          padding: const EdgeInsets.symmetric(
+                              horizontal: 16.0, vertical: 8.0),
+                        ),
+                      );
+                    }),
+                  ),
+                ),
+              ),
             ],
           ),
         ),
@@ -224,6 +339,7 @@ class _PlaylistDialogState extends State<PlaylistDialog> {
             child: XTextButton(
               focusNode: _cancelFocus,
               text: AppLocalizations.of(context)!.cancel,
+              onArrowUp: () => _pickFocus.requestFocus(),
               onPressed: () => Navigator.of(context).pop(),
             ),
           ),

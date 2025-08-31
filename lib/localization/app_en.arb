@@ -70,5 +70,7 @@
   "right": "Right",
   "ok": "OK",
   "deleteKey": "Delete",
-  "inputPlaceholder": "Type to send to TV"
+  "inputPlaceholder": "Type to send to TV",
+  "pickLocalM3u": "Pick local M3U",
+  "nameAndUrlOrFileRequired": "Name and URL or local file is required"
 }
