@@ -345,14 +345,19 @@ jobs:
         id: notes
         run: |
           TAG="${{ steps.meta.outputs.tag_name }}"
-          cat > RELEASE_NOTES.md << 'EOF'
-          🚀 xplayer Release
+          # 获取上一个 tag（不含当前 tag）
+          PREV_TAG=$(git describe --tags --abbrev=0 "${TAG}^" 2>/dev/null || echo "")
+          # 生成 commit 列表（排除 merge commit）
+          if [ -n "$PREV_TAG" ]; then
+            COMMITS=$(git log --no-merges --pretty=format:"- %s ([%h](https://github.com/${GITHUB_REPOSITORY}/commit/%H))" "$PREV_TAG".."$TAG")
+          else
+            COMMITS=$(git log --no-merges --pretty=format:"- %s ([%h](https://github.com/${GITHUB_REPOSITORY}/commit/%H))")
+          fi
+          cat > RELEASE_NOTES.md <<'EOF'
 
-          附件包含：
-          - Android: APK 与 AAB
-          - Windows: xplayer-windows-x64.zip（未签名）
-          - macOS: xplayer-macos.zip / xplayer-macos.dmg（未签名，首次运行需通过 Gatekeeper）
-          - iOS: Runner-iphoneos.app.zip 与 Runner-unsigned.ipa（均为未签名，无法直接安装或上架，仅供存档/后续签名）
+          ## 变更记录
+
+          $COMMITS
 
           EOF
           echo "notes_file=RELEASE_NOTES.md" >> $GITHUB_OUTPUT
