@@ -1,4 +1,5 @@
 {
+    "@@locale": "zh",
     "appTitle": "xplayer",
     "appDescription": "一个免费、开源的IPTV/M3U播放器",
     "settings": "设置",
@@ -57,5 +58,17 @@
     "loadingFailed": "加载失败",
     "retrying": "尝试重新",
     "loading": "加载中",
-    "buffering": "缓冲中..."
+    "buffering": "缓冲中...",
+    "remoteInput": "远程输入",
+    "selectTv": "选择 TV 设备",
+    "send": "发送",
+    "connectedTo": "已连接: {name}@{host}",
+    "remoteKeys": "遥控按键",
+    "up": "上",
+    "down": "下",
+    "left": "左",
+    "right": "右",
+    "ok": "确定",
+    "deleteKey": "删除",
+    "inputPlaceholder": "输入文本发送到 TV"
 }

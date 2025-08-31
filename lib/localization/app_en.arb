@@ -1,4 +1,5 @@
 {
+  "@@locale": "en",
   "appTitle": "xplayer",
   "appDescription": "A free, open-source IPTV/M3U player",
   "settings": "Settings",
@@ -57,5 +58,17 @@
   "loadingFailed": "Loading Failed",
   "retrying": "Retrying",
   "loading": "Loading",
-  "buffering": "Buffering..."
+  "buffering": "Buffering...",
+  "remoteInput": "Remote Input",
+  "selectTv": "Select TV",
+  "send": "Send",
+  "connectedTo": "Connected: {name}@{host}",
+  "remoteKeys": "Remote Keys",
+  "up": "Up",
+  "down": "Down",
+  "left": "Left",
+  "right": "Right",
+  "ok": "OK",
+  "deleteKey": "Delete",
+  "inputPlaceholder": "Type to send to TV"
 }
