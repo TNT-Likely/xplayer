@@ -17,6 +17,10 @@ class XTextButton extends StatelessWidget {
   final XTextButtonSize size;
   final FocusNode? focusNode;
   final String? tooltipMessage;
+  final VoidCallback? onArrowUp;
+  final VoidCallback? onArrowDown;
+  final VoidCallback? onArrowLeft;
+  final VoidCallback? onArrowRight;
 
   const XTextButton(
       {Key? key,
@@ -30,7 +34,11 @@ class XTextButton extends StatelessWidget {
       this.type = XTextButtonType.defaultType, // 默认类型为 defaultType
       this.size = XTextButtonSize.defaultSize, // 默认尺寸为 defaultSize (之前的 small)
       this.tooltipMessage,
-      this.focusNode})
+      this.focusNode,
+      this.onArrowUp,
+      this.onArrowDown,
+      this.onArrowLeft,
+      this.onArrowRight})
       : super(key: key);
 
   Color _getBackgroundColor(BuildContext context, bool isFocus) {
@@ -99,6 +107,10 @@ class XTextButton extends StatelessWidget {
       focusNode: focusNode,
       onPressed: onPressed,
       onMore: onMore,
+      onArrowUp: onArrowUp,
+      onArrowDown: onArrowDown,
+      onArrowLeft: onArrowLeft,
+      onArrowRight: onArrowRight,
       child: (bool isFocus) {
         return Container(
           width: _getWidth(),
