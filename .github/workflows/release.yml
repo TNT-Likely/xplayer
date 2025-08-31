@@ -254,7 +254,7 @@ jobs:
         with:
           name: linux
           if-no-files-found: error
-          path: build/linux/x64/xplayer-linux-x64.tar.gz
+          path: build/linux/x64/release/xplayer-linux-x64.tar.gz
 
   release:
     name: Create GitHub Release
