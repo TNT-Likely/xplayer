@@ -261,6 +261,11 @@ jobs:
     runs-on: ubuntu-latest
     needs: [android, windows, macos, ios, linux]
     steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
       - name: Prepare release metadata
         id: meta
         shell: bash
@@ -353,11 +358,10 @@ jobs:
           else
             COMMITS=$(git log --no-merges --pretty=format:"- %s ([%h](https://github.com/${GITHUB_REPOSITORY}/commit/%H))")
           fi
-          cat > RELEASE_NOTES.md <<'EOF'
-
+          cat > RELEASE_NOTES.md <<EOF
           ## 变更记录
 
-          $COMMITS
+          ${COMMITS}
 
           EOF
           echo "notes_file=RELEASE_NOTES.md" >> $GITHUB_OUTPUT
