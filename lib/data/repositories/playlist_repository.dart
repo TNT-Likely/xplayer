@@ -8,7 +8,6 @@ import 'package:path_provider/path_provider.dart';
 import 'package:xplayer/data/models/playlist_model.dart';
 import 'package:xplayer/data/models/programme_model.dart';
 import 'package:xml/xml.dart';
-import 'package:http/http.dart' as http;
 import 'package:m3u_parser_nullsafe/m3u_parser_nullsafe.dart';
 import 'dart:convert';
 import 'package:xplayer/extensions/m3u.dart';
@@ -127,20 +126,35 @@ class PlaylistRepository {
 
   /// 从给定的URL下载M3U文件并解析它。
   Future<M3uList> loadM3UFromUrl(String url) async {
-    // 支持 http/https 与 本地文件(file:// 或 直接路径)
     final uri = Uri.tryParse(url);
+
     try {
       if (uri != null && (uri.scheme == 'http' || uri.scheme == 'https')) {
-        final response = await http.get(uri);
-        if (response.statusCode == 200) {
-          final m3uContent = utf8.decode(response.bodyBytes);
-          return M3uList.load(m3uContent);
-        } else {
-          throw Exception(
-              'Failed to load M3U file, status code: ${response.statusCode}');
+        final httpClient = HttpClient();
+        httpClient.connectionTimeout = const Duration(seconds: 30);
+
+        // 企业内网证书处理（Zscaler等代理证书）
+        httpClient.badCertificateCallback = (X509Certificate cert, String host, int port) => true;
+
+        try {
+          final request = await httpClient.getUrl(uri);
+          final response = await request.close();
+
+          if (response.statusCode == 200) {
+            final responseBody = await response.transform(utf8.decoder).join();
+            final m3uList = M3uList.load(responseBody);
+            httpClient.close();
+            return m3uList;
+          } else {
+            httpClient.close();
+            throw Exception(
+                'Failed to load M3U file, status code: ${response.statusCode}');
+          }
+        } finally {
+          httpClient.close();
         }
       } else {
-        // 处理本地文件: file:// 或无 scheme 的本地绝对/相对路径
+        // 处理本地文件
         final String filePath =
             (uri != null && uri.scheme == 'file') ? uri.toFilePath() : url;
         final file = File(filePath);
@@ -163,8 +177,8 @@ class PlaylistRepository {
     // 下载并解析M3U文件
     final m3uList = await loadM3UFromUrl(url);
 
-    late String epgUrl;
-    // 如果你还想检查 attributes 是否为空，可以在前面添加条件判断
+    // 提取 EPG URL，如果不存在则使用空字符串
+    String epgUrl = '';
     if (m3uList.header?.attributes != null &&
         m3uList.header!.attributes.isNotEmpty) {
       epgUrl = m3uList.header!.attributes['x-tvg-url'] ?? '';
@@ -187,10 +201,19 @@ class PlaylistRepository {
   }
 
   Future<List<Programme>> fetchAndParseEpgData(String url) async {
+    final httpClient = HttpClient();
+    httpClient.connectionTimeout = const Duration(seconds: 30);
+
+    // 企业内网证书处理
+    httpClient.badCertificateCallback = (X509Certificate cert, String host, int port) => true;
+
     try {
-      final response = await http.get(Uri.parse(url));
+      final uri = Uri.parse(url);
+      final request = await httpClient.getUrl(uri);
+      final response = await request.close();
+
       if (response.statusCode == 200) {
-        String body = utf8.decode(response.bodyBytes);
+        final body = await response.transform(utf8.decoder).join();
         final document = XmlDocument.parse(body);
         final programmes = <Programme>[];
 
@@ -200,11 +223,12 @@ class PlaylistRepository {
 
         return programmes;
       } else {
-        throw Exception('Failed to load EPG data');
+        throw Exception('Failed to load EPG data, status code: ${response.statusCode}');
       }
     } catch (e) {
-      print('Error fetching and parsing EPG data: $e');
       rethrow;
+    } finally {
+      httpClient.close();
     }
   }
 
@@ -217,11 +241,8 @@ class PlaylistRepository {
       final futures = playlists.map((playlist) async {
         try {
           final programmes = await fetchAndParseEpgData(playlist.epgUrl!);
-          print(
-              'Fetched ${programmes.length} programmes for playlist ${playlist.name}');
           return programmes;
         } catch (e) {
-          print('Failed to fetch programmes for playlist ${playlist.name}: $e');
           return <Programme>[]; // 返回空列表，表示该 URL 的数据获取失败
         }
       }).toList();
@@ -234,7 +255,6 @@ class PlaylistRepository {
 
       return allProgrammes;
     } catch (e) {
-      print('An error occurred while processing all playlists: $e');
       return []; // 如果发生全局错误，返回空列表
     }
   }
