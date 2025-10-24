@@ -3,7 +3,7 @@ import 'package:xplayer/shared/components/x_base_button.dart';
 
 enum XTextButtonType { defaultType, primary, danger }
 
-enum XTextButtonSize { defaultSize, large }
+enum XTextButtonSize { defaultSize, large, flexible }
 
 class XTextButton extends StatelessWidget {
   final String text;
@@ -70,13 +70,16 @@ class XTextButton extends StatelessWidget {
         .merge(textStyle);
   }
 
-  double _getWidth() {
+  double? _getWidth() {
+    if (width != null) return width;
+
     switch (size) {
       case XTextButtonSize.defaultSize:
-        return width ?? 80.0; // 更小的宽度
+        return 80.0; // 固定宽度
       case XTextButtonSize.large:
-      default:
-        return width ?? double.maxFinite; // 使用 maxFinite 表示最大内容宽度
+        return double.maxFinite; // 使用 maxFinite 表示最大内容宽度
+      case XTextButtonSize.flexible:
+        return null; // 自适应宽度
     }
   }
 
@@ -85,8 +88,9 @@ class XTextButton extends StatelessWidget {
       case XTextButtonSize.defaultSize:
         return height ?? 36.0; // 更小的高度
       case XTextButtonSize.large:
-      default:
         return height ?? 48.0; // 中等高度
+      case XTextButtonSize.flexible:
+        return height ?? 36.0; // 与 defaultSize 相同的高度
     }
   }
 
@@ -95,8 +99,9 @@ class XTextButton extends StatelessWidget {
       case XTextButtonSize.defaultSize:
         return 14.0; // 更小的字体
       case XTextButtonSize.large:
-      default:
         return 20.0; // 中等字体
+      case XTextButtonSize.flexible:
+        return 14.0; // 与 defaultSize 相同的字体大小
     }
   }
 
@@ -117,7 +122,8 @@ class XTextButton extends StatelessWidget {
           height: _getHeight(),
           padding: padding ??
               EdgeInsets.symmetric(
-                horizontal: size == XTextButtonSize.defaultSize ? 16.0 : 32.0,
+                horizontal: (size == XTextButtonSize.defaultSize ||
+                             size == XTextButtonSize.flexible) ? 16.0 : 32.0,
               ),
           decoration: BoxDecoration(
             color: _getBackgroundColor(context, isFocus),

@@ -4,6 +4,7 @@ import 'package:package_info_plus/package_info_plus.dart';
 import 'package:xplayer/data/models/playlist_model.dart';
 // 导入 FavoritesRepository
 import 'package:xplayer/presentation/screens/playlist.dart';
+import 'package:xplayer/services/update_service.dart';
 import 'package:xplayer/shared/components/x_base_button.dart';
 import 'package:xplayer/presentation/widgets/bg_wrapper.dart';
 import 'package:xplayer/presentation/widgets/channel_list_widget.dart';
@@ -396,6 +397,22 @@ class _HomeScreenState extends State<HomeScreen> {
                   ),
                   onPressed: () async {
                     await launch('https://github.com/TNT-Likely/xplayer');
+                  },
+                ),
+                XBaseButton(
+                  child: animeContainer(
+                    ListTile(
+                      leading: const Icon(Icons.system_update,
+                          color: Colors.white),
+                      title: Text(
+                        localizations.checkUpdate,
+                        style: const TextStyle(color: Colors.white),
+                      ),
+                    ),
+                  ),
+                  onPressed: () async {
+                    Navigator.of(context).pop();
+                    await UpdateService.checkUpdateWithUI(context);
                   },
                 ),
                 ListTile(
