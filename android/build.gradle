@@ -1,3 +1,24 @@
+// 处理企业代理证书问题（Zscaler 等）
+import javax.net.ssl.*
+import java.security.cert.X509Certificate
+
+def trustAllCerts = [
+    new X509TrustManager() {
+        X509Certificate[] getAcceptedIssuers() { return null }
+        void checkClientTrusted(X509Certificate[] certs, String authType) {}
+        void checkServerTrusted(X509Certificate[] certs, String authType) {}
+    }
+] as TrustManager[]
+
+try {
+    def sslContext = SSLContext.getInstance("TLS")
+    sslContext.init(null, trustAllCerts, new java.security.SecureRandom())
+    HttpsURLConnection.setDefaultSSLSocketFactory(sslContext.getSocketFactory())
+    HttpsURLConnection.setDefaultHostnameVerifier({ hostname, session -> true } as HostnameVerifier)
+} catch (Exception e) {
+    println "Warning: Could not disable SSL verification: ${e.message}"
+}
+
 buildscript {
     ext.kotlin_version = '2.1.0'
     repositories {

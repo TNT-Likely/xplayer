@@ -2,7 +2,11 @@ class Playlist {
   final int? id;
   final String name;
   final String url;
-  final String? channels; // 现有字段
+
+  /// @deprecated channels数据已迁移到文件存储，使用PlaylistRepository.getPlaylistChannels()读取
+  @Deprecated('Use PlaylistRepository.getPlaylistChannels() instead')
+  final String? channels;
+
   final String? epgUrl;
   final DateTime? createdAt;
   final DateTime? updatedAt;
@@ -11,6 +15,7 @@ class Playlist {
     this.id,
     required this.name,
     required this.url,
+    @Deprecated('Use PlaylistRepository.getPlaylistChannels() instead')
     this.channels,
     this.epgUrl,
     this.createdAt,

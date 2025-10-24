@@ -4,8 +4,10 @@ import 'package:flutter/material.dart';
 import 'package:xplayer/data/models/playlist_model.dart';
 import 'package:xplayer/data/models/channel_model.dart'; // 使用新的文件名
 import 'package:xplayer/data/models/programme_model.dart';
+import 'package:xplayer/data/models/channel_test_result.dart';
 import 'package:xplayer/data/repositories/playlist_repository.dart';
 import 'package:xplayer/data/repositories/favorites_repository.dart';
+import 'package:xplayer/services/channel_test_service.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:xplayer/extensions/m3u.dart';
 import 'package:xplayer/utils/toast.dart'; // 导入 showToast
@@ -14,12 +16,22 @@ import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 class MediaProvider with ChangeNotifier {
   final PlaylistRepository _playlistRepository = PlaylistRepository();
   final FavoritesRepository _favoritesRepository = FavoritesRepository();
+  final ChannelTestService _testService = ChannelTestService();
 
   List<Playlist> _playlists = [];
   int _currentPlaylistId = -1;
   List<Channel> _channels = [];
   List<Channel> _favoriteChannels = [];
   List<Programme> _programmes = [];
+
+  // 频道测试相关
+  Map<String, ChannelTestResult> _channelTestResults = {};
+  bool _isTesting = false;
+  int _testProgress = 0;
+  int _testTotal = 0;
+
+  // 初始化加载状态
+  bool _isInitializing = true;
 
 // 使用 late 关键字延迟初始化 localizations
   late AppLocalizations _localizations;
@@ -39,6 +51,16 @@ class MediaProvider with ChangeNotifier {
   List<Channel> get channels => _mergeChannels(_channels);
   List<Channel> get favoriteChannels => _favoriteChannels;
   List<Programme> get programmes => _programmes;
+
+  // 测试相关 getter
+  Map<String, ChannelTestResult> get channelTestResults => _channelTestResults;
+  bool get isTesting => _isTesting;
+  int get testProgress => _testProgress;
+  int get testTotal => _testTotal;
+  String get testProgressText => '$_testProgress / $_testTotal';
+
+  // 初始化状态 getter
+  bool get isInitializing => _isInitializing;
 
   void setLocalizations(AppLocalizations localizations) {
     _localizations = localizations;
@@ -92,6 +114,32 @@ class MediaProvider with ChangeNotifier {
 
     if (lastId != null) {
       await updateCurrentPlaylist(int.parse(lastId));
+    }
+  }
+
+  /// 初始化应用数据（用于启动屏）
+  Future<void> initializeApp() async {
+    try {
+      _isInitializing = true;
+      notifyListeners();
+
+      // 加载播放列表
+      await fetchPlaylists();
+
+      // 加载收藏频道
+      await fetchFavoriteChannels();
+
+      // 加载上次选择的播放列表
+      await loadLastSelectedPlaylistId();
+
+      // 加载节目单
+      await refreshProgrammes();
+
+    } catch (e) {
+      print('[MediaProvider] 初始化失败: $e');
+    } finally {
+      _isInitializing = false;
+      notifyListeners();
     }
   }
 
@@ -191,7 +239,9 @@ class MediaProvider with ChangeNotifier {
           _channels = updatedChannels.toChannels();
         } catch (error) {
           showToast(error.toString()); // 使用正确的导入
-          _channels = parseChannels(playlist.channels ?? '');
+          // Fallback: 从文件存储读取已保存的channels
+          final channelsJson = await _playlistRepository.getPlaylistChannels(_currentPlaylistId);
+          _channels = parseChannels(channelsJson ?? '');
         }
       }
     }
@@ -229,6 +279,53 @@ class MediaProvider with ChangeNotifier {
   Future<void> removeFavorite(Channel channel) async {
     await _favoritesRepository.removeFavorite(channel.id);
     _favoriteChannels.removeWhere((element) => element.id == channel.id);
+    notifyListeners();
+  }
+
+  /// 测试所有频道
+  Future<void> testAllChannels() async {
+    if (_isTesting) return; // 防止重复测试
+
+    _isTesting = true;
+    _testProgress = 0;
+    _testTotal = _channels.length;
+    _channelTestResults.clear();
+    notifyListeners();
+
+    try {
+      await _testService.testChannelsBatch(
+        _channels,
+        onProgress: (current, total, channelId, result) {
+          _testProgress = current;
+          _channelTestResults[channelId] = result;
+          notifyListeners();
+        },
+      );
+    } finally {
+      _isTesting = false;
+      notifyListeners();
+    }
+  }
+
+  /// 取消测试
+  void cancelTest() {
+    if (_isTesting) {
+      _testService.cancelTest();
+      _isTesting = false;
+      notifyListeners();
+    }
+  }
+
+  /// 获取频道的测试结果
+  ChannelTestResult? getChannelTestResult(String channelId) {
+    return _channelTestResults[channelId];
+  }
+
+  /// 清除测试结果
+  void clearTestResults() {
+    _channelTestResults.clear();
+    _testProgress = 0;
+    _testTotal = 0;
     notifyListeners();
   }
 }

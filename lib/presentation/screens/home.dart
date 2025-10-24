@@ -1,8 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
+import 'package:package_info_plus/package_info_plus.dart';
 import 'package:xplayer/data/models/playlist_model.dart';
 // 导入 FavoritesRepository
 import 'package:xplayer/presentation/screens/playlist.dart';
+import 'package:xplayer/services/update_service.dart';
 import 'package:xplayer/shared/components/x_base_button.dart';
 import 'package:xplayer/presentation/widgets/bg_wrapper.dart';
 import 'package:xplayer/presentation/widgets/channel_list_widget.dart';
@@ -28,15 +30,14 @@ class HomeScreen extends StatefulWidget {
 
 class _HomeScreenState extends State<HomeScreen> {
   final GlobalKey<ScaffoldState> _scaffoldKey = GlobalKey<ScaffoldState>();
+  String _version = 'Loading...';
 
   @override
   void initState() {
     super.initState();
-    // 确保在页面加载时调用 MediaProvider 的 initialize 方法
-    final mediaProvider = Provider.of<MediaProvider>(context, listen: false);
-    mediaProvider.initialize();
+    _loadVersion();
 
-    // 如果是 TV 端，启动远程输入服务（非 TV 不开启被发现服务）
+    // 数据已在启动屏加载，这里只需启动远程输入服务
     final globalProvider = Provider.of<GlobalProvider>(context, listen: false);
     WidgetsBinding.instance.addPostFrameCallback((_) async {
       if (!globalProvider.isMobile) {
@@ -46,6 +47,19 @@ class _HomeScreenState extends State<HomeScreen> {
         } catch (_) {}
       }
     });
+  }
+
+  Future<void> _loadVersion() async {
+    try {
+      final packageInfo = await PackageInfo.fromPlatform();
+      setState(() {
+        _version = '${packageInfo.version}+${packageInfo.buildNumber}';
+      });
+    } catch (e) {
+      setState(() {
+        _version = 'Unknown';
+      });
+    }
   }
 
   @override
@@ -140,9 +154,53 @@ class _HomeScreenState extends State<HomeScreen> {
             },
           ),
           automaticallyImplyLeading: false, // 确保不会添加默认的返回按钮
-          title: const Text(''), // 设置为空文本以避免默认标题
+          title: Consumer<MediaProvider>(
+            builder: (context, mediaProvider, _) {
+              if (mediaProvider.isTesting) {
+                return Text(
+                  '${localizations.testing}: ${mediaProvider.testProgressText}',
+                  style: const TextStyle(color: Colors.white, fontSize: 14),
+                );
+              }
+              return const Text('');
+            },
+          ),
           elevation: 0, // 移除阴影
           backgroundColor: Colors.transparent, // 使背景透明
+          actions: [
+            Consumer<MediaProvider>(
+              builder: (context, mediaProvider, _) {
+                if (mediaProvider.isTesting) {
+                  // 测试中显示取消按钮
+                  return XIconButton(
+                    icon: Icons.cancel,
+                    hoverBgOnly: true,
+                    tooltipMessage: localizations.cancel,
+                    onPressed: () {
+                      mediaProvider.cancelTest();
+                      showToast(localizations.testCancelled);
+                    },
+                  );
+                } else {
+                  // 未测试显示测试按钮
+                  return XIconButton(
+                    icon: Icons.speed,
+                    hoverBgOnly: true,
+                    tooltipMessage: localizations.testChannels,
+                    onPressed: () async {
+                      try {
+                        showToast(localizations.testingChannels);
+                        await mediaProvider.testAllChannels();
+                        showToast(localizations.testCompleted);
+                      } catch (e) {
+                        showToast(localizations.testFailed(e.toString()));
+                      }
+                    },
+                  );
+                }
+              },
+            ),
+          ],
         ),
         drawer: Drawer(
           backgroundColor: const Color.fromRGBO(34, 34, 34, 1),
@@ -337,9 +395,25 @@ class _HomeScreenState extends State<HomeScreen> {
                     await launch('https://github.com/TNT-Likely/xplayer');
                   },
                 ),
-                const ListTile(
-                  leading: Icon(Icons.info, color: Colors.white),
-                  title: Text('1.2.0', style: TextStyle(color: Colors.white)),
+                XBaseButton(
+                  child: animeContainer(
+                    ListTile(
+                      leading: const Icon(Icons.system_update,
+                          color: Colors.white),
+                      title: Text(
+                        localizations.checkUpdate,
+                        style: const TextStyle(color: Colors.white),
+                      ),
+                    ),
+                  ),
+                  onPressed: () async {
+                    Navigator.of(context).pop();
+                    await UpdateService.checkUpdateWithUI(context);
+                  },
+                ),
+                ListTile(
+                  leading: const Icon(Icons.info, color: Colors.white),
+                  title: Text(_version, style: const TextStyle(color: Colors.white)),
                 ),
               ],
             ),
