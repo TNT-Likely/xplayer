@@ -37,11 +37,7 @@ class _HomeScreenState extends State<HomeScreen> {
     super.initState();
     _loadVersion();
 
-    // 确保在页面加载时调用 MediaProvider 的 initialize 方法
-    final mediaProvider = Provider.of<MediaProvider>(context, listen: false);
-    mediaProvider.initialize();
-
-    // 如果是 TV 端，启动远程输入服务（非 TV 不开启被发现服务）
+    // 数据已在启动屏加载，这里只需启动远程输入服务
     final globalProvider = Provider.of<GlobalProvider>(context, listen: false);
     WidgetsBinding.instance.addPostFrameCallback((_) async {
       if (!globalProvider.isMobile) {

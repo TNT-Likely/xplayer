@@ -30,6 +30,9 @@ class MediaProvider with ChangeNotifier {
   int _testProgress = 0;
   int _testTotal = 0;
 
+  // 初始化加载状态
+  bool _isInitializing = true;
+
 // 使用 late 关键字延迟初始化 localizations
   late AppLocalizations _localizations;
 
@@ -55,6 +58,9 @@ class MediaProvider with ChangeNotifier {
   int get testProgress => _testProgress;
   int get testTotal => _testTotal;
   String get testProgressText => '$_testProgress / $_testTotal';
+
+  // 初始化状态 getter
+  bool get isInitializing => _isInitializing;
 
   void setLocalizations(AppLocalizations localizations) {
     _localizations = localizations;
@@ -108,6 +114,32 @@ class MediaProvider with ChangeNotifier {
 
     if (lastId != null) {
       await updateCurrentPlaylist(int.parse(lastId));
+    }
+  }
+
+  /// 初始化应用数据（用于启动屏）
+  Future<void> initializeApp() async {
+    try {
+      _isInitializing = true;
+      notifyListeners();
+
+      // 加载播放列表
+      await fetchPlaylists();
+
+      // 加载收藏频道
+      await fetchFavoriteChannels();
+
+      // 加载上次选择的播放列表
+      await loadLastSelectedPlaylistId();
+
+      // 加载节目单
+      await refreshProgrammes();
+
+    } catch (e) {
+      print('[MediaProvider] 初始化失败: $e');
+    } finally {
+      _isInitializing = false;
+      notifyListeners();
     }
   }
 
