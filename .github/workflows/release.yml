@@ -39,6 +39,28 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
+      - name: Prepare release metadata
+        id: meta
+        shell: bash
+        run: |
+          set -euo pipefail
+          IS_TAG="false"
+          TAG_NAME=""
+          if [[ "${GITHUB_REF:-}" == refs/tags/* ]]; then
+            IS_TAG="true"
+            TAG_NAME="${GITHUB_REF#refs/tags/}"
+          fi
+          if [[ -z "$TAG_NAME" ]]; then
+            INPUT_TAG="${{ github.event.inputs.tag_name || '' }}"
+            if [[ -n "$INPUT_TAG" ]]; then
+              TAG_NAME="$INPUT_TAG"
+            else
+              SHORT_SHA=$(echo "${GITHUB_SHA}" | cut -c1-7)
+              TAG_NAME="manual-${SHORT_SHA}"
+            fi
+          fi
+          echo "tag_name=$TAG_NAME" >> $GITHUB_OUTPUT
+
       - name: Setup Java 17
         uses: actions/setup-java@v4
         with:
