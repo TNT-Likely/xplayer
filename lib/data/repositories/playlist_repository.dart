@@ -11,6 +11,8 @@ import 'package:xml/xml.dart';
 import 'package:m3u_parser_nullsafe/m3u_parser_nullsafe.dart';
 import 'dart:convert';
 import 'package:xplayer/extensions/m3u.dart';
+import 'package:xplayer/data/repositories/channels_file_storage.dart';
+import 'package:xplayer/data/repositories/playlist_database_recovery.dart';
 
 class PlaylistRepository {
   static final PlaylistRepository _instance = PlaylistRepository._internal();
@@ -18,6 +20,7 @@ class PlaylistRepository {
   PlaylistRepository._internal();
 
   Database? _database;
+  final _fileStorage = ChannelsFileStorage();
 
   Future<Database> get database async {
     if (_database != null) return _database!;
@@ -29,28 +32,120 @@ class PlaylistRepository {
     final documentsDirectory = await getApplicationDocumentsDirectory();
     final path = join(documentsDirectory.path, 'playlists-2.db');
 
-    return await openDatabase(path, version: 1, // 增加版本号以便进行迁移
-        onCreate: (db, version) async {
+    // 在打开数据库前，检查是否需要迁移并创建备份
+    final dbFile = File(path);
+    if (await dbFile.exists()) {
+      try {
+        // 检查当前数据库版本
+        final tempDb = await openDatabase(path, readOnly: true);
+        final version = await tempDb.getVersion();
+        await tempDb.close();
+
+        if (version < 2) {
+          print('检测到数据库需要升级 (v$version -> v2)，创建备份...');
+          await PlaylistDatabaseRecovery.createBackup();
+        }
+      } catch (e) {
+        print('检查数据库版本时出错: $e');
+      }
+    }
+
+    return await openDatabase(
+      path,
+      version: 2, // 升级到版本2，将channels迁移到文件存储
+      onCreate: (db, version) async {
+        // 新安装直接创建不含channels字段的表
+        await db.execute('''
+          CREATE TABLE Playlists (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            name TEXT NOT NULL,
+            url TEXT NOT NULL,
+            epgUrl TEXT,
+            created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+            updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+          )
+        ''');
+        print('✓ 新数据库已创建（版本2）');
+      },
+      onUpgrade: (db, oldVersion, newVersion) async {
+        if (oldVersion < 2) {
+          // 从版本1升级到版本2：将channels从数据库迁移到文件
+          await _migrateChannelsToFiles(db);
+        }
+      },
+    );
+  }
+
+  /// 数据迁移：将channels从数据库迁移到文件存储
+  Future<void> _migrateChannelsToFiles(Database db) async {
+    try {
+      print('开始数据迁移：版本1 -> 版本2');
+
+      // 1. 先获取所有playlist的ID（不读取大字段）
+      final List<Map<String, dynamic>> idList = await db.rawQuery(
+        'SELECT id FROM Playlists'
+      );
+      print('找到 ${idList.length} 个播放列表需要迁移');
+
+      // 2. 逐个读取channels数据并保存到文件（避免一次性加载所有大数据）
+      int migratedCount = 0;
+      for (final item in idList) {
+        final id = item['id'] as int;
+
+        try {
+          // 单独查询每个playlist的channels字段
+          final result = await db.rawQuery(
+            'SELECT channels FROM Playlists WHERE id = ? LIMIT 1',
+            [id]
+          );
+
+          if (result.isNotEmpty) {
+            final channels = result[0]['channels'] as String?;
+            if (channels != null && channels.isNotEmpty) {
+              await _fileStorage.saveChannels(id, channels);
+              migratedCount++;
+              print('已迁移 playlist #$id 的 channels 数据 (${(channels.length / 1024).toStringAsFixed(1)} KB)');
+            }
+          }
+        } catch (e) {
+          // 如果某个playlist的channels太大，记录错误但继续处理其他的
+          print('⚠ 警告: 无法迁移 playlist #$id 的 channels: $e');
+        }
+      }
+      print('成功迁移 $migratedCount 个播放列表的 channels 数据到文件');
+
+      // 3. 重建表（SQLite不支持DROP COLUMN，需要重建表）
       await db.execute('''
-            CREATE TABLE Playlists (
-              id INTEGER PRIMARY KEY AUTOINCREMENT,
-              name TEXT NOT NULL,
-              url TEXT NOT NULL,
-              channels TEXT, 
-              epgUrl TEXT,
-              created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP, 
-              updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-            )
-          ''');
-    }, onUpgrade: (db, oldVersion, newVersion) async {
-      // 根据旧版本和新版本之间的差异执行不同的迁移逻辑
-      // if (oldVersion < 3) {
-      //   // 如果是从版本2升级到版本3，则添加programmes_json字段
-      //   await db.execute('''
-      //         ALTER TABLE Playlists ADD COLUMN programmes_json TEXT;
-      //       ''');
-      // }
-    });
+        CREATE TABLE Playlists_new (
+          id INTEGER PRIMARY KEY,
+          name TEXT NOT NULL,
+          url TEXT NOT NULL,
+          epgUrl TEXT,
+          created_at TIMESTAMP,
+          updated_at TIMESTAMP
+        )
+      ''');
+      print('创建新表结构完成');
+
+      // 4. 复制数据（不包括channels字段），保留原有id
+      await db.execute('''
+        INSERT INTO Playlists_new (id, name, url, epgUrl, created_at, updated_at)
+        SELECT id, name, url, epgUrl, created_at, updated_at FROM Playlists
+      ''');
+      print('数据复制到新表完成');
+
+      // 5. 删除旧表
+      await db.execute('DROP TABLE Playlists');
+      print('删除旧表完成');
+
+      // 6. 重命名新表
+      await db.execute('ALTER TABLE Playlists_new RENAME TO Playlists');
+      print('✓ 数据迁移完成：channels已从数据库迁移到文件存储');
+    } catch (e, stackTrace) {
+      print('✗ 数据迁移失败: $e');
+      print('Stack trace: $stackTrace');
+      rethrow;
+    }
   }
 
 // 插入新的播放列表
@@ -62,7 +157,6 @@ class PlaylistRepository {
         {
           'name': playlist.name,
           'url': playlist.url,
-          'channels': playlist.channels,
           'created_at': now,
           'updated_at': now,
         },
@@ -81,7 +175,6 @@ class PlaylistRepository {
         'name': playlist.name,
         'url': playlist.url,
         'epgUrl': playlist.epgUrl,
-        'channels': playlist.channels,
         'updated_at': now,
       },
       where: 'id = ?',
@@ -92,6 +185,10 @@ class PlaylistRepository {
   // 删除播放列表
   Future<int> deletePlaylist(int id) async {
     final db = await database;
+
+    // 同时删除channels文件
+    await _fileStorage.deleteChannels(id);
+
     return await db.delete(
       'Playlists',
       where: 'id = ?',
@@ -99,20 +196,25 @@ class PlaylistRepository {
     );
   }
 
-  // 获取所有播放列表
+  // 获取所有播放列表（不加载 channels 字段，避免数据过大）
   Future<List<Playlist>> getAllPlaylists() async {
     final db = await database;
-    final List<Map<String, dynamic>> maps = await db.query('Playlists');
+    // 只查询必要的列，排除 channels 字段（可能很大）
+    final List<Map<String, dynamic>> maps = await db.query(
+      'Playlists',
+      columns: ['id', 'name', 'url', 'epgUrl', 'created_at', 'updated_at'],
+    );
     return List.generate(maps.length, (i) {
       return Playlist.fromMap(maps[i]);
     });
   }
 
-// 根据 ID 获取播放列表
+// 根据 ID 获取播放列表（不加载 channels 字段，避免数据过大）
   Future<Playlist?> getPlaylistById(int id) async {
     final db = await database;
     final List<Map<String, dynamic>> maps = await db.query(
       'Playlists',
+      columns: ['id', 'name', 'url', 'epgUrl', 'created_at', 'updated_at'],
       where: 'id = ?',
       whereArgs: [id],
     );
@@ -122,6 +224,16 @@ class PlaylistRepository {
     }
 
     return null;
+  }
+
+  /// 获取播放列表的channels数据（从文件存储读取）
+  Future<String?> getPlaylistChannels(int playlistId) async {
+    return await _fileStorage.loadChannels(playlistId);
+  }
+
+  /// 保存播放列表的channels数据（到文件存储）
+  Future<void> savePlaylistChannels(int playlistId, String channelsJson) async {
+    await _fileStorage.saveChannels(playlistId, channelsJson);
   }
 
   /// 从给定的URL下载M3U文件并解析它。
@@ -186,15 +298,16 @@ class PlaylistRepository {
 
     // 将 M3uList 转换为 JSON 字符串
     final channels = m3uList.toChannels();
+    final channelsJson = jsonEncode(channels);
 
     if (playlist != null) {
-      final newPlaylist = playlist.copyWith(
-        epgUrl: epgUrl,
-        channels: jsonEncode(channels),
-      );
+      final newPlaylist = playlist.copyWith(epgUrl: epgUrl);
 
-      // 更新数据库中的播放列表记录
+      // 更新数据库中的播放列表记录（不包含channels）
       await updatePlaylist(newPlaylist);
+
+      // 将channels保存到文件存储
+      await savePlaylistChannels(playlistId, channelsJson);
     }
 
     return m3uList;

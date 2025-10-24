@@ -72,5 +72,11 @@
   "deleteKey": "Delete",
   "inputPlaceholder": "Type to send to TV",
   "pickLocalM3u": "Pick local M3U",
-  "nameAndUrlOrFileRequired": "Name and URL or local file is required"
+  "nameAndUrlOrFileRequired": "Name and URL or local file is required",
+  "testChannels": "Test Channels",
+  "testing": "Testing",
+  "testingChannels": "Testing channels...",
+  "testCompleted": "Test completed",
+  "testFailed": "Test failed: {error}",
+  "testCancelled": "Test cancelled"
 }

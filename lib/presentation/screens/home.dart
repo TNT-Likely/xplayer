@@ -140,9 +140,53 @@ class _HomeScreenState extends State<HomeScreen> {
             },
           ),
           automaticallyImplyLeading: false, // 确保不会添加默认的返回按钮
-          title: const Text(''), // 设置为空文本以避免默认标题
+          title: Consumer<MediaProvider>(
+            builder: (context, mediaProvider, _) {
+              if (mediaProvider.isTesting) {
+                return Text(
+                  '${localizations.testing}: ${mediaProvider.testProgressText}',
+                  style: const TextStyle(color: Colors.white, fontSize: 14),
+                );
+              }
+              return const Text('');
+            },
+          ),
           elevation: 0, // 移除阴影
           backgroundColor: Colors.transparent, // 使背景透明
+          actions: [
+            Consumer<MediaProvider>(
+              builder: (context, mediaProvider, _) {
+                if (mediaProvider.isTesting) {
+                  // 测试中显示取消按钮
+                  return XIconButton(
+                    icon: Icons.cancel,
+                    hoverBgOnly: true,
+                    tooltipMessage: localizations.cancel,
+                    onPressed: () {
+                      mediaProvider.cancelTest();
+                      showToast(localizations.testCancelled);
+                    },
+                  );
+                } else {
+                  // 未测试显示测试按钮
+                  return XIconButton(
+                    icon: Icons.speed,
+                    hoverBgOnly: true,
+                    tooltipMessage: localizations.testChannels,
+                    onPressed: () async {
+                      try {
+                        showToast(localizations.testingChannels);
+                        await mediaProvider.testAllChannels();
+                        showToast(localizations.testCompleted);
+                      } catch (e) {
+                        showToast(localizations.testFailed(e.toString()));
+                      }
+                    },
+                  );
+                }
+              },
+            ),
+          ],
         ),
         drawer: Drawer(
           backgroundColor: const Color.fromRGBO(34, 34, 34, 1),

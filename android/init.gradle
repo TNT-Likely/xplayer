@@ -1,0 +1,32 @@
+// Gradle 初始化脚本 - 处理企业代理证书问题（如 Zscaler）
+
+import javax.net.ssl.*
+import java.security.cert.X509Certificate
+
+// 创建信任所有证书的 TrustManager
+def trustAllCerts = [
+    new X509TrustManager() {
+        X509Certificate[] getAcceptedIssuers() { return null }
+        void checkClientTrusted(X509Certificate[] certs, String authType) {}
+        void checkServerTrusted(X509Certificate[] certs, String authType) {}
+    }
+] as TrustManager[]
+
+// 创建信任所有主机的 HostnameVerifier
+def trustAllHosts = new HostnameVerifier() {
+    boolean verify(String hostname, SSLSession session) { return true }
+}
+
+try {
+    // 初始化 SSL 上下文
+    def sslContext = SSLContext.getInstance("TLS")
+    sslContext.init(null, trustAllCerts, new java.security.SecureRandom())
+
+    // 设置默认的 SSLSocketFactory 和 HostnameVerifier
+    HttpsURLConnection.setDefaultSSLSocketFactory(sslContext.getSocketFactory())
+    HttpsURLConnection.setDefaultHostnameVerifier(trustAllHosts)
+
+    println "✓ SSL certificate verification disabled for Gradle (Corporate proxy mode)"
+} catch (Exception e) {
+    println "⚠ Failed to disable SSL verification: ${e.message}"
+}

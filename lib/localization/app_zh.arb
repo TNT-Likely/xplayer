@@ -72,5 +72,11 @@
     "deleteKey": "删除",
     "inputPlaceholder": "输入文本发送到 TV",
     "pickLocalM3u": "选择本地 M3U",
-    "nameAndUrlOrFileRequired": "名称和 URL 或本地文件必须填写其一"
+    "nameAndUrlOrFileRequired": "名称和 URL 或本地文件必须填写其一",
+    "testChannels": "测试频道",
+    "testing": "测试中",
+    "testingChannels": "正在测试频道...",
+    "testCompleted": "测试完成",
+    "testFailed": "测试失败：{error}",
+    "testCancelled": "已取消测试"
 }
