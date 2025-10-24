@@ -59,6 +59,19 @@ jobs:
           channel: "stable"
           cache: true
 
+      - name: Update pubspec.yaml version
+        run: |
+          VERSION='${{ steps.meta.outputs.tag_name }}'
+          echo "Updating pubspec.yaml version to: $VERSION"
+          # 去掉 v 前缀
+          CLEAN_VERSION=${VERSION#v}
+          # 使用 GitHub run number 作为构建号
+          BUILD_NUMBER=${{ github.run_number }}
+          # 更新 pubspec.yaml
+          sed -i "s/^version: .*/version: ${CLEAN_VERSION}+${BUILD_NUMBER}/" pubspec.yaml
+          echo "Updated version in pubspec.yaml:"
+          grep "^version:" pubspec.yaml
+
       - name: Flutter pub get
         run: flutter pub get
 
@@ -89,6 +102,28 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
+      - name: Prepare release metadata
+        id: meta
+        shell: bash
+        run: |
+          set -euo pipefail
+          IS_TAG="false"
+          TAG_NAME=""
+          if [[ "${GITHUB_REF:-}" == refs/tags/* ]]; then
+            IS_TAG="true"
+            TAG_NAME="${GITHUB_REF#refs/tags/}"
+          fi
+          if [[ -z "$TAG_NAME" ]]; then
+            INPUT_TAG="${{ github.event.inputs.tag_name || '' }}"
+            if [[ -n "$INPUT_TAG" ]]; then
+              TAG_NAME="$INPUT_TAG"
+            else
+              SHORT_SHA=$(echo "${GITHUB_SHA}" | cut -c1-7)
+              TAG_NAME="manual-${SHORT_SHA}"
+            fi
+          fi
+          echo "tag_name=$TAG_NAME" >> $GITHUB_OUTPUT
+
       - name: Setup Flutter
         uses: subosito/flutter-action@v2
         with:
@@ -98,6 +133,17 @@ jobs:
 
       - name: Enable Windows desktop
         run: flutter config --enable-windows-desktop
+
+      - name: Update pubspec.yaml version
+        shell: bash
+        run: |
+          VERSION='${{ steps.meta.outputs.tag_name }}'
+          echo "Updating pubspec.yaml version to: $VERSION"
+          CLEAN_VERSION=${VERSION#v}
+          BUILD_NUMBER=${{ github.run_number }}
+          sed -i "s/^version: .*/version: ${CLEAN_VERSION}+${BUILD_NUMBER}/" pubspec.yaml
+          echo "Updated version in pubspec.yaml:"
+          grep "^version:" pubspec.yaml
 
       - name: Flutter pub get
         run: flutter pub get
@@ -129,6 +175,28 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
+      - name: Prepare release metadata
+        id: meta
+        shell: bash
+        run: |
+          set -euo pipefail
+          IS_TAG="false"
+          TAG_NAME=""
+          if [[ "${GITHUB_REF:-}" == refs/tags/* ]]; then
+            IS_TAG="true"
+            TAG_NAME="${GITHUB_REF#refs/tags/}"
+          fi
+          if [[ -z "$TAG_NAME" ]]; then
+            INPUT_TAG="${{ github.event.inputs.tag_name || '' }}"
+            if [[ -n "$INPUT_TAG" ]]; then
+              TAG_NAME="$INPUT_TAG"
+            else
+              SHORT_SHA=$(echo "${GITHUB_SHA}" | cut -c1-7)
+              TAG_NAME="manual-${SHORT_SHA}"
+            fi
+          fi
+          echo "tag_name=$TAG_NAME" >> $GITHUB_OUTPUT
+
       - name: Setup Flutter
         uses: subosito/flutter-action@v2
         with:
@@ -138,6 +206,16 @@ jobs:
 
       - name: Enable macOS desktop
         run: flutter config --enable-macos-desktop
+
+      - name: Update pubspec.yaml version
+        run: |
+          VERSION='${{ steps.meta.outputs.tag_name }}'
+          echo "Updating pubspec.yaml version to: $VERSION"
+          CLEAN_VERSION=${VERSION#v}
+          BUILD_NUMBER=${{ github.run_number }}
+          sed -i "" "s/^version: .*/version: ${CLEAN_VERSION}+${BUILD_NUMBER}/" pubspec.yaml
+          echo "Updated version in pubspec.yaml:"
+          grep "^version:" pubspec.yaml
 
       - name: Flutter pub get
         run: flutter pub get
@@ -181,12 +259,44 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
+      - name: Prepare release metadata
+        id: meta
+        shell: bash
+        run: |
+          set -euo pipefail
+          IS_TAG="false"
+          TAG_NAME=""
+          if [[ "${GITHUB_REF:-}" == refs/tags/* ]]; then
+            IS_TAG="true"
+            TAG_NAME="${GITHUB_REF#refs/tags/}"
+          fi
+          if [[ -z "$TAG_NAME" ]]; then
+            INPUT_TAG="${{ github.event.inputs.tag_name || '' }}"
+            if [[ -n "$INPUT_TAG" ]]; then
+              TAG_NAME="$INPUT_TAG"
+            else
+              SHORT_SHA=$(echo "${GITHUB_SHA}" | cut -c1-7)
+              TAG_NAME="manual-${SHORT_SHA}"
+            fi
+          fi
+          echo "tag_name=$TAG_NAME" >> $GITHUB_OUTPUT
+
       - name: Setup Flutter
         uses: subosito/flutter-action@v2
         with:
           flutter-version: ${{ env.FLUTTER_VERSION }}
           channel: "stable"
           cache: true
+
+      - name: Update pubspec.yaml version
+        run: |
+          VERSION='${{ steps.meta.outputs.tag_name }}'
+          echo "Updating pubspec.yaml version to: $VERSION"
+          CLEAN_VERSION=${VERSION#v}
+          BUILD_NUMBER=${{ github.run_number }}
+          sed -i "" "s/^version: .*/version: ${CLEAN_VERSION}+${BUILD_NUMBER}/" pubspec.yaml
+          echo "Updated version in pubspec.yaml:"
+          grep "^version:" pubspec.yaml
 
       - name: Flutter pub get
         run: flutter pub get
@@ -223,6 +333,28 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
+      - name: Prepare release metadata
+        id: meta
+        shell: bash
+        run: |
+          set -euo pipefail
+          IS_TAG="false"
+          TAG_NAME=""
+          if [[ "${GITHUB_REF:-}" == refs/tags/* ]]; then
+            IS_TAG="true"
+            TAG_NAME="${GITHUB_REF#refs/tags/}"
+          fi
+          if [[ -z "$TAG_NAME" ]]; then
+            INPUT_TAG="${{ github.event.inputs.tag_name || '' }}"
+            if [[ -n "$INPUT_TAG" ]]; then
+              TAG_NAME="$INPUT_TAG"
+            else
+              SHORT_SHA=$(echo "${GITHUB_SHA}" | cut -c1-7)
+              TAG_NAME="manual-${SHORT_SHA}"
+            fi
+          fi
+          echo "tag_name=$TAG_NAME" >> $GITHUB_OUTPUT
+
       - name: Install Linux build dependencies
         run: sudo apt-get update && sudo apt-get install -y libgtk-3-dev
 
@@ -235,6 +367,16 @@ jobs:
 
       - name: Enable Linux desktop
         run: flutter config --enable-linux-desktop
+
+      - name: Update pubspec.yaml version
+        run: |
+          VERSION='${{ steps.meta.outputs.tag_name }}'
+          echo "Updating pubspec.yaml version to: $VERSION"
+          CLEAN_VERSION=${VERSION#v}
+          BUILD_NUMBER=${{ github.run_number }}
+          sed -i "s/^version: .*/version: ${CLEAN_VERSION}+${BUILD_NUMBER}/" pubspec.yaml
+          echo "Updated version in pubspec.yaml:"
+          grep "^version:" pubspec.yaml
 
       - name: Flutter pub get
         run: flutter pub get

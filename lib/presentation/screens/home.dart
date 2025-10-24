@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
+import 'package:package_info_plus/package_info_plus.dart';
 import 'package:xplayer/data/models/playlist_model.dart';
 // 导入 FavoritesRepository
 import 'package:xplayer/presentation/screens/playlist.dart';
@@ -28,10 +29,13 @@ class HomeScreen extends StatefulWidget {
 
 class _HomeScreenState extends State<HomeScreen> {
   final GlobalKey<ScaffoldState> _scaffoldKey = GlobalKey<ScaffoldState>();
+  String _version = 'Loading...';
 
   @override
   void initState() {
     super.initState();
+    _loadVersion();
+
     // 确保在页面加载时调用 MediaProvider 的 initialize 方法
     final mediaProvider = Provider.of<MediaProvider>(context, listen: false);
     mediaProvider.initialize();
@@ -46,6 +50,19 @@ class _HomeScreenState extends State<HomeScreen> {
         } catch (_) {}
       }
     });
+  }
+
+  Future<void> _loadVersion() async {
+    try {
+      final packageInfo = await PackageInfo.fromPlatform();
+      setState(() {
+        _version = '${packageInfo.version}+${packageInfo.buildNumber}';
+      });
+    } catch (e) {
+      setState(() {
+        _version = 'Unknown';
+      });
+    }
   }
 
   @override
@@ -381,9 +398,9 @@ class _HomeScreenState extends State<HomeScreen> {
                     await launch('https://github.com/TNT-Likely/xplayer');
                   },
                 ),
-                const ListTile(
-                  leading: Icon(Icons.info, color: Colors.white),
-                  title: Text('1.2.0', style: TextStyle(color: Colors.white)),
+                ListTile(
+                  leading: const Icon(Icons.info, color: Colors.white),
+                  title: Text(_version, style: const TextStyle(color: Colors.white)),
                 ),
               ],
             ),
