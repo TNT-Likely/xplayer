@@ -1,4 +1,4 @@
-package com.example.xplayer
+package com.tntlikely.xplayer
 
 import io.flutter.embedding.android.FlutterActivity
 
