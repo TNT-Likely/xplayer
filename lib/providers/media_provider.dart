@@ -104,6 +104,19 @@ class MediaProvider with ChangeNotifier {
     notifyListeners();
   }
 
+  /// 按 URL 去重添加：已存在同 URL 的播放列表则直接返回(不重复创建)。
+  /// 用于「推荐源」——重复点击或点已添加过的预置只会切换、不会产生重复项。
+  Future<Playlist> addOrGetPlaylistByUrl(String name, String url) async {
+    for (final p in _playlists) {
+      if (p.url == url) return p;
+    }
+    final created = await _playlistRepository
+        .insertPlaylist(Playlist(name: name, url: url));
+    _playlists.add(created);
+    notifyListeners();
+    return created;
+  }
+
   Future<void> removePlaylist(int id) async {
     await _playlistRepository.deletePlaylist(id); // 使用 deletePlaylist
     _playlists.removeWhere((playlist) => playlist.id == id);

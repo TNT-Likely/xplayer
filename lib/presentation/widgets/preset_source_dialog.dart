@@ -55,9 +55,10 @@ class _PresetSourceDialogState extends State<PresetSourceDialog> {
     Navigator.of(context).pop();
     try {
       showToast(l.updatingChannels);
-      await media.addPlaylist(_presetName(l, preset), preset.url);
-      final added = media.playlists.isNotEmpty ? media.playlists.last : null;
-      final id = added?.id;
+      // 按 URL 去重：已添加过的预置源直接切换，不重复创建
+      final playlist =
+          await media.addOrGetPlaylistByUrl(_presetName(l, preset), preset.url);
+      final id = playlist.id;
       if (id != null) {
         final prefs = await SharedPreferences.getInstance();
         await prefs.setString('lastSelectedPlaylistId', id.toString());
