@@ -39,9 +39,18 @@ class _ChannelFilterBarState extends State<ChannelFilterBar> {
     final groups = media.availableGroups;
     final selected = media.selectedGroup;
 
-    // 外部清空(如切换播放列表 _resetFilters)后，让输入框跟随
+    // 外部清空(如切换播放列表 _resetFilters)后，让输入框跟随。
+    // 用 post-frame 回调，避免在 build 期间修改 controller 触发 markNeedsBuild。
     if (media.searchQuery.isEmpty && _controller.text.isNotEmpty) {
-      _controller.clear();
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (mounted &&
+            _controller.text.isNotEmpty &&
+            Provider.of<MediaProvider>(context, listen: false)
+                .searchQuery
+                .isEmpty) {
+          _controller.clear();
+        }
+      });
     }
 
     return Column(
