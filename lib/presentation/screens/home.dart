@@ -8,6 +8,7 @@ import 'package:xplayer/services/update_service.dart';
 import 'package:xplayer/shared/components/x_base_button.dart';
 import 'package:xplayer/presentation/widgets/bg_wrapper.dart';
 import 'package:xplayer/presentation/widgets/channel_list_widget.dart';
+import 'package:xplayer/presentation/widgets/channel_filter_bar.dart';
 import 'package:xplayer/presentation/widgets/playlist_dialog.dart';
 import 'package:xplayer/presentation/widgets/preset_source_dialog.dart';
 import 'package:xplayer/shared/components/x_text_button.dart';
@@ -505,23 +506,47 @@ class _HomeScreenState extends State<HomeScreen> {
                     ),
                   );
                 } else {
-                  return ChannelListWidget(
-                    channels: mediaProvider.channels,
-                    favoriteChannels: mediaProvider.favoriteChannels,
-                    onChannelUpdated: () async {
-                      try {
-                        final mediaProvider = Provider.of<MediaProvider>(
-                          context,
-                          listen: false,
-                        );
-                        await mediaProvider.refreshChannels();
-                        showToast(localizations.channelsUpdatedSuccessfully);
-                      } catch (e) {
-                        showToast(
-                          localizations.channelsUpdateFailed(e.toString()),
-                        );
-                      }
-                    },
+                  final filtered = mediaProvider.filteredChannels;
+                  return Column(
+                    children: [
+                      const ChannelFilterBar(),
+                      Expanded(
+                        child: filtered.isEmpty
+                            ? Center(
+                                child: Column(
+                                  mainAxisAlignment: MainAxisAlignment.center,
+                                  children: [
+                                    const Icon(Icons.search_off,
+                                        color: Colors.white, size: 60),
+                                    Text(
+                                      localizations.noChannelsFound,
+                                      style:
+                                          const TextStyle(color: Colors.white),
+                                    ),
+                                  ],
+                                ),
+                              )
+                            : ChannelListWidget(
+                                channels: filtered,
+                                favoriteChannels:
+                                    mediaProvider.favoriteChannels,
+                                onChannelUpdated: () async {
+                                  try {
+                                    final mp = Provider.of<MediaProvider>(
+                                      context,
+                                      listen: false,
+                                    );
+                                    await mp.refreshChannels();
+                                    showToast(localizations
+                                        .channelsUpdatedSuccessfully);
+                                  } catch (e) {
+                                    showToast(localizations
+                                        .channelsUpdateFailed(e.toString()));
+                                  }
+                                },
+                              ),
+                      ),
+                    ],
                   );
                 }
               },
