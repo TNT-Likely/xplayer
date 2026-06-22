@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:xplayer/shared/components/x_base_button.dart';
 import 'package:xplayer/shared/components/x_text_button.dart';
+import 'package:xplayer/shared/theme/app_tokens.dart';
 import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 
 class DialogUtils {
@@ -154,9 +155,12 @@ class DialogUtils {
       barrierColor: Colors.transparent,
       builder: (BuildContext context) {
         return AlertDialog(
-          backgroundColor: Colors.transparent,
+          backgroundColor: AppTokens.surfacePanel,
           surfaceTintColor: Colors.transparent,
-          title: title != null ? Text(title) : null,
+          title: title != null
+              ? Text(title,
+                  style: const TextStyle(color: AppTokens.textPrimary))
+              : null,
           content: Column(
             mainAxisSize: MainAxisSize.min,
             children: [...children],

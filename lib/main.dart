@@ -37,7 +37,8 @@ class MyApp extends StatelessWidget {
     final localeProvider = Provider.of<LocaleProvider>(context);
 
     return MaterialApp(
-      title: 'Flutter Demo',
+      title: 'XPlayer',
+      debugShowCheckedModeBanner: false,
       navigatorKey: AppNav.key,
       localizationsDelegates: const [
         AppLocalizations.delegate,
