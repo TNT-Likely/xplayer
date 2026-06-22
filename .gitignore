@@ -32,6 +32,8 @@ migrate_working_dir/
 .pub-cache/
 .pub/
 .docs
+# 规划文档(spec/plan)放 .docs/;docs/ 不提交到仓库
+/docs/
 /build/
 
 # Symbolication related
