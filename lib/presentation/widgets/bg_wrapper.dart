@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'dart:ui' as ui;
+import 'package:xplayer/shared/theme/app_tokens.dart';
 
 class BgWrapper extends StatelessWidget {
   final Widget child;
@@ -10,7 +11,7 @@ class BgWrapper extends StatelessWidget {
     Key? key,
     required this.child,
     this.imagePath = 'assets/images/bg2.jpg', // 默认背景图片路径
-    this.backgroundColor = const Color.fromRGBO(0, 0, 0, 0.5), // 默认背景颜色
+    this.backgroundColor = AppTokens.scrim, // 默认背景遮罩(单层,避免叠加过暗)
   }) : super(key: key);
 
   @override

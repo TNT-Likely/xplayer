@@ -151,8 +151,8 @@ class _HomeScreenState extends State<HomeScreen> {
 
     return BgWrapper(
       child: Scaffold(
-        backgroundColor: const Color.fromRGBO(0, 0, 0, 0.5),
-        // backgroundColor: Colors.transparent,
+        // 背景由 BgWrapper 统一提供(单层遮罩);此处透明,避免二次叠加导致背景过暗/消失
+        backgroundColor: Colors.transparent,
         key: _scaffoldKey,
         appBar: AppBar(
           leading: XIconButton(
