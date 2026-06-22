@@ -47,6 +47,11 @@ app.*.map.json
 /android/app/profile
 /android/app/release
 
+# Android signing (do NOT commit keystore or credentials)
+android/key.properties
+*.jks
+*.keystore
+
 lib/generated
 lib/l10n
 
