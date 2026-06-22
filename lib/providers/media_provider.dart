@@ -6,6 +6,7 @@ import 'package:xplayer/data/models/channel_model.dart'; // 使用新的文件�
 import 'package:xplayer/data/models/programme_model.dart';
 import 'package:xplayer/data/models/channel_test_result.dart';
 import 'package:xplayer/data/models/iptv_presets.dart';
+import 'package:xplayer/utils/channel_filter.dart';
 import 'package:xplayer/data/repositories/playlist_repository.dart';
 import 'package:xplayer/data/repositories/favorites_repository.dart';
 import 'package:xplayer/services/channel_test_service.dart';
@@ -24,6 +25,10 @@ class MediaProvider with ChangeNotifier {
   List<Channel> _channels = [];
   List<Channel> _favoriteChannels = [];
   List<Programme> _programmes = [];
+
+  // 频道筛选状态(分组 + 搜索)
+  String _searchQuery = '';
+  String? _selectedGroup;
 
   // 频道测试相关
   Map<String, ChannelTestResult> _channelTestResults = {};
@@ -50,6 +55,18 @@ class MediaProvider with ChangeNotifier {
   }
 
   List<Channel> get channels => _mergeChannels(_channels);
+
+  /// 当前搜索关键字与选中分组。
+  String get searchQuery => _searchQuery;
+  String? get selectedGroup => _selectedGroup;
+
+  /// 应用「搜索 + 分组」过滤后的频道(供网格展示)。
+  List<Channel> get filteredChannels =>
+      filterChannels(channels, query: _searchQuery, group: _selectedGroup);
+
+  /// 当前频道里去重的分组(供筛选 chips)。
+  List<String> get availableGroups => distinctGroups(channels);
+
   List<Channel> get favoriteChannels => _favoriteChannels;
   List<Programme> get programmes => _programmes;
 
@@ -99,6 +116,7 @@ class MediaProvider with ChangeNotifier {
   }
 
   Future<void> updateCurrentPlaylist(int newId) async {
+    _resetFilters(); // 切换播放列表时清空搜索/分组
     setState(newId);
     await fetchChannels(); // 切换播放单后立即刷新频道列表
     notifyListeners();
@@ -107,6 +125,23 @@ class MediaProvider with ChangeNotifier {
   void setState(int newId) {
     _currentPlaylistId = newId;
     notifyListeners();
+  }
+
+  /// 设置搜索关键字。
+  void setSearchQuery(String query) {
+    _searchQuery = query;
+    notifyListeners();
+  }
+
+  /// 设置选中分组(null/空 表示全部)。
+  void setSelectedGroup(String? group) {
+    _selectedGroup = group;
+    notifyListeners();
+  }
+
+  void _resetFilters() {
+    _searchQuery = '';
+    _selectedGroup = null;
   }
 
   Future<void> loadLastSelectedPlaylistId() async {
