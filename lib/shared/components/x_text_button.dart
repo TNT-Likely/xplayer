@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:xplayer/shared/components/x_base_button.dart';
+import 'package:xplayer/shared/theme/app_tokens.dart';
 
 enum XTextButtonType { defaultType, primary, danger }
 
@@ -51,9 +52,7 @@ class XTextButton extends StatelessWidget {
         return isFocus ? Colors.red.withOpacity(0.75) : Colors.red;
       case XTextButtonType.defaultType:
       default:
-        return isFocus
-            ? Colors.white.withOpacity(0.35)
-            : Colors.white.withOpacity(0.15);
+        return isFocus ? AppTokens.focusFillDefault : AppTokens.fillDefault;
     }
   }
 
