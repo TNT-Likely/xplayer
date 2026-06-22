@@ -104,5 +104,15 @@
   "installNow": "Install Now",
   "downloadingUpdate": "Downloading Update",
   "downloading": "Downloading... {progress}%",
-  "downloadInBackground": "Background Download"
+  "downloadInBackground": "Background Download",
+  "recommendedSources": "Recommended Sources",
+  "recommendedSourcesDesc": "Add public iptv-org channels in one tap",
+  "presetChina": "China",
+  "presetSports": "Sports",
+  "presetNews": "News",
+  "presetAll": "All Channels",
+  "presetDisclaimer": "Channels come from the public iptv-org list (aggregation only) and can be removed anytime.",
+  "search": "Search",
+  "searchChannelsHint": "Search channel name",
+  "allGroups": "All"
 }

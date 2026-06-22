@@ -9,6 +9,8 @@ import 'package:xplayer/shared/components/x_base_button.dart';
 import 'package:xplayer/presentation/widgets/bg_wrapper.dart';
 import 'package:xplayer/presentation/widgets/channel_list_widget.dart';
 import 'package:xplayer/presentation/widgets/playlist_dialog.dart';
+import 'package:xplayer/presentation/widgets/preset_source_dialog.dart';
+import 'package:xplayer/shared/components/x_text_button.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:xplayer/providers/locale_provider.dart';
 import 'package:xplayer/shared/components/x_icon_button.dart';
@@ -96,6 +98,13 @@ class _HomeScreenState extends State<HomeScreen> {
           },
         );
       },
+    );
+  }
+
+  void _showPresetSources(BuildContext context) {
+    showDialog(
+      context: context,
+      builder: (_) => const PresetSourceDialog(),
     );
   }
 
@@ -344,6 +353,22 @@ class _HomeScreenState extends State<HomeScreen> {
                     ),
                   ),
                 ),
+                XBaseButton(
+                  onPressed: () {
+                    Navigator.of(context).pop();
+                    _showPresetSources(context);
+                  },
+                  child: animeContainer(
+                    ListTile(
+                      leading:
+                          const Icon(Icons.recommend, color: Colors.white),
+                      title: Text(
+                        localizations.recommendedSources,
+                        style: const TextStyle(color: Colors.white),
+                      ),
+                    ),
+                  ),
+                ),
                 Consumer<GlobalProvider>(builder: (context, g, _) {
                   if (g.isTV) return const SizedBox.shrink();
                   return XBaseButton(
@@ -425,26 +450,41 @@ class _HomeScreenState extends State<HomeScreen> {
               builder: (context, mediaProvider, _) {
                 if (mediaProvider.playlists.isEmpty) {
                   return Center(
-                    child: XBaseButton(
-                      onPressed: () => _showAddDialog(context),
-                      child: (isFocused) => Column(
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          const Icon(
-                            Icons.add,
-                            size: 48.0,
-                            color: Colors.white,
-                          ), // 增大图标尺寸
-                          const SizedBox(height: 8.0),
-                          Text(
-                            localizations.addPlaylist,
-                            style: const TextStyle(
-                              fontSize: 16.0,
-                              color: Colors.white,
-                            ),
+                    child: Column(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        XBaseButton(
+                          onPressed: () => _showAddDialog(context),
+                          child: (isFocused) => Column(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              const Icon(
+                                Icons.add,
+                                size: 48.0,
+                                color: Colors.white,
+                              ),
+                              const SizedBox(height: 8.0),
+                              Text(
+                                localizations.addPlaylist,
+                                style: const TextStyle(
+                                  fontSize: 16.0,
+                                  color: Colors.white,
+                                ),
+                              ),
+                            ],
                           ),
-                        ],
-                      ),
+                        ),
+                        const SizedBox(height: 16.0),
+                        SizedBox(
+                          width: 240,
+                          child: XTextButton(
+                            text: localizations.recommendedSources,
+                            size: XTextButtonSize.large,
+                            type: XTextButtonType.primary,
+                            onPressed: () => _showPresetSources(context),
+                          ),
+                        ),
+                      ],
                     ),
                   );
                 } else if (mediaProvider.channels.isEmpty) {

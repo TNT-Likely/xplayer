@@ -5,6 +5,7 @@ import 'package:xplayer/data/models/playlist_model.dart';
 import 'package:xplayer/data/models/channel_model.dart'; // 使用新的文件名
 import 'package:xplayer/data/models/programme_model.dart';
 import 'package:xplayer/data/models/channel_test_result.dart';
+import 'package:xplayer/data/models/iptv_presets.dart';
 import 'package:xplayer/data/repositories/playlist_repository.dart';
 import 'package:xplayer/data/repositories/favorites_repository.dart';
 import 'package:xplayer/services/channel_test_service.dart';
@@ -126,6 +127,9 @@ class MediaProvider with ChangeNotifier {
       // 加载播放列表
       await fetchPlaylists();
 
+      // 首启无任何源时,自动添加并选中默认预置源(iptv-org 中国;运行时拉取)
+      await _maybeSeedDefaultPreset();
+
       // 加载收藏频道
       await fetchFavoriteChannels();
 
@@ -140,6 +144,28 @@ class MediaProvider with ChangeNotifier {
     } finally {
       _isInitializing = false;
       notifyListeners();
+    }
+  }
+
+  /// 首启无源时,自动添加并选中默认预置源(运行时拉取,不打包快照)。
+  /// 用 shared_preferences 标记,用户删光源后不会被重新种入。
+  Future<void> _maybeSeedDefaultPreset() async {
+    if (_playlists.isNotEmpty) return;
+    final prefs = await SharedPreferences.getInstance();
+    if (prefs.getBool('seeded_default_preset') ?? false) return;
+    try {
+      final created = await _playlistRepository.insertPlaylist(
+        Playlist(name: kDefaultPreset.fallbackName, url: kDefaultPreset.url),
+      );
+      _playlists.add(created);
+      await prefs.setBool('seeded_default_preset', true);
+      final id = created.id;
+      if (id != null) {
+        await prefs.setString('lastSelectedPlaylistId', id.toString());
+        _currentPlaylistId = id;
+      }
+    } catch (e) {
+      print('[MediaProvider] 预置源种入失败: $e');
     }
   }
 
