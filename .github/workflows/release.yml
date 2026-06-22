@@ -97,25 +97,58 @@ jobs:
       - name: Flutter pub get
         run: flutter pub get
 
-      - name: Build APK (release)
-        run: flutter build apk --release
+      - name: Setup Android signing from secrets (optional)
+        env:
+          ANDROID_KEYSTORE_BASE64: ${{ secrets.ANDROID_KEYSTORE_BASE64 }}
+          ANDROID_KEYSTORE_PASSWORD: ${{ secrets.ANDROID_KEYSTORE_PASSWORD }}
+          ANDROID_KEY_PASSWORD: ${{ secrets.ANDROID_KEY_PASSWORD }}
+          ANDROID_KEY_ALIAS: ${{ secrets.ANDROID_KEY_ALIAS }}
+        run: |
+          set -euo pipefail
+          if [ -n "${ANDROID_KEYSTORE_BASE64:-}" ]; then
+            echo "Writing Android keystore from secret..."
+            echo "$ANDROID_KEYSTORE_BASE64" | base64 -d > android/app/ci-release.keystore
+            {
+              echo "storeFile=ci-release.keystore"
+              echo "storePassword=${ANDROID_KEYSTORE_PASSWORD}"
+              echo "keyAlias=${ANDROID_KEY_ALIAS:-xplayer}"
+              echo "keyPassword=${ANDROID_KEY_PASSWORD}"
+            } > android/key.properties
+            echo "key.properties created (release signing enabled)."
+          else
+            echo "No ANDROID_KEYSTORE_BASE64 secret; release will fall back to debug signing."
+          fi
+
+      - name: Build split APKs (release)
+        run: flutter build apk --release -PabiSplit
 
       - name: Build App Bundle (AAB)
         run: flutter build appbundle --release
 
-      - name: List Android outputs (debug)
+      - name: Rename Android artifacts
         run: |
-          echo "== build/app/outputs =="
-          ls -R build/app/outputs || true
+          set -euo pipefail
+          TAG='${{ steps.meta.outputs.tag_name }}'
+          VERSION="${TAG#v}"
+          APKDIR=build/app/outputs/flutter-apk
+          OUT=dist-android
+          mkdir -p "$OUT"
+          for abi in arm64-v8a armeabi-v7a x86_64 universal; do
+            f="$APKDIR/app-${abi}-release.apk"
+            [ -f "$f" ] && cp "$f" "$OUT/xplayer-${VERSION}-${abi}.apk"
+          done
+          # fallback if split was not enabled
+          [ -f "$APKDIR/app-release.apk" ] && cp "$APKDIR/app-release.apk" "$OUT/xplayer-${VERSION}.apk" || true
+          AAB=build/app/outputs/bundle/release/app-release.aab
+          [ -f "$AAB" ] && cp "$AAB" "$OUT/xplayer-${VERSION}.aab"
+          echo "== renamed artifacts ==" && ls -la "$OUT"
 
       - name: Upload Android artifacts
         uses: actions/upload-artifact@v4
         with:
           name: android
           if-no-files-found: error
-          path: |
-            build/app/outputs/flutter-apk/*.apk
-            build/app/outputs/bundle/release/*.aab
+          path: dist-android/*
 
   windows:
     name: Windows (zip)
