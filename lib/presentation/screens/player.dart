@@ -46,6 +46,7 @@ class _PlayerScreenState extends State<PlayerScreen>
   int _bufferingRetryTimes = 0;
   Timer? _bufferingTimer;
   bool _isHandlingBuffering = false;
+  bool _isHandlingError = false;
 
   PlayState _playState = PlayState.idle;
 
@@ -114,7 +115,14 @@ class _PlayerScreenState extends State<PlayerScreen>
     super.dispose();
   }
 
-  Future<void> _initializePlayer() async {
+  Future<void> _initializePlayer({bool fresh = true}) async {
+    if (fresh) {
+      // 用户主动加载(首次/切台/换源/手动重试):重置重试计数
+      _retryTimes = 0;
+      _bufferingRetryTimes = 0;
+    }
+    _isHandlingError = false; // 新一轮加载,允许下次错误被处理
+
     try {
       _controller.pause();
       await _controller.dispose();
@@ -132,25 +140,44 @@ class _PlayerScreenState extends State<PlayerScreen>
       _controller.addListener(_listenToVideoController);
 
       await _controller.initialize().then((_) {
-        _retryTimes = 0;
-        _bufferingRetryTimes = 0;
         _controller.play();
         setState(() {
           // 初始化成功后更新状态为 playing
           _playState = PlayState.playing;
         });
       }).catchError((error) {
+        // 初始化失败:计入重试,超上限才 failed(统一走 _handleLoadError)
         Logger.debug('初始化播放器失败: $error');
-        // showToast('初始化播放器失败1: $error', duration: const Duration(minutes: 2));
-        setState(() {
-          // 初始化失败更新状态为 failed
-          _playState = PlayState.failed;
-        });
+        if (!_isHandlingError) {
+          _isHandlingError = true;
+          _handleLoadError();
+        }
       });
     } catch (e) {
       Logger.error('创建新播放器控制器失败: $e');
+      if (!_isHandlingError) {
+        _isHandlingError = true;
+        _handleLoadError();
+      }
+    }
+  }
+
+  /// 加载/播放错误统一处理:[_retryTimes] 上限内重载,超限停在失败页。
+  /// 关键:重试不重置计数(成功初始化但播放失败的源不会无限循环),
+  /// 因此最终一定能到失败页,而不是一直"加载中"。
+  void _handleLoadError() {
+    if (!mounted) return;
+    if (_retryTimes < 3) {
+      _retryTimes += 1;
       setState(() {
-        // 创建控制器失败更新状态为 failed
+        _playState = PlayState.retrying;
+      });
+      Timer(const Duration(milliseconds: 700), () {
+        if (!mounted) return;
+        _initializePlayer(fresh: false);
+      });
+    } else {
+      setState(() {
         _playState = PlayState.failed;
       });
     }
@@ -195,6 +222,11 @@ class _PlayerScreenState extends State<PlayerScreen>
       _bufferingTimer?.cancel();
       _isHandlingBuffering = false;
       _bufferingRetryTimes = 0;
+      if (value.isPlaying && !value.hasError) {
+        // 真正在播放:重置错误重试计数,允许后续偶发错误重新重试
+        _retryTimes = 0;
+        _isHandlingError = false;
+      }
       if (_playState == PlayState.buffering) {
         setState(() {
           // 缓冲结束更新状态为 playing
@@ -205,27 +237,10 @@ class _PlayerScreenState extends State<PlayerScreen>
 
     if (value.hasError) {
       Logger.debug('视频播放出现错误: ${value.errorDescription}');
-      if (_retryTimes < 3) {
-        _retryTimes += 1;
-        Timer(const Duration(milliseconds: 700), () {
-          setState(() {
-            // 出现错误且重试次数小于 3 时更新状态为 retrying
-            _playState = PlayState.retrying;
-          });
-          _initializePlayer().then((value) {
-            setState(() {
-              // 重试后根据播放状态更新状态
-              _playState = _controller.value.isPlaying
-                  ? PlayState.playing
-                  : PlayState.paused;
-            });
-          });
-        });
-      } else {
-        setState(() {
-          // 错误次数超过 3 次更新状态为 failed
-          _playState = PlayState.failed;
-        });
+      // 每次错误只处理一次,避免监听器重复触发导致计数瞬间打满/并发重载
+      if (!_isHandlingError) {
+        _isHandlingError = true;
+        _handleLoadError();
       }
     } else if (!value.isPlaying && !value.isBuffering) {
       Logger.debug('视频暂停');
@@ -495,8 +510,6 @@ class _PlayerScreenState extends State<PlayerScreen>
                               text: AppLocalizations.of(context)!.retry,
                               type: XTextButtonType.primary,
                               onPressed: () {
-                                _retryTimes = 0;
-                                _bufferingRetryTimes = 0;
                                 _initializePlayer();
                               },
                             ),
