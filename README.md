@@ -6,6 +6,14 @@
 
 <p align="center">开箱即用，内置 <a href="https://github.com/iptv-org/iptv">iptv-org</a> 公开直播源，支持<b>频道分组、搜索</b>、EPG 节目单、收藏，以及<b>手机遥控 TV 输入</b>。</p>
 
+<p align="center">
+  <a href="https://github.com/TNT-Likely/xplayer/releases/latest"><img src="https://img.shields.io/github/v/release/TNT-Likely/xplayer?style=flat-square&color=brightgreen" alt="最新版本"></a>
+  <a href="https://github.com/TNT-Likely/xplayer/releases"><img src="https://img.shields.io/github/downloads/TNT-Likely/xplayer/total?style=flat-square&color=blue" alt="下载量"></a>
+  <a href="https://github.com/TNT-Likely/xplayer/stargazers"><img src="https://img.shields.io/github/stars/TNT-Likely/xplayer?style=flat-square" alt="Stars"></a>
+  <a href="https://github.com/TNT-Likely/xplayer/actions/workflows/release.yml"><img src="https://img.shields.io/github/actions/workflow/status/TNT-Likely/xplayer/release.yml?style=flat-square&label=release" alt="构建状态"></a>
+  <a href="LICENSE"><img src="https://img.shields.io/github/license/TNT-Likely/xplayer?style=flat-square" alt="License"></a>
+</p>
+
 ---
 
 ## ✨ 特性
