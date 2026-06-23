@@ -118,5 +118,6 @@
   "updateProxy": "Update Proxy",
   "updateProxyHint": "Route update downloads through this HTTP proxy (host:port) to speed them up; empty = direct. Updates only — playback is unaffected.",
   "filterTitle": "Search & Filter",
-  "itemSize": "Item Size"
+  "itemSize": "Item Size",
+  "noProgramme": "No programme guide for this channel"
 }
