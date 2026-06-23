@@ -1,5 +1,5 @@
 name: xplayer
-description: "A new Flutter project."
+description: "Cross-platform IPTV/M3U player with channel grouping, search, EPG and built-in iptv-org sources."
 
 # Prevent accidental publishing to pub.dev.
 publish_to: 'none'
