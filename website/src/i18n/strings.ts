@@ -39,6 +39,15 @@ const en = {
       { src: '/screenshots/groups-en.png', alt: 'XPlayer channel groups', caption: 'Jump to any group' },
       { src: '/screenshots/remote-en.png', alt: 'XPlayer phone-to-TV remote', caption: 'Type on your phone, send to TV' },
     ],
+    shotsMoreTitle: 'iPad & macOS screenshots',
+    shotsMore: [
+      { src: '/screenshots/ipad-home.png', alt: 'XPlayer on iPad — channel grid' },
+      { src: '/screenshots/ipad-player.png', alt: 'XPlayer on iPad — live playback' },
+      { src: '/screenshots/ipad-groups-en.png', alt: 'XPlayer on iPad — channel groups' },
+      { src: '/screenshots/mac-home.png', alt: 'XPlayer on macOS — channel grid' },
+      { src: '/screenshots/mac-player.png', alt: 'XPlayer on macOS — live playback' },
+      { src: '/screenshots/mac-groups-en.png', alt: 'XPlayer on macOS — channel groups' },
+    ],
   },
   privacy: {
     title: 'Privacy Policy',
@@ -118,6 +127,15 @@ const zh: typeof en = {
       { src: '/screenshots/search-zh.png', alt: 'XPlayer 频道搜索', caption: '按名称即时搜索' },
       { src: '/screenshots/groups-zh.png', alt: 'XPlayer 频道分组', caption: '一键直达任意分组' },
       { src: '/screenshots/remote-zh.png', alt: 'XPlayer 手机遥控 TV', caption: '手机打字,发送到 TV' },
+    ],
+    shotsMoreTitle: 'iPad 与 macOS 截图',
+    shotsMore: [
+      { src: '/screenshots/ipad-home.png', alt: 'iPad 频道网格' },
+      { src: '/screenshots/ipad-player.png', alt: 'iPad 直播播放' },
+      { src: '/screenshots/ipad-groups-zh.png', alt: 'iPad 频道分组' },
+      { src: '/screenshots/mac-home.png', alt: 'macOS 频道网格' },
+      { src: '/screenshots/mac-player.png', alt: 'macOS 直播播放' },
+      { src: '/screenshots/mac-groups-zh.png', alt: 'macOS 频道分组' },
     ],
 
   },

@@ -9,6 +9,7 @@
 <p align="center">
   <a href="https://github.com/TNT-Likely/xplayer/releases/latest"><img src="https://img.shields.io/github/v/release/TNT-Likely/xplayer?style=flat-square&color=brightgreen" alt="最新版本"></a>
   <a href="https://github.com/TNT-Likely/xplayer/releases"><img src="https://img.shields.io/github/downloads/TNT-Likely/xplayer/total?style=flat-square&color=blue" alt="下载量"></a>
+  <a href="https://testflight.apple.com/join/BD5BMpqe"><img src="https://img.shields.io/badge/iOS-TestFlight%20公测-0D96F6?style=flat-square&logo=apple&logoColor=white" alt="iOS TestFlight 公测"></a>
   <a href="https://github.com/TNT-Likely/xplayer/stargazers"><img src="https://img.shields.io/github/stars/TNT-Likely/xplayer?style=flat-square" alt="Stars"></a>
   <a href="https://github.com/TNT-Likely/xplayer/actions/workflows/release.yml"><img src="https://img.shields.io/github/actions/workflow/status/TNT-Likely/xplayer/release.yml?style=flat-square&label=release" alt="构建状态"></a>
   <a href="LICENSE"><img src="https://img.shields.io/github/license/TNT-Likely/xplayer?style=flat-square" alt="License"></a>
@@ -38,6 +39,22 @@
 </p>
 
 <details>
+<summary><b>📱 iPad / 🖥️ macOS 截图</b></summary>
+
+<p align="center">
+  <img src="screenshots/ipad-home.png" width="420" alt="iPad:频道网格" />
+  <img src="screenshots/ipad-player.png" width="420" alt="iPad:直播播放" />
+  <br/>
+  <img src="screenshots/ipad-groups.png" width="420" alt="iPad:分组" />
+  <img src="screenshots/mac-home.png" width="420" alt="macOS:频道网格" />
+  <br/>
+  <img src="screenshots/mac-player.png" width="420" alt="macOS:直播播放" />
+  <img src="screenshots/mac-groups.png" width="420" alt="macOS:分组" />
+</p>
+
+</details>
+
+<details>
 <summary><b>🚀 安装</b></summary>
 
 前往 [Releases](https://github.com/TNT-Likely/xplayer/releases) 下载：
@@ -50,7 +67,7 @@
 - **Windows**：`xplayer-windows-x64.zip`
 - **macOS**：`xplayer-macos.dmg`（首次打开见常见问题）
 - **Linux**：`xplayer-linux-x64.tar.gz`
-- **iOS / iPad**：见 Releases 的未签名 ipa，自行签名安装
+- **iOS / iPad**：[TestFlight 公测版](https://testflight.apple.com/join/BD5BMpqe)（推荐，免签名直接安装）；或 Releases 里的未签名 ipa 自行签名
 
 </details>
 

@@ -9,6 +9,7 @@
 <p align="center">
   <a href="https://github.com/TNT-Likely/xplayer/releases/latest"><img src="https://img.shields.io/github/v/release/TNT-Likely/xplayer?style=flat-square&color=brightgreen" alt="Latest release"></a>
   <a href="https://github.com/TNT-Likely/xplayer/releases"><img src="https://img.shields.io/github/downloads/TNT-Likely/xplayer/total?style=flat-square&color=blue" alt="Total downloads"></a>
+  <a href="https://testflight.apple.com/join/BD5BMpqe"><img src="https://img.shields.io/badge/iOS-TestFlight%20Beta-0D96F6?style=flat-square&logo=apple&logoColor=white" alt="iOS TestFlight Beta"></a>
   <a href="https://github.com/TNT-Likely/xplayer/stargazers"><img src="https://img.shields.io/github/stars/TNT-Likely/xplayer?style=flat-square" alt="Stars"></a>
   <a href="https://github.com/TNT-Likely/xplayer/actions/workflows/release.yml"><img src="https://img.shields.io/github/actions/workflow/status/TNT-Likely/xplayer/release.yml?style=flat-square&label=release" alt="Release build"></a>
   <a href="LICENSE"><img src="https://img.shields.io/github/license/TNT-Likely/xplayer?style=flat-square" alt="License"></a>
@@ -29,15 +30,29 @@
 ## 📸 Preview
 
 <p align="center">
-  <img src="screenshots/home.png" width="260" alt="Channel grid: browse / group / search" />
-  <img src="screenshots/player.png" width="260" alt="Live playback & controls" />
+  <img src="screenshots/home.png" width="240" alt="Channel grid: browse / group / search" />
+  <img src="screenshots/player.png" width="240" alt="Live playback & controls" />
+  <img src="screenshots/search.png" width="240" alt="Channel search" />
   <br/>
-  <img src="https://github.com/user-attachments/assets/fe341b2a-66f7-42b6-b3d0-6ece3dd47203" width="260" />
-  <img src="https://github.com/user-attachments/assets/8632dff6-dc7a-4717-99ca-a39e9efddd04" width="260" />
-  <br/>
-  <img src="https://github.com/user-attachments/assets/a14b1e50-65b9-45a1-b495-ada3983b01e9" width="260" />
-  <img src="assets/preview/remote-control.jpg" width="260" />
+  <img src="screenshots/groups.png" width="240" alt="Browse by group" />
+  <img src="screenshots/remote.png" width="240" alt="Phone-to-TV remote (same LAN)" />
 </p>
+
+<details>
+<summary><b>📱 iPad / 🖥️ macOS screenshots</b></summary>
+
+<p align="center">
+  <img src="screenshots/ipad-home.png" width="420" alt="iPad: channel grid" />
+  <img src="screenshots/ipad-player.png" width="420" alt="iPad: live playback" />
+  <br/>
+  <img src="screenshots/ipad-groups.png" width="420" alt="iPad: groups" />
+  <img src="screenshots/mac-home.png" width="420" alt="macOS: channel grid" />
+  <br/>
+  <img src="screenshots/mac-player.png" width="420" alt="macOS: live playback" />
+  <img src="screenshots/mac-groups.png" width="420" alt="macOS: groups" />
+</p>
+
+</details>
 
 <details>
 <summary><b>🚀 Install</b></summary>
@@ -52,7 +67,7 @@ Grab a build from [Releases](https://github.com/TNT-Likely/xplayer/releases):
 - **Windows**: `xplayer-windows-x64.zip`
 - **macOS**: `xplayer-macos.dmg` (see FAQ for first launch)
 - **Linux**: `xplayer-linux-x64.tar.gz`
-- **iOS / iPad**: unsigned ipa in Releases — sign it yourself
+- **iOS / iPad**: [TestFlight beta](https://testflight.apple.com/join/BD5BMpqe) (recommended, no signing needed); or the unsigned ipa in Releases to sign yourself
 
 </details>
 
