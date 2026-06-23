@@ -34,7 +34,10 @@ const en = {
     shotsTitle: 'Screenshots',
     shots: [
       { src: '/screenshots/home.png', alt: 'XPlayer channel grid', caption: 'Browse, group & search channels' },
-      { src: '/screenshots/player.png', alt: 'XPlayer playing a live channel', caption: 'Live playback with simple controls' },
+      { src: '/screenshots/player.png', alt: 'XPlayer playing a live channel', caption: 'Live playback, simple controls' },
+      { src: '/screenshots/search-en.png', alt: 'XPlayer channel search', caption: 'Instant search by name' },
+      { src: '/screenshots/groups-en.png', alt: 'XPlayer channel groups', caption: 'Jump to any group' },
+      { src: '/screenshots/remote-en.png', alt: 'XPlayer phone-to-TV remote', caption: 'Type on your phone, send to TV' },
     ],
   },
   privacy: {
@@ -112,7 +115,11 @@ const zh: typeof en = {
     shots: [
       { src: '/screenshots/home.png', alt: 'XPlayer 频道网格', caption: '浏览、分组与搜索频道' },
       { src: '/screenshots/player.png', alt: 'XPlayer 播放直播频道', caption: '简洁控制的直播播放' },
+      { src: '/screenshots/search-zh.png', alt: 'XPlayer 频道搜索', caption: '按名称即时搜索' },
+      { src: '/screenshots/groups-zh.png', alt: 'XPlayer 频道分组', caption: '一键直达任意分组' },
+      { src: '/screenshots/remote-zh.png', alt: 'XPlayer 手机遥控 TV', caption: '手机打字,发送到 TV' },
     ],
+
   },
   privacy: {
     title: '隐私政策',
