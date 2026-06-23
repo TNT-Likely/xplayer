@@ -359,7 +359,7 @@ jobs:
             xplayer-macos.dmg
 
   ios:
-    name: iOS (app.zip + unsigned .ipa)
+    name: iOS (signed → TestFlight + unsigned)
     runs-on: macos-latest
     steps:
       - name: Checkout
@@ -370,10 +370,8 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-          IS_TAG="false"
           TAG_NAME=""
           if [[ "${GITHUB_REF:-}" == refs/tags/* ]]; then
-            IS_TAG="true"
             TAG_NAME="${GITHUB_REF#refs/tags/}"
           fi
           if [[ -z "$TAG_NAME" ]]; then
@@ -387,6 +385,12 @@ jobs:
           fi
           echo "tag_name=$TAG_NAME" >> $GITHUB_OUTPUT
 
+      - name: Select latest Xcode
+        run: |
+          LATEST_XCODE=$(ls -d /Applications/Xcode*.app 2>/dev/null | sort -V | tail -1)
+          if [ -n "$LATEST_XCODE" ]; then sudo xcode-select -s "$LATEST_XCODE"; fi
+          xcodebuild -version
+
       - name: Setup Flutter
         uses: subosito/flutter-action@v2
         with:
@@ -394,43 +398,173 @@ jobs:
           channel: "stable"
           cache: true
 
-      - name: Update pubspec.yaml version
-        run: |
-          VERSION='${{ steps.meta.outputs.tag_name }}'
-          echo "Updating pubspec.yaml version to: $VERSION"
-          CLEAN_VERSION=${VERSION#v}
-          BUILD_NUMBER=${{ github.run_number }}
-          sed -i "" "s/^version: .*/version: ${CLEAN_VERSION}+${BUILD_NUMBER}/" pubspec.yaml
-          echo "Updated version in pubspec.yaml:"
-          grep "^version:" pubspec.yaml
-
       - name: Flutter pub get
         run: flutter pub get
 
-      - name: Build iOS (no codesign)
-        run: flutter build ios --release --no-codesign
+      - name: Update pubspec.yaml version
+        run: |
+          VERSION='${{ steps.meta.outputs.tag_name }}'
+          CLEAN_VERSION=${VERSION#v}
+          BUILD_NUMBER=${{ github.run_number }}
+          sed -i "" "s/^version: .*/version: ${CLEAN_VERSION}+${BUILD_NUMBER}/" pubspec.yaml
+          grep "^version:" pubspec.yaml
 
-      - name: Package iOS Runner.app (unsigned)
+      - name: Setup iOS signing from secrets
+        env:
+          IOS_P12_BASE64: ${{ secrets.APPLE_CERTIFICATE_P12 }}
+          IOS_P12_PASSWORD: ${{ secrets.APPLE_CERTIFICATE_PASSWORD }}
+          IOS_PROVISION_PROFILE_BASE64: ${{ secrets.APPLE_PROVISIONING_PROFILE }}
+          IOS_TEAM_ID: ${{ secrets.APPLE_TEAM_ID }}
         run: |
           set -euo pipefail
-          APP_PATH="build/ios/iphoneos/Runner.app"
-          if [ ! -d "$APP_PATH" ]; then
-            echo "Runner.app not found at $APP_PATH" >&2
-            ls -la build/ios/iphoneos || true
-            exit 1
+          if [ -n "${IOS_P12_BASE64:-}" ]; then
+            echo "Setting up iOS signing..."
+            KEYCHAIN_PATH=$RUNNER_TEMP/app-signing.keychain-db
+            KEYCHAIN_PASSWORD=$(openssl rand -base64 32)
+            security create-keychain -p "$KEYCHAIN_PASSWORD" $KEYCHAIN_PATH
+            security set-keychain-settings -lut 21600 $KEYCHAIN_PATH
+            security unlock-keychain -p "$KEYCHAIN_PASSWORD" $KEYCHAIN_PATH
+            CERT_PATH=$RUNNER_TEMP/cert.p12
+            echo "$IOS_P12_BASE64" | base64 -d > $CERT_PATH
+            security import $CERT_PATH -P "$IOS_P12_PASSWORD" -A -t cert -f pkcs12 -k $KEYCHAIN_PATH
+            security list-keychain -d user -s $KEYCHAIN_PATH
+            PP_PATH=$RUNNER_TEMP/build_pp.mobileprovision
+            echo "$IOS_PROVISION_PROFILE_BASE64" | base64 -d > $PP_PATH
+            PP_UUID=$(security cms -D -i $PP_PATH | plutil -extract UUID raw -)
+            mkdir -p ~/Library/MobileDevice/Provisioning\ Profiles
+            cp $PP_PATH ~/Library/MobileDevice/Provisioning\ Profiles/${PP_UUID}.mobileprovision
+            security set-key-partition-list -S apple-tool:,apple:,codesign: -s -k "$KEYCHAIN_PASSWORD" $KEYCHAIN_PATH
+            security find-identity -v -p codesigning $KEYCHAIN_PATH
+            printf '%s\n' \
+              '<?xml version="1.0" encoding="UTF-8"?>' \
+              '<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">' \
+              '<plist version="1.0">' \
+              '<dict>' \
+              '    <key>method</key>' \
+              '    <string>app-store</string>' \
+              '    <key>teamID</key>' \
+              "    <string>${IOS_TEAM_ID}</string>" \
+              '    <key>uploadBitcode</key>' \
+              '    <false/>' \
+              '    <key>uploadSymbols</key>' \
+              '    <true/>' \
+              '    <key>signingStyle</key>' \
+              '    <string>manual</string>' \
+              '    <key>signingCertificate</key>' \
+              '    <string>Apple Distribution</string>' \
+              '    <key>provisioningProfiles</key>' \
+              '    <dict>' \
+              '        <key>com.tntlikely.xplayer</key>' \
+              '        <string>xplayer_AppStore</string>' \
+              '    </dict>' \
+              '</dict>' \
+              '</plist>' \
+              > ios/ExportOptions.plist
+            echo "IOS_SIGNING_ENABLED=true" >> $GITHUB_ENV
+            echo "iOS signing OK"
+          else
+            echo "No iOS signing secrets — unsigned only"
+            echo "IOS_SIGNING_ENABLED=false" >> $GITHUB_ENV
           fi
-          ditto -c -k --sequesterRsrc --keepParent "$APP_PATH" Runner-iphoneos.app.zip
-          mkdir -p Payload
-          cp -R "$APP_PATH" Payload/
-          /usr/bin/zip -qry Runner-unsigned.ipa Payload
+
+      - name: Build iOS (no codesign, STORE build = 纯播放器无内置源)
+        run: flutter build ios --release --no-codesign --dart-define=STORE_BUILD=true
+
+      - name: Configure Xcode for manual signing
+        if: env.IOS_SIGNING_ENABLED == 'true'
+        env:
+          APPLE_TEAM_ID: ${{ secrets.APPLE_TEAM_ID }}
+        run: |
+          PROJECT_FILE="ios/Runner.xcodeproj/project.pbxproj"
+          sed -i '' 's/"CODE_SIGN_IDENTITY\[sdk=iphoneos\*\]" = "iPhone Developer";/"CODE_SIGN_IDENTITY[sdk=iphoneos*]" = "Apple Distribution";/g' "$PROJECT_FILE"
+          sed -i '' '/CODE_SIGN_STYLE = /d' "$PROJECT_FILE"
+          sed -i '' '/DEVELOPMENT_TEAM = /d' "$PROJECT_FILE"
+          sed -i '' '/PROVISIONING_PROFILE_SPECIFIER = /d' "$PROJECT_FILE"
+          perl -i -pe "s/(buildSettings = \{)/\$1\n\t\t\t\tCODE_SIGN_STYLE = Manual;\n\t\t\t\tDEVELOPMENT_TEAM = ${APPLE_TEAM_ID};/g" "$PROJECT_FILE"
+          perl -i -pe '
+            if (/^\s+PRODUCT_BUNDLE_IDENTIFIER = com\.tntlikely\.xplayer;\s*$/) {
+              print "\t\t\t\tPROVISIONING_PROFILE_SPECIFIER = \"xplayer_AppStore\";\n";
+            }
+          ' "$PROJECT_FILE"
+          echo "Xcode signing configured"
+
+      - name: Archive iOS
+        if: env.IOS_SIGNING_ENABLED == 'true'
+        run: |
+          xcodebuild archive \
+            -workspace ios/Runner.xcworkspace \
+            -scheme Runner -configuration Release \
+            -archivePath build/ios/Runner.xcarchive \
+            -quiet 2>&1 | grep -E "error:|failed|succeeded" || true
+          if [ ! -d build/ios/Runner.xcarchive ]; then echo "Archive failed"; exit 1; fi
+
+      - name: Export IPA
+        if: env.IOS_SIGNING_ENABLED == 'true'
+        run: |
+          xcodebuild -exportArchive \
+            -archivePath build/ios/Runner.xcarchive \
+            -exportPath build/ios/ipa \
+            -exportOptionsPlist ios/ExportOptions.plist \
+            -quiet 2>&1 | grep -E "error:|Exported|succeeded" || true
+          ls -lh build/ios/ipa/ || (echo "Export failed"; exit 1)
+
+      - name: Copy signed IPA
+        if: env.IOS_SIGNING_ENABLED == 'true'
+        run: |
+          VERSION="${{ steps.meta.outputs.tag_name }}"
+          if ls build/ios/ipa/*.ipa >/dev/null 2>&1; then
+            cp build/ios/ipa/*.ipa "xplayer-${VERSION}-signed.ipa"
+            ls -lh "xplayer-${VERSION}-signed.ipa"
+          fi
+
+      - name: Cleanup keychain
+        if: always() && env.IOS_SIGNING_ENABLED == 'true'
+        run: security delete-keychain $RUNNER_TEMP/app-signing.keychain-db || true
+
+      - name: Package unsigned IPA fallback
+        run: |
+          VERSION="${{ steps.meta.outputs.tag_name }}"
+          APP_PATH="build/ios/iphoneos/Runner.app"
+          if [ -d "$APP_PATH" ]; then
+            ditto -c -k --sequesterRsrc --keepParent "$APP_PATH" "xplayer-${VERSION}-iphoneos.app.zip"
+            mkdir -p Payload && cp -R "$APP_PATH" Payload/
+            /usr/bin/zip -qry "xplayer-${VERSION}-unsigned.ipa" Payload
+            rm -rf Payload
+          fi
+          ls -la xplayer-${VERSION}-* || true
+
+      - name: Upload to TestFlight
+        if: env.IOS_SIGNING_ENABLED == 'true'
+        continue-on-error: true
+        env:
+          APPLE_API_KEY_CONTENT: ${{ secrets.APPLE_API_KEY_CONTENT }}
+          APPLE_API_KEY_ID: ${{ secrets.APPLE_API_KEY_ID }}
+          APPLE_API_ISSUER_ID: ${{ secrets.APPLE_API_ISSUER_ID }}
+        run: |
+          VERSION="${{ steps.meta.outputs.tag_name }}"
+          IPA_FILE="xplayer-${VERSION}-signed.ipa"
+          if [ ! -f "$IPA_FILE" ]; then echo "IPA missing, skip"; exit 0; fi
+          if [ -n "${APPLE_API_KEY_CONTENT:-}" ] && [ -n "${APPLE_API_KEY_ID:-}" ] && [ -n "${APPLE_API_ISSUER_ID:-}" ]; then
+            echo "Uploading to TestFlight via App Store Connect API Key..."
+            mkdir -p ~/.appstoreconnect/private_keys
+            P8_PATH="$HOME/.appstoreconnect/private_keys/AuthKey_${APPLE_API_KEY_ID}.p8"
+            printf '%s' "$APPLE_API_KEY_CONTENT" > "$P8_PATH"
+            chmod 600 "$P8_PATH"
+            xcrun altool --upload-app --type ios --file "$IPA_FILE" \
+              --apiKey "$APPLE_API_KEY_ID" --apiIssuer "$APPLE_API_ISSUER_ID" --verbose
+            rm -f "$P8_PATH"
+            echo "Uploaded to TestFlight"
+          else
+            echo "No App Store Connect API key secrets — skipped TestFlight upload"
+          fi
 
       - name: Upload iOS artifacts
         uses: actions/upload-artifact@v4
         with:
           name: ios
           path: |
-            Runner-iphoneos.app.zip
-            Runner-unsigned.ipa
+            xplayer-*-iphoneos.app.zip
+            xplayer-*-unsigned.ipa
 
   linux:
     name: Linux (tar.gz)
