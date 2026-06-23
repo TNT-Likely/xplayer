@@ -10,7 +10,10 @@ flutter_launcher_icons:
 
   ios: true
   image_path_ios: "assets/images/xplayer-logo.png"
-  remove_alpha_channel_ios: true
+  # 关键:正确的 key 是 remove_alpha_ios(之前写成 remove_alpha_channel_ios 不生效,
+  # 导致 1024 图标带 alpha → App Store ITMS-90717 被拒)。透明像素填黑(图标本身黑底)。
+  remove_alpha_ios: true
+  background_color_ios: "#000000"
 
   web:
     generate: true
