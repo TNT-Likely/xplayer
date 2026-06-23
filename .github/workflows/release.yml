@@ -558,8 +558,9 @@ jobs:
         id: notes
         run: |
           TAG="${{ steps.meta.outputs.tag_name }}"
-          # 获取上一个 tag（不含当前 tag）
-          PREV_TAG=$(git tag --list --sort=-version:refname | grep -v "^${TAG}$" | head -n1)
+          # 上一个发布 tag = 历史上最近的祖先「版本」tag(排除 manual-* 等非版本 tag),
+          # 避免 --sort=-version:refname 把 manual-* 排到最前、导致变更记录跨越多个版本。
+          PREV_TAG=$(git describe --tags --abbrev=0 --match '[0-9]*' --match 'v[0-9]*' HEAD^ 2>/dev/null || true)
           echo "Current tag: $TAG"
           echo "Previous tag: $PREV_TAG"
           # 生成 commit 列表（排除 merge commit）
