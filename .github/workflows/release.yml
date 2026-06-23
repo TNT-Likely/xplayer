@@ -159,6 +159,9 @@ jobs:
   windows:
     name: Windows (zip)
     runs-on: windows-latest
+    # Windows 桌面构建在 windows-latest 偶发 VS 检测失败(Flutter 3.27 × VS2022),
+    # 不应阻塞整个发布;失败时其它平台照常发版。
+    continue-on-error: true
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -527,6 +530,7 @@ jobs:
 
       - name: Download Windows artifact
         uses: actions/download-artifact@v4
+        continue-on-error: true  # Windows 失败时无产物,跳过不阻塞发布
         with:
           name: windows
           path: ./dist/windows
