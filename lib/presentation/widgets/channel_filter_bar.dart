@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
 import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 import 'package:xplayer/providers/media_provider.dart';
@@ -18,17 +19,37 @@ class ChannelFilterBar extends StatefulWidget {
 
 class _ChannelFilterBarState extends State<ChannelFilterBar> {
   late final TextEditingController _controller;
+  final FocusNode _searchFocus = FocusNode(debugLabel: 'channelSearch');
 
   @override
   void initState() {
     super.initState();
     final media = Provider.of<MediaProvider>(context, listen: false);
     _controller = TextEditingController(text: media.searchQuery);
+    // TV 遥控:单行搜索框会吞掉上/下方向键,导致"焦点进去出不来"。
+    // 聚焦搜索框时拦截上/下键,把焦点移出到上方(AppBar)或下方(分组 chips / 频道网格);
+    // 左/右键不拦截,仍用于文本光标移动。
+    _searchFocus.onKeyEvent = (node, event) {
+      if (event is KeyDownEvent || event is KeyRepeatEvent) {
+        if (event.logicalKey == LogicalKeyboardKey.arrowDown) {
+          return node.focusInDirection(TraversalDirection.down)
+              ? KeyEventResult.handled
+              : KeyEventResult.ignored;
+        }
+        if (event.logicalKey == LogicalKeyboardKey.arrowUp) {
+          return node.focusInDirection(TraversalDirection.up)
+              ? KeyEventResult.handled
+              : KeyEventResult.ignored;
+        }
+      }
+      return KeyEventResult.ignored;
+    };
   }
 
   @override
   void dispose() {
     _controller.dispose();
+    _searchFocus.dispose();
     super.dispose();
   }
 
@@ -61,6 +82,7 @@ class _ChannelFilterBarState extends State<ChannelFilterBar> {
               AppDimens.s8, AppDimens.s8, AppDimens.s8, AppDimens.s4),
           child: TextField(
             controller: _controller,
+            focusNode: _searchFocus,
             style: const TextStyle(color: AppTokens.textPrimary),
             cursorColor: AppTokens.brand,
             textInputAction: TextInputAction.search,

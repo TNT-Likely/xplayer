@@ -11,6 +11,7 @@ import 'package:xplayer/presentation/widgets/channel_list_widget.dart';
 import 'package:xplayer/presentation/widgets/channel_filter_bar.dart';
 import 'package:xplayer/presentation/widgets/playlist_dialog.dart';
 import 'package:xplayer/presentation/widgets/preset_source_dialog.dart';
+import 'package:xplayer/presentation/widgets/update_proxy_dialog.dart';
 import 'package:xplayer/shared/components/x_text_button.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:xplayer/providers/locale_provider.dart';
@@ -436,6 +437,25 @@ class _HomeScreenState extends State<HomeScreen> {
                     Navigator.of(context).pop();
                     await UpdateService.checkUpdateWithUI(context);
                   },
+                ),
+                XBaseButton(
+                  onPressed: () {
+                    Navigator.of(context).pop();
+                    showDialog(
+                      context: context,
+                      builder: (_) => const UpdateProxyDialog(),
+                    );
+                  },
+                  child: animeContainer(
+                    ListTile(
+                      leading: const Icon(Icons.settings_ethernet,
+                          color: Colors.white),
+                      title: Text(
+                        localizations.updateProxy,
+                        style: const TextStyle(color: Colors.white),
+                      ),
+                    ),
+                  ),
                 ),
                 ListTile(
                   leading: const Icon(Icons.info, color: Colors.white),

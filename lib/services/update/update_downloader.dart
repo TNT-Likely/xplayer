@@ -1,11 +1,13 @@
 import 'dart:io';
 import 'package:dio/dio.dart';
+import 'package:dio/io.dart';
 import 'package:flutter/material.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:xplayer/shared/components/x_text_button.dart';
 import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 import 'update_result.dart';
 import 'update_cache.dart';
+import 'update_proxy.dart';
 
 /// 更新下载管理类
 class UpdateDownloader {
@@ -119,6 +121,19 @@ class UpdateDownloader {
           ),
         );
       }
+
+      // 配置在线更新代理(若已设置):仅用于本次 APK 下载,加速国内更新
+      final proxy = await UpdateProxy.get();
+      _dio.httpClientAdapter = IOHttpClientAdapter(
+        createHttpClient: () {
+          final client = HttpClient();
+          if (proxy != null) {
+            client.findProxy = (uri) => 'PROXY $proxy';
+            client.badCertificateCallback = (cert, host, port) => true;
+          }
+          return client;
+        },
+      );
 
       // 开始下载
       await _dio.download(
