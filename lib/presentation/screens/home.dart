@@ -736,6 +736,25 @@ class _HomeScreenState extends State<HomeScreen> {
                           localizations.noChannelsFound,
                           style: const TextStyle(color: Colors.white),
                         ),
+                        const SizedBox(height: 16.0),
+                        SizedBox(
+                          width: 200,
+                          child: XTextButton(
+                            text: localizations.refreshChannels,
+                            type: XTextButtonType.primary,
+                            onPressed: () async {
+                              try {
+                                showToast(localizations.updatingChannels);
+                                await mediaProvider.refreshChannels();
+                                showToast(
+                                    localizations.channelsUpdatedSuccessfully);
+                              } catch (e) {
+                                showToast(localizations
+                                    .channelsUpdateFailed(e.toString()));
+                              }
+                            },
+                          ),
+                        ),
                       ],
                     ),
                   );

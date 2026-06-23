@@ -16,7 +16,10 @@ class _SplashScreenState extends State<SplashScreen> {
   @override
   void initState() {
     super.initState();
-    _initializeAndNavigate();
+    // 放到首帧之后再初始化:initializeApp 起步就会 notifyListeners,
+    // 若在 initState 同步触发会报 "setState() called during build"。
+    WidgetsBinding.instance
+        .addPostFrameCallback((_) => _initializeAndNavigate());
   }
 
   void _initializeAndNavigate() async {
