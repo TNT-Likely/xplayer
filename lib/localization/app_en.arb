@@ -124,5 +124,11 @@
   "exitAppTitle": "Exit App",
   "exitAppMessage": "Are you sure you want to exit?",
   "exit": "Exit",
-  "retry": "Retry"
+  "retry": "Retry",
+  "operationHints": "Controls",
+  "hintSwitchChannel": "Switch channel: ↑↓ or swipe up/down",
+  "hintChannelList": "Channel list: ← or swipe left",
+  "hintSwitchSource": "Switch source: → or swipe right",
+  "hintMenu": "Menu: OK or tap screen",
+  "hintGotIt": "Got it"
 }

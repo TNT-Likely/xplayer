@@ -124,5 +124,11 @@
     "exitAppTitle": "退出应用",
     "exitAppMessage": "确定要退出应用吗？",
     "exit": "退出",
-    "retry": "重试"
+    "retry": "重试",
+    "operationHints": "操作说明",
+    "hintSwitchChannel": "切换频道：↑↓ 键 或 上下滑动",
+    "hintChannelList": "频道列表：← 键 或 左滑",
+    "hintSwitchSource": "切换源：→ 键 或 右滑",
+    "hintMenu": "呼出菜单：OK 键 或 单击屏幕",
+    "hintGotIt": "知道了"
 }

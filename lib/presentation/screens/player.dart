@@ -7,7 +7,9 @@ import 'package:xplayer/data/models/channel_model.dart';
 import 'package:xplayer/data/models/programme_model.dart';
 import 'package:xplayer/presentation/widgets/player_actions_widget.dart';
 import 'package:xplayer/presentation/widgets/player_dialogs.dart';
+import 'package:xplayer/presentation/widgets/operation_hint_dialog.dart';
 import 'package:xplayer/shared/components/x_text_button.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import 'package:xplayer/providers/media_provider.dart';
 import 'package:xplayer/utils/logger_util.dart';
 import 'package:xplayer/utils/playlist_util.dart';
@@ -79,6 +81,19 @@ class _PlayerScreenState extends State<PlayerScreen>
 
     _initializePlayer();
     _focusNode.requestFocus();
+
+    // 首次进入播放页弹一次操作引导(看过后不再弹,可从控制条「帮助」再看)
+    WidgetsBinding.instance
+        .addPostFrameCallback((_) => _maybeShowOperationHint());
+  }
+
+  Future<void> _maybeShowOperationHint() async {
+    final prefs = await SharedPreferences.getInstance();
+    if (prefs.getBool('player_hint_seen') ?? false) return;
+    if (!mounted) return;
+    await OperationHintDialog.show(context);
+    await prefs.setBool('player_hint_seen', true);
+    if (mounted) _focusNode.requestFocus(); // 关闭引导后把焦点还给播放器
   }
 
   @override
