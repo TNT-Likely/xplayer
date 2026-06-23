@@ -358,6 +358,154 @@ jobs:
             xplayer-macos.zip
             xplayer-macos.dmg
 
+  # macOS App Store(签名 .pkg → TestFlight/ASC)。和 iOS 的区别:
+  #  - 两张证书:App 签名(Apple Distribution)+ 安装包(Mac Installer Distribution)
+  #  - 产物是 productbuild 出的签名 .pkg(不是 .ipa)
+  #  - 需要单独的 macOS 描述文件,嵌进 .app 再签
+  # 无 MACOS_* secrets 时整段跳过,不阻塞其它平台。参考 BeeTiny。
+  macos_appstore:
+    name: macOS → App Store
+    runs-on: macos-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Prepare release metadata
+        id: meta
+        shell: bash
+        run: |
+          set -euo pipefail
+          TAG_NAME=""
+          if [[ "${GITHUB_REF:-}" == refs/tags/* ]]; then
+            TAG_NAME="${GITHUB_REF#refs/tags/}"
+          fi
+          if [[ -z "$TAG_NAME" ]]; then
+            INPUT_TAG="${{ github.event.inputs.tag_name || '' }}"
+            if [[ -n "$INPUT_TAG" ]]; then TAG_NAME="$INPUT_TAG"; else TAG_NAME="manual-$(echo "${GITHUB_SHA}" | cut -c1-7)"; fi
+          fi
+          echo "tag_name=$TAG_NAME" >> $GITHUB_OUTPUT
+
+      - name: Select latest Xcode
+        run: |
+          LATEST_XCODE=$(ls -d /Applications/Xcode*.app 2>/dev/null | sort -V | tail -1)
+          if [ -n "$LATEST_XCODE" ]; then sudo xcode-select -s "$LATEST_XCODE"; fi
+          xcodebuild -version
+
+      - name: Setup Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          flutter-version: ${{ env.FLUTTER_VERSION }}
+          channel: "stable"
+          cache: true
+
+      - name: Flutter pub get
+        run: flutter pub get
+
+      - name: Update pubspec.yaml version
+        run: |
+          VERSION='${{ steps.meta.outputs.tag_name }}'
+          CLEAN_VERSION=${VERSION#v}
+          sed -i "" "s/^version: .*/version: ${CLEAN_VERSION}+${{ github.run_number }}/" pubspec.yaml
+          grep "^version:" pubspec.yaml
+
+      - name: Import certificates + provisioning profile
+        env:
+          MACOS_CERTIFICATE_P12: ${{ secrets.MACOS_CERTIFICATE_P12 }}
+          MACOS_CERTIFICATE_PASSWORD: ${{ secrets.MACOS_CERTIFICATE_PASSWORD }}
+          MACOS_INSTALLER_CERTIFICATE_P12: ${{ secrets.MACOS_INSTALLER_CERTIFICATE_P12 }}
+          MACOS_INSTALLER_CERTIFICATE_PASSWORD: ${{ secrets.MACOS_INSTALLER_CERTIFICATE_PASSWORD }}
+          MACOS_KEYCHAIN_PASSWORD: ${{ secrets.MACOS_KEYCHAIN_PASSWORD }}
+          MACOS_PROVISIONING_PROFILE: ${{ secrets.MACOS_PROVISIONING_PROFILE }}
+        run: |
+          set -euo pipefail
+          if [ -z "${MACOS_CERTIFICATE_P12:-}" ]; then
+            echo "No MACOS_* signing secrets — skipping macOS App Store upload"
+            echo "MACOS_SIGNING_ENABLED=false" >> $GITHUB_ENV
+            exit 0
+          fi
+          KEYCHAIN_PW="${MACOS_KEYCHAIN_PASSWORD:-$(openssl rand -base64 32)}"
+          CERT=$RUNNER_TEMP/cert.p12
+          echo -n "$MACOS_CERTIFICATE_P12" | base64 --decode -o $CERT
+          PP=$RUNNER_TEMP/xplayer.provisionprofile
+          echo -n "$MACOS_PROVISIONING_PROFILE" | base64 --decode -o $PP
+          KC=$RUNNER_TEMP/app-signing.keychain-db
+          security create-keychain -p "$KEYCHAIN_PW" $KC
+          security set-keychain-settings -lut 21600 $KC
+          security unlock-keychain -p "$KEYCHAIN_PW" $KC
+          security import $CERT -P "$MACOS_CERTIFICATE_PASSWORD" -A -f pkcs12 -k $KC
+          if [ -n "${MACOS_INSTALLER_CERTIFICATE_P12:-}" ]; then
+            ICERT=$RUNNER_TEMP/installer.p12
+            IPW="${MACOS_INSTALLER_CERTIFICATE_PASSWORD:-$MACOS_CERTIFICATE_PASSWORD}"
+            echo -n "$MACOS_INSTALLER_CERTIFICATE_P12" | base64 --decode -o $ICERT
+            security import $ICERT -P "$IPW" -A -f pkcs12 -k $KC
+          fi
+          security set-key-partition-list -S apple-tool:,apple: -s -k "$KEYCHAIN_PW" $KC
+          security list-keychain -d user -s $KC
+          mkdir -p ~/Library/MobileDevice/Provisioning\ Profiles
+          cp "$PP" "$HOME/Library/MobileDevice/Provisioning Profiles/xplayer.provisionprofile"
+          echo "MACOS_SIGNING_ENABLED=true" >> $GITHUB_ENV
+
+      - name: Build macOS (STORE build = 纯播放器无内置源)
+        if: env.MACOS_SIGNING_ENABLED == 'true'
+        run: flutter build macos --release --dart-define=STORE_BUILD=true
+
+      - name: Create signed .pkg for App Store
+        if: env.MACOS_SIGNING_ENABLED == 'true'
+        run: |
+          set -euo pipefail
+          APP_PATH=$(ls -d build/macos/Build/Products/Release/*.app | head -n 1)
+          if [ ! -d "$APP_PATH" ]; then echo "app not found"; exit 1; fi
+          SIGNING_IDENTITY=$(security find-identity -v | grep -Eo '"Apple Distribution[^"]*"|"3rd Party Mac Developer Application[^"]*"' | head -1 | tr -d '"')
+          INSTALLER_IDENTITY=$(security find-identity -v | grep -Eo '"Mac Installer Distribution[^"]*"|"3rd Party Mac Developer Installer[^"]*"' | head -1 | tr -d '"')
+          echo "Signing: $SIGNING_IDENTITY | Installer: $INSTALLER_IDENTITY"
+          if [ -z "$SIGNING_IDENTITY" ] || [ -z "$INSTALLER_IDENTITY" ]; then
+            echo "Missing signing/installer identity"; exit 1
+          fi
+          PP_PATH="$HOME/Library/MobileDevice/Provisioning Profiles/xplayer.provisionprofile"
+          cp "$PP_PATH" "$APP_PATH/Contents/embedded.provisionprofile"
+          PLIST=$RUNNER_TEMP/pp.plist
+          security cms -D -i "$PP_PATH" > "$PLIST"
+          APP_ID_KEY="com.apple.application-identifier"
+          APP_IDENTIFIER=$(/usr/libexec/PlistBuddy -c "Print :Entitlements:com.apple.application-identifier" "$PLIST" 2>/dev/null || true)
+          if [ -z "$APP_IDENTIFIER" ]; then
+            APP_ID_KEY="application-identifier"
+            APP_IDENTIFIER=$(/usr/libexec/PlistBuddy -c "Print :Entitlements:application-identifier" "$PLIST" 2>/dev/null || true)
+          fi
+          TEAM_IDENTIFIER=$(/usr/libexec/PlistBuddy -c "Print :Entitlements:com.apple.developer.team-identifier" "$PLIST" 2>/dev/null || /usr/libexec/PlistBuddy -c "Print :TeamIdentifier:0" "$PLIST" 2>/dev/null || true)
+          ENT=$RUNNER_TEMP/sign.entitlements
+          cp macos/Runner/Release.entitlements "$ENT"
+          /usr/libexec/PlistBuddy -c "Add :$APP_ID_KEY string $APP_IDENTIFIER" "$ENT" 2>/dev/null || true
+          /usr/libexec/PlistBuddy -c "Add :com.apple.developer.team-identifier string $TEAM_IDENTIFIER" "$ENT" 2>/dev/null || true
+          if [ -d "$APP_PATH/Contents/Frameworks" ]; then
+            find "$APP_PATH/Contents/Frameworks" -depth \( -type d \( -name "*.framework" -o -name "*.xpc" -o -name "*.app" \) -o -type f -name "*.dylib" \) -print0 | while IFS= read -r -d '' N; do
+              codesign --force --verify --sign "$SIGNING_IDENTITY" "$N"
+            done
+          fi
+          codesign --force --verify --sign "$SIGNING_IDENTITY" --entitlements "$ENT" "$APP_PATH"
+          codesign --verify --deep --strict "$APP_PATH"
+          productbuild --component "$APP_PATH" /Applications --sign "$INSTALLER_IDENTITY" xplayer.pkg
+          ls -lh xplayer.pkg
+
+      - name: Upload to App Store Connect
+        if: env.MACOS_SIGNING_ENABLED == 'true'
+        continue-on-error: true
+        env:
+          APPLE_API_KEY_CONTENT: ${{ secrets.APPLE_API_KEY_CONTENT }}
+          APPLE_API_KEY_ID: ${{ secrets.APPLE_API_KEY_ID }}
+          APPLE_API_ISSUER_ID: ${{ secrets.APPLE_API_ISSUER_ID }}
+        run: |
+          set -euo pipefail
+          mkdir -p ~/.appstoreconnect/private_keys
+          P8="$HOME/.appstoreconnect/private_keys/AuthKey_${APPLE_API_KEY_ID}.p8"
+          printf '%s' "$APPLE_API_KEY_CONTENT" > "$P8"; chmod 600 "$P8"
+          xcrun altool --upload-app --type macos --file xplayer.pkg \
+            --apiKey "$APPLE_API_KEY_ID" --apiIssuer "$APPLE_API_ISSUER_ID" --show-progress
+          rm -f "$P8"
+
+      - name: Cleanup keychain
+        if: always() && env.MACOS_SIGNING_ENABLED == 'true'
+        run: security delete-keychain $RUNNER_TEMP/app-signing.keychain-db || true
+
   ios:
     name: iOS (signed → TestFlight + unsigned)
     runs-on: macos-latest
