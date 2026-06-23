@@ -4,6 +4,7 @@ on:
   push:
     tags:
       - "v*"
+      - "[0-9]*"
   workflow_dispatch:
     inputs:
       tag_name:
@@ -135,7 +136,12 @@ jobs:
           mkdir -p "$OUT"
           for abi in arm64-v8a armeabi-v7a x86_64 universal; do
             f="$APKDIR/app-${abi}-release.apk"
-            [ -f "$f" ] && cp "$f" "$OUT/xplayer-${VERSION}-${abi}.apk"
+            [ -f "$f" ] || continue
+            if [ "$abi" = "arm64-v8a" ]; then
+              cp "$f" "$OUT/xplayer-${VERSION}.apk"            # 主包(arm64-v8a)不带后缀
+            else
+              cp "$f" "$OUT/xplayer-${VERSION}-${abi}.apk"
+            fi
           done
           # fallback if split was not enabled
           [ -f "$APKDIR/app-release.apk" ] && cp "$APKDIR/app-release.apk" "$OUT/xplayer-${VERSION}.apk" || true
