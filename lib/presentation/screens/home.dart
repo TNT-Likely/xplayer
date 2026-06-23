@@ -374,6 +374,47 @@ class _HomeScreenState extends State<HomeScreen> {
             child: ListView(
               padding: EdgeInsets.zero,
               children: <Widget>[
+                // 顶部品牌头:logo + 名称 + 版本
+                Padding(
+                  padding: const EdgeInsets.fromLTRB(16, 20, 16, 12),
+                  child: Row(
+                    children: [
+                      ClipRRect(
+                        borderRadius: BorderRadius.circular(8),
+                        child: Image.asset(
+                          'assets/images/mini-logo.png',
+                          width: 40,
+                          height: 40,
+                          fit: BoxFit.cover,
+                        ),
+                      ),
+                      const SizedBox(width: 12),
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            const Text(
+                              'XPlayer',
+                              style: TextStyle(
+                                color: Colors.white,
+                                fontSize: 20,
+                                fontWeight: FontWeight.w600,
+                              ),
+                            ),
+                            Text(
+                              _version,
+                              style: const TextStyle(
+                                color: Colors.white54,
+                                fontSize: 12,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+                const Divider(color: Colors.white24, height: 1),
                 Consumer<MediaProvider>(
                   builder: (BuildContext context2, mediaProvider, _) {
                     final playlist = [
@@ -431,7 +472,7 @@ class _HomeScreenState extends State<HomeScreen> {
                     );
                   },
                 ),
-                // 远程输入菜单：仅在手机端显示，放在播放列表之后
+                const Divider(color: Colors.white12, height: 8),
                 XBaseButton(
                   child: animeContainer(
                     ListTile(
@@ -488,6 +529,7 @@ class _HomeScreenState extends State<HomeScreen> {
                     }
                   },
                 ),
+                const Divider(color: Colors.white12, height: 8),
                 XBaseButton(
                   onPressed: () {
                     Navigator.push(
@@ -526,6 +568,7 @@ class _HomeScreenState extends State<HomeScreen> {
                     ),
                   ),
                 ),
+                const Divider(color: Colors.white12, height: 8),
                 Consumer<GlobalProvider>(builder: (context, g, _) {
                   if (g.isTV) return const SizedBox.shrink();
                   return XBaseButton(
@@ -611,10 +654,6 @@ class _HomeScreenState extends State<HomeScreen> {
                       ),
                     ),
                   ),
-                ),
-                ListTile(
-                  leading: const Icon(Icons.info, color: Colors.white),
-                  title: Text(_version, style: const TextStyle(color: Colors.white)),
                 ),
               ],
             ),
