@@ -18,6 +18,7 @@ import 'package:xplayer/providers/locale_provider.dart';
 import 'package:flutter/services.dart';
 import 'package:xplayer/shared/components/x_icon_button.dart';
 import 'package:xplayer/shared/theme/app_tokens.dart';
+import 'package:xplayer/shared/build_flags.dart';
 import 'package:xplayer/utils/dialog.dart';
 import 'package:xplayer/utils/toast.dart';
 import 'package:xplayer/providers/media_provider.dart';
@@ -552,6 +553,7 @@ class _HomeScreenState extends State<HomeScreen> {
                     ),
                   ),
                 ),
+                if (!kStoreBuild)
                 XBaseButton(
                   onPressed: () {
                     Navigator.of(context).pop();
@@ -709,16 +711,18 @@ class _HomeScreenState extends State<HomeScreen> {
                             ],
                           ),
                         ),
-                        const SizedBox(height: 16.0),
-                        SizedBox(
-                          width: 240,
-                          child: XTextButton(
-                            text: localizations.recommendedSources,
-                            size: XTextButtonSize.large,
-                            type: XTextButtonType.primary,
-                            onPressed: () => _showPresetSources(context),
+                        if (!kStoreBuild) ...[
+                          const SizedBox(height: 16.0),
+                          SizedBox(
+                            width: 240,
+                            child: XTextButton(
+                              text: localizations.recommendedSources,
+                              size: XTextButtonSize.large,
+                              type: XTextButtonType.primary,
+                              onPressed: () => _showPresetSources(context),
+                            ),
                           ),
-                        ),
+                        ],
                       ],
                     ),
                   );

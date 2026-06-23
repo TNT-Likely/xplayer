@@ -7,6 +7,7 @@ import 'package:xplayer/data/models/programme_model.dart';
 import 'package:xplayer/data/models/channel_test_result.dart';
 import 'package:xplayer/data/models/iptv_presets.dart';
 import 'package:xplayer/utils/channel_filter.dart';
+import 'package:xplayer/shared/build_flags.dart';
 import 'package:xplayer/data/repositories/playlist_repository.dart';
 import 'package:xplayer/data/repositories/favorites_repository.dart';
 import 'package:xplayer/services/channel_test_service.dart';
@@ -316,6 +317,7 @@ class MediaProvider with ChangeNotifier {
   /// 首启无源时,自动添加并选中默认预置源(运行时拉取,不打包快照)。
   /// 用 shared_preferences 标记,用户删光源后不会被重新种入。
   Future<void> _maybeSeedDefaultPreset() async {
+    if (kStoreBuild) return; // 商店包(App Store / Play)不内置默认源
     if (_playlists.isNotEmpty) return;
     final prefs = await SharedPreferences.getInstance();
     if (prefs.getBool('seeded_default_preset') ?? false) return;
