@@ -29,6 +29,15 @@ const x = tr.index;
     ))}
   </div>
 
+  <details class="more">
+    <summary>{x.shotsMoreTitle}</summary>
+    <div class="shots">
+      {x.shotsMore.map((s) => (
+        <figure class="shot"><img src={s.src} alt={s.alt} width="420" loading="lazy" /></figure>
+      ))}
+    </div>
+  </details>
+
   <h2>{x.featuresTitle}</h2>
   <div class="features">
     {x.features.map((f) => (

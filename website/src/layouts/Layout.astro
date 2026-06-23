@@ -137,6 +137,11 @@ const here = norm(pathname);
       }
       .shot figcaption { color: var(--muted); font-size: 13px; margin-top: 8px; }
 
+      .more { max-width: var(--maxw); margin: 18px auto 0; text-align: center; }
+      .more > summary { cursor: pointer; color: var(--muted); font-size: 14px; padding: 8px; }
+      .more[open] > summary { margin-bottom: 10px; }
+      .more .shot img { width: 420px; max-width: 88vw; }
+
       .site-footer {
         border-top: 1px solid var(--border);
         max-width: var(--maxw); margin: 0 auto; padding: 28px 20px 48px;
