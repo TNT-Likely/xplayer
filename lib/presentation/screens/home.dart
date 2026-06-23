@@ -15,6 +15,7 @@ import 'package:xplayer/presentation/widgets/update_proxy_dialog.dart';
 import 'package:xplayer/shared/components/x_text_button.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:xplayer/providers/locale_provider.dart';
+import 'package:flutter/services.dart';
 import 'package:xplayer/shared/components/x_icon_button.dart';
 import 'package:xplayer/shared/theme/app_tokens.dart';
 import 'package:xplayer/utils/dialog.dart';
@@ -207,8 +208,55 @@ class _HomeScreenState extends State<HomeScreen> {
     };
   }
 
+  /// 返回键退出二次确认(App 与 TV 共用系统返回键)。
+  /// 抽屉打开时优先关抽屉,不弹退出框。
+  Future<bool> _confirmExit(BuildContext context) async {
+    final l = AppLocalizations.of(context)!;
+    final result = await showDialog<bool>(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        backgroundColor: AppTokens.surfacePanel,
+        title: Text(l.exitAppTitle,
+            style: const TextStyle(color: AppTokens.textPrimary)),
+        content: Text(l.exitAppMessage,
+            style: const TextStyle(color: AppTokens.textSecondary)),
+        actions: [
+          XTextButton(
+            text: l.cancel,
+            onPressed: () => Navigator.of(ctx).pop(false),
+          ),
+          XTextButton(
+            text: l.exit,
+            type: XTextButtonType.danger,
+            onPressed: () => Navigator.of(ctx).pop(true),
+          ),
+        ],
+      ),
+    );
+    return result ?? false;
+  }
+
   @override
   Widget build(BuildContext context) {
+    return PopScope(
+      canPop: false,
+      onPopInvokedWithResult: (didPop, result) async {
+        if (didPop) return;
+        // 抽屉开着先关抽屉
+        final scaffold = _scaffoldKey.currentState;
+        if (scaffold != null && scaffold.isDrawerOpen) {
+          scaffold.closeDrawer();
+          return;
+        }
+        if (await _confirmExit(context)) {
+          await SystemNavigator.pop();
+        }
+      },
+      child: _buildHome(context),
+    );
+  }
+
+  Widget _buildHome(BuildContext context) {
     final localeProvider = Provider.of<LocaleProvider>(context, listen: false);
     final localizations = AppLocalizations.of(context)!;
 

@@ -120,5 +120,8 @@
     "updateProxyHint": "在线更新走此 HTTP 代理（host:port），加速下载；留空直连。仅用于更新，不影响播放。",
     "filterTitle": "搜索与筛选",
     "itemSize": "显示大小",
-    "noProgramme": "该频道暂无节目单"
+    "noProgramme": "该频道暂无节目单",
+    "exitAppTitle": "退出应用",
+    "exitAppMessage": "确定要退出应用吗？",
+    "exit": "退出"
 }
