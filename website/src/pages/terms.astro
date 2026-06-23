@@ -1,0 +1,22 @@
+---
+import Layout from '../layouts/Layout.astro';
+import { t } from '../i18n/strings';
+
+const locale = 'en' as const;
+const tr = t(locale);
+const p = tr.terms;
+---
+
+<Layout title={p.title} description={tr.site.tagline} locale={locale} pathname="/terms">
+  <h1>{p.title}</h1>
+  <p class="subtitle">{p.lastUpdated}</p>
+
+  {p.sections.map((s) => (
+    <>
+      <h2>{s.h}</h2>
+      <p>{s.p}</p>
+    </>
+  ))}
+
+  <p class="stamp">© {new Date().getFullYear()} {tr.site.brand}</p>
+</Layout>
