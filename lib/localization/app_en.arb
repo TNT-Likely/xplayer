@@ -131,5 +131,6 @@
   "hintSwitchSource": "Switch source: → or swipe right",
   "hintMenu": "Menu: OK or tap screen",
   "hintGotIt": "Got it",
-  "hideUnplayable": "Hide unplayable"
+  "hideUnplayable": "Hide unplayable",
+  "autoRefreshOnLaunch": "Auto-update on launch"
 }

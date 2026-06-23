@@ -655,6 +655,26 @@ class _HomeScreenState extends State<HomeScreen> {
                     ),
                   ),
                 ),
+                Consumer<MediaProvider>(
+                  builder: (context, mp, _) => XBaseButton(
+                    onPressed: () =>
+                        mp.setAutoRefreshOnLaunch(!mp.autoRefreshOnLaunch),
+                    child: animeContainer(
+                      ListTile(
+                        leading:
+                            const Icon(Icons.autorenew, color: Colors.white),
+                        title: Text(
+                          localizations.autoRefreshOnLaunch,
+                          style: const TextStyle(color: Colors.white),
+                        ),
+                        trailing: Switch(
+                          value: mp.autoRefreshOnLaunch,
+                          onChanged: mp.setAutoRefreshOnLaunch,
+                        ),
+                      ),
+                    ),
+                  ),
+                ),
               ],
             ),
           ),
