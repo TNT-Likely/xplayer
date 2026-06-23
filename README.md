@@ -29,14 +29,12 @@
 ## 📸 预览
 
 <p align="center">
-  <img src="screenshots/home.png" width="260" alt="频道网格:浏览/分组/搜索" />
-  <img src="screenshots/player.png" width="260" alt="直播播放与控制" />
+  <img src="screenshots/home.png" width="240" alt="频道网格:浏览 / 分组 / 搜索" />
+  <img src="screenshots/player.png" width="240" alt="直播播放与控制" />
+  <img src="screenshots/search.png" width="240" alt="频道搜索" />
   <br/>
-  <img src="https://github.com/user-attachments/assets/fe341b2a-66f7-42b6-b3d0-6ece3dd47203" width="260" />
-  <img src="https://github.com/user-attachments/assets/8632dff6-dc7a-4717-99ca-a39e9efddd04" width="260" />
-  <br/>
-  <img src="https://github.com/user-attachments/assets/a14b1e50-65b9-45a1-b495-ada3983b01e9" width="260" />
-  <img src="assets/preview/remote-control.jpg" width="260" />
+  <img src="screenshots/groups.png" width="240" alt="按分组浏览" />
+  <img src="screenshots/remote.png" width="240" alt="手机遥控 TV(同一局域网)" />
 </p>
 
 <details>

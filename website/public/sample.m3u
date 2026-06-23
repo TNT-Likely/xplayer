@@ -1,0 +1,7 @@
+#EXTM3U
+#EXTINF:-1 tvg-name="Big Buck Bunny" group-title="Demo",Big Buck Bunny (HLS)
+https://test-streams.mux.dev/x36xhzz/x36xhzz.m3u8
+#EXTINF:-1 tvg-name="Tears of Steel" group-title="Demo",Tears of Steel (HLS)
+https://test-streams.mux.dev/tos_ismc/main.m3u8
+#EXTINF:-1 tvg-name="Apple BipBop" group-title="Apple",Apple BipBop (HLS)
+https://devstreaming-cdn.apple.com/videos/streaming/examples/img_bipbop_adv_example_ts/master.m3u8
