@@ -30,6 +30,8 @@
 		</array>
 		<key>NSLocalNetworkUsageDescription</key>
 		<string>用于在同一网络内发现和连接 TV 设备以进行远程输入</string>
+	<key>NSPhotoLibraryUsageDescription</key>
+	<string>用于从相册/文件中选择本地播放列表或媒体文件进行播放。Used to pick local playlist or media files to play.</string>
 	<key>UILaunchStoryboardName</key>
 	<string>LaunchScreen</string>
 	<key>UIMainStoryboardFile</key>
