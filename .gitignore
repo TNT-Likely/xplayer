@@ -55,3 +55,6 @@ android/key.properties
 lib/generated
 lib/l10n
 
+# VC++ redistributable fetched at CI time for the Windows installer
+windows/installer/vc_redist.x64.exe
+
