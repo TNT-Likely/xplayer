@@ -4,6 +4,15 @@
 
 #include "flutter/generated_plugin_registrant.h"
 
+namespace {
+// 兜底:部分 Windows GPU/驱动组合下,引擎首帧回调始终不触发,
+// 导致窗口永远不 Show(进程常驻、却看不到窗口)。该定时器保证启动后
+// 无论如何都会把窗口显示出来。正常机器上首帧回调早已先把窗口显示,
+// 定时器到点时 Show() 即为无害的空操作。
+constexpr UINT_PTR kShowWindowFallbackTimerId = 1;
+constexpr UINT kShowWindowFallbackTimeoutMs = 800;
+}  // namespace
+
 FlutterWindow::FlutterWindow(const flutter::DartProject& project)
     : project_(project) {}
 
@@ -36,6 +45,10 @@ bool FlutterWindow::OnCreate() {
   // window is shown. It is a no-op if the first frame hasn't completed yet.
   flutter_controller_->ForceRedraw();
 
+  // 兜底:即使首帧回调不触发,也在超时后强制显示窗口。
+  SetTimer(GetHandle(), kShowWindowFallbackTimerId,
+           kShowWindowFallbackTimeoutMs, nullptr);
+
   return true;
 }
 
@@ -64,6 +77,13 @@ FlutterWindow::MessageHandler(HWND hwnd, UINT const message,
   switch (message) {
     case WM_FONTCHANGE:
       flutter_controller_->engine()->ReloadSystemFonts();
+      break;
+    case WM_TIMER:
+      if (wparam == kShowWindowFallbackTimerId) {
+        KillTimer(hwnd, kShowWindowFallbackTimerId);
+        this->Show();
+        return 0;
+      }
       break;
   }
 
