@@ -30,6 +30,9 @@ class MediaProvider with ChangeNotifier {
   String _searchQuery = '';
   String? _selectedGroup;
 
+  // 首页频道项显示大小档位(0 最大 .. 4 最小,2=默认)
+  int _gridSizeLevel = 2;
+
   // 频道测试相关
   Map<String, ChannelTestResult> _channelTestResults = {};
   bool _isTesting = false;
@@ -66,6 +69,9 @@ class MediaProvider with ChangeNotifier {
 
   /// 当前频道里去重的分组(供筛选 chips)。
   List<String> get availableGroups => distinctGroups(channels);
+
+  /// 首页频道项显示大小档位(0..4)。
+  int get gridSizeLevel => _gridSizeLevel;
 
   List<Channel> get favoriteChannels => _favoriteChannels;
   List<Programme> get programmes => _programmes;
@@ -152,6 +158,21 @@ class MediaProvider with ChangeNotifier {
     notifyListeners();
   }
 
+  /// 读取持久化的显示大小档位。
+  Future<void> loadGridSizeLevel() async {
+    final prefs = await SharedPreferences.getInstance();
+    _gridSizeLevel = (prefs.getInt('grid_size_level') ?? 2).clamp(0, 4);
+    notifyListeners();
+  }
+
+  /// 设置并持久化显示大小档位(0..4)。
+  Future<void> setGridSizeLevel(int level) async {
+    _gridSizeLevel = level.clamp(0, 4);
+    notifyListeners();
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setInt('grid_size_level', _gridSizeLevel);
+  }
+
   void _resetFilters() {
     _searchQuery = '';
     _selectedGroup = null;
@@ -174,6 +195,9 @@ class MediaProvider with ChangeNotifier {
 
       // 加载播放列表
       await fetchPlaylists();
+
+      // 加载显示大小偏好
+      await loadGridSizeLevel();
 
       // 首启无任何源时,自动添加并选中默认预置源(iptv-org 中国;运行时拉取)
       await _maybeSeedDefaultPreset();

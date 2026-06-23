@@ -158,7 +158,7 @@ jobs:
           path: dist-android/*
 
   windows:
-    name: Windows (zip)
+    name: Windows (installer + portable)
     # 钉到 windows-2022:windows-latest 已滚到更新镜像,Flutter 3.27.3 在其上会误选
     # VS2019 生成器导致构建失败(2025-10 旧镜像上还是好的)。保留 continue-on-error 兜底。
     runs-on: windows-2022
@@ -216,22 +216,63 @@ jobs:
       - name: Build Windows (release)
         run: flutter build windows --release
 
-      - name: Package Windows zip
+      - name: Resolve installer version
+        id: winver
+        shell: bash
+        run: |
+          set -euo pipefail
+          V='${{ steps.meta.outputs.tag_name }}'
+          V=${V#v}
+          # Inno Setup AppVersion / file name need a clean x.y.z; fall back for manual-* tags.
+          if [[ ! "$V" =~ ^[0-9]+\.[0-9]+\.[0-9]+$ ]]; then V="1.0.0"; fi
+          echo "version=$V" >> $GITHUB_OUTPUT
+
+      - name: Package portable zip (with app-local VC++ runtime)
         shell: pwsh
         run: |
           $ErrorActionPreference = "Stop"
-          $src = "build/windows/x64/runner/Release"
-          if (!(Test-Path $src)) { Get-ChildItem -Recurse build/windows | Write-Output }
-          $dst = "xplayer-windows-x64.zip"
-          if (Test-Path $dst) { Remove-Item $dst }
-          Compress-Archive -Path "$src/*" -DestinationPath $dst
+          $rel = "build/windows/x64/runner/Release"
+          if (!(Test-Path $rel)) { Get-ChildItem -Recurse build/windows | Write-Output; exit 1 }
+          # App-local deployment of the MSVC runtime so the portable build runs
+          # on clean machines without the VC++ Redistributable installed.
+          foreach ($d in @("vcruntime140.dll","vcruntime140_1.dll","msvcp140.dll")) {
+            $s = Join-Path $env:SystemRoot "System32\$d"
+            if (Test-Path $s) { Copy-Item $s (Join-Path $rel $d) -Force }
+          }
+          $zip = "xplayer-${{ steps.winver.outputs.version }}-windows-x64-portable.zip"
+          if (Test-Path $zip) { Remove-Item $zip }
+          Compress-Archive -Path "$rel/*" -DestinationPath $zip
 
-      - name: Upload Windows artifact
+      - name: Download VC++ redistributable (for installer)
+        shell: pwsh
+        run: |
+          $ErrorActionPreference = "Stop"
+          Invoke-WebRequest -Uri "https://aka.ms/vs/17/release/vc_redist.x64.exe" `
+            -OutFile "windows/installer/vc_redist.x64.exe"
+
+      - name: Build installer (Inno Setup)
+        shell: pwsh
+        run: |
+          $ErrorActionPreference = "Stop"
+          $iscc = "C:\Program Files (x86)\Inno Setup 6\ISCC.exe"
+          if (!(Test-Path $iscc)) {
+            choco install innosetup -y --no-progress | Out-Null
+          }
+          if (!(Test-Path $iscc)) { $iscc = "ISCC.exe" }
+          & $iscc `
+            "/DAppVersion=${{ steps.winver.outputs.version }}" `
+            "/DSourceDir=$((Resolve-Path 'build/windows/x64/runner/Release').Path)" `
+            "/DOutputDir=$((Resolve-Path '.').Path)" `
+            "windows/installer/xplayer.iss"
+
+      - name: Upload Windows artifacts
         uses: actions/upload-artifact@v4
         with:
           name: windows
           if-no-files-found: error
-          path: xplayer-windows-x64.zip
+          path: |
+            xplayer-*-windows-x64-setup.exe
+            xplayer-*-windows-x64-portable.zip
 
   macos:
     name: macOS (app.zip)

@@ -8,7 +8,7 @@ import 'package:xplayer/services/update_service.dart';
 import 'package:xplayer/shared/components/x_base_button.dart';
 import 'package:xplayer/presentation/widgets/bg_wrapper.dart';
 import 'package:xplayer/presentation/widgets/channel_list_widget.dart';
-import 'package:xplayer/presentation/widgets/channel_filter_bar.dart';
+import 'package:xplayer/presentation/widgets/channel_filter_dialog.dart';
 import 'package:xplayer/presentation/widgets/playlist_dialog.dart';
 import 'package:xplayer/presentation/widgets/preset_source_dialog.dart';
 import 'package:xplayer/presentation/widgets/update_proxy_dialog.dart';
@@ -16,6 +16,7 @@ import 'package:xplayer/shared/components/x_text_button.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:xplayer/providers/locale_provider.dart';
 import 'package:xplayer/shared/components/x_icon_button.dart';
+import 'package:xplayer/shared/theme/app_tokens.dart';
 import 'package:xplayer/utils/dialog.dart';
 import 'package:xplayer/utils/toast.dart';
 import 'package:xplayer/providers/media_provider.dart';
@@ -110,6 +111,66 @@ class _HomeScreenState extends State<HomeScreen> {
     );
   }
 
+  void _showSearchDialog(BuildContext context) {
+    showDialog(
+      context: context,
+      builder: (_) => const ChannelSearchDialog(),
+    );
+  }
+
+  void _showGroupDialog(BuildContext context) {
+    showDialog(
+      context: context,
+      builder: (_) => const ChannelGroupDialog(),
+    );
+  }
+
+  void _showSizeDialog(BuildContext context) {
+    showDialog(
+      context: context,
+      builder: (_) => const ChannelSizeDialog(),
+    );
+  }
+
+  /// 右上角筛选入口图标;[active] 为 true 时右上角叠加一个选中红点。
+  Widget _filterIcon(
+    BuildContext context, {
+    required IconData icon,
+    required String tooltip,
+    required bool active,
+    required VoidCallback onPressed,
+  }) {
+    final button = XIconButton(
+      icon: icon,
+      hoverBgOnly: true,
+      tooltipMessage: tooltip,
+      onPressed: onPressed,
+    );
+    if (!active) return button;
+    return Stack(
+      clipBehavior: Clip.none,
+      children: [
+        button,
+        Positioned(
+          right: 6,
+          top: 6,
+          child: IgnorePointer(
+            child: Container(
+              width: 9,
+              height: 9,
+              decoration: BoxDecoration(
+                color: AppTokens.brand,
+                shape: BoxShape.circle,
+                border: Border.all(
+                    color: Colors.black.withOpacity(0.45), width: 1),
+              ),
+            ),
+          ),
+        ),
+      ],
+    );
+  }
+
   void _showLanguageSwitcher(
     BuildContext context,
     LocaleProvider localeProvider,
@@ -179,6 +240,42 @@ class _HomeScreenState extends State<HomeScreen> {
           elevation: 0, // 移除阴影
           backgroundColor: Colors.transparent, // 使背景透明
           actions: [
+            // 搜索 / 分组 / 显示大小:三个独立入口(有频道时才显示)
+            Consumer<MediaProvider>(
+              builder: (context, mp, _) {
+                if (mp.channels.isEmpty) return const SizedBox.shrink();
+                final hasGroups = mp.availableGroups.isNotEmpty;
+                final groupActive = mp.selectedGroup != null &&
+                    mp.selectedGroup!.isNotEmpty;
+                return Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    _filterIcon(
+                      context,
+                      icon: Icons.search,
+                      tooltip: localizations.search,
+                      active: mp.searchQuery.isNotEmpty,
+                      onPressed: () => _showSearchDialog(context),
+                    ),
+                    if (hasGroups)
+                      _filterIcon(
+                        context,
+                        icon: Icons.filter_list,
+                        tooltip: localizations.groups,
+                        active: groupActive,
+                        onPressed: () => _showGroupDialog(context),
+                      ),
+                    _filterIcon(
+                      context,
+                      icon: Icons.photo_size_select_large,
+                      tooltip: localizations.itemSize,
+                      active: false,
+                      onPressed: () => _showSizeDialog(context),
+                    ),
+                  ],
+                );
+              },
+            ),
             Consumer<MediaProvider>(
               builder: (context, mediaProvider, _) {
                 if (mediaProvider.isTesting) {
@@ -527,46 +624,39 @@ class _HomeScreenState extends State<HomeScreen> {
                   );
                 } else {
                   final filtered = mediaProvider.filteredChannels;
-                  return Column(
-                    children: [
-                      const ChannelFilterBar(),
-                      Expanded(
-                        child: filtered.isEmpty
-                            ? Center(
-                                child: Column(
-                                  mainAxisAlignment: MainAxisAlignment.center,
-                                  children: [
-                                    const Icon(Icons.search_off,
-                                        color: Colors.white, size: 60),
-                                    Text(
-                                      localizations.noChannelsFound,
-                                      style:
-                                          const TextStyle(color: Colors.white),
-                                    ),
-                                  ],
-                                ),
-                              )
-                            : ChannelListWidget(
-                                channels: filtered,
-                                favoriteChannels:
-                                    mediaProvider.favoriteChannels,
-                                onChannelUpdated: () async {
-                                  try {
-                                    final mp = Provider.of<MediaProvider>(
-                                      context,
-                                      listen: false,
-                                    );
-                                    await mp.refreshChannels();
-                                    showToast(localizations
-                                        .channelsUpdatedSuccessfully);
-                                  } catch (e) {
-                                    showToast(localizations
-                                        .channelsUpdateFailed(e.toString()));
-                                  }
-                                },
-                              ),
+                  if (filtered.isEmpty) {
+                    // 搜索/分组无结果(原始频道非空)
+                    return Center(
+                      child: Column(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          const Icon(Icons.search_off,
+                              color: Colors.white, size: 60),
+                          Text(
+                            localizations.noChannelsFound,
+                            style: const TextStyle(color: Colors.white),
+                          ),
+                        ],
                       ),
-                    ],
+                    );
+                  }
+                  return ChannelListWidget(
+                    channels: filtered,
+                    favoriteChannels: mediaProvider.favoriteChannels,
+                    sizeLevel: mediaProvider.gridSizeLevel,
+                    onChannelUpdated: () async {
+                      try {
+                        final mp = Provider.of<MediaProvider>(
+                          context,
+                          listen: false,
+                        );
+                        await mp.refreshChannels();
+                        showToast(localizations.channelsUpdatedSuccessfully);
+                      } catch (e) {
+                        showToast(
+                            localizations.channelsUpdateFailed(e.toString()));
+                      }
+                    },
                   );
                 }
               },

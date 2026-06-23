@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'dart:math';
 
 import 'package:intl/intl.dart';
+import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 import 'package:xplayer/data/models/programme_model.dart';
 
 class ProgrammeListWidget extends StatefulWidget {
@@ -88,6 +89,28 @@ class _ProgrammeListWidgetState extends State<ProgrammeListWidget> {
   @override
   Widget build(BuildContext context) {
     final Color themeColor = Theme.of(context).primaryColor;
+
+    // 无节目单时展示空状态(否则面板一片空白)
+    if (widget.programmes.isEmpty) {
+      final l = AppLocalizations.of(context)!;
+      return Center(
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            const Icon(Icons.event_busy, color: Colors.white70, size: 56),
+            const SizedBox(height: 12),
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 24),
+              child: Text(
+                l.noProgramme,
+                textAlign: TextAlign.center,
+                style: const TextStyle(color: Colors.white70, fontSize: 15),
+              ),
+            ),
+          ],
+        ),
+      );
+    }
 
     return ListView.builder(
       controller: _scrollController,
