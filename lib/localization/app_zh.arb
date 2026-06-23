@@ -123,5 +123,6 @@
     "noProgramme": "该频道暂无节目单",
     "exitAppTitle": "退出应用",
     "exitAppMessage": "确定要退出应用吗？",
-    "exit": "退出"
+    "exit": "退出",
+    "retry": "重试"
 }

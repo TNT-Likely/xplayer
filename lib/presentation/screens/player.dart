@@ -7,6 +7,7 @@ import 'package:xplayer/data/models/channel_model.dart';
 import 'package:xplayer/data/models/programme_model.dart';
 import 'package:xplayer/presentation/widgets/player_actions_widget.dart';
 import 'package:xplayer/presentation/widgets/player_dialogs.dart';
+import 'package:xplayer/shared/components/x_text_button.dart';
 import 'package:xplayer/providers/media_provider.dart';
 import 'package:xplayer/utils/logger_util.dart';
 import 'package:xplayer/utils/playlist_util.dart';
@@ -40,6 +41,7 @@ class _PlayerScreenState extends State<PlayerScreen>
   late String _sourceLink;
   Timer? autoCloseTimer;
   int _retryTimes = 0;
+  int _bufferingRetryTimes = 0;
   Timer? _bufferingTimer;
   bool _isHandlingBuffering = false;
 
@@ -116,6 +118,7 @@ class _PlayerScreenState extends State<PlayerScreen>
 
       await _controller.initialize().then((_) {
         _retryTimes = 0;
+        _bufferingRetryTimes = 0;
         _controller.play();
         setState(() {
           // 初始化成功后更新状态为 playing
@@ -148,14 +151,23 @@ class _PlayerScreenState extends State<PlayerScreen>
         _bufferingTimer?.cancel();
         _bufferingTimer = Timer(const Duration(seconds: 5), () {
           if (_controller.value.isBuffering) {
-            Logger.debug('长时间缓冲，尝试重新加载...');
-            _controller.pause();
-            _controller.seekTo(Duration.zero);
-            _controller.play();
-            setState(() {
-              // 长时间缓冲更新状态为 retrying
-              _playState = PlayState.retrying;
-            });
+            if (_bufferingRetryTimes < 3) {
+              _bufferingRetryTimes += 1;
+              Logger.debug('长时间缓冲，尝试重新加载...($_bufferingRetryTimes/3)');
+              _controller.pause();
+              _controller.seekTo(Duration.zero);
+              _controller.play();
+              setState(() {
+                // 长时间缓冲更新状态为 retrying
+                _playState = PlayState.retrying;
+              });
+            } else {
+              // 长缓冲重试已达上限,不再无限重载,直接标记失败
+              Logger.debug('长缓冲重试已达上限,标记失败');
+              setState(() {
+                _playState = PlayState.failed;
+              });
+            }
           }
           _isHandlingBuffering = false;
         });
@@ -167,6 +179,7 @@ class _PlayerScreenState extends State<PlayerScreen>
     } else {
       _bufferingTimer?.cancel();
       _isHandlingBuffering = false;
+      _bufferingRetryTimes = 0;
       if (_playState == PlayState.buffering) {
         setState(() {
           // 缓冲结束更新状态为 playing
@@ -451,11 +464,33 @@ class _PlayerScreenState extends State<PlayerScreen>
                         const Icon(
                           Icons.cloud_off,
                           color: Colors.white,
-                          size: 100,
+                          size: 80,
                         ),
+                        const SizedBox(height: 12),
                         Text(
                           AppLocalizations.of(context)!.loadingFailed,
-                          style: const TextStyle(color: Colors.white),
+                          style: const TextStyle(
+                              color: Colors.white, fontSize: 16),
+                        ),
+                        const SizedBox(height: 20),
+                        Row(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            XTextButton(
+                              text: AppLocalizations.of(context)!.retry,
+                              type: XTextButtonType.primary,
+                              onPressed: () {
+                                _retryTimes = 0;
+                                _bufferingRetryTimes = 0;
+                                _initializePlayer();
+                              },
+                            ),
+                            const SizedBox(width: 16),
+                            XTextButton(
+                              text: AppLocalizations.of(context)!.back,
+                              onPressed: () => Navigator.of(context).pop(),
+                            ),
+                          ],
                         ),
                       ],
                     ),
@@ -475,10 +510,26 @@ class _PlayerScreenState extends State<PlayerScreen>
                       ],
                     ),
                   )
-                else
+                else if (_controller.value.isInitialized &&
+                    _controller.value.aspectRatio > 0)
                   AspectRatio(
                     aspectRatio: _controller.value.aspectRatio,
                     child: VideoPlayer(_controller),
+                  )
+                else
+                  // 控制器尚未就绪时显示加载,避免渲染未初始化播放器导致黑屏空白
+                  Center(
+                    child: Column(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        const CircularProgressIndicator(),
+                        const SizedBox(height: 16),
+                        Text(
+                          AppLocalizations.of(context)!.loading,
+                          style: const TextStyle(color: Colors.white),
+                        ),
+                      ],
+                    ),
                   ),
                 if (_playState == PlayState.buffering)
                   Positioned.fill(

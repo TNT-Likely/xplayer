@@ -123,5 +123,6 @@
   "noProgramme": "No programme guide for this channel",
   "exitAppTitle": "Exit App",
   "exitAppMessage": "Are you sure you want to exit?",
-  "exit": "Exit"
+  "exit": "Exit",
+  "retry": "Retry"
 }
