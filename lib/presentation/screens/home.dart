@@ -15,6 +15,7 @@ import 'package:xplayer/presentation/widgets/update_proxy_dialog.dart';
 import 'package:xplayer/shared/components/x_text_button.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:xplayer/providers/locale_provider.dart';
+import 'package:flutter/services.dart';
 import 'package:xplayer/shared/components/x_icon_button.dart';
 import 'package:xplayer/shared/theme/app_tokens.dart';
 import 'package:xplayer/utils/dialog.dart';
@@ -207,8 +208,55 @@ class _HomeScreenState extends State<HomeScreen> {
     };
   }
 
+  /// 返回键退出二次确认(App 与 TV 共用系统返回键)。
+  /// 抽屉打开时优先关抽屉,不弹退出框。
+  Future<bool> _confirmExit(BuildContext context) async {
+    final l = AppLocalizations.of(context)!;
+    final result = await showDialog<bool>(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        backgroundColor: AppTokens.surfacePanel,
+        title: Text(l.exitAppTitle,
+            style: const TextStyle(color: AppTokens.textPrimary)),
+        content: Text(l.exitAppMessage,
+            style: const TextStyle(color: AppTokens.textSecondary)),
+        actions: [
+          XTextButton(
+            text: l.cancel,
+            onPressed: () => Navigator.of(ctx).pop(false),
+          ),
+          XTextButton(
+            text: l.exit,
+            type: XTextButtonType.danger,
+            onPressed: () => Navigator.of(ctx).pop(true),
+          ),
+        ],
+      ),
+    );
+    return result ?? false;
+  }
+
   @override
   Widget build(BuildContext context) {
+    return PopScope(
+      canPop: false,
+      onPopInvokedWithResult: (didPop, result) async {
+        if (didPop) return;
+        // 抽屉开着先关抽屉
+        final scaffold = _scaffoldKey.currentState;
+        if (scaffold != null && scaffold.isDrawerOpen) {
+          scaffold.closeDrawer();
+          return;
+        }
+        if (await _confirmExit(context)) {
+          await SystemNavigator.pop();
+        }
+      },
+      child: _buildHome(context),
+    );
+  }
+
+  Widget _buildHome(BuildContext context) {
     final localeProvider = Provider.of<LocaleProvider>(context, listen: false);
     final localizations = AppLocalizations.of(context)!;
 
@@ -272,6 +320,16 @@ class _HomeScreenState extends State<HomeScreen> {
                       active: false,
                       onPressed: () => _showSizeDialog(context),
                     ),
+                    // 测速后才出现:隐藏无法播放的频道(可恢复)
+                    if (mp.hasTestResults)
+                      _filterIcon(
+                        context,
+                        icon: Icons.playlist_remove,
+                        tooltip: localizations.hideUnplayable,
+                        active: mp.hideUnplayable,
+                        onPressed: () =>
+                            mp.setHideUnplayable(!mp.hideUnplayable),
+                      ),
                   ],
                 );
               },
@@ -316,6 +374,47 @@ class _HomeScreenState extends State<HomeScreen> {
             child: ListView(
               padding: EdgeInsets.zero,
               children: <Widget>[
+                // 顶部品牌头:logo + 名称 + 版本
+                Padding(
+                  padding: const EdgeInsets.fromLTRB(16, 20, 16, 12),
+                  child: Row(
+                    children: [
+                      ClipRRect(
+                        borderRadius: BorderRadius.circular(8),
+                        child: Image.asset(
+                          'assets/images/mini-logo.png',
+                          width: 40,
+                          height: 40,
+                          fit: BoxFit.cover,
+                        ),
+                      ),
+                      const SizedBox(width: 12),
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            const Text(
+                              'XPlayer',
+                              style: TextStyle(
+                                color: Colors.white,
+                                fontSize: 20,
+                                fontWeight: FontWeight.w600,
+                              ),
+                            ),
+                            Text(
+                              _version,
+                              style: const TextStyle(
+                                color: Colors.white54,
+                                fontSize: 12,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+                const Divider(color: Colors.white24, height: 1),
                 Consumer<MediaProvider>(
                   builder: (BuildContext context2, mediaProvider, _) {
                     final playlist = [
@@ -373,7 +472,7 @@ class _HomeScreenState extends State<HomeScreen> {
                     );
                   },
                 ),
-                // 远程输入菜单：仅在手机端显示，放在播放列表之后
+                const Divider(color: Colors.white12, height: 8),
                 XBaseButton(
                   child: animeContainer(
                     ListTile(
@@ -430,6 +529,7 @@ class _HomeScreenState extends State<HomeScreen> {
                     }
                   },
                 ),
+                const Divider(color: Colors.white12, height: 8),
                 XBaseButton(
                   onPressed: () {
                     Navigator.push(
@@ -468,6 +568,7 @@ class _HomeScreenState extends State<HomeScreen> {
                     ),
                   ),
                 ),
+                const Divider(color: Colors.white12, height: 8),
                 Consumer<GlobalProvider>(builder: (context, g, _) {
                   if (g.isTV) return const SizedBox.shrink();
                   return XBaseButton(
@@ -554,9 +655,25 @@ class _HomeScreenState extends State<HomeScreen> {
                     ),
                   ),
                 ),
-                ListTile(
-                  leading: const Icon(Icons.info, color: Colors.white),
-                  title: Text(_version, style: const TextStyle(color: Colors.white)),
+                Consumer<MediaProvider>(
+                  builder: (context, mp, _) => XBaseButton(
+                    onPressed: () =>
+                        mp.setAutoRefreshOnLaunch(!mp.autoRefreshOnLaunch),
+                    child: animeContainer(
+                      ListTile(
+                        leading:
+                            const Icon(Icons.autorenew, color: Colors.white),
+                        title: Text(
+                          localizations.autoRefreshOnLaunch,
+                          style: const TextStyle(color: Colors.white),
+                        ),
+                        trailing: Switch(
+                          value: mp.autoRefreshOnLaunch,
+                          onChanged: mp.setAutoRefreshOnLaunch,
+                        ),
+                      ),
+                    ),
+                  ),
                 ),
               ],
             ),
@@ -618,6 +735,25 @@ class _HomeScreenState extends State<HomeScreen> {
                         Text(
                           localizations.noChannelsFound,
                           style: const TextStyle(color: Colors.white),
+                        ),
+                        const SizedBox(height: 16.0),
+                        SizedBox(
+                          width: 200,
+                          child: XTextButton(
+                            text: localizations.refreshChannels,
+                            type: XTextButtonType.primary,
+                            onPressed: () async {
+                              try {
+                                showToast(localizations.updatingChannels);
+                                await mediaProvider.refreshChannels();
+                                showToast(
+                                    localizations.channelsUpdatedSuccessfully);
+                              } catch (e) {
+                                showToast(localizations
+                                    .channelsUpdateFailed(e.toString()));
+                              }
+                            },
+                          ),
                         ),
                       ],
                     ),

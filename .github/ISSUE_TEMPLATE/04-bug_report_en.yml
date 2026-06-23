@@ -1,0 +1,123 @@
+name: 🐛 Bug Report (English)
+description: Report a bug in XPlayer
+title: "[Bug] "
+labels: ["bug"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thanks for the report! Please fill in all **required** fields — issues without repro steps are hard to act on.
+
+        > A **single channel failing to play** is usually a dead upstream source, not necessarily an app bug. Try the "test" button (top-right) or another channel/source first.
+
+  - type: checkboxes
+    id: preflight
+    attributes:
+      label: Preflight
+      options:
+        - label: I searched [existing issues](https://github.com/TNT-Likely/xplayer/issues?q=is%3Aissue) and found no duplicate
+          required: true
+        - label: I'm on the [latest release](https://github.com/TNT-Likely/xplayer/releases/latest) and it still happens
+          required: true
+        - label: I confirmed this isn't just one dead channel/source (verified with others)
+
+  - type: textarea
+    id: description
+    attributes:
+      label: Description
+      description: One clear sentence on what went wrong
+      placeholder: "e.g. Black screen forever after switching to a channel"
+    validations:
+      required: true
+
+  - type: textarea
+    id: steps
+    attributes:
+      label: Steps to reproduce
+      description: Detailed enough for someone else to reproduce. At least 3 steps, one per line
+      value: |
+        1.
+        2.
+        3.
+    validations:
+      required: true
+
+  - type: textarea
+    id: expected
+    attributes:
+      label: Expected behavior
+    validations:
+      required: true
+
+  - type: textarea
+    id: actual
+    attributes:
+      label: Actual behavior
+      description: What actually happened. Paste crash logs / screenshots if any
+    validations:
+      required: true
+
+  - type: dropdown
+    id: platform
+    attributes:
+      label: Platform
+      options:
+        - Android phone / tablet
+        - Android TV / box
+        - iOS / iPad
+        - macOS
+        - Windows
+        - Linux
+    validations:
+      required: true
+
+  - type: input
+    id: app_version
+    attributes:
+      label: App version
+      description: Shown at the top of the side drawer
+      placeholder: "e.g. 2.0.5"
+    validations:
+      required: true
+
+  - type: input
+    id: os_version
+    attributes:
+      label: OS version
+      placeholder: "e.g. Android 14 / Windows 11 / iOS 18"
+    validations:
+      required: true
+
+  - type: input
+    id: device
+    attributes:
+      label: Device model
+      placeholder: "e.g. Xiaomi TV / Pixel 8 / ThinkPad"
+
+  - type: dropdown
+    id: source
+    attributes:
+      label: Source
+      description: Which playlist was in use
+      options:
+        - Built-in default (China)
+        - Built-in preset (HK / TW / US / Sports…)
+        - Custom M3U (URL)
+        - Custom M3U (local file)
+        - Not sure
+    validations:
+      required: true
+
+  - type: textarea
+    id: logs
+    attributes:
+      label: Logs / screenshots
+      description: |
+        Drag in screenshots; paste crash stack traces if any.
+        **Redact sensitive info** (tokens in custom source URLs, etc.).
+      render: text
+
+  - type: textarea
+    id: additional
+    attributes:
+      label: Additional context (optional)

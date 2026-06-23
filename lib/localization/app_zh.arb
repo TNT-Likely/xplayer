@@ -111,7 +111,7 @@
     "presetSports": "体育",
     "presetNews": "新闻",
     "presetAll": "全部频道",
-    "presetDisclaimer": "直播源来自 iptv-org 公开列表，仅做聚合，可随时删除。",
+    "presetDisclaimer": "直播源来自公开的开源直播源项目，仅做聚合，可随时删除。",
     "search": "搜索",
     "searchChannelsHint": "搜索频道名称",
     "allGroups": "全部",
@@ -120,5 +120,17 @@
     "updateProxyHint": "在线更新走此 HTTP 代理（host:port），加速下载；留空直连。仅用于更新，不影响播放。",
     "filterTitle": "搜索与筛选",
     "itemSize": "显示大小",
-    "noProgramme": "该频道暂无节目单"
+    "noProgramme": "该频道暂无节目单",
+    "exitAppTitle": "退出应用",
+    "exitAppMessage": "确定要退出应用吗？",
+    "exit": "退出",
+    "retry": "重试",
+    "operationHints": "操作说明",
+    "hintSwitchChannel": "切换频道：↑↓ 键 或 上下滑动",
+    "hintChannelList": "频道列表：← 键 或 左滑",
+    "hintSwitchSource": "切换源：→ 键 或 右滑",
+    "hintMenu": "呼出菜单：OK 键 或 单击屏幕",
+    "hintGotIt": "知道了",
+    "hideUnplayable": "隐藏无法播放",
+    "autoRefreshOnLaunch": "启动时自动更新"
 }

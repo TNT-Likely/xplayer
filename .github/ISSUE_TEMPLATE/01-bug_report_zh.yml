@@ -1,0 +1,123 @@
+name: 🐛 Bug 报告(中文)
+description: 报告 XPlayer 遇到的 bug
+title: "[Bug] "
+labels: ["bug"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        感谢提交 bug 报告!请填完下面所有 **必填** 项 —— 没有复现步骤的 issue 基本无法定位。
+
+        > 直播源里**个别频道打不开**多数是源本身失效,不一定是 App 的 bug:可先用右上角「测速」筛查,或换个频道/源验证。
+
+  - type: checkboxes
+    id: preflight
+    attributes:
+      label: 前置检查
+      options:
+        - label: 我已搜过 [已有 Issues](https://github.com/TNT-Likely/xplayer/issues?q=is%3Aissue),没有找到重复
+          required: true
+        - label: 我已升级到 [最新版本](https://github.com/TNT-Likely/xplayer/releases/latest),问题仍在
+          required: true
+        - label: 我确认这不是单个频道源失效的问题(已用其他频道/源验证)
+
+  - type: textarea
+    id: description
+    attributes:
+      label: 问题描述
+      description: 一句话清晰说明你遇到了什么
+      placeholder: "例:切换到某频道后一直黑屏"
+    validations:
+      required: true
+
+  - type: textarea
+    id: steps
+    attributes:
+      label: 复现步骤
+      description: 详细到别人照着做能复现的程度。至少 3 步,每步一行
+      value: |
+        1.
+        2.
+        3.
+    validations:
+      required: true
+
+  - type: textarea
+    id: expected
+    attributes:
+      label: 期望行为
+    validations:
+      required: true
+
+  - type: textarea
+    id: actual
+    attributes:
+      label: 实际行为
+      description: 出了什么具体现象。有闪退 / 报错请粘贴日志或截图
+    validations:
+      required: true
+
+  - type: dropdown
+    id: platform
+    attributes:
+      label: 平台
+      options:
+        - Android 手机 / 平板
+        - Android TV / 盒子
+        - iOS / iPad
+        - macOS
+        - Windows
+        - Linux
+    validations:
+      required: true
+
+  - type: input
+    id: app_version
+    attributes:
+      label: App 版本
+      description: 侧边栏顶部可见
+      placeholder: "例:2.0.5"
+    validations:
+      required: true
+
+  - type: input
+    id: os_version
+    attributes:
+      label: 系统版本
+      placeholder: "例:Android 14 / Windows 11 / iOS 18"
+    validations:
+      required: true
+
+  - type: input
+    id: device
+    attributes:
+      label: 设备型号
+      placeholder: "例:小米电视 / Pixel 8 / ThinkPad"
+
+  - type: dropdown
+    id: source
+    attributes:
+      label: 直播源
+      description: 出问题时用的是什么源
+      options:
+        - 内置默认(中国)
+        - 内置其他推荐源(港 / 台 / 美 / 体育…)
+        - 自定义 M3U(网络 URL)
+        - 自定义 M3U(本地文件)
+        - 不确定
+    validations:
+      required: true
+
+  - type: textarea
+    id: logs
+    attributes:
+      label: 日志 / 截图
+      description: |
+        截图可直接拖拽进来;有崩溃堆栈请一并贴上。
+        **敏感信息(自定义源地址里的 token 等)请自行打码**。
+      render: text
+
+  - type: textarea
+    id: additional
+    attributes:
+      label: 其他补充(非必填)

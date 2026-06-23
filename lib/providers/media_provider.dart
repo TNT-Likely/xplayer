@@ -33,6 +33,12 @@ class MediaProvider with ChangeNotifier {
   // 首页频道项显示大小档位(0 最大 .. 4 最小,2=默认)
   int _gridSizeLevel = 2;
 
+  // 测速后是否隐藏「无法播放」的频道(可恢复,持久化)
+  bool _hideUnplayable = false;
+
+  // 启动时是否自动联网更新频道/节目单(后台静默,不阻塞进入;持久化,默认开)
+  bool _autoRefreshOnLaunch = true;
+
   // 频道测试相关
   Map<String, ChannelTestResult> _channelTestResults = {};
   bool _isTesting = false;
@@ -64,8 +70,48 @@ class MediaProvider with ChangeNotifier {
   String? get selectedGroup => _selectedGroup;
 
   /// 应用「搜索 + 分组」过滤后的频道(供网格展示)。
-  List<Channel> get filteredChannels =>
-      filterChannels(channels, query: _searchQuery, group: _selectedGroup);
+  /// 若已测速:可选隐藏「无法播放」的频道,并把「可播放」排到前面。
+  List<Channel> get filteredChannels {
+    var list =
+        filterChannels(channels, query: _searchQuery, group: _selectedGroup);
+    if (_channelTestResults.isEmpty) return list;
+
+    if (_hideUnplayable) {
+      list = list.where((c) {
+        final r = _channelTestResults[c.id];
+        // 仅隐藏明确失败/超时的;未测与成功的保留
+        return r == null ||
+            (r.status != TestStatus.failed && r.status != TestStatus.timeout);
+      }).toList();
+    }
+
+    // 可播放优先:成功(按延迟升序) → 未测 → 失败/超时
+    int rank(Channel c) {
+      final r = _channelTestResults[c.id];
+      if (r == null) return 1;
+      if (r.status == TestStatus.success) return 0;
+      return 2;
+    }
+
+    final sorted = [...list];
+    sorted.sort((a, b) {
+      final ra = rank(a), rb = rank(b);
+      if (ra != rb) return ra - rb;
+      final la = _channelTestResults[a.id]?.latency ?? 1 << 30;
+      final lb = _channelTestResults[b.id]?.latency ?? 1 << 30;
+      return la.compareTo(lb);
+    });
+    return sorted;
+  }
+
+  /// 是否已有测速结果(决定「隐藏无法播放」入口是否出现)。
+  bool get hasTestResults => _channelTestResults.isNotEmpty;
+
+  /// 是否隐藏无法播放的频道。
+  bool get hideUnplayable => _hideUnplayable;
+
+  /// 启动时是否自动更新(后台静默刷新)。
+  bool get autoRefreshOnLaunch => _autoRefreshOnLaunch;
 
   /// 当前频道里去重的分组(供筛选 chips)。
   List<String> get availableGroups => distinctGroups(channels);
@@ -173,6 +219,36 @@ class MediaProvider with ChangeNotifier {
     await prefs.setInt('grid_size_level', _gridSizeLevel);
   }
 
+  /// 读取持久化的「隐藏无法播放」开关。
+  Future<void> loadHideUnplayable() async {
+    final prefs = await SharedPreferences.getInstance();
+    _hideUnplayable = prefs.getBool('hide_unplayable') ?? false;
+    notifyListeners();
+  }
+
+  /// 设置并持久化「隐藏无法播放」开关。
+  Future<void> setHideUnplayable(bool value) async {
+    _hideUnplayable = value;
+    notifyListeners();
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setBool('hide_unplayable', value);
+  }
+
+  /// 读取「启动时自动更新」开关(默认开)。
+  Future<void> loadAutoRefreshOnLaunch() async {
+    final prefs = await SharedPreferences.getInstance();
+    _autoRefreshOnLaunch = prefs.getBool('auto_refresh_on_launch') ?? true;
+    notifyListeners();
+  }
+
+  /// 设置并持久化「启动时自动更新」开关。
+  Future<void> setAutoRefreshOnLaunch(bool value) async {
+    _autoRefreshOnLaunch = value;
+    notifyListeners();
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setBool('auto_refresh_on_launch', value);
+  }
+
   void _resetFilters() {
     _searchQuery = '';
     _selectedGroup = null;
@@ -199,24 +275,42 @@ class MediaProvider with ChangeNotifier {
       // 加载显示大小偏好
       await loadGridSizeLevel();
 
+      // 加载「隐藏无法播放」偏好
+      await loadHideUnplayable();
+
       // 首启无任何源时,自动添加并选中默认预置源(iptv-org 中国;运行时拉取)
       await _maybeSeedDefaultPreset();
+
+      // 加载「启动时自动更新」偏好
+      await loadAutoRefreshOnLaunch();
 
       // 加载收藏频道
       await fetchFavoriteChannels();
 
-      // 加载上次选择的播放列表
+      // 加载上次选择的播放列表(频道走缓存优先,启动快;不在此处阻塞联网)
       await loadLastSelectedPlaylistId();
-
-      // 加载节目单
-      await refreshProgrammes();
-
     } catch (e) {
       print('[MediaProvider] 初始化失败: $e');
     } finally {
       _isInitializing = false;
       notifyListeners();
     }
+
+    // 进入首页后,若开启「启动时自动更新」,后台静默刷新频道 + 节目单,
+    // 不阻塞进入(修复每次启动都卡在联网更新导致很慢的问题)。
+    if (_autoRefreshOnLaunch) {
+      _refreshOnLaunchInBackground();
+    }
+  }
+
+  /// 启动后台静默刷新:失败不打扰(已有本地缓存兜底)。
+  Future<void> _refreshOnLaunchInBackground() async {
+    try {
+      await fetchChannels(forceRefresh: true, silent: true);
+    } catch (_) {}
+    try {
+      await refreshProgrammes();
+    } catch (_) {}
   }
 
   /// 首启无源时,自动添加并选中默认预置源(运行时拉取,不打包快照)。
@@ -322,32 +416,54 @@ class MediaProvider with ChangeNotifier {
     notifyListeners();
   }
 
-  Future<void> fetchChannels() async {
+  /// 加载当前播放列表的频道。
+  /// - 默认「缓存优先」:有本地缓存就直接用,不联网(启动/切换都很快);
+  /// - [forceRefresh]=true 才联网重拉并写回缓存(手动刷新 / 后台自动更新);
+  /// - [silent]=true 时联网失败不弹 toast(后台刷新用)。
+  Future<void> fetchChannels(
+      {bool forceRefresh = false, bool silent = false}) async {
     if (_currentPlaylistId == -1) {
       _channels = _favoriteChannels; // 使用收藏频道
-    } else {
-      final playlist =
-          await _playlistRepository.getPlaylistById(_currentPlaylistId);
-      if (playlist == null) {
-        _channels = [];
-      } else {
-        try {
-          final updatedChannels = await _playlistRepository
-              .updatePlaylistWithM3uById(_currentPlaylistId, playlist.url);
-          _channels = updatedChannels.toChannels();
-        } catch (error) {
-          showToast(error.toString()); // 使用正确的导入
-          // Fallback: 从文件存储读取已保存的channels
-          final channelsJson = await _playlistRepository.getPlaylistChannels(_currentPlaylistId);
-          _channels = parseChannels(channelsJson ?? '');
-        }
+      notifyListeners();
+      return;
+    }
+
+    final playlist =
+        await _playlistRepository.getPlaylistById(_currentPlaylistId);
+    if (playlist == null) {
+      _channels = [];
+      notifyListeners();
+      return;
+    }
+
+    // 缓存优先:避免每次启动/切换都联网重拉(慢)
+    if (!forceRefresh) {
+      final cached =
+          await _playlistRepository.getPlaylistChannels(_currentPlaylistId);
+      if (cached != null && cached.isNotEmpty) {
+        _channels = parseChannels(cached);
+        notifyListeners();
+        return;
       }
+    }
+
+    // 强制刷新,或本地无缓存:联网拉取并写回缓存
+    try {
+      final updatedChannels = await _playlistRepository
+          .updatePlaylistWithM3uById(_currentPlaylistId, playlist.url);
+      _channels = updatedChannels.toChannels();
+    } catch (error) {
+      if (!silent) showToast(error.toString());
+      // Fallback: 从文件存储读取已保存的channels
+      final channelsJson =
+          await _playlistRepository.getPlaylistChannels(_currentPlaylistId);
+      _channels = parseChannels(channelsJson ?? '');
     }
     notifyListeners();
   }
 
   Future<void> refreshChannels() async {
-    await fetchChannels();
+    await fetchChannels(forceRefresh: true);
   }
 
   Future<void> toggleFavorite(Channel channel) async {

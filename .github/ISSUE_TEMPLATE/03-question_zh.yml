@@ -1,0 +1,64 @@
+name: ❓ 问题求助(中文)
+description: 使用过程中的疑问或需要帮助
+title: "[Question] "
+labels: ["question"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        > ⚠️ **求助类问题更推荐用 [Discussions](https://github.com/TNT-Likely/xplayer/discussions)** —— issue 跟踪 bug / feature,Discussions 更适合交流。
+        >
+        > 确实要开 issue 也可以,请按下面填清楚。
+
+  - type: checkboxes
+    id: preflight
+    attributes:
+      label: 前置检查
+      options:
+        - label: 我已看过 [README](https://github.com/TNT-Likely/xplayer#readme),没有找到答案
+          required: true
+        - label: 我已搜过 [Issues](https://github.com/TNT-Likely/xplayer/issues) 和 [Discussions](https://github.com/TNT-Likely/xplayer/discussions),没有找到相同问题
+          required: true
+
+  - type: textarea
+    id: question
+    attributes:
+      label: 具体问题
+      description: 详细描述你想实现什么 + 遇到了什么困难
+    validations:
+      required: true
+
+  - type: dropdown
+    id: category
+    attributes:
+      label: 问题分类
+      options:
+        - 直播源 / 订阅
+        - 频道播放
+        - 节目单 EPG
+        - 搜索 / 分组
+        - 收藏
+        - 检查更新 / 下载
+        - 手机遥控 TV
+        - 其他
+    validations:
+      required: true
+
+  - type: textarea
+    id: tried
+    attributes:
+      label: 已经尝试过什么
+      description: 避免推荐你重复尝试的路径
+    validations:
+      required: true
+
+  - type: input
+    id: app_version
+    attributes:
+      label: App 版本
+      placeholder: "例:2.0.5"
+
+  - type: textarea
+    id: additional
+    attributes:
+      label: 其他补充(非必填)

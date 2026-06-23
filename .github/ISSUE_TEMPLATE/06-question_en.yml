@@ -1,0 +1,64 @@
+name: ❓ Question (English)
+description: A question or help needed while using XPlayer
+title: "[Question] "
+labels: ["question"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        > ⚠️ **For help, prefer [Discussions](https://github.com/TNT-Likely/xplayer/discussions)** — issues track bugs / features; Discussions are better for Q&A.
+        >
+        > If you still want an issue, please fill in the details below.
+
+  - type: checkboxes
+    id: preflight
+    attributes:
+      label: Preflight
+      options:
+        - label: I read the [README](https://github.com/TNT-Likely/xplayer#readme) and didn't find the answer
+          required: true
+        - label: I searched [Issues](https://github.com/TNT-Likely/xplayer/issues) and [Discussions](https://github.com/TNT-Likely/xplayer/discussions) and found nothing matching
+          required: true
+
+  - type: textarea
+    id: question
+    attributes:
+      label: Your question
+      description: Describe what you're trying to do and where you're stuck
+    validations:
+      required: true
+
+  - type: dropdown
+    id: category
+    attributes:
+      label: Category
+      options:
+        - Sources / subscriptions
+        - Channel playback
+        - EPG (programme guide)
+        - Search / grouping
+        - Favorites
+        - Updates / downloads
+        - Phone-to-TV remote
+        - Other
+    validations:
+      required: true
+
+  - type: textarea
+    id: tried
+    attributes:
+      label: What you've tried
+      description: So we don't suggest paths you already tried
+    validations:
+      required: true
+
+  - type: input
+    id: app_version
+    attributes:
+      label: App version
+      placeholder: "e.g. 2.0.5"
+
+  - type: textarea
+    id: additional
+    attributes:
+      label: Additional context (optional)

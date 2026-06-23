@@ -114,10 +114,22 @@ Map<String, String> _parseAttributes(String? attributesString) {
 }
 
 List<Channel> parseChannels(String jsonString) {
+  if (jsonString.trim().isEmpty) return [];
   try {
-    final Map<String, dynamic> data = json.decode(jsonString);
-    final List<dynamic> channelsJson = data['items'] ?? [];
-    return channelsJson.map((json) => Channel.fromJson(json)).toList();
+    final decoded = json.decode(jsonString);
+    // 缓存实际格式是 jsonEncode(toChannels()) —— 一个数组;
+    // 同时兼容 {items:[...]} / {channels:[...]} 的对象格式。
+    final List<dynamic> channelsJson;
+    if (decoded is List) {
+      channelsJson = decoded;
+    } else if (decoded is Map<String, dynamic>) {
+      channelsJson = (decoded['items'] ?? decoded['channels'] ?? []) as List;
+    } else {
+      channelsJson = [];
+    }
+    return channelsJson
+        .map((json) => Channel.fromJson(json as Map<String, dynamic>))
+        .toList();
   } catch (err) {
     print('Error parsing JSON: $err');
     return [];

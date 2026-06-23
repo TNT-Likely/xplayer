@@ -111,7 +111,7 @@
   "presetSports": "Sports",
   "presetNews": "News",
   "presetAll": "All Channels",
-  "presetDisclaimer": "Channels come from the public iptv-org list (aggregation only) and can be removed anytime.",
+  "presetDisclaimer": "Channels come from public open-source IPTV projects (aggregation only) and can be removed anytime.",
   "search": "Search",
   "searchChannelsHint": "Search channel name",
   "allGroups": "All",
@@ -120,5 +120,17 @@
   "updateProxyHint": "Route update downloads through this HTTP proxy (host:port) to speed them up; empty = direct. Updates only — playback is unaffected.",
   "filterTitle": "Search & Filter",
   "itemSize": "Item Size",
-  "noProgramme": "No programme guide for this channel"
+  "noProgramme": "No programme guide for this channel",
+  "exitAppTitle": "Exit App",
+  "exitAppMessage": "Are you sure you want to exit?",
+  "exit": "Exit",
+  "retry": "Retry",
+  "operationHints": "Controls",
+  "hintSwitchChannel": "Switch channel: ↑↓ or swipe up/down",
+  "hintChannelList": "Channel list: ← or swipe left",
+  "hintSwitchSource": "Switch source: → or swipe right",
+  "hintMenu": "Menu: OK or tap screen",
+  "hintGotIt": "Got it",
+  "hideUnplayable": "Hide unplayable",
+  "autoRefreshOnLaunch": "Auto-update on launch"
 }
