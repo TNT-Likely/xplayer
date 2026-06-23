@@ -1,0 +1,78 @@
+name: ✨ 功能建议(中文)
+description: 提出新功能或改进建议
+title: "[Feature] "
+labels: ["enhancement"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        感谢你的建议!**先说清楚要解决的"问题"比"方案"更重要** —— 这样我们能判断要不要做、怎么做最合适。
+
+  - type: checkboxes
+    id: preflight
+    attributes:
+      label: 前置检查
+      options:
+        - label: 我已搜过 [已有 Issues / Discussions](https://github.com/TNT-Likely/xplayer/issues?q=is%3Aissue),没有重复
+          required: true
+        - label: 本次请求只包含**一个独立功能**,不混杂多个不相关的模块
+          required: true
+
+  - type: textarea
+    id: problem
+    attributes:
+      label: 遇到的问题 / 使用场景
+      description: 描述你现在的使用场景,遇到了什么不方便。**不要直接说"请加 XX 功能"**,先说问题
+      placeholder: |
+        例:
+        我常看的频道分散在不同源里,每次都要来回切换播放列表很麻烦。
+        希望能把不同源的频道合并到一个自定义分组里。
+    validations:
+      required: true
+
+  - type: textarea
+    id: solution
+    attributes:
+      label: 期望的解决方案
+      description: 理想中它应该怎么工作
+    validations:
+      required: true
+
+  - type: textarea
+    id: alternatives
+    attributes:
+      label: 替代方案(非必填)
+      description: 你还考虑过哪些其他做法?为什么它们不够好?
+
+  - type: textarea
+    id: examples
+    attributes:
+      label: 参考示例(非必填)
+      description: 类似功能在其他 App 上的例子,截图也可以
+
+  - type: dropdown
+    id: priority
+    attributes:
+      label: 优先级
+      description: 这个功能对你有多重要?
+      options:
+        - 可有可无
+        - 有用但不紧急
+        - 很重要
+        - 非常关键
+    validations:
+      required: true
+
+  - type: checkboxes
+    id: willingness
+    attributes:
+      label: 贡献意愿(可多选)
+      options:
+        - label: 我愿意提交 PR 实现此功能(先跟 maintainer 对齐方案再动手)
+        - label: 我可以帮助测试
+        - label: 我可以提供更详细的需求说明
+
+  - type: textarea
+    id: additional
+    attributes:
+      label: 其他补充(非必填)

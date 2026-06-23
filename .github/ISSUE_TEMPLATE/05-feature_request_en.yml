@@ -1,0 +1,79 @@
+name: ✨ Feature Request (English)
+description: Suggest a new feature or improvement
+title: "[Feature] "
+labels: ["enhancement"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thanks for the suggestion! **Describing the "problem" matters more than the "solution"** — it helps us decide whether and how to build it.
+
+  - type: checkboxes
+    id: preflight
+    attributes:
+      label: Preflight
+      options:
+        - label: I searched [existing issues / discussions](https://github.com/TNT-Likely/xplayer/issues?q=is%3Aissue) and found no duplicate
+          required: true
+        - label: This request covers **one self-contained feature**, not several unrelated ones
+          required: true
+
+  - type: textarea
+    id: problem
+    attributes:
+      label: Problem / use case
+      description: Describe your current workflow and what's inconvenient. **Don't just say "add X"** — describe the problem first
+      placeholder: |
+        e.g.
+        My favorite channels are spread across different sources, and switching
+        playlists back and forth is tedious. I'd like to merge channels from
+        different sources into one custom group.
+    validations:
+      required: true
+
+  - type: textarea
+    id: solution
+    attributes:
+      label: Proposed solution
+      description: How it should ideally work
+    validations:
+      required: true
+
+  - type: textarea
+    id: alternatives
+    attributes:
+      label: Alternatives (optional)
+      description: What else did you consider, and why isn't it good enough?
+
+  - type: textarea
+    id: examples
+    attributes:
+      label: References (optional)
+      description: Examples of similar features in other apps; screenshots welcome
+
+  - type: dropdown
+    id: priority
+    attributes:
+      label: Priority
+      description: How important is this to you?
+      options:
+        - Nice to have
+        - Useful but not urgent
+        - Important
+        - Critical
+    validations:
+      required: true
+
+  - type: checkboxes
+    id: willingness
+    attributes:
+      label: Contribution (multiple allowed)
+      options:
+        - label: I'm willing to submit a PR (after aligning the approach with the maintainer)
+        - label: I can help test
+        - label: I can provide more detailed requirements
+
+  - type: textarea
+    id: additional
+    attributes:
+      label: Additional context (optional)

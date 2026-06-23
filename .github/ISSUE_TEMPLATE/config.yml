@@ -1,0 +1,11 @@
+blank_issues_enabled: false
+contact_links:
+  - name: 📖 使用说明 / README
+    url: https://github.com/TNT-Likely/xplayer#readme
+    about: 先看 README 的特性与使用说明。Check the README for features and usage first.
+  - name: 💬 讨论区 / Discussions
+    url: https://github.com/TNT-Likely/xplayer/discussions
+    about: 使用交流、非 bug 求助请用 Discussions(需仓库已开启)。Use Discussions for Q&A and non-bug help (if enabled).
+  - name: 📺 直播源来自 iptv-org / Upstream sources
+    url: https://github.com/iptv-org/iptv
+    about: 内置源来自 iptv-org;某条频道失效多为上游问题,请到 iptv-org 反馈。Built-in sources come from iptv-org; dead channels are usually upstream.
