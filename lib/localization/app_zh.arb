@@ -111,7 +111,7 @@
     "presetSports": "体育",
     "presetNews": "新闻",
     "presetAll": "全部频道",
-    "presetDisclaimer": "直播源来自 iptv-org 公开列表，仅做聚合，可随时删除。",
+    "presetDisclaimer": "直播源来自公开的开源直播源项目，仅做聚合，可随时删除。",
     "search": "搜索",
     "searchChannelsHint": "搜索频道名称",
     "allGroups": "全部",

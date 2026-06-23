@@ -111,7 +111,7 @@
   "presetSports": "Sports",
   "presetNews": "News",
   "presetAll": "All Channels",
-  "presetDisclaimer": "Channels come from the public iptv-org list (aggregation only) and can be removed anytime.",
+  "presetDisclaimer": "Channels come from public open-source IPTV projects (aggregation only) and can be removed anytime.",
   "search": "Search",
   "searchChannelsHint": "Search channel name",
   "allGroups": "All",

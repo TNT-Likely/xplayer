@@ -46,4 +46,26 @@ const List<IptvPreset> kIptvPresets = [
   IptvPreset(nameKey: 'presetSports', fallbackName: '体育 Sports', url: '$_base/categories/sports.m3u'),
   IptvPreset(nameKey: 'presetNews', fallbackName: '新闻 News', url: '$_base/categories/news.m3u'),
   IptvPreset(nameKey: 'presetMovies', fallbackName: '电影 Movies', url: '$_base/categories/movies.m3u'),
+  // 其他开源直播源项目(同样运行时拉取、仅聚合公开流,可随时删除)。
+  // 质量/合规参差,IPv6 源需要 IPv6 网络;名字带项目名便于溯源。
+  IptvPreset(
+      nameKey: 'presetFreeTv',
+      fallbackName: 'Free-TV · 全球 Global',
+      url: 'https://raw.githubusercontent.com/Free-TV/IPTV/master/playlist.m3u8'),
+  IptvPreset(
+      nameKey: 'presetVbskycn',
+      fallbackName: 'vbskycn · 国内 China',
+      url: 'https://raw.githubusercontent.com/vbskycn/iptv/master/tv/iptv4.m3u'),
+  IptvPreset(
+      nameKey: 'presetYueChan',
+      fallbackName: 'YueChan · 国内外 CN+Intl',
+      url: 'https://raw.githubusercontent.com/YueChan/Live/main/IPTV.m3u'),
+  IptvPreset(
+      nameKey: 'presetFanmingming',
+      fallbackName: '央视卫视 CCTV · IPv6',
+      url: 'https://live.fanmingming.com/tv/m3u/ipv6.m3u'),
+  IptvPreset(
+      nameKey: 'presetJoevess',
+      fallbackName: 'joevess · 优选 Curated',
+      url: 'https://raw.githubusercontent.com/joevess/IPTV/main/home.m3u8'),
 ];
