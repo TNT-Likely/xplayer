@@ -1,0 +1,7 @@
+# Copy this file to android/key.properties and fill in your real keystore info.
+# The real key.properties is gitignored — do NOT commit it.
+# For CI, these values come from GitHub Secrets (see .github/workflows/release.yml).
+storePassword=your-store-password
+keyPassword=your-key-password
+keyAlias=xplayer
+storeFile=xplayer-release.jks

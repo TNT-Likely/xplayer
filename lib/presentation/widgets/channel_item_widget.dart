@@ -7,6 +7,7 @@ import 'package:xplayer/presentation/screens/player.dart';
 import 'package:xplayer/shared/components/x_base_button.dart';
 import 'package:xplayer/actions/channel_actions.dart';
 import 'package:xplayer/providers/media_provider.dart';
+import 'package:xplayer/shared/theme/app_tokens.dart';
 
 class ChannelItemWidget extends StatefulWidget {
   final Channel channel;
@@ -45,7 +46,7 @@ class _ChannelItemWidgetState extends State<ChannelItemWidget> {
 
     return Container(
       decoration: BoxDecoration(
-        borderRadius: BorderRadius.circular(8.0),
+        borderRadius: BorderRadius.circular(AppDimens.radius),
       ),
       child: XBaseButton(
         onPressed: () {
@@ -78,10 +79,10 @@ class _ChannelItemWidgetState extends State<ChannelItemWidget> {
                             alignment: Alignment.center,
                             padding: const EdgeInsets.all(8.0),
                             decoration: const BoxDecoration(
-                              color: Color.fromRGBO(0, 0, 0, 0.35),
+                              color: AppTokens.surfaceThumb,
                               borderRadius: BorderRadius.vertical(
-                                  top: Radius.circular(8.0),
-                                  bottom: Radius.circular(8.0)),
+                                  top: Radius.circular(AppDimens.radius),
+                                  bottom: Radius.circular(AppDimens.radius)),
                             ),
                             child: _buildThumbnailOrLogo(testResult, isFocused),
                           ),
@@ -93,8 +94,8 @@ class _ChannelItemWidgetState extends State<ChannelItemWidget> {
                               padding: const EdgeInsets.symmetric(
                                   horizontal: 8.0, vertical: 4.0),
                               decoration: BoxDecoration(
-                                color: Colors.black54,
-                                borderRadius: BorderRadius.circular(4.0),
+                                color: AppTokens.surfaceBadge,
+                                borderRadius: BorderRadius.circular(AppDimens.radiusSm),
                               ),
                               child: Text(
                                 widget.channel.source.first.groupTitle,
@@ -144,8 +145,8 @@ class _ChannelItemWidgetState extends State<ChannelItemWidget> {
                             child: Stack(children: [
                               Container(
                                 decoration: BoxDecoration(
-                                  color: const Color.fromRGBO(0, 0, 0, 0.65),
-                                  borderRadius: BorderRadius.circular(8),
+                                  color: AppTokens.focusPlayOverlay,
+                                  borderRadius: BorderRadius.circular(AppDimens.radius),
                                 ),
                                 child: Center(
                                     child: Icon(

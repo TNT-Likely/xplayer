@@ -1,25 +1,51 @@
 {
-    // 使用 IntelliSense 了解相关属性。 
-    // 悬停以查看现有属性的描述。
-    // 欲了解更多信息，请访问: https://go.microsoft.com/fwlink/?linkid=830387
-    "version": "0.2.0",
-    "configurations": [
-        {
-            "name": "xplayer",
-            "request": "launch",
-            "type": "dart"
-        },
-        {
-            "name": "xplayer (profile mode)",
-            "request": "launch",
-            "type": "dart",
-            "flutterMode": "profile"
-        },
-        {
-            "name": "xplayer (release mode)",
-            "request": "launch",
-            "type": "dart",
-            "flutterMode": "release"
-        }
-    ]
+  // 参考 BeeCount 的 .vscode/launch.json，并针对本机网络做了适配。
+  //
+  // 背景：本机在线 `flutter pub get` 会卡死（pub.dev 走代理/CN 网络不通），
+  // 而 VSCode 调试会隐式触发它 → 报 "Couldn't resolve package flutter_gen"。
+  // 因此默认配置用 `--no-pub` 跳过在线 pub get，直接用本地缓存。
+  //
+  // 用法：
+  // - 日常调试：选 "xplayer"（已带 --no-pub，稳定）。
+  // - 改了 pubspec 依赖后：先选一次 "xplayer (刷新依赖 · CN 镜像)" 或终端跑
+  //   `flutter pub get --offline`，再用 "xplayer"。
+  // - JDK 已通过 `flutter config --jdk-dir` 指向 Zulu 17（JBR 证书链不全会报 PKIX）。
+  "version": "0.2.0",
+  "configurations": [
+    {
+      "name": "xplayer",
+      "request": "launch",
+      "type": "dart",
+      "flutterMode": "debug",
+      "toolArgs": ["--no-pub"]
+    },
+    {
+      "name": "xplayer (profile mode)",
+      "request": "launch",
+      "type": "dart",
+      "flutterMode": "profile",
+      "toolArgs": ["--no-pub"]
+    },
+    {
+      "name": "xplayer (release mode)",
+      "request": "launch",
+      "type": "dart",
+      "flutterMode": "release",
+      "toolArgs": ["--no-pub"]
+    },
+    {
+      // 改了依赖时用这个刷新（在线，经国内镜像，避免卡死）。
+      // 若 flutter-io.cn 镜像失效，可改用 Tencent：
+      //   PUB_HOSTED_URL=https://mirrors.tencent.com/dart-pub
+      //   FLUTTER_STORAGE_BASE_URL=https://mirrors.tencent.com/flutter
+      "name": "xplayer (刷新依赖 · CN 镜像)",
+      "request": "launch",
+      "type": "dart",
+      "flutterMode": "debug",
+      "env": {
+        "PUB_HOSTED_URL": "https://pub.flutter-io.cn",
+        "FLUTTER_STORAGE_BASE_URL": "https://storage.flutter-io.cn"
+      }
+    }
+  ]
 }

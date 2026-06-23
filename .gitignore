@@ -32,6 +32,8 @@ migrate_working_dir/
 .pub-cache/
 .pub/
 .docs
+# 规划文档(spec/plan)放 .docs/;docs/ 不提交到仓库
+/docs/
 /build/
 
 # Symbolication related
@@ -44,6 +46,11 @@ app.*.map.json
 /android/app/debug
 /android/app/profile
 /android/app/release
+
+# Android signing (do NOT commit keystore or credentials)
+android/key.properties
+*.jks
+*.keystore
 
 lib/generated
 lib/l10n

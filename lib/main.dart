@@ -13,6 +13,7 @@ import 'dart:io';
 import 'package:xplayer/providers/remote_provider.dart';
 import 'package:xplayer/presentation/screens/remote_input.dart';
 import 'package:xplayer/shared/navigation.dart';
+import 'package:xplayer/shared/theme/app_theme.dart';
 
 void main() {
   WidgetsFlutterBinding.ensureInitialized();
@@ -36,7 +37,8 @@ class MyApp extends StatelessWidget {
     final localeProvider = Provider.of<LocaleProvider>(context);
 
     return MaterialApp(
-      title: 'Flutter Demo',
+      title: 'XPlayer',
+      debugShowCheckedModeBanner: false,
       navigatorKey: AppNav.key,
       localizationsDelegates: const [
         AppLocalizations.delegate,
@@ -50,13 +52,7 @@ class MyApp extends StatelessWidget {
       builder: (context, child) {
         return BotToastInit()(context, child); // 初始化 BotToast
       },
-      theme: ThemeData(
-        colorScheme: ColorScheme.fromSeed(
-          seedColor: const Color.fromRGBO(0, 220, 130, 1), // 主色调种子颜色
-          brightness: Brightness.light,
-        ),
-        useMaterial3: true, // 启用 Material You (Material 3) 风格
-      ),
+      theme: buildAppTheme(),
       initialRoute: '/',
       routes: {
         '/': (context) => const SplashScreen(),

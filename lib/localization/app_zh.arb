@@ -104,5 +104,15 @@
     "installNow": "立即安装",
     "downloadingUpdate": "下载更新",
     "downloading": "正在下载... {progress}%",
-    "downloadInBackground": "后台下载"
+    "downloadInBackground": "后台下载",
+    "recommendedSources": "推荐源",
+    "recommendedSourcesDesc": "一键添加 iptv-org 公开直播源",
+    "presetChina": "中国",
+    "presetSports": "体育",
+    "presetNews": "新闻",
+    "presetAll": "全部频道",
+    "presetDisclaimer": "直播源来自 iptv-org 公开列表，仅做聚合，可随时删除。",
+    "search": "搜索",
+    "searchChannelsHint": "搜索频道名称",
+    "allGroups": "全部"
 }

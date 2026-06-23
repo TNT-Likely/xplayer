@@ -5,6 +5,8 @@ import 'package:xplayer/data/models/playlist_model.dart';
 import 'package:xplayer/data/models/channel_model.dart'; // 使用新的文件名
 import 'package:xplayer/data/models/programme_model.dart';
 import 'package:xplayer/data/models/channel_test_result.dart';
+import 'package:xplayer/data/models/iptv_presets.dart';
+import 'package:xplayer/utils/channel_filter.dart';
 import 'package:xplayer/data/repositories/playlist_repository.dart';
 import 'package:xplayer/data/repositories/favorites_repository.dart';
 import 'package:xplayer/services/channel_test_service.dart';
@@ -23,6 +25,10 @@ class MediaProvider with ChangeNotifier {
   List<Channel> _channels = [];
   List<Channel> _favoriteChannels = [];
   List<Programme> _programmes = [];
+
+  // 频道筛选状态(分组 + 搜索)
+  String _searchQuery = '';
+  String? _selectedGroup;
 
   // 频道测试相关
   Map<String, ChannelTestResult> _channelTestResults = {};
@@ -49,6 +55,18 @@ class MediaProvider with ChangeNotifier {
   }
 
   List<Channel> get channels => _mergeChannels(_channels);
+
+  /// 当前搜索关键字与选中分组。
+  String get searchQuery => _searchQuery;
+  String? get selectedGroup => _selectedGroup;
+
+  /// 应用「搜索 + 分组」过滤后的频道(供网格展示)。
+  List<Channel> get filteredChannels =>
+      filterChannels(channels, query: _searchQuery, group: _selectedGroup);
+
+  /// 当前频道里去重的分组(供筛选 chips)。
+  List<String> get availableGroups => distinctGroups(channels);
+
   List<Channel> get favoriteChannels => _favoriteChannels;
   List<Programme> get programmes => _programmes;
 
@@ -86,6 +104,19 @@ class MediaProvider with ChangeNotifier {
     notifyListeners();
   }
 
+  /// 按 URL 去重添加：已存在同 URL 的播放列表则直接返回(不重复创建)。
+  /// 用于「推荐源」——重复点击或点已添加过的预置只会切换、不会产生重复项。
+  Future<Playlist> addOrGetPlaylistByUrl(String name, String url) async {
+    for (final p in _playlists) {
+      if (p.url == url) return p;
+    }
+    final created = await _playlistRepository
+        .insertPlaylist(Playlist(name: name, url: url));
+    _playlists.add(created);
+    notifyListeners();
+    return created;
+  }
+
   Future<void> removePlaylist(int id) async {
     await _playlistRepository.deletePlaylist(id); // 使用 deletePlaylist
     _playlists.removeWhere((playlist) => playlist.id == id);
@@ -98,6 +129,7 @@ class MediaProvider with ChangeNotifier {
   }
 
   Future<void> updateCurrentPlaylist(int newId) async {
+    _resetFilters(); // 切换播放列表时清空搜索/分组
     setState(newId);
     await fetchChannels(); // 切换播放单后立即刷新频道列表
     notifyListeners();
@@ -106,6 +138,23 @@ class MediaProvider with ChangeNotifier {
   void setState(int newId) {
     _currentPlaylistId = newId;
     notifyListeners();
+  }
+
+  /// 设置搜索关键字。
+  void setSearchQuery(String query) {
+    _searchQuery = query;
+    notifyListeners();
+  }
+
+  /// 设置选中分组(null/空 表示全部)。
+  void setSelectedGroup(String? group) {
+    _selectedGroup = group;
+    notifyListeners();
+  }
+
+  void _resetFilters() {
+    _searchQuery = '';
+    _selectedGroup = null;
   }
 
   Future<void> loadLastSelectedPlaylistId() async {
@@ -126,6 +175,9 @@ class MediaProvider with ChangeNotifier {
       // 加载播放列表
       await fetchPlaylists();
 
+      // 首启无任何源时,自动添加并选中默认预置源(iptv-org 中国;运行时拉取)
+      await _maybeSeedDefaultPreset();
+
       // 加载收藏频道
       await fetchFavoriteChannels();
 
@@ -140,6 +192,28 @@ class MediaProvider with ChangeNotifier {
     } finally {
       _isInitializing = false;
       notifyListeners();
+    }
+  }
+
+  /// 首启无源时,自动添加并选中默认预置源(运行时拉取,不打包快照)。
+  /// 用 shared_preferences 标记,用户删光源后不会被重新种入。
+  Future<void> _maybeSeedDefaultPreset() async {
+    if (_playlists.isNotEmpty) return;
+    final prefs = await SharedPreferences.getInstance();
+    if (prefs.getBool('seeded_default_preset') ?? false) return;
+    try {
+      final created = await _playlistRepository.insertPlaylist(
+        Playlist(name: kDefaultPreset.fallbackName, url: kDefaultPreset.url),
+      );
+      _playlists.add(created);
+      await prefs.setBool('seeded_default_preset', true);
+      final id = created.id;
+      if (id != null) {
+        await prefs.setString('lastSelectedPlaylistId', id.toString());
+        _currentPlaylistId = id;
+      }
+    } catch (e) {
+      print('[MediaProvider] 预置源种入失败: $e');
     }
   }
 

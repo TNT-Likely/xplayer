@@ -8,7 +8,10 @@ import 'package:xplayer/services/update_service.dart';
 import 'package:xplayer/shared/components/x_base_button.dart';
 import 'package:xplayer/presentation/widgets/bg_wrapper.dart';
 import 'package:xplayer/presentation/widgets/channel_list_widget.dart';
+import 'package:xplayer/presentation/widgets/channel_filter_bar.dart';
 import 'package:xplayer/presentation/widgets/playlist_dialog.dart';
+import 'package:xplayer/presentation/widgets/preset_source_dialog.dart';
+import 'package:xplayer/shared/components/x_text_button.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:xplayer/providers/locale_provider.dart';
 import 'package:xplayer/shared/components/x_icon_button.dart';
@@ -99,6 +102,13 @@ class _HomeScreenState extends State<HomeScreen> {
     );
   }
 
+  void _showPresetSources(BuildContext context) {
+    showDialog(
+      context: context,
+      builder: (_) => const PresetSourceDialog(),
+    );
+  }
+
   void _showLanguageSwitcher(
     BuildContext context,
     LocaleProvider localeProvider,
@@ -142,8 +152,8 @@ class _HomeScreenState extends State<HomeScreen> {
 
     return BgWrapper(
       child: Scaffold(
-        backgroundColor: const Color.fromRGBO(0, 0, 0, 0.5),
-        // backgroundColor: Colors.transparent,
+        // 背景由 BgWrapper 统一提供(单层遮罩);此处透明,避免二次叠加导致背景过暗/消失
+        backgroundColor: Colors.transparent,
         key: _scaffoldKey,
         appBar: AppBar(
           leading: XIconButton(
@@ -344,6 +354,22 @@ class _HomeScreenState extends State<HomeScreen> {
                     ),
                   ),
                 ),
+                XBaseButton(
+                  onPressed: () {
+                    Navigator.of(context).pop();
+                    _showPresetSources(context);
+                  },
+                  child: animeContainer(
+                    ListTile(
+                      leading:
+                          const Icon(Icons.recommend, color: Colors.white),
+                      title: Text(
+                        localizations.recommendedSources,
+                        style: const TextStyle(color: Colors.white),
+                      ),
+                    ),
+                  ),
+                ),
                 Consumer<GlobalProvider>(builder: (context, g, _) {
                   if (g.isTV) return const SizedBox.shrink();
                   return XBaseButton(
@@ -425,26 +451,41 @@ class _HomeScreenState extends State<HomeScreen> {
               builder: (context, mediaProvider, _) {
                 if (mediaProvider.playlists.isEmpty) {
                   return Center(
-                    child: XBaseButton(
-                      onPressed: () => _showAddDialog(context),
-                      child: (isFocused) => Column(
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          const Icon(
-                            Icons.add,
-                            size: 48.0,
-                            color: Colors.white,
-                          ), // 增大图标尺寸
-                          const SizedBox(height: 8.0),
-                          Text(
-                            localizations.addPlaylist,
-                            style: const TextStyle(
-                              fontSize: 16.0,
-                              color: Colors.white,
-                            ),
+                    child: Column(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        XBaseButton(
+                          onPressed: () => _showAddDialog(context),
+                          child: (isFocused) => Column(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              const Icon(
+                                Icons.add,
+                                size: 48.0,
+                                color: Colors.white,
+                              ),
+                              const SizedBox(height: 8.0),
+                              Text(
+                                localizations.addPlaylist,
+                                style: const TextStyle(
+                                  fontSize: 16.0,
+                                  color: Colors.white,
+                                ),
+                              ),
+                            ],
                           ),
-                        ],
-                      ),
+                        ),
+                        const SizedBox(height: 16.0),
+                        SizedBox(
+                          width: 240,
+                          child: XTextButton(
+                            text: localizations.recommendedSources,
+                            size: XTextButtonSize.large,
+                            type: XTextButtonType.primary,
+                            onPressed: () => _showPresetSources(context),
+                          ),
+                        ),
+                      ],
                     ),
                   );
                 } else if (mediaProvider.channels.isEmpty) {
@@ -465,23 +506,47 @@ class _HomeScreenState extends State<HomeScreen> {
                     ),
                   );
                 } else {
-                  return ChannelListWidget(
-                    channels: mediaProvider.channels,
-                    favoriteChannels: mediaProvider.favoriteChannels,
-                    onChannelUpdated: () async {
-                      try {
-                        final mediaProvider = Provider.of<MediaProvider>(
-                          context,
-                          listen: false,
-                        );
-                        await mediaProvider.refreshChannels();
-                        showToast(localizations.channelsUpdatedSuccessfully);
-                      } catch (e) {
-                        showToast(
-                          localizations.channelsUpdateFailed(e.toString()),
-                        );
-                      }
-                    },
+                  final filtered = mediaProvider.filteredChannels;
+                  return Column(
+                    children: [
+                      const ChannelFilterBar(),
+                      Expanded(
+                        child: filtered.isEmpty
+                            ? Center(
+                                child: Column(
+                                  mainAxisAlignment: MainAxisAlignment.center,
+                                  children: [
+                                    const Icon(Icons.search_off,
+                                        color: Colors.white, size: 60),
+                                    Text(
+                                      localizations.noChannelsFound,
+                                      style:
+                                          const TextStyle(color: Colors.white),
+                                    ),
+                                  ],
+                                ),
+                              )
+                            : ChannelListWidget(
+                                channels: filtered,
+                                favoriteChannels:
+                                    mediaProvider.favoriteChannels,
+                                onChannelUpdated: () async {
+                                  try {
+                                    final mp = Provider.of<MediaProvider>(
+                                      context,
+                                      listen: false,
+                                    );
+                                    await mp.refreshChannels();
+                                    showToast(localizations
+                                        .channelsUpdatedSuccessfully);
+                                  } catch (e) {
+                                    showToast(localizations
+                                        .channelsUpdateFailed(e.toString()));
+                                  }
+                                },
+                              ),
+                      ),
+                    ],
                   );
                 }
               },
