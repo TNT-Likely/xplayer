@@ -114,5 +114,7 @@
   "presetDisclaimer": "Channels come from the public iptv-org list (aggregation only) and can be removed anytime.",
   "search": "Search",
   "searchChannelsHint": "Search channel name",
-  "allGroups": "All"
+  "allGroups": "All",
+  "updateProxy": "Update Proxy",
+  "updateProxyHint": "Route update downloads through this HTTP proxy (host:port) to speed them up; empty = direct. Updates only — playback is unaffected."
 }
