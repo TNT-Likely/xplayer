@@ -10,7 +10,6 @@ import 'package:xplayer/data/models/programme_model.dart';
 import 'package:xplayer/providers/global_provider.dart';
 import 'package:xplayer/shared/components/x_base_button.dart';
 import 'package:xplayer/shared/components/x_icon_button.dart';
-import 'package:xplayer/presentation/widgets/operation_hint_dialog.dart';
 import 'package:xplayer/providers/media_provider.dart';
 import 'package:xplayer/utils/playlist_util.dart';
 import 'package:flutter/services.dart';
@@ -254,11 +253,6 @@ class _PlayerActionsWidgetState extends State<PlayerActionsWidget>
                         widget.onProgramme!();
                       }
                     },
-                  ),
-                  const SizedBox(width: 8),
-                  XIconButton(
-                    icon: Icons.help_outline,
-                    onPressed: () => OperationHintDialog.show(context),
                   ),
                   const SizedBox(width: 8),
                   XIconButton(
