@@ -29,11 +29,14 @@
 ## 📸 Preview
 
 <p align="center">
-  <img src="https://github.com/user-attachments/assets/fe341b2a-66f7-42b6-b3d0-6ece3dd47203" width="280" />
-  <img src="https://github.com/user-attachments/assets/8632dff6-dc7a-4717-99ca-a39e9efddd04" width="280" />
+  <img src="screenshots/home.png" width="260" alt="Channel grid: browse / group / search" />
+  <img src="screenshots/player.png" width="260" alt="Live playback & controls" />
   <br/>
-  <img src="https://github.com/user-attachments/assets/a14b1e50-65b9-45a1-b495-ada3983b01e9" width="280" />
-  <img src="assets/preview/remote-control.jpg" width="280" />
+  <img src="https://github.com/user-attachments/assets/fe341b2a-66f7-42b6-b3d0-6ece3dd47203" width="260" />
+  <img src="https://github.com/user-attachments/assets/8632dff6-dc7a-4717-99ca-a39e9efddd04" width="260" />
+  <br/>
+  <img src="https://github.com/user-attachments/assets/a14b1e50-65b9-45a1-b495-ada3983b01e9" width="260" />
+  <img src="assets/preview/remote-control.jpg" width="260" />
 </p>
 
 <details>

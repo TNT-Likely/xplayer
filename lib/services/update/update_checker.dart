@@ -85,7 +85,8 @@ class UpdateChecker {
           } else {
             final String platformExt;
             if (Platform.isWindows) {
-              platformExt = '-windows-x64.zip';
+              // 安装包(原来是 -windows-x64.zip,改名后匹配不到 → "找不到相关文件")
+              platformExt = '-windows-x64-setup.exe';
             } else if (Platform.isMacOS) {
               platformExt = '-macos.dmg';
             } else if (Platform.isLinux) {

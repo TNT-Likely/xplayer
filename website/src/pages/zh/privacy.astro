@@ -1,0 +1,23 @@
+---
+import Layout from '../../layouts/Layout.astro';
+import { t } from '../../i18n/strings';
+
+const locale = 'zh' as const;
+const tr = t(locale);
+const p = tr.privacy;
+---
+
+<Layout title={p.title} description={p.summary} locale={locale} pathname="/zh/privacy">
+  <h1>{p.title}</h1>
+  <p class="subtitle">{p.lastUpdated}</p>
+  <div class="note">{p.summary}</div>
+
+  {p.sections.map((s) => (
+    <>
+      <h2>{s.h}</h2>
+      <p>{s.p}</p>
+    </>
+  ))}
+
+  <p class="stamp">© {new Date().getFullYear()} {tr.site.brand}</p>
+</Layout>

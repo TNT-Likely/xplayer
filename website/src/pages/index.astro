@@ -1,0 +1,41 @@
+---
+import Layout from '../layouts/Layout.astro';
+import { t } from '../i18n/strings';
+
+const locale = 'en' as const;
+const tr = t(locale);
+const x = tr.index;
+---
+
+<Layout title={tr.site.brand} description={tr.site.tagline} locale={locale} pathname="/">
+  <section class="hero">
+    <img src="/logo.png" class="hero-logo" alt={tr.site.brand} />
+    <h1>{x.heroTitle}</h1>
+    <p>{x.heroSubtitle}</p>
+    <p class="platforms">{x.platforms}</p>
+    <div class="cta">
+      <a class="btn primary" href={tr.site.releases}>{x.ctaDownload}</a>
+      <a class="btn ghost" href={tr.site.repo}>{x.ctaGithub}</a>
+    </div>
+  </section>
+
+  <h2>{x.shotsTitle}</h2>
+  <div class="shots">
+    {x.shots.map((s) => (
+      <figure class="shot">
+        <img src={s.src} alt={s.alt} width="240" loading="lazy" />
+        <figcaption>{s.caption}</figcaption>
+      </figure>
+    ))}
+  </div>
+
+  <h2>{x.featuresTitle}</h2>
+  <div class="features">
+    {x.features.map((f) => (
+      <div class="feature">
+        <h3>{f.h}</h3>
+        <p>{f.p}</p>
+      </div>
+    ))}
+  </div>
+</Layout>
