@@ -488,7 +488,9 @@ jobs:
 
       - name: Upload to App Store Connect
         if: env.MACOS_SIGNING_ENABLED == 'true'
-        continue-on-error: true
+        # 不要 continue-on-error:上传失败必须让本 job 变红(此 job 不在 release 的 needs 里,
+        # 所以不会阻塞 GitHub Release 发布)。之前的 continue-on-error 会把失败步骤的 conclusion
+        # 标成 success,导致 90242 上传失败时整个 run 仍显示绿色。
         env:
           APPLE_API_KEY_CONTENT: ${{ secrets.APPLE_API_KEY_CONTENT }}
           APPLE_API_KEY_ID: ${{ secrets.APPLE_API_KEY_ID }}
@@ -507,7 +509,7 @@ jobs:
         run: security delete-keychain $RUNNER_TEMP/app-signing.keychain-db || true
 
   ios:
-    name: iOS (signed → TestFlight + unsigned)
+    name: iOS (build signed IPA + unsigned)
     runs-on: macos-latest
     steps:
       - name: Checkout
@@ -681,30 +683,13 @@ jobs:
           fi
           ls -la xplayer-${VERSION}-* || true
 
-      - name: Upload to TestFlight
+      - name: Upload signed IPA artifact (consumed by ios_appstore job)
         if: env.IOS_SIGNING_ENABLED == 'true'
-        continue-on-error: true
-        env:
-          APPLE_API_KEY_CONTENT: ${{ secrets.APPLE_API_KEY_CONTENT }}
-          APPLE_API_KEY_ID: ${{ secrets.APPLE_API_KEY_ID }}
-          APPLE_API_ISSUER_ID: ${{ secrets.APPLE_API_ISSUER_ID }}
-        run: |
-          VERSION="${{ steps.meta.outputs.tag_name }}"
-          IPA_FILE="xplayer-${VERSION}-signed.ipa"
-          if [ ! -f "$IPA_FILE" ]; then echo "IPA missing, skip"; exit 0; fi
-          if [ -n "${APPLE_API_KEY_CONTENT:-}" ] && [ -n "${APPLE_API_KEY_ID:-}" ] && [ -n "${APPLE_API_ISSUER_ID:-}" ]; then
-            echo "Uploading to TestFlight via App Store Connect API Key..."
-            mkdir -p ~/.appstoreconnect/private_keys
-            P8_PATH="$HOME/.appstoreconnect/private_keys/AuthKey_${APPLE_API_KEY_ID}.p8"
-            printf '%s' "$APPLE_API_KEY_CONTENT" > "$P8_PATH"
-            chmod 600 "$P8_PATH"
-            xcrun altool --upload-app --type ios --file "$IPA_FILE" \
-              --apiKey "$APPLE_API_KEY_ID" --apiIssuer "$APPLE_API_ISSUER_ID" --verbose
-            rm -f "$P8_PATH"
-            echo "Uploaded to TestFlight"
-          else
-            echo "No App Store Connect API key secrets — skipped TestFlight upload"
-          fi
+        uses: actions/upload-artifact@v4
+        with:
+          name: ios-signed
+          path: xplayer-*-signed.ipa
+          if-no-files-found: error
 
       - name: Upload iOS artifacts
         uses: actions/upload-artifact@v4
@@ -713,6 +698,46 @@ jobs:
           path: |
             xplayer-*-iphoneos.app.zip
             xplayer-*-unsigned.ipa
+
+  # TestFlight 上传独立成 job:上传失败时整个 run 会变红(无 continue-on-error),
+  # 但它不在 release 的 needs 里,所以不会阻塞 GitHub Release 发布。复用 ios job 产出的签名 ipa。
+  ios_appstore:
+    name: iOS → TestFlight
+    needs: [ios]
+    runs-on: macos-latest
+    steps:
+      - name: Download signed IPA
+        # 无签名 secrets 时 ios job 不会产出 ios-signed,这里下载失败属正常;
+        # 真正的上传失败由下一步(无 continue-on-error)暴露成红色。
+        continue-on-error: true
+        uses: actions/download-artifact@v4
+        with:
+          name: ios-signed
+          path: signed
+      - name: Upload to TestFlight
+        env:
+          APPLE_API_KEY_CONTENT: ${{ secrets.APPLE_API_KEY_CONTENT }}
+          APPLE_API_KEY_ID: ${{ secrets.APPLE_API_KEY_ID }}
+          APPLE_API_ISSUER_ID: ${{ secrets.APPLE_API_ISSUER_ID }}
+        run: |
+          set -euo pipefail
+          IPA_FILE=$(ls signed/*.ipa 2>/dev/null | head -1 || true)
+          if [ -z "$IPA_FILE" ]; then
+            echo "No signed IPA artifact (iOS signing disabled) — nothing to upload"
+            exit 0
+          fi
+          if [ -z "${APPLE_API_KEY_CONTENT:-}" ] || [ -z "${APPLE_API_KEY_ID:-}" ] || [ -z "${APPLE_API_ISSUER_ID:-}" ]; then
+            echo "No App Store Connect API key secrets — skipped TestFlight upload"
+            exit 0
+          fi
+          echo "Uploading $IPA_FILE to TestFlight..."
+          mkdir -p ~/.appstoreconnect/private_keys
+          P8="$HOME/.appstoreconnect/private_keys/AuthKey_${APPLE_API_KEY_ID}.p8"
+          printf '%s' "$APPLE_API_KEY_CONTENT" > "$P8"; chmod 600 "$P8"
+          xcrun altool --upload-app --type ios --file "$IPA_FILE" \
+            --apiKey "$APPLE_API_KEY_ID" --apiIssuer "$APPLE_API_ISSUER_ID" --verbose
+          rm -f "$P8"
+          echo "Uploaded to TestFlight"
 
   linux:
     name: Linux (tar.gz)
