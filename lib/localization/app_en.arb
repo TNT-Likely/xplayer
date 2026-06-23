@@ -116,5 +116,7 @@
   "searchChannelsHint": "Search channel name",
   "allGroups": "All",
   "updateProxy": "Update Proxy",
-  "updateProxyHint": "Route update downloads through this HTTP proxy (host:port) to speed them up; empty = direct. Updates only — playback is unaffected."
+  "updateProxyHint": "Route update downloads through this HTTP proxy (host:port) to speed them up; empty = direct. Updates only — playback is unaffected.",
+  "filterTitle": "Search & Filter",
+  "itemSize": "Item Size"
 }

@@ -116,5 +116,7 @@
     "searchChannelsHint": "搜索频道名称",
     "allGroups": "全部",
     "updateProxy": "更新代理",
-    "updateProxyHint": "在线更新走此 HTTP 代理（host:port），加速下载；留空直连。仅用于更新，不影响播放。"
+    "updateProxyHint": "在线更新走此 HTTP 代理（host:port），加速下载；留空直连。仅用于更新，不影响播放。",
+    "filterTitle": "搜索与筛选",
+    "itemSize": "显示大小"
 }

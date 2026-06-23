@@ -8,7 +8,7 @@ import 'package:xplayer/services/update_service.dart';
 import 'package:xplayer/shared/components/x_base_button.dart';
 import 'package:xplayer/presentation/widgets/bg_wrapper.dart';
 import 'package:xplayer/presentation/widgets/channel_list_widget.dart';
-import 'package:xplayer/presentation/widgets/channel_filter_bar.dart';
+import 'package:xplayer/presentation/widgets/channel_filter_dialog.dart';
 import 'package:xplayer/presentation/widgets/playlist_dialog.dart';
 import 'package:xplayer/presentation/widgets/preset_source_dialog.dart';
 import 'package:xplayer/presentation/widgets/update_proxy_dialog.dart';
@@ -110,6 +110,13 @@ class _HomeScreenState extends State<HomeScreen> {
     );
   }
 
+  void _showFilterDialog(BuildContext context) {
+    showDialog(
+      context: context,
+      builder: (_) => const ChannelFilterDialog(),
+    );
+  }
+
   void _showLanguageSwitcher(
     BuildContext context,
     LocaleProvider localeProvider,
@@ -179,6 +186,18 @@ class _HomeScreenState extends State<HomeScreen> {
           elevation: 0, // 移除阴影
           backgroundColor: Colors.transparent, // 使背景透明
           actions: [
+            // 搜索 / 分组 / 显示大小 入口(有频道时才显示)
+            Consumer<MediaProvider>(
+              builder: (context, mp, _) {
+                if (mp.channels.isEmpty) return const SizedBox.shrink();
+                return XIconButton(
+                  icon: Icons.tune,
+                  hoverBgOnly: true,
+                  tooltipMessage: localizations.filterTitle,
+                  onPressed: () => _showFilterDialog(context),
+                );
+              },
+            ),
             Consumer<MediaProvider>(
               builder: (context, mediaProvider, _) {
                 if (mediaProvider.isTesting) {
@@ -527,46 +546,39 @@ class _HomeScreenState extends State<HomeScreen> {
                   );
                 } else {
                   final filtered = mediaProvider.filteredChannels;
-                  return Column(
-                    children: [
-                      const ChannelFilterBar(),
-                      Expanded(
-                        child: filtered.isEmpty
-                            ? Center(
-                                child: Column(
-                                  mainAxisAlignment: MainAxisAlignment.center,
-                                  children: [
-                                    const Icon(Icons.search_off,
-                                        color: Colors.white, size: 60),
-                                    Text(
-                                      localizations.noChannelsFound,
-                                      style:
-                                          const TextStyle(color: Colors.white),
-                                    ),
-                                  ],
-                                ),
-                              )
-                            : ChannelListWidget(
-                                channels: filtered,
-                                favoriteChannels:
-                                    mediaProvider.favoriteChannels,
-                                onChannelUpdated: () async {
-                                  try {
-                                    final mp = Provider.of<MediaProvider>(
-                                      context,
-                                      listen: false,
-                                    );
-                                    await mp.refreshChannels();
-                                    showToast(localizations
-                                        .channelsUpdatedSuccessfully);
-                                  } catch (e) {
-                                    showToast(localizations
-                                        .channelsUpdateFailed(e.toString()));
-                                  }
-                                },
-                              ),
+                  if (filtered.isEmpty) {
+                    // 搜索/分组无结果(原始频道非空)
+                    return Center(
+                      child: Column(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          const Icon(Icons.search_off,
+                              color: Colors.white, size: 60),
+                          Text(
+                            localizations.noChannelsFound,
+                            style: const TextStyle(color: Colors.white),
+                          ),
+                        ],
                       ),
-                    ],
+                    );
+                  }
+                  return ChannelListWidget(
+                    channels: filtered,
+                    favoriteChannels: mediaProvider.favoriteChannels,
+                    sizeLevel: mediaProvider.gridSizeLevel,
+                    onChannelUpdated: () async {
+                      try {
+                        final mp = Provider.of<MediaProvider>(
+                          context,
+                          listen: false,
+                        );
+                        await mp.refreshChannels();
+                        showToast(localizations.channelsUpdatedSuccessfully);
+                      } catch (e) {
+                        showToast(
+                            localizations.channelsUpdateFailed(e.toString()));
+                      }
+                    },
                   );
                 }
               },
