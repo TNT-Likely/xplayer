@@ -2,6 +2,7 @@ import 'dart:async';
 import 'dart:io';
 import 'package:dio/dio.dart';
 import 'package:package_info_plus/package_info_plus.dart';
+import 'package:device_info_plus/device_info_plus.dart';
 import 'update_result.dart';
 
 /// 更新检查管理类
@@ -78,28 +79,29 @@ class UpdateChecker {
           final assets = data['assets'] as List;
           String? downloadUrl;
 
-          // 根据平台选择对应的安装包
-          final String platformExt;
           if (Platform.isAndroid) {
-            platformExt = '.apk';
-          } else if (Platform.isWindows) {
-            platformExt = '-windows-x64.zip';
-          } else if (Platform.isMacOS) {
-            platformExt = '-macos.dmg';
-          } else if (Platform.isLinux) {
-            platformExt = '-linux-x64.tar.gz';
+            // Android:按设备 ABI 选对应的拆分包(否则 32 位设备/盒子装 arm64 包会"不兼容")
+            downloadUrl = await _pickAndroidApkUrl(assets);
           } else {
-            return UpdateResult(
-              hasUpdate: false,
-              message: '当前平台不支持自动更新',
-            );
-          }
-
-          for (final asset in assets) {
-            final assetName = asset['name'].toString();
-            if (assetName.endsWith(platformExt)) {
-              downloadUrl = asset['browser_download_url'];
-              break;
+            final String platformExt;
+            if (Platform.isWindows) {
+              platformExt = '-windows-x64.zip';
+            } else if (Platform.isMacOS) {
+              platformExt = '-macos.dmg';
+            } else if (Platform.isLinux) {
+              platformExt = '-linux-x64.tar.gz';
+            } else {
+              return UpdateResult(
+                hasUpdate: false,
+                message: '当前平台不支持自动更新',
+              );
+            }
+            for (final asset in assets) {
+              final assetName = asset['name'].toString();
+              if (assetName.endsWith(platformExt)) {
+                downloadUrl = asset['browser_download_url'];
+                break;
+              }
             }
           }
 
@@ -127,6 +129,60 @@ class UpdateChecker {
       print('[UpdateChecker] 检查更新异常: $e');
       return UpdateResult.checkFailed('$e');
     }
+  }
+
+  /// Android：在多 ABI 拆分包里选出最匹配当前设备的 apk。
+  /// 命名约定：arm64-v8a 主包为不带后缀的 `xplayer-<ver>.apk`；其余为 `-<abi>.apk`；兜底 `-universal.apk`。
+  static Future<String?> _pickAndroidApkUrl(List assets) async {
+    final apks = <String, String>{};
+    for (final a in assets) {
+      final name = a['name'].toString();
+      if (name.endsWith('.apk')) {
+        apks[name] = a['browser_download_url'].toString();
+      }
+    }
+    if (apks.isEmpty) return null;
+
+    List<String> abis = const [];
+    try {
+      final info = await DeviceInfoPlugin().androidInfo;
+      abis = info.supportedAbis; // 按设备优先级排序
+    } catch (_) {}
+
+    // 主包(arm64,不带 ABI 后缀,也不是 universal)
+    bool isMainApk(String n) =>
+        !n.contains('-armeabi-v7a') &&
+        !n.contains('-x86') &&
+        !n.contains('-universal');
+
+    String? urlForAbi(String abi) {
+      for (final n in apks.keys) {
+        if (n.endsWith('-$abi.apk')) return apks[n];
+      }
+      if (abi == 'arm64-v8a') {
+        for (final n in apks.keys) {
+          if (isMainApk(n)) return apks[n];
+        }
+      }
+      return null;
+    }
+
+    for (final abi in abis) {
+      final url = urlForAbi(abi);
+      if (url != null) {
+        print('[UpdateChecker] 按 ABI=$abi 选择安装包');
+        return url;
+      }
+    }
+    // 兜底：通用包
+    for (final n in apks.keys) {
+      if (n.contains('-universal')) return apks[n];
+    }
+    // 最后：主包(arm64)或任意 apk
+    for (final n in apks.keys) {
+      if (isMainApk(n)) return apks[n];
+    }
+    return apks.values.first;
   }
 
   // 辅助方法
