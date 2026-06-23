@@ -320,6 +320,16 @@ class _HomeScreenState extends State<HomeScreen> {
                       active: false,
                       onPressed: () => _showSizeDialog(context),
                     ),
+                    // 测速后才出现:隐藏无法播放的频道(可恢复)
+                    if (mp.hasTestResults)
+                      _filterIcon(
+                        context,
+                        icon: Icons.playlist_remove,
+                        tooltip: localizations.hideUnplayable,
+                        active: mp.hideUnplayable,
+                        onPressed: () =>
+                            mp.setHideUnplayable(!mp.hideUnplayable),
+                      ),
                   ],
                 );
               },

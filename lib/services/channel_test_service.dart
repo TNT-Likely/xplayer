@@ -15,50 +15,75 @@ class ChannelTestService {
   /// 返回：延迟毫秒数，null 表示失败
   /// 抛出 TimeoutException 表示超时
   Future<int?> testLatency(String url) async {
+    final stopwatch = Stopwatch()..start();
+    await _probe(url, 0);
+    stopwatch.stop();
+    return stopwatch.elapsedMilliseconds;
+  }
+
+  /// 递归探测一个地址是否真的可播。
+  /// HLS(.m3u8)清单只证明「清单在」,不证明「能播」;因此向下找真正的
+  /// 媒体分片/子清单再探(depth 限制 master→media→segment)。
+  Future<void> _probe(String url, int depth) async {
     final uri = Uri.parse(url);
     final httpClient = HttpClient();
     httpClient.connectionTimeout = _testTimeout;
     httpClient.badCertificateCallback = (cert, host, port) => true;
 
-    final stopwatch = Stopwatch()..start();
-
+    Uri? nextHls;
     try {
-      // 使用 GET 请求实际读取流数据（而不是 HEAD）
       final request = await httpClient.getUrl(uri).timeout(_testTimeout);
       final response = await request.close().timeout(_testTimeout);
 
-      // 检查状态码
       if (response.statusCode < 200 || response.statusCode >= 400) {
-        httpClient.close();
         throw Exception('HTTP ${response.statusCode}');
       }
 
-      // 尝试读取前 1KB 数据，确保流真的可用
-      int bytesRead = 0;
-      await for (var chunk in response.timeout(_testTimeout)) {
-        bytesRead += chunk.length;
-        if (bytesRead >= 1024) break; // 读取到 1KB 就停止
+      final isHls = url.toLowerCase().contains('.m3u8');
+      if (isHls && depth < 2) {
+        // 读取清单文本(最多 64KB),找第一个子项(变体清单或分片)
+        final buf = StringBuffer();
+        await for (final chunk in response.timeout(_testTimeout)) {
+          buf.write(String.fromCharCodes(chunk));
+          if (buf.length > 65536) break;
+        }
+        final text = buf.toString();
+        if (text.contains('#EXTM3U')) {
+          nextHls = _firstHlsUri(text, uri);
+          if (nextHls == null) {
+            throw Exception('空清单'); // 清单里没有任何可播放分片
+          }
+        }
+        // 非标准清单但能读到内容 → 视为可用(nextHls 为 null,不再下钻)
+      } else {
+        // 直链媒体或已到分片层:确认能读到真实字节
+        int bytesRead = 0;
+        await for (final chunk in response.timeout(_testTimeout)) {
+          bytesRead += chunk.length;
+          if (bytesRead >= 1024) break;
+        }
+        if (bytesRead == 0) {
+          throw Exception('No data');
+        }
       }
-
-      stopwatch.stop();
-
-      // 检查是否真的读到了数据
-      if (bytesRead == 0) {
-        httpClient.close();
-        throw Exception('No data');
-      }
-
-      httpClient.close();
-
-      // 返回延时（毫秒）
-      return stopwatch.elapsedMilliseconds;
-    } on TimeoutException {
-      httpClient.close();
-      rethrow; // 超时异常向上抛
-    } catch (e) {
-      httpClient.close();
-      rethrow; // 其他异常向上抛
+    } finally {
+      httpClient.close(force: true);
     }
+
+    // 下钻探测分片/子清单(在外层连接已关闭后进行)
+    if (nextHls != null) {
+      await _probe(nextHls.toString(), depth + 1);
+    }
+  }
+
+  /// 从 m3u8 文本取第一个非注释 URL,解析为绝对地址(相对则相对清单地址)。
+  Uri? _firstHlsUri(String manifest, Uri base) {
+    for (final raw in manifest.split('\n')) {
+      final line = raw.trim();
+      if (line.isEmpty || line.startsWith('#')) continue;
+      return base.resolve(line);
+    }
+    return null;
   }
 
   /// 截取视频缩略图（已禁用 - IPTV直播流不支持）
@@ -69,9 +94,8 @@ class ChannelTestService {
     return null;
   }
 
-  /// 测试单个频道
+  /// 测试单个频道:逐个源探测(最多前 3 个),任一可播即判定成功。
   Future<ChannelTestResult> testChannel(Channel channel) async {
-    // 取第一个视频源进行测试
     if (channel.source.isEmpty) {
       return ChannelTestResult(
         status: TestStatus.failed,
@@ -79,33 +103,32 @@ class ChannelTestService {
       );
     }
 
-    final videoUrl = channel.source.first.link;
+    bool sawTimeout = false;
+    Object? lastError;
 
-    try {
-      // 测试延时
-      final latency = await testLatency(videoUrl);
-
-      return ChannelTestResult(
-        latency: latency,
-        status: TestStatus.success,
-      );
-    } on TimeoutException {
-      // 超时
-      return ChannelTestResult(
-        status: TestStatus.timeout,
-        errorMessage: '超时',
-      );
-    } catch (e) {
-      // 流错误或其他错误
-      String errorMsg = '流错误';
-      if (e.toString().contains('HTTP')) {
-        errorMsg = e.toString().replaceAll('Exception: ', '');
+    // 多源频道:任一源可用即整体可播;最多测前 3 个源以控制耗时
+    for (final src in channel.source.take(3)) {
+      try {
+        final latency = await testLatency(src.link);
+        return ChannelTestResult(
+          latency: latency,
+          status: TestStatus.success,
+        );
+      } on TimeoutException {
+        sawTimeout = true;
+      } catch (e) {
+        lastError = e;
       }
-      return ChannelTestResult(
-        status: TestStatus.failed,
-        errorMessage: errorMsg,
-      );
     }
+
+    if (sawTimeout && lastError == null) {
+      return ChannelTestResult(status: TestStatus.timeout, errorMessage: '超时');
+    }
+    String errorMsg = '流错误';
+    if (lastError != null && lastError.toString().contains('HTTP')) {
+      errorMsg = lastError.toString().replaceAll('Exception: ', '');
+    }
+    return ChannelTestResult(status: TestStatus.failed, errorMessage: errorMsg);
   }
 
   /// 取消测试

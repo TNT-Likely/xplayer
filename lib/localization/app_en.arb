@@ -130,5 +130,6 @@
   "hintChannelList": "Channel list: ← or swipe left",
   "hintSwitchSource": "Switch source: → or swipe right",
   "hintMenu": "Menu: OK or tap screen",
-  "hintGotIt": "Got it"
+  "hintGotIt": "Got it",
+  "hideUnplayable": "Hide unplayable"
 }

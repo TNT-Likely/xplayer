@@ -130,5 +130,6 @@
     "hintChannelList": "频道列表：← 键 或 左滑",
     "hintSwitchSource": "切换源：→ 键 或 右滑",
     "hintMenu": "呼出菜单：OK 键 或 单击屏幕",
-    "hintGotIt": "知道了"
+    "hintGotIt": "知道了",
+    "hideUnplayable": "隐藏无法播放"
 }

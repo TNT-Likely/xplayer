@@ -33,6 +33,9 @@ class MediaProvider with ChangeNotifier {
   // 首页频道项显示大小档位(0 最大 .. 4 最小,2=默认)
   int _gridSizeLevel = 2;
 
+  // 测速后是否隐藏「无法播放」的频道(可恢复,持久化)
+  bool _hideUnplayable = false;
+
   // 频道测试相关
   Map<String, ChannelTestResult> _channelTestResults = {};
   bool _isTesting = false;
@@ -64,8 +67,45 @@ class MediaProvider with ChangeNotifier {
   String? get selectedGroup => _selectedGroup;
 
   /// 应用「搜索 + 分组」过滤后的频道(供网格展示)。
-  List<Channel> get filteredChannels =>
-      filterChannels(channels, query: _searchQuery, group: _selectedGroup);
+  /// 若已测速:可选隐藏「无法播放」的频道,并把「可播放」排到前面。
+  List<Channel> get filteredChannels {
+    var list =
+        filterChannels(channels, query: _searchQuery, group: _selectedGroup);
+    if (_channelTestResults.isEmpty) return list;
+
+    if (_hideUnplayable) {
+      list = list.where((c) {
+        final r = _channelTestResults[c.id];
+        // 仅隐藏明确失败/超时的;未测与成功的保留
+        return r == null ||
+            (r.status != TestStatus.failed && r.status != TestStatus.timeout);
+      }).toList();
+    }
+
+    // 可播放优先:成功(按延迟升序) → 未测 → 失败/超时
+    int rank(Channel c) {
+      final r = _channelTestResults[c.id];
+      if (r == null) return 1;
+      if (r.status == TestStatus.success) return 0;
+      return 2;
+    }
+
+    final sorted = [...list];
+    sorted.sort((a, b) {
+      final ra = rank(a), rb = rank(b);
+      if (ra != rb) return ra - rb;
+      final la = _channelTestResults[a.id]?.latency ?? 1 << 30;
+      final lb = _channelTestResults[b.id]?.latency ?? 1 << 30;
+      return la.compareTo(lb);
+    });
+    return sorted;
+  }
+
+  /// 是否已有测速结果(决定「隐藏无法播放」入口是否出现)。
+  bool get hasTestResults => _channelTestResults.isNotEmpty;
+
+  /// 是否隐藏无法播放的频道。
+  bool get hideUnplayable => _hideUnplayable;
 
   /// 当前频道里去重的分组(供筛选 chips)。
   List<String> get availableGroups => distinctGroups(channels);
@@ -173,6 +213,21 @@ class MediaProvider with ChangeNotifier {
     await prefs.setInt('grid_size_level', _gridSizeLevel);
   }
 
+  /// 读取持久化的「隐藏无法播放」开关。
+  Future<void> loadHideUnplayable() async {
+    final prefs = await SharedPreferences.getInstance();
+    _hideUnplayable = prefs.getBool('hide_unplayable') ?? false;
+    notifyListeners();
+  }
+
+  /// 设置并持久化「隐藏无法播放」开关。
+  Future<void> setHideUnplayable(bool value) async {
+    _hideUnplayable = value;
+    notifyListeners();
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setBool('hide_unplayable', value);
+  }
+
   void _resetFilters() {
     _searchQuery = '';
     _selectedGroup = null;
@@ -198,6 +253,9 @@ class MediaProvider with ChangeNotifier {
 
       // 加载显示大小偏好
       await loadGridSizeLevel();
+
+      // 加载「隐藏无法播放」偏好
+      await loadHideUnplayable();
 
       // 首启无任何源时,自动添加并选中默认预置源(iptv-org 中国;运行时拉取)
       await _maybeSeedDefaultPreset();
