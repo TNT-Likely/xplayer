@@ -8,6 +8,7 @@ import 'package:xplayer/data/models/playlist_model.dart';
 import 'package:xplayer/presentation/screens/playlist.dart';
 import 'package:xplayer/presentation/screens/epg_screen.dart';
 import 'package:xplayer/presentation/screens/log_center_screen.dart';
+import 'package:xplayer/utils/logger_util.dart';
 import 'package:xplayer/services/update_service.dart';
 import 'package:xplayer/shared/components/x_base_button.dart';
 import 'package:xplayer/presentation/widgets/bg_wrapper.dart';
@@ -491,7 +492,8 @@ class _HomeScreenState extends State<HomeScreen> {
                       );
                       await mediaProvider.refreshChannels();
                       showToast(localizations.channelsUpdatedSuccessfully);
-                    } catch (e) {
+                    } catch (e, s) {
+                      Logger.error('刷新频道失败: $e', e, s);
                       showToast(
                         localizations.channelsUpdateFailed(e.toString()),
                       );
@@ -570,7 +572,8 @@ class _HomeScreenState extends State<HomeScreen> {
                       );
                       await mediaProvider.refreshProgrammes();
                       showToast(localizations.programmesUpdatedSuccessfully);
-                    } catch (e) {
+                    } catch (e, s) {
+                      Logger.error('刷新节目单失败: $e', e, s);
                       showToast(
                         localizations.programmesUpdateFailed(e.toString()),
                       );
@@ -801,7 +804,8 @@ class _HomeScreenState extends State<HomeScreen> {
                                 await mediaProvider.refreshChannels();
                                 showToast(
                                     localizations.channelsUpdatedSuccessfully);
-                              } catch (e) {
+                              } catch (e, s) {
+                                Logger.error('刷新频道失败: $e', e, s);
                                 showToast(localizations
                                     .channelsUpdateFailed(e.toString()));
                               }
@@ -841,7 +845,8 @@ class _HomeScreenState extends State<HomeScreen> {
                         );
                         await mp.refreshChannels();
                         showToast(localizations.channelsUpdatedSuccessfully);
-                      } catch (e) {
+                      } catch (e, s) {
+                        Logger.error('刷新频道失败: $e', e, s);
                         showToast(
                             localizations.channelsUpdateFailed(e.toString()));
                       }

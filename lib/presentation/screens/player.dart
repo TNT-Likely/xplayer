@@ -184,7 +184,7 @@ class _PlayerScreenState extends State<PlayerScreen>
       }).catchError((error) {
         if (token != _loadToken || !mounted) return; // 已被新加载取代,丢弃
         // 初始化失败:计入重试,超上限才 failed(统一走 _handleLoadError)
-        Logger.debug('初始化播放器失败: $error');
+        Logger.warning('播放器初始化失败(将重试): $error');
         if (!_isHandlingError) {
           _isHandlingError = true;
           _handleLoadError();
@@ -216,6 +216,7 @@ class _PlayerScreenState extends State<PlayerScreen>
         _initializePlayer(fresh: false);
       });
     } else {
+      Logger.error('播放视频失败(重试 $_retryTimes 次仍失败): ${_channel.name} | $_sourceLink');
       setState(() {
         _playState = PlayState.failed;
       });
@@ -242,7 +243,7 @@ class _PlayerScreenState extends State<PlayerScreen>
               // 否则断断续续的流会在「视频」与「加载页」间反复闪烁
             } else {
               // 长缓冲重试已达上限,不再无限重载,直接标记失败
-              Logger.debug('长缓冲重试已达上限,标记失败');
+              Logger.error('播放视频失败(长时间缓冲超限): ${_channel.name} | $_sourceLink');
               setState(() {
                 _playState = PlayState.failed;
               });
@@ -273,7 +274,7 @@ class _PlayerScreenState extends State<PlayerScreen>
     }
 
     if (value.hasError) {
-      Logger.debug('视频播放出现错误: ${value.errorDescription}');
+      Logger.warning('视频播放错误: ${value.errorDescription}');
       // 每次错误只处理一次,避免监听器重复触发导致计数瞬间打满/并发重载
       if (!_isHandlingError) {
         _isHandlingError = true;

@@ -23,7 +23,8 @@ class _LogCenterScreenState extends State<LogCenterScreen> {
   static const int _port = 8099;
 
   final ScrollController _scroll = ScrollController();
-  final Set<LogLevel> _levels = {...LogLevel.values};
+  // 默认只看错误日志;其余级别按需勾选。
+  final Set<LogLevel> _levels = {LogLevel.error};
   String _filter = '';
   HttpServer? _server;
   String _exportInfo = '局域网导出:启动中…';
@@ -118,6 +119,19 @@ class _LogCenterScreenState extends State<LogCenterScreen> {
     return KeyEventResult.ignored;
   }
 
+  String _levelName(AppLocalizations l, LogLevel lv) {
+    switch (lv) {
+      case LogLevel.debug:
+        return l.logLevelDebug;
+      case LogLevel.info:
+        return l.logLevelInfo;
+      case LogLevel.warning:
+        return l.logLevelWarning;
+      case LogLevel.error:
+        return l.logLevelError;
+    }
+  }
+
   Color _colorFor(LogLevel l) {
     switch (l) {
       case LogLevel.debug:
@@ -133,10 +147,11 @@ class _LogCenterScreenState extends State<LogCenterScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
     return Scaffold(
       backgroundColor: const Color.fromARGB(255, 18, 18, 18),
       appBar: AppBar(
-        title: Text(AppLocalizations.of(context)!.diagLog,
+        title: Text(l10n.diagLog,
             style: const TextStyle(color: Colors.white)),
         backgroundColor: Colors.transparent,
         elevation: 0,
@@ -165,8 +180,9 @@ class _LogCenterScreenState extends State<LogCenterScreen> {
           ),
         ],
       ),
+      // 遥控器:左右在级别 chips/搜索/按钮间移动并 OK 切换,上下滚动日志列表。
+      // 不 autofocus 容器(改为首个 chip autofocus),上下键冒泡到这里滚动。
       body: Focus(
-        autofocus: true,
         onKeyEvent: _handleKey,
         child: Column(
           children: [
@@ -188,7 +204,8 @@ class _LogCenterScreenState extends State<LogCenterScreen> {
                     Padding(
                       padding: const EdgeInsets.only(right: 6),
                       child: FilterChip(
-                        label: Text(lv.tagText,
+                        autofocus: lv == LogLevel.debug, // 进页面默认焦点落在第一个 chip
+                        label: Text(_levelName(l10n, lv),
                             style: const TextStyle(fontSize: 12)),
                         selected: _levels.contains(lv),
                         onSelected: (s) => setState(() =>

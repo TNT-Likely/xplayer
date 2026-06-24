@@ -140,5 +140,9 @@
   "hideUnplayable": "Hide unplayable",
   "autoRefreshOnLaunch": "Auto-update on launch",
   "nowPlaying": "Now: {title}",
-  "diagLog": "Log Center"
+  "diagLog": "Log Center",
+  "logLevelDebug": "Debug",
+  "logLevelInfo": "Info",
+  "logLevelWarning": "Warning",
+  "logLevelError": "Error"
 }

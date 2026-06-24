@@ -168,6 +168,31 @@ class MainActivity : FlutterActivity() {
             }
         }
 
+        // 音频编码支持检测:直播"有画面没声音"多半是缺 AC-3/E-AC-3/MP2 解码器
+        val audioMimes = listOf(
+            "audio/mp4a-latm" to "AAC",
+            "audio/mpeg" to "MP3",
+            "audio/mpeg-L2" to "MP2(MPEG L2)",
+            "audio/ac3" to "AC-3(杜比)",
+            "audio/eac3" to "E-AC-3(DD+)",
+            "audio/vnd.dts" to "DTS",
+            "audio/opus" to "Opus",
+            "audio/vorbis" to "Vorbis",
+            "audio/flac" to "FLAC"
+        )
+        val audioSummary = StringBuilder()
+        for ((mime, label) in audioMimes) {
+            var name: String? = null
+            for (info in list.codecInfos) {
+                if (info.isEncoder) continue
+                if (info.supportedTypes.none { it.equals(mime, ignoreCase = true) }) continue
+                name = info.name
+                break
+            }
+            audioSummary.append(
+                if (name != null) "  ✅ $label: $name\n" else "  ❌ $label: (无解码器)\n")
+        }
+
         val sb = StringBuilder()
         sb.append("设备: ${Build.MANUFACTURER} ${Build.MODEL}  Android API=${Build.VERSION.SDK_INT}\n\n")
         sb.append("【结论】直播常用编码的硬解能力:\n")
@@ -180,6 +205,9 @@ class MainActivity : FlutterActivity() {
         sb.append(defaultDecoderLine("video/hevc", "H.265"))
         sb.append("  (createDecoderByType 返回默认解码器,ExoPlayer 默认选择逻辑与此一致;\n")
         sb.append("   电视读不到 logcat 时,这是\"播放实际用哪个解码器\"最接近的判断)\n\n")
+        sb.append("【音频解码支持】(直播\"有画面没声音\"常因本机缺 AC-3/E-AC-3/MP2 解码器)\n")
+        sb.append(audioSummary)
+        sb.append("  ❌ 的编码本机无法解码 → 用该音频的流会没声音(需 FFmpeg 软解)。\n\n")
         sb.append("【图例】[HW]=厂商硬件解码器(如 c2.qti./OMX.qcom./OMX.MTK./c2.amlogic.)\n")
         sb.append("        [SW]=系统软件解码器(c2.android./OMX.google.,CPU 解码,无 VPP/锐化)\n")
         sb.append("        .secure=DRM 加密流  .low_latency=低延迟  max=最大支持分辨率\n\n")
