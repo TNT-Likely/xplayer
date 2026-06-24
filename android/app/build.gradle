@@ -94,4 +94,7 @@ flutter {
 }
 
 dependencies {
+    // 仅为在 MainActivity 调用 Media3 全局日志开关 setLogLevel(诊断用)。
+    // 版本对齐 video_player_android 使用的 AndroidXMedia3/1.4.1;它本就是传递依赖,这里显式引用以便编译期可见。
+    implementation 'androidx.media3:media3-common:1.4.1'
 }

@@ -59,8 +59,30 @@ class _DiagLogScreenState extends State<DiagLogScreen> {
     if (mounted) setState(() => _logs = s);
   }
 
-  // 解码器探测 + 日志的完整文本(复制全部 与 HTTP 导出共用)。
+  // 从 logcat 提取本次播放实际使用的视频解码器(ACodec/Codec2 行),并判定硬/软解。
+  // 仅匹配视频解码器(含 video 或视频编码名),避开 c2.android.aac.decoder 这类音频。
+  static final RegExp _decoderRe = RegExp(
+    r'OMX\.[A-Za-z0-9]+\.video\.decoder\.[A-Za-z0-9.]+'
+    r'|c2\.[A-Za-z0-9]+\.(?:avc|hevc|h264|h265|mpeg2|mpeg4|vp8|vp9|av01|av1)\.decoder(?:\.[A-Za-z0-9_]+)?',
+    caseSensitive: false,
+  );
+
+  String _detectedDecoder(String logs) {
+    String? name;
+    for (final m in _decoderRe.allMatches(logs)) {
+      name = m.group(0); // 取最后一个(日志时间正序,最新即当前)
+    }
+    if (name == null) {
+      return '◆ 本次实际解码器: 未从日志提取到(logcat 不可读 或 尚未播放;见下方能力探测)';
+    }
+    final lower = name.toLowerCase();
+    final isSw = lower.startsWith('omx.google') || lower.startsWith('c2.android');
+    return '◆ 本次实际解码器: $name  [${isSw ? "SW 软件解码" : "HW 硬件解码"}]';
+  }
+
+  // 实际解码器 + 解码器能力 + 日志的完整文本(复制全部 与 HTTP 导出共用)。
   String _composed(String logcat) =>
+      '${_detectedDecoder(logcat)}\n\n'
       '===== 解码器能力 (MediaCodec) =====\n\n$_codecs\n'
       '===== LOGCAT =====\n\n$logcat';
 
@@ -162,10 +184,26 @@ class _DiagLogScreenState extends State<DiagLogScreen> {
               borderRadius: BorderRadius.circular(6),
             ),
             child: SingleChildScrollView(
-              child: SelectableText(
-                _codecs.isEmpty ? '解码器探测中…' : _codecs,
-                style: const TextStyle(
-                    color: Colors.white, fontSize: 12, fontFamily: 'monospace'),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  SelectableText(
+                    _detectedDecoder(_logs),
+                    style: const TextStyle(
+                        color: Colors.amberAccent,
+                        fontSize: 13,
+                        fontWeight: FontWeight.bold,
+                        fontFamily: 'monospace'),
+                  ),
+                  const Divider(color: Colors.white24, height: 14),
+                  SelectableText(
+                    _codecs.isEmpty ? '解码器探测中…' : _codecs,
+                    style: const TextStyle(
+                        color: Colors.white,
+                        fontSize: 12,
+                        fontFamily: 'monospace'),
+                  ),
+                ],
               ),
             ),
           ),

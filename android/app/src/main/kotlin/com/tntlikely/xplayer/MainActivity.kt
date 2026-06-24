@@ -2,6 +2,7 @@ package com.tntlikely.xplayer
 
 import android.media.MediaCodecList
 import android.os.Build
+import androidx.media3.common.util.Log as Media3Log
 import io.flutter.embedding.android.FlutterActivity
 import io.flutter.embedding.engine.FlutterEngine
 import io.flutter.plugin.common.MethodChannel
@@ -13,6 +14,9 @@ class MainActivity : FlutterActivity() {
 
     override fun configureFlutterEngine(flutterEngine: FlutterEngine) {
         super.configureFlutterEngine(flutterEngine)
+        // 提升 Media3(video_player 底层 ExoPlayer)日志级别,诊断时多透出内部 debug
+        // (格式切换、解码器复用/回退、丢帧、缓冲原因等)。系统级 ACodec/MediaCodec 日志不受此影响,始终有。
+        Media3Log.setLogLevel(Media3Log.LOG_LEVEL_ALL)
         MethodChannel(flutterEngine.dartExecutor.binaryMessenger, diagChannel)
             .setMethodCallHandler { call, result ->
                 when (call.method) {
