@@ -264,15 +264,17 @@ class _PlayerScreenState extends State<PlayerScreen>
         _isHandlingError = true;
         _handleLoadError();
       }
-    } else if (!value.isPlaying && !value.isBuffering) {
+    } else if (!value.isPlaying &&
+        !value.isBuffering &&
+        _playState == PlayState.playing) {
+      // 仅在「正在播放 → 暂停」这一真实转变时更新,不每帧重复 setState
       Logger.debug('视频暂停');
       setState(() {
-        // 视频暂停更新状态为 paused
         _playState = PlayState.paused;
       });
     }
-
-    setState(() {});
+    // 注意:此处不再每个监听回调都 setState(() {}) —— 视频每帧位置更新都会触发监听,
+    // 整页无谓重建(每秒多次)。视图只依赖 _playState / 是否初始化,相关转变上面都已各自 setState。
   }
 
   void _toggleControlsVisibility() {
