@@ -23,6 +23,7 @@ class _DiagLogScreenState extends State<DiagLogScreen> {
 
   String _logs = '';
   String _codecs = '';
+  String _appLog = ''; // ExoPlayer 进程内截获日志(电视也能看)
   String _filter = '';
   HttpServer? _server;
   String _exportInfo = '局域网导出:启动中…';
@@ -56,7 +57,16 @@ class _DiagLogScreenState extends State<DiagLogScreen> {
 
   Future<void> _refresh() async {
     final s = await _fetchLogcat();
-    if (mounted) setState(() => _logs = s);
+    String app = '';
+    try {
+      app = await _channel.invokeMethod<String>('getAppLog') ?? '';
+    } catch (_) {}
+    if (mounted) {
+      setState(() {
+        _logs = s;
+        _appLog = app;
+      });
+    }
   }
 
   // 从 logcat 提取本次播放实际使用的视频解码器(ACodec/Codec2 行),并判定硬/软解。
@@ -82,8 +92,9 @@ class _DiagLogScreenState extends State<DiagLogScreen> {
 
   // 实际解码器 + 解码器能力 + 日志的完整文本(复制全部 与 HTTP 导出共用)。
   String _composed(String logcat) =>
-      '${_detectedDecoder(logcat)}\n\n'
+      '${_detectedDecoder("$_appLog\n$logcat")}\n\n'
       '===== 解码器能力 (MediaCodec) =====\n\n$_codecs\n'
+      '===== ExoPlayer 应用内日志 =====\n\n$_appLog\n\n'
       '===== LOGCAT =====\n\n$logcat';
 
   void _copyAll() {
@@ -188,7 +199,7 @@ class _DiagLogScreenState extends State<DiagLogScreen> {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   SelectableText(
-                    _detectedDecoder(_logs),
+                    _detectedDecoder('$_appLog\n$_logs'),
                     style: const TextStyle(
                         color: Colors.amberAccent,
                         fontSize: 13,
@@ -204,6 +215,26 @@ class _DiagLogScreenState extends State<DiagLogScreen> {
                         fontFamily: 'monospace'),
                   ),
                 ],
+              ),
+            ),
+          ),
+          Container(
+            width: double.infinity,
+            constraints: const BoxConstraints(maxHeight: 200),
+            margin: const EdgeInsets.symmetric(horizontal: 12),
+            padding: const EdgeInsets.all(8),
+            decoration: BoxDecoration(
+              color: Colors.black.withOpacity(0.35),
+              borderRadius: BorderRadius.circular(6),
+            ),
+            child: SingleChildScrollView(
+              reverse: true, // 贴底:最新在下方可见
+              child: SelectableText(
+                'ExoPlayer 应用内日志(电视也能看):\n${_appLog.isEmpty ? "(暂无;播放后刷新)" : _appLog}',
+                style: const TextStyle(
+                    color: Colors.lightBlueAccent,
+                    fontSize: 11,
+                    fontFamily: 'monospace'),
               ),
             ),
           ),

@@ -18,6 +18,21 @@ class MainActivity : FlutterActivity() {
         // 提升 Media3(video_player 底层 ExoPlayer)日志级别,诊断时多透出内部 debug
         // (格式切换、解码器复用/回退、丢帧、缓冲原因等)。系统级 ACodec/MediaCodec 日志不受此影响,始终有。
         Media3Log.setLogLevel(Media3Log.LOG_LEVEL_ALL)
+        // 用自定义 logger 把 ExoPlayer 日志截获到应用内缓冲区:进程内,不依赖 logcat,
+        // 故电视(读不到 logcat)上也能看到 ExoPlayer 内部日志。
+        Media3Log.setLogger(object : Media3Log.Logger {
+            override fun d(tag: String, message: String, t: Throwable?) =
+                MediaLogBuffer.add("D", tag, message, t)
+
+            override fun i(tag: String, message: String, t: Throwable?) =
+                MediaLogBuffer.add("I", tag, message, t)
+
+            override fun w(tag: String, message: String, t: Throwable?) =
+                MediaLogBuffer.add("W", tag, message, t)
+
+            override fun e(tag: String, message: String, t: Throwable?) =
+                MediaLogBuffer.add("E", tag, message, t)
+        })
         MethodChannel(flutterEngine.dartExecutor.binaryMessenger, diagChannel)
             .setMethodCallHandler { call, result ->
                 when (call.method) {
@@ -35,6 +50,7 @@ class MainActivity : FlutterActivity() {
                             result.error("CODEC_ERR", e.message, null)
                         }
                     }
+                    "getAppLog" -> result.success(MediaLogBuffer.dump())
                     else -> result.notImplemented()
                 }
             }
@@ -141,4 +157,21 @@ class MainActivity : FlutterActivity() {
             "  $label: 探测失败(${e.message})\n"
         }
     }
+}
+
+// ExoPlayer(Media3)日志的应用内环形缓冲:进程内截获,不依赖 logcat(电视也能看)。
+object MediaLogBuffer {
+    private const val MAX = 3000
+    private val lines = ArrayDeque<String>()
+
+    @Synchronized
+    fun add(level: String, tag: String, message: String, t: Throwable?) {
+        lines.addLast("$level/$tag: $message" + if (t != null) "  ${t.message}" else "")
+        while (lines.size > MAX) lines.removeFirst()
+    }
+
+    @Synchronized
+    fun dump(): String =
+        if (lines.isEmpty()) "(暂无 ExoPlayer 日志;播放一下再回来刷新)"
+        else lines.joinToString("\n")
 }
