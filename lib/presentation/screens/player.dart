@@ -221,10 +221,8 @@ class _PlayerScreenState extends State<PlayerScreen>
               _controller.pause();
               _controller.seekTo(Duration.zero);
               _controller.play();
-              setState(() {
-                // 长时间缓冲更新状态为 retrying
-                _playState = PlayState.retrying;
-              });
+              // 缓冲重试时保持视频画面 + 缓冲指示,不切到整页加载页,
+              // 否则断断续续的流会在「视频」与「加载页」间反复闪烁
             } else {
               // 长缓冲重试已达上限,不再无限重载,直接标记失败
               Logger.debug('长缓冲重试已达上限,标记失败');

@@ -1,5 +1,4 @@
 import 'dart:math';
-import 'dart:ui' as ui;
 
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
@@ -151,25 +150,17 @@ class _PlayerActionsWidgetState extends State<PlayerActionsWidget>
 
     final isMobile = globalProvider.isMobile;
 
-    return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 16.0),
-      child: Align(
-        alignment: Alignment.bottomCenter,
-        child: ClipRRect(
-          borderRadius: BorderRadius.circular(18),
-          child: BackdropFilter(
-            filter: ui.ImageFilter.blur(sigmaX: 16, sigmaY: 16),
-            child: Container(
-              height: min(MediaQuery.of(context).size.height, 130),
-              decoration: BoxDecoration(
-                // 半透明毛玻璃面板:与清晰的视频画面区分,避免误以为操作栏和播放是同一层
-                color: Colors.black.withOpacity(0.32),
-                borderRadius: BorderRadius.circular(18),
-                border: Border.all(color: Colors.white.withOpacity(0.14)),
-              ),
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
+    return Align(
+      alignment: Alignment.bottomCenter,
+      child: Container(
+        width: double.infinity,
+        height: min(MediaQuery.of(context).size.height, 130),
+        // 通栏淡灰底:无圆角、无边框,与视频画面区分但不抢眼
+        color: const Color.fromRGBO(48, 48, 48, 0.55),
+        padding: const EdgeInsets.symmetric(horizontal: 16.0),
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
               Row(
                 crossAxisAlignment: CrossAxisAlignment.center,
                 children: [
@@ -291,13 +282,10 @@ class _PlayerActionsWidgetState extends State<PlayerActionsWidget>
                 ],
               ),
               const SizedBox(height: 8),
-                ],
-              ),
-            ),
+            ],
           ),
         ),
-      ),
-    );
+      );
   }
 
   String formatTime(DateTime time) {
