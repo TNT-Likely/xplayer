@@ -7,6 +7,7 @@ import 'package:path/path.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:xplayer/data/models/playlist_model.dart';
 import 'package:xplayer/data/models/programme_model.dart';
+import 'package:xplayer/services/update/update_proxy.dart';
 import 'package:xml/xml.dart';
 import 'package:m3u_parser_nullsafe/m3u_parser_nullsafe.dart';
 import 'dart:convert';
@@ -248,6 +249,12 @@ class PlaylistRepository {
         // 企业内网证书处理（Zscaler等代理证书）
         httpClient.badCertificateCallback = (X509Certificate cert, String host, int port) => true;
 
+        // 可选:拉取直播源走代理(「网络代理」设置里开启)
+        final sourceProxy = await UpdateProxy.forSource();
+        if (sourceProxy != null) {
+          httpClient.findProxy = (uri) => 'PROXY $sourceProxy';
+        }
+
         try {
           final request = await httpClient.getUrl(uri);
           final response = await request.close();
@@ -319,6 +326,12 @@ class PlaylistRepository {
 
     // 企业内网证书处理
     httpClient.badCertificateCallback = (X509Certificate cert, String host, int port) => true;
+
+    // 可选:拉取 EPG 走代理(「网络代理」设置里开启)
+    final sourceProxy = await UpdateProxy.forSource();
+    if (sourceProxy != null) {
+      httpClient.findProxy = (uri) => 'PROXY $sourceProxy';
+    }
 
     try {
       final uri = Uri.parse(url);

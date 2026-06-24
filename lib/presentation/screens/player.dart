@@ -2,6 +2,7 @@ import 'dart:io';
 
 import 'package:flutter/material.dart';
 import 'package:video_player/video_player.dart';
+import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/services.dart';
 import 'package:xplayer/data/models/channel_model.dart';
 import 'package:xplayer/data/models/programme_model.dart';
@@ -468,6 +469,64 @@ class _PlayerScreenState extends State<PlayerScreen>
     }
   }
 
+  /// 加载/重试中的展示:频道台标 + 名称 + 进度;重试时显示「第 N 次重新加载」。
+  Widget _buildLoadingView() {
+    final l = AppLocalizations.of(context)!;
+    final retryAttempt = _retryTimes > 0 ? _retryTimes : _bufferingRetryTimes;
+    final status =
+        retryAttempt > 0 ? l.reloadingAttempt(retryAttempt) : l.loading;
+    final logo = _channel.logo;
+    final title = _channel.name.isNotEmpty ? _channel.name : _channel.id;
+    return Center(
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Container(
+            width: 96,
+            height: 96,
+            decoration: BoxDecoration(
+              color: Colors.white.withOpacity(0.06),
+              borderRadius: BorderRadius.circular(20),
+              border: Border.all(color: Colors.white.withOpacity(0.10)),
+            ),
+            clipBehavior: Clip.antiAlias,
+            alignment: Alignment.center,
+            child: (logo != null && logo.isNotEmpty)
+                ? Padding(
+                    padding: const EdgeInsets.all(14),
+                    child: CachedNetworkImage(
+                      imageUrl: logo,
+                      fit: BoxFit.contain,
+                      errorWidget: (_, __, ___) => const Icon(Icons.live_tv,
+                          color: Colors.white54, size: 40),
+                    ),
+                  )
+                : const Icon(Icons.live_tv, color: Colors.white54, size: 40),
+          ),
+          const SizedBox(height: 18),
+          Text(
+            title,
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
+            style: const TextStyle(
+                color: Colors.white, fontSize: 18, fontWeight: FontWeight.w600),
+          ),
+          const SizedBox(height: 22),
+          const SizedBox(
+            width: 26,
+            height: 26,
+            child: CircularProgressIndicator(strokeWidth: 2.4),
+          ),
+          const SizedBox(height: 14),
+          Text(
+            status,
+            style: const TextStyle(color: Colors.white70, fontSize: 13),
+          ),
+        ],
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
@@ -525,19 +584,7 @@ class _PlayerScreenState extends State<PlayerScreen>
                   )
                 else if (_playState == PlayState.loading ||
                     _playState == PlayState.retrying)
-                  Center(
-                    child: Column(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        const CircularProgressIndicator(),
-                        const SizedBox(height: 16),
-                        Text(
-                          '${_channel.id} ${_playState == PlayState.retrying ? AppLocalizations.of(context)!.retrying : ''}${AppLocalizations.of(context)!.loading}',
-                          style: const TextStyle(color: Colors.white),
-                        ),
-                      ],
-                    ),
-                  )
+                  _buildLoadingView()
                 else if (_controller.value.isInitialized &&
                     _controller.value.aspectRatio > 0)
                   AspectRatio(
@@ -546,19 +593,7 @@ class _PlayerScreenState extends State<PlayerScreen>
                   )
                 else
                   // 控制器尚未就绪时显示加载,避免渲染未初始化播放器导致黑屏空白
-                  Center(
-                    child: Column(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        const CircularProgressIndicator(),
-                        const SizedBox(height: 16),
-                        Text(
-                          AppLocalizations.of(context)!.loading,
-                          style: const TextStyle(color: Colors.white),
-                        ),
-                      ],
-                    ),
-                  ),
+                  _buildLoadingView(),
                 if (_playState == PlayState.buffering)
                   Positioned.fill(
                     child: Center(

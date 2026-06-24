@@ -183,16 +183,20 @@ class _PlayerActionsWidgetState extends State<PlayerActionsWidget>
                     mainAxisSize: MainAxisSize.min,
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      if (programmeInfo.$2 != null)
-                        Text(
-                          programmeInfo.$2!.title,
-                          style: const TextStyle(
-                              color: Colors.white,
-                              decoration: TextDecoration.none,
-                              fontSize: 22),
-                          overflow: TextOverflow.ellipsis,
-                          maxLines: 1,
-                        ),
+                      // 主行:有节目单显示当前节目,否则显示频道名(无节目单时不再空白)
+                      Text(
+                        programmeInfo.$2 != null
+                            ? programmeInfo.$2!.title
+                            : (widget.channel.name.isNotEmpty
+                                ? widget.channel.name
+                                : widget.channel.id),
+                        style: const TextStyle(
+                            color: Colors.white,
+                            decoration: TextDecoration.none,
+                            fontSize: 22),
+                        overflow: TextOverflow.ellipsis,
+                        maxLines: 1,
+                      ),
                       if (programmeInfo.$3 != null)
                         Text(
                           "${formatTime(programmeInfo.$3!.start)}-${formatTime(programmeInfo.$3!.stop)}  ${programmeInfo.$3!.title}",
@@ -209,7 +213,8 @@ class _PlayerActionsWidgetState extends State<PlayerActionsWidget>
               ),
               const SizedBox(height: 8),
               Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                // 居中成一组:iPad/TV 等宽屏下不再把按钮拉到两边、过于分散
+                mainAxisAlignment: MainAxisAlignment.center,
                 children: [
                   if (widget.controller.value.hasError)
                     Row(children: [

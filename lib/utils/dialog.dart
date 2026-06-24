@@ -104,35 +104,46 @@ class DialogUtils {
     showCustomDialog<Map<String, dynamic>>(
       context,
       title: title,
-      content: Column(
-        mainAxisSize: MainAxisSize.min,
-        children: options.map((option) {
-          final isSelected = option['value'] == currentId;
-          return XBaseButton(
-              onPressed: () {
-                if (option['value'] != null && !isSelected) {
-                  onOptionSelected(option);
-                }
+      content: SizedBox(
+        width: double.maxFinite,
+        child: ConstrainedBox(
+          // 选项多时弹窗会溢出且无法滚动 → 限高 + 可滚动
+          constraints: BoxConstraints(
+            maxHeight: MediaQuery.of(context).size.height * 0.6,
+          ),
+          child: SingleChildScrollView(
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: options.map((option) {
+                final isSelected = option['value'] == currentId;
+                return XBaseButton(
+                    onPressed: () {
+                      if (option['value'] != null && !isSelected) {
+                        onOptionSelected(option);
+                      }
 
-                Navigator.of(context).pop();
-              },
-              child: (isFocused) => ListTile(
-                    tileColor: isFocused || isSelected
-                        ? theme.primaryColor
-                        : Colors.transparent,
-                    title: Text(
-                      option['label'] ??
-                          AppLocalizations.of(context)!.unknownOption,
-                      style: const TextStyle(color: Colors.white),
-                    ),
-                    trailing: isSelected
-                        ? const Icon(
-                            Icons.check,
-                            color: Colors.white,
-                          )
-                        : null,
-                  ));
-        }).toList(),
+                      Navigator.of(context).pop();
+                    },
+                    child: (isFocused) => ListTile(
+                          tileColor: isFocused || isSelected
+                              ? theme.primaryColor
+                              : Colors.transparent,
+                          title: Text(
+                            option['label'] ??
+                                AppLocalizations.of(context)!.unknownOption,
+                            style: const TextStyle(color: Colors.white),
+                          ),
+                          trailing: isSelected
+                              ? const Icon(
+                                  Icons.check,
+                                  color: Colors.white,
+                                )
+                              : null,
+                        ));
+              }).toList(),
+            ),
+          ),
+        ),
       ),
       cancelButtonText: null,
       confirmButtonText: null,
