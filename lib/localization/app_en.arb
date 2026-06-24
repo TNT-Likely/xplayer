@@ -155,5 +155,13 @@
   "infoResolution": "Resolution",
   "infoCodecs": "Codecs",
   "infoTtff": "First Frame",
-  "infoSwitchRender": "Switch Render"
+  "infoSwitchRender": "Switch Render",
+  "secVideo": "Video",
+  "secAudio": "Audio",
+  "infoActiveDecoder": "Active Decoder",
+  "infoVideoCodec": "Video Codec",
+  "infoBitrate": "Bitrate",
+  "infoAudioCodec": "Audio Codec",
+  "infoAudioDecoder": "Audio Decoder",
+  "infoTier2Hint": "Dropped frames / audio path / A-V sync need a later pass (ExoPlayer analytics)"
 }

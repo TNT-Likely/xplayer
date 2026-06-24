@@ -58,7 +58,7 @@ class _PlayerScreenState extends State<PlayerScreen>
 
   // 诊断面板
   bool _showDiag = false;
-  String _streamTracks = ''; // 探流结果(各轨道编码)
+  Map<String, dynamic> _streamInfo = {}; // 探流结果(结构化:视频/音频编码、解码器、码率…)
   int? _ttffMs; // 首帧耗时
   DateTime? _loadStartedAt;
 
@@ -178,10 +178,11 @@ class _PlayerScreenState extends State<PlayerScreen>
     // 播放地址 + 设备端探流(各轨道真实编码)写入日志中心
     LogStore.instance.i('player', '▶ 播放: $_sourceLink');
     const MethodChannel('diag/logcat')
-        .invokeMethod<String>('probeStream', {'url': _sourceLink}).then((t) {
-      if (t != null && t.trim().isNotEmpty) {
-        LogStore.instance.i('probe', '🎵 流轨道:\n${t.trim()}');
-        if (mounted) setState(() => _streamTracks = t.trim());
+        .invokeMethod<Map>('probeStream', {'url': _sourceLink}).then((m) {
+      if (m != null && mounted) {
+        final info = Map<String, dynamic>.from(m);
+        setState(() => _streamInfo = info);
+        LogStore.instance.i('probe', '🎵 流信息: $info');
       }
     }).catchError((_) => null);
 
@@ -557,13 +558,36 @@ class _PlayerScreenState extends State<PlayerScreen>
         ? '${size.width.toInt()}x${size.height.toInt()}'
         : '—';
 
+    final i = _streamInfo;
+    String fmt(dynamic v) =>
+        (v == null || v == -1 || v == '') ? '—' : v.toString();
+    final theme = Theme.of(context).primaryColor;
+
+    // 视频:分辨率(优先探流的宽高,否则用 controller.size)、编码、码率
+    final vw = i['videoWidth'];
+    final vRes = (vw is int && vw > 0) ? '${vw}x${i['videoHeight']}' : res;
+    final vb = i['videoBitrate'];
+    final vBitrate = (vb is int && vb > 0) ? '${vb ~/ 1000} kbps' : '—';
+    // 音频:编码 + 采样率/声道
+    String audioCodec() {
+      final m = i['audioMime'];
+      if (m == null) return '—';
+      final sr = i['audioSampleRate'];
+      final ch = i['audioChannels'];
+      return [
+        m,
+        if (sr is int && sr > 0) '${sr}Hz',
+        if (ch is int && ch > 0) '${ch}ch',
+      ].join('  ');
+    }
+
     Widget row(String k, String v) => Padding(
           padding: const EdgeInsets.symmetric(vertical: 2),
           child: Row(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               SizedBox(
-                  width: 84,
+                  width: 92,
                   child: Text(k,
                       style: const TextStyle(
                           color: Colors.white60, fontSize: 12))),
@@ -574,21 +598,29 @@ class _PlayerScreenState extends State<PlayerScreen>
             ],
           ),
         );
+    Widget header(String t) => Padding(
+          padding: const EdgeInsets.only(top: 8, bottom: 2),
+          child: Text(t,
+              style: TextStyle(
+                  color: theme, fontSize: 13, fontWeight: FontWeight.bold)),
+        );
 
+    // 右侧全高浮层(仿节目列表),内容溢出时内部滚动
     return Positioned(
-      left: 12,
-      top: 12,
-      child: SafeArea(
-        child: Container(
-          width: 360,
-          constraints: const BoxConstraints(maxHeight: 480),
-          padding: const EdgeInsets.all(12),
-          decoration: BoxDecoration(
-            color: Colors.black.withOpacity(0.72),
-            borderRadius: BorderRadius.circular(8),
-          ),
-          child: SingleChildScrollView(
-            child: Column(
+      top: 0,
+      right: 0,
+      bottom: 0,
+      child: Material(
+        type: MaterialType.transparency,
+        child: SafeArea(
+          child: Container(
+            width: 380,
+            padding: const EdgeInsets.all(12),
+            decoration: BoxDecoration(
+              color: Colors.black.withOpacity(0.82),
+            ),
+            child: SingleChildScrollView(
+              child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Row(
@@ -606,21 +638,31 @@ class _PlayerScreenState extends State<PlayerScreen>
                     ),
                   ],
                 ),
-                const Divider(color: Colors.white24),
-                row(l.infoChannel,
-                    _channel.name.isNotEmpty ? _channel.name : _channel.id),
+                const Divider(color: Colors.white24, height: 12),
+                // 基本
                 row(l.infoSource, _sourceLink),
                 row(
                     l.infoRenderSurface,
                     useSurfaceView.value
                         ? 'SurfaceView (HW VPP)'
                         : 'Texture'),
+                row(l.infoActiveDecoder, fmt(i['videoDecoder'])),
                 row(l.infoPlayState, _playState.name),
-                row(l.infoResolution, res),
-                row(l.infoCodecs,
-                    _streamTracks.isEmpty ? '…' : _streamTracks),
-                row('FFmpeg', '—'),
+                // 视频
+                header(l.secVideo),
+                row(l.infoResolution, vRes),
+                row(l.infoVideoCodec, fmt(i['videoMime'])),
+                row(l.infoBitrate, vBitrate),
                 row(l.infoTtff, _ttffMs != null ? '$_ttffMs ms' : '—'),
+                // 音频
+                header(l.secAudio),
+                row(l.infoAudioCodec, audioCodec()),
+                row(l.infoAudioDecoder, fmt(i['audioDecoder'])),
+                row('FFmpeg', '—'),
+                const SizedBox(height: 6),
+                Text(l.infoTier2Hint,
+                    style: const TextStyle(
+                        color: Colors.white38, fontSize: 10)),
                 const SizedBox(height: 8),
                 ElevatedButton.icon(
                   onPressed: () => setUseSurfaceView(!useSurfaceView.value),
@@ -634,6 +676,7 @@ class _PlayerScreenState extends State<PlayerScreen>
           ),
         ),
       ),
+    ),
     );
   }
 

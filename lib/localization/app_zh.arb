@@ -155,5 +155,13 @@
     "infoResolution": "分辨率",
     "infoCodecs": "轨道编码",
     "infoTtff": "首帧耗时",
-    "infoSwitchRender": "切换渲染面"
+    "infoSwitchRender": "切换渲染面",
+    "secVideo": "视频",
+    "secAudio": "音频",
+    "infoActiveDecoder": "活动解码器",
+    "infoVideoCodec": "视频编码",
+    "infoBitrate": "码率",
+    "infoAudioCodec": "音频编码",
+    "infoAudioDecoder": "音频解码器",
+    "infoTier2Hint": "丢帧/卡顿/Audio Path/AV 同步等指标需后续(挂 ExoPlayer 分析器)"
 }
