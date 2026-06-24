@@ -290,7 +290,7 @@ class _HomeScreenState extends State<HomeScreen> {
           elevation: 0, // 移除阴影
           backgroundColor: Colors.transparent, // 使背景透明
           actions: [
-            // 搜索 / 分组 / 显示大小:三个独立入口(有频道时才显示)
+            // 搜索 / 分组:独立入口(有频道时才显示;显示大小已移到侧边栏)
             Consumer<MediaProvider>(
               builder: (context, mp, _) {
                 if (mp.channels.isEmpty) return const SizedBox.shrink();
@@ -315,13 +315,6 @@ class _HomeScreenState extends State<HomeScreen> {
                         active: groupActive,
                         onPressed: () => _showGroupDialog(context),
                       ),
-                    _filterIcon(
-                      context,
-                      icon: Icons.photo_size_select_large,
-                      tooltip: localizations.itemSize,
-                      active: false,
-                      onPressed: () => _showSizeDialog(context),
-                    ),
                     // 测速后才出现:隐藏无法播放的频道(可恢复)
                     if (mp.hasTestResults)
                       _filterIcon(
@@ -518,6 +511,22 @@ class _HomeScreenState extends State<HomeScreen> {
                     Navigator.of(context).push(
                       MaterialPageRoute(builder: (_) => const EpgScreen()),
                     );
+                  },
+                ),
+                XBaseButton(
+                  child: animeContainer(
+                    ListTile(
+                      leading: const Icon(Icons.photo_size_select_large,
+                          color: Colors.white),
+                      title: Text(
+                        localizations.itemSize,
+                        style: const TextStyle(color: Colors.white),
+                      ),
+                    ),
+                  ),
+                  onPressed: () {
+                    Navigator.of(context).pop();
+                    _showSizeDialog(context);
                   },
                 ),
                 XBaseButton(
