@@ -1,3 +1,5 @@
+import 'dart:io';
+
 import 'package:flutter/material.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:package_info_plus/package_info_plus.dart';
@@ -5,7 +7,8 @@ import 'package:xplayer/data/models/playlist_model.dart';
 // 导入 FavoritesRepository
 import 'package:xplayer/presentation/screens/playlist.dart';
 import 'package:xplayer/presentation/screens/epg_screen.dart';
-import 'package:xplayer/presentation/screens/diag_log_screen.dart';
+import 'package:xplayer/presentation/screens/log_center_screen.dart';
+import 'package:xplayer/utils/logger_util.dart';
 import 'package:xplayer/services/update_service.dart';
 import 'package:xplayer/shared/components/x_base_button.dart';
 import 'package:xplayer/presentation/widgets/bg_wrapper.dart';
@@ -489,7 +492,8 @@ class _HomeScreenState extends State<HomeScreen> {
                       );
                       await mediaProvider.refreshChannels();
                       showToast(localizations.channelsUpdatedSuccessfully);
-                    } catch (e) {
+                    } catch (e, s) {
+                      Logger.error('刷新频道失败: $e', e, s);
                       showToast(
                         localizations.channelsUpdateFailed(e.toString()),
                       );
@@ -542,7 +546,7 @@ class _HomeScreenState extends State<HomeScreen> {
                   onPressed: () {
                     Navigator.of(context).pop();
                     Navigator.of(context).push(
-                      MaterialPageRoute(builder: (_) => const DiagLogScreen()),
+                      MaterialPageRoute(builder: (_) => const LogCenterScreen()),
                     );
                   },
                 ),
@@ -568,7 +572,8 @@ class _HomeScreenState extends State<HomeScreen> {
                       );
                       await mediaProvider.refreshProgrammes();
                       showToast(localizations.programmesUpdatedSuccessfully);
-                    } catch (e) {
+                    } catch (e, s) {
+                      Logger.error('刷新节目单失败: $e', e, s);
                       showToast(
                         localizations.programmesUpdateFailed(e.toString()),
                       );
@@ -667,22 +672,24 @@ class _HomeScreenState extends State<HomeScreen> {
                     await launch('https://github.com/TNT-Likely/xplayer');
                   },
                 ),
-                XBaseButton(
-                  child: animeContainer(
-                    ListTile(
-                      leading: const Icon(Icons.system_update,
-                          color: Colors.white),
-                      title: Text(
-                        localizations.checkUpdate,
-                        style: const TextStyle(color: Colors.white),
+                // iOS/iPadOS:App Store 不允许应用自更新,隐藏检查更新入口
+                if (!Platform.isIOS)
+                  XBaseButton(
+                    child: animeContainer(
+                      ListTile(
+                        leading: const Icon(Icons.system_update,
+                            color: Colors.white),
+                        title: Text(
+                          localizations.checkUpdate,
+                          style: const TextStyle(color: Colors.white),
+                        ),
                       ),
                     ),
+                    onPressed: () async {
+                      Navigator.of(context).pop();
+                      await UpdateService.checkUpdateWithUI(context);
+                    },
                   ),
-                  onPressed: () async {
-                    Navigator.of(context).pop();
-                    await UpdateService.checkUpdateWithUI(context);
-                  },
-                ),
                 XBaseButton(
                   onPressed: () {
                     Navigator.of(context).pop();
@@ -797,7 +804,8 @@ class _HomeScreenState extends State<HomeScreen> {
                                 await mediaProvider.refreshChannels();
                                 showToast(
                                     localizations.channelsUpdatedSuccessfully);
-                              } catch (e) {
+                              } catch (e, s) {
+                                Logger.error('刷新频道失败: $e', e, s);
                                 showToast(localizations
                                     .channelsUpdateFailed(e.toString()));
                               }
@@ -837,7 +845,8 @@ class _HomeScreenState extends State<HomeScreen> {
                         );
                         await mp.refreshChannels();
                         showToast(localizations.channelsUpdatedSuccessfully);
-                      } catch (e) {
+                      } catch (e, s) {
+                        Logger.error('刷新频道失败: $e', e, s);
                         showToast(
                             localizations.channelsUpdateFailed(e.toString()));
                       }

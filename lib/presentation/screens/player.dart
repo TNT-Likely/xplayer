@@ -16,6 +16,7 @@ import 'package:xplayer/providers/media_provider.dart';
 import 'package:xplayer/utils/logger_util.dart';
 import 'package:xplayer/utils/playlist_util.dart';
 import 'package:xplayer/utils/toast.dart';
+import 'package:xplayer/services/log_store.dart';
 import 'package:provider/provider.dart';
 import 'dart:async';
 import 'package:flutter_gen/gen_l10n/app_localizations.dart';
@@ -156,6 +157,17 @@ class _PlayerScreenState extends State<PlayerScreen>
       _playState = PlayState.loading;
     });
 
+    // 打印本次播放地址:直接进控制台(flutter logs / adb logcat 立见),
+    // 同时推到诊断中心「ExoPlayer 应用内日志」(电视也能看)。
+    // 播放地址 + 设备端探流(各轨道真实编码)写入日志中心
+    LogStore.instance.i('player', '▶ 播放: $_sourceLink');
+    const MethodChannel('diag/logcat')
+        .invokeMethod<String>('probeStream', {'url': _sourceLink}).then((t) {
+      if (t != null && t.trim().isNotEmpty) {
+        LogStore.instance.i('probe', '🎵 流轨道:\n${t.trim()}');
+      }
+    }).catchError((_) => null);
+
     try {
       _controller = VideoPlayerController.networkUrl(Uri.parse(_sourceLink),
           videoPlayerOptions: VideoPlayerOptions(mixWithOthers: true));
@@ -172,7 +184,7 @@ class _PlayerScreenState extends State<PlayerScreen>
       }).catchError((error) {
         if (token != _loadToken || !mounted) return; // 已被新加载取代,丢弃
         // 初始化失败:计入重试,超上限才 failed(统一走 _handleLoadError)
-        Logger.debug('初始化播放器失败: $error');
+        Logger.warning('播放器初始化失败(将重试): $error');
         if (!_isHandlingError) {
           _isHandlingError = true;
           _handleLoadError();
@@ -204,6 +216,7 @@ class _PlayerScreenState extends State<PlayerScreen>
         _initializePlayer(fresh: false);
       });
     } else {
+      Logger.error('播放视频失败(重试 $_retryTimes 次仍失败): ${_channel.name} | $_sourceLink');
       setState(() {
         _playState = PlayState.failed;
       });
@@ -230,7 +243,7 @@ class _PlayerScreenState extends State<PlayerScreen>
               // 否则断断续续的流会在「视频」与「加载页」间反复闪烁
             } else {
               // 长缓冲重试已达上限,不再无限重载,直接标记失败
-              Logger.debug('长缓冲重试已达上限,标记失败');
+              Logger.error('播放视频失败(长时间缓冲超限): ${_channel.name} | $_sourceLink');
               setState(() {
                 _playState = PlayState.failed;
               });
@@ -261,7 +274,7 @@ class _PlayerScreenState extends State<PlayerScreen>
     }
 
     if (value.hasError) {
-      Logger.debug('视频播放出现错误: ${value.errorDescription}');
+      Logger.warning('视频播放错误: ${value.errorDescription}');
       // 每次错误只处理一次,避免监听器重复触发导致计数瞬间打满/并发重载
       if (!_isHandlingError) {
         _isHandlingError = true;

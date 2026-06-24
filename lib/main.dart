@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:xplayer/presentation/screens/splash.dart';
 import 'package:xplayer/providers/global_provider.dart';
 import 'presentation/screens/playlist.dart';
@@ -15,6 +16,7 @@ import 'package:xplayer/providers/remote_provider.dart';
 import 'package:xplayer/presentation/screens/remote_input.dart';
 import 'package:xplayer/shared/navigation.dart';
 import 'package:xplayer/shared/theme/app_theme.dart';
+import 'package:xplayer/services/log_store.dart';
 
 /// 启动诊断日志(仅 Windows):写到 %TEMP%\xplayer_startup.log。
 /// release 版控制台不可靠,用文件日志定位"白屏不出帧"卡在哪一步。
@@ -30,6 +32,20 @@ void _winLog(String msg) {
   } catch (_) {}
 }
 
+/// 启动时检测本机对常见视频/音频编码的解码支持(尤其音频 AC-3/E-AC-3/MP2 —— 直播没声音的根因),
+/// 结果写入日志中心 debug 级。仅 Android 有原生探测,其它平台忽略。
+Future<void> _probeCodecsAtStartup() async {
+  try {
+    final s = await const MethodChannel('diag/logcat')
+        .invokeMethod<String>('getCodecs');
+    if (s != null && s.trim().isNotEmpty) {
+      LogStore.instance.d('codec', '启动·编解码支持检测:\n${s.trim()}');
+    }
+  } catch (e) {
+    LogStore.instance.d('codec', '编解码支持检测不可用(非 Android?):$e');
+  }
+}
+
 void main() {
   runZonedGuarded(() {
     WidgetsFlutterBinding.ensureInitialized();
@@ -37,6 +53,8 @@ void main() {
 
     FlutterError.onError = (FlutterErrorDetails details) {
       _winLog('FlutterError: ${details.exceptionAsString()}');
+      LogStore.instance
+          .e('flutter', '${details.exceptionAsString()}\n${details.stack}');
       FlutterError.presentError(details);
     };
 
@@ -48,6 +66,7 @@ void main() {
 
     WidgetsBinding.instance.addPostFrameCallback((_) {
       _winLog('first frame built');
+      _probeCodecsAtStartup();
     });
 
     _winLog('calling runApp');
@@ -60,6 +79,7 @@ void main() {
     _winLog('runApp returned');
   }, (Object error, StackTrace stack) {
     _winLog('ZONE ERROR: $error\n$stack');
+    LogStore.instance.e('zone', '$error\n$stack');
   });
 }
 

@@ -2,6 +2,8 @@ package com.tntlikely.xplayer
 
 import android.media.MediaCodec
 import android.media.MediaCodecList
+import android.media.MediaExtractor
+import android.media.MediaFormat
 import android.os.Build
 import androidx.media3.common.util.Log as Media3Log
 import io.flutter.embedding.android.FlutterActivity
@@ -51,6 +53,16 @@ class MainActivity : FlutterActivity() {
                         }
                     }
                     "getAppLog" -> result.success(MediaLogBuffer.dump())
+                    "appLog" -> {
+                        MediaLogBuffer.add(
+                            "D", "app", call.argument<String>("msg") ?: "", null)
+                        result.success(null)
+                    }
+                    "probeStream" -> {
+                        val url = call.argument<String>("url") ?: ""
+                        // 网络 I/O 放后台线程,结果回主线程
+                        Thread { probeStream(url, result) }.start()
+                    }
                     else -> result.notImplemented()
                 }
             }
@@ -70,6 +82,39 @@ class MainActivity : FlutterActivity() {
         }
         reader.close()
         return sb.toString()
+    }
+
+    // 设备版 ffprobe:用 MediaExtractor 读流里每条轨道的编码(不解码),
+    // 在设备能连到该源时直接拿到 video/audio 的真实 MIME(查"没声音"是哪种音频编码)。
+    private fun probeStream(url: String, result: MethodChannel.Result) {
+        val sb = StringBuilder()
+        var ex: MediaExtractor? = null
+        try {
+            ex = MediaExtractor()
+            ex.setDataSource(url)
+            sb.append("轨道数: ${ex.trackCount}\n")
+            for (i in 0 until ex.trackCount) {
+                val f = ex.getTrackFormat(i)
+                val mime = f.getString(MediaFormat.KEY_MIME) ?: "?"
+                sb.append("  track$i: $mime")
+                fun optInt(k: String) =
+                    if (f.containsKey(k)) f.getInteger(k) else -1
+                when {
+                    mime.startsWith("audio/") -> sb.append(
+                        "  ${optInt(MediaFormat.KEY_SAMPLE_RATE)}Hz ${optInt(MediaFormat.KEY_CHANNEL_COUNT)}ch")
+                    mime.startsWith("video/") -> sb.append(
+                        "  ${optInt(MediaFormat.KEY_WIDTH)}x${optInt(MediaFormat.KEY_HEIGHT)}")
+                }
+                sb.append("\n")
+            }
+        } catch (e: Exception) {
+            sb.append("探测失败: ${e.message}\n")
+        } finally {
+            try { ex?.release() } catch (_: Exception) {}
+        }
+        val out = sb.toString()
+        MediaLogBuffer.add("D", "probe", out, null)
+        runOnUiThread { result.success(out) }
     }
 
     // 不需任何权限:枚举 MediaCodec 解码器,判定常见视频编码是否有硬件解码器。
@@ -123,6 +168,31 @@ class MainActivity : FlutterActivity() {
             }
         }
 
+        // 音频编码支持检测:直播"有画面没声音"多半是缺 AC-3/E-AC-3/MP2 解码器
+        val audioMimes = listOf(
+            "audio/mp4a-latm" to "AAC",
+            "audio/mpeg" to "MP3",
+            "audio/mpeg-L2" to "MP2(MPEG L2)",
+            "audio/ac3" to "AC-3(杜比)",
+            "audio/eac3" to "E-AC-3(DD+)",
+            "audio/vnd.dts" to "DTS",
+            "audio/opus" to "Opus",
+            "audio/vorbis" to "Vorbis",
+            "audio/flac" to "FLAC"
+        )
+        val audioSummary = StringBuilder()
+        for ((mime, label) in audioMimes) {
+            var name: String? = null
+            for (info in list.codecInfos) {
+                if (info.isEncoder) continue
+                if (info.supportedTypes.none { it.equals(mime, ignoreCase = true) }) continue
+                name = info.name
+                break
+            }
+            audioSummary.append(
+                if (name != null) "  ✅ $label: $name\n" else "  ❌ $label: (无解码器)\n")
+        }
+
         val sb = StringBuilder()
         sb.append("设备: ${Build.MANUFACTURER} ${Build.MODEL}  Android API=${Build.VERSION.SDK_INT}\n\n")
         sb.append("【结论】直播常用编码的硬解能力:\n")
@@ -135,6 +205,9 @@ class MainActivity : FlutterActivity() {
         sb.append(defaultDecoderLine("video/hevc", "H.265"))
         sb.append("  (createDecoderByType 返回默认解码器,ExoPlayer 默认选择逻辑与此一致;\n")
         sb.append("   电视读不到 logcat 时,这是\"播放实际用哪个解码器\"最接近的判断)\n\n")
+        sb.append("【音频解码支持】(直播\"有画面没声音\"常因本机缺 AC-3/E-AC-3/MP2 解码器)\n")
+        sb.append(audioSummary)
+        sb.append("  ❌ 的编码本机无法解码 → 用该音频的流会没声音(需 FFmpeg 软解)。\n\n")
         sb.append("【图例】[HW]=厂商硬件解码器(如 c2.qti./OMX.qcom./OMX.MTK./c2.amlogic.)\n")
         sb.append("        [SW]=系统软件解码器(c2.android./OMX.google.,CPU 解码,无 VPP/锐化)\n")
         sb.append("        .secure=DRM 加密流  .low_latency=低延迟  max=最大支持分辨率\n\n")
