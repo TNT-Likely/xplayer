@@ -21,7 +21,7 @@ class PlayerDialogs {
       barrierDismissible: true,
       barrierColor: Colors.black.withOpacity(0.25),
       transitionDuration: const Duration(milliseconds: 200),
-      pageBuilder: (dialogCtx, __, ___) {
+      pageBuilder: (_, __, ___) {
         return Align(
           alignment: wide ? Alignment.center : Alignment.centerLeft,
           child: Container(
@@ -32,10 +32,9 @@ class PlayerDialogs {
             color: const Color.fromRGBO(0, 0, 0, 0.55),
             child: ChannelSelectorWidget(
               currentChannel: selectedChannel,
-              onSelected: (c) {
-                Navigator.of(dialogCtx).pop(); // 点台即关
-                onSelected(c);
-              },
+              // 切台+关闭由调用方(player._showChannelSelectWidget)负责,
+              // 这里不要再 pop,否则会连播放页一起弹掉。
+              onSelected: onSelected,
             ),
           ),
         );
