@@ -1,5 +1,7 @@
 package com.tntlikely.xplayer
 
+import android.media.MediaCodecList
+import android.os.Build
 import io.flutter.embedding.android.FlutterActivity
 import io.flutter.embedding.engine.FlutterEngine
 import io.flutter.plugin.common.MethodChannel
@@ -21,6 +23,13 @@ class MainActivity : FlutterActivity() {
                             result.error("LOGCAT_ERR", e.message, null)
                         }
                     }
+                    "getCodecs" -> {
+                        try {
+                            result.success(probeCodecs())
+                        } catch (e: Exception) {
+                            result.error("CODEC_ERR", e.message, null)
+                        }
+                    }
                     else -> result.notImplemented()
                 }
             }
@@ -39,6 +48,49 @@ class MainActivity : FlutterActivity() {
             line = reader.readLine()
         }
         reader.close()
+        return sb.toString()
+    }
+
+    // 不需任何权限:枚举 MediaCodec 解码器,判定常见视频编码是否有硬件解码器。
+    // 用于在无法读 logcat 的设备(电视/受限系统)上排查「硬解是否存在/被回退」。
+    private fun probeCodecs(): String {
+        val sb = StringBuilder()
+        sb.append("设备: ${Build.MANUFACTURER} ${Build.MODEL}  Android API=${Build.VERSION.SDK_INT}\n")
+        sb.append("[HW]=硬件解码器  [SW]=软件解码器  (CCTV 等直播通常是 H.264/video-avc 或 H.265/video-hevc)\n\n")
+        val mimes = listOf(
+            "video/avc" to "H.264",
+            "video/hevc" to "H.265",
+            "video/mpeg2" to "MPEG-2",
+            "video/x-vnd.on2.vp9" to "VP9",
+            "video/av01" to "AV1"
+        )
+        val list = MediaCodecList(MediaCodecList.ALL_CODECS)
+        for ((mime, label) in mimes) {
+            sb.append("== $label ($mime) ==\n")
+            var found = false
+            for (info in list.codecInfos) {
+                if (info.isEncoder) continue
+                if (info.supportedTypes.none { it.equals(mime, ignoreCase = true) }) continue
+                found = true
+                val name = info.name
+                val hw = if (Build.VERSION.SDK_INT >= 29) {
+                    info.isHardwareAccelerated
+                } else {
+                    !(name.startsWith("OMX.google", true) || name.startsWith("c2.android", true))
+                }
+                var dims = ""
+                try {
+                    val vc = info.getCapabilitiesForType(mime).videoCapabilities
+                    if (vc != null) {
+                        dims = "  max ${vc.supportedWidths.upper}x${vc.supportedHeights.upper}"
+                    }
+                } catch (_: Exception) {
+                }
+                sb.append("  ${if (hw) "[HW]" else "[SW]"} $name$dims\n")
+            }
+            if (!found) sb.append("  (无解码器)\n")
+            sb.append("\n")
+        }
         return sb.toString()
     }
 }

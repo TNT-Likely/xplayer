@@ -21,6 +21,7 @@ class _DiagLogScreenState extends State<DiagLogScreen> {
   static const int _port = 8099;
 
   String _logs = '';
+  String _codecs = '';
   String _filter = '';
   HttpServer? _server;
   String _exportInfo = '局域网导出:启动中…';
@@ -28,8 +29,18 @@ class _DiagLogScreenState extends State<DiagLogScreen> {
   @override
   void initState() {
     super.initState();
+    _probeCodecs();
     _refresh();
     _startServer();
+  }
+
+  Future<void> _probeCodecs() async {
+    try {
+      final s = await _channel.invokeMethod<String>('getCodecs') ?? '';
+      if (mounted) setState(() => _codecs = s);
+    } catch (e) {
+      if (mounted) setState(() => _codecs = '解码器探测失败:$e');
+    }
   }
 
   Future<String> _fetchLogcat() async {
@@ -51,7 +62,9 @@ class _DiagLogScreenState extends State<DiagLogScreen> {
     try {
       _server = await HttpServer.bind(InternetAddress.anyIPv4, _port, shared: true);
       _server!.listen((HttpRequest req) async {
-        final body = await _fetchLogcat();
+        final logcat = await _fetchLogcat();
+        final body = '===== 解码器能力 (MediaCodec) =====\n\n'
+            '$_codecs\n===== LOGCAT =====\n\n$logcat';
         req.response
           ..headers.contentType = ContentType.text
           ..write(body);
@@ -124,6 +137,23 @@ class _DiagLogScreenState extends State<DiagLogScreen> {
             child: SelectableText(
               _exportInfo,
               style: const TextStyle(color: Colors.greenAccent, fontSize: 13),
+            ),
+          ),
+          Container(
+            width: double.infinity,
+            constraints: const BoxConstraints(maxHeight: 240),
+            margin: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+            padding: const EdgeInsets.all(8),
+            decoration: BoxDecoration(
+              color: Colors.black26,
+              borderRadius: BorderRadius.circular(6),
+            ),
+            child: SingleChildScrollView(
+              child: SelectableText(
+                _codecs.isEmpty ? '解码器探测中…' : _codecs,
+                style: const TextStyle(
+                    color: Colors.white, fontSize: 12, fontFamily: 'monospace'),
+              ),
             ),
           ),
           Padding(
