@@ -1,4 +1,5 @@
 import 'dart:math';
+import 'dart:ui' as ui;
 
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
@@ -154,12 +155,21 @@ class _PlayerActionsWidgetState extends State<PlayerActionsWidget>
       padding: const EdgeInsets.symmetric(horizontal: 16.0),
       child: Align(
         alignment: Alignment.bottomCenter,
-        child: Container(
-          height: min(MediaQuery.of(context).size.height, 130),
-          decoration: const BoxDecoration(color: Colors.transparent),
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
+        child: ClipRRect(
+          borderRadius: BorderRadius.circular(18),
+          child: BackdropFilter(
+            filter: ui.ImageFilter.blur(sigmaX: 16, sigmaY: 16),
+            child: Container(
+              height: min(MediaQuery.of(context).size.height, 130),
+              decoration: BoxDecoration(
+                // 半透明毛玻璃面板:与清晰的视频画面区分,避免误以为操作栏和播放是同一层
+                color: Colors.black.withOpacity(0.32),
+                borderRadius: BorderRadius.circular(18),
+                border: Border.all(color: Colors.white.withOpacity(0.14)),
+              ),
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
               Row(
                 crossAxisAlignment: CrossAxisAlignment.center,
                 children: [
@@ -213,8 +223,8 @@ class _PlayerActionsWidgetState extends State<PlayerActionsWidget>
               ),
               const SizedBox(height: 8),
               Row(
-                // 居中成一组:iPad/TV 等宽屏下不再把按钮拉到两边、过于分散
-                mainAxisAlignment: MainAxisAlignment.center,
+                // 左对齐成一组:按钮不放中间、也不两边拉散
+                mainAxisAlignment: MainAxisAlignment.start,
                 children: [
                   if (widget.controller.value.hasError)
                     Row(children: [
@@ -281,7 +291,9 @@ class _PlayerActionsWidgetState extends State<PlayerActionsWidget>
                 ],
               ),
               const SizedBox(height: 8),
-            ],
+                ],
+              ),
+            ),
           ),
         ),
       ),
