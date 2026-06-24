@@ -2,6 +2,8 @@ import 'dart:io';
 
 import 'package:flutter/material.dart';
 import 'package:video_player/video_player.dart';
+import 'package:cached_network_image/cached_network_image.dart';
+import 'package:xplayer/presentation/widgets/bg_wrapper.dart';
 import 'package:flutter/services.dart';
 import 'package:xplayer/data/models/channel_model.dart';
 import 'package:xplayer/data/models/programme_model.dart';
@@ -45,6 +47,8 @@ class _PlayerScreenState extends State<PlayerScreen>
   int _retryTimes = 0;
   int _bufferingRetryTimes = 0;
   Timer? _bufferingTimer;
+  Timer? _retryTimer; // 失败后延迟重载的定时器(切台/卸载时需取消,否则会回头再重载一次)
+  int _loadToken = 0; // 每次加载的代号:被新加载取代后,旧加载的异步回调据此丢弃
   bool _isHandlingBuffering = false;
   bool _isHandlingError = false;
 
@@ -107,6 +111,9 @@ class _PlayerScreenState extends State<PlayerScreen>
 
   @override
   void dispose() {
+    _retryTimer?.cancel();
+    _bufferingTimer?.cancel();
+    autoCloseTimer?.cancel();
     _controller.removeListener(_listenToVideoController);
     WidgetsBinding.instance.removeObserver(this);
     _focusNode.dispose();
@@ -116,6 +123,13 @@ class _PlayerScreenState extends State<PlayerScreen>
   }
 
   Future<void> _initializePlayer({bool fresh = true}) async {
+    // 本次加载代号:期间若又触发新加载/切台,旧加载的异步回调据此丢弃,避免互相打架
+    final token = ++_loadToken;
+    // 取消上一轮尚未触发的重试/缓冲定时器,否则切台后会被旧定时器再重载一次
+    _retryTimer?.cancel();
+    _bufferingTimer?.cancel();
+    _isHandlingBuffering = false;
+
     if (fresh) {
       // 用户主动加载(首次/切台/换源/手动重试):重置重试计数
       _retryTimes = 0;
@@ -124,9 +138,13 @@ class _PlayerScreenState extends State<PlayerScreen>
     _isHandlingError = false; // 新一轮加载,允许下次错误被处理
 
     try {
+      _controller.removeListener(_listenToVideoController);
       _controller.pause();
       await _controller.dispose();
     } catch (error) {}
+
+    // dispose 是异步的,其间若又触发了新加载或页面已卸载,则放弃本次
+    if (token != _loadToken || !mounted) return;
 
     setState(() {
       // 更新初始化时的状态为 loading
@@ -140,12 +158,14 @@ class _PlayerScreenState extends State<PlayerScreen>
       _controller.addListener(_listenToVideoController);
 
       await _controller.initialize().then((_) {
+        if (token != _loadToken || !mounted) return; // 已被新加载取代,丢弃
         _controller.play();
         setState(() {
           // 初始化成功后更新状态为 playing
           _playState = PlayState.playing;
         });
       }).catchError((error) {
+        if (token != _loadToken || !mounted) return; // 已被新加载取代,丢弃
         // 初始化失败:计入重试,超上限才 failed(统一走 _handleLoadError)
         Logger.debug('初始化播放器失败: $error');
         if (!_isHandlingError) {
@@ -154,6 +174,7 @@ class _PlayerScreenState extends State<PlayerScreen>
         }
       });
     } catch (e) {
+      if (token != _loadToken || !mounted) return;
       Logger.error('创建新播放器控制器失败: $e');
       if (!_isHandlingError) {
         _isHandlingError = true;
@@ -172,7 +193,8 @@ class _PlayerScreenState extends State<PlayerScreen>
       setState(() {
         _playState = PlayState.retrying;
       });
-      Timer(const Duration(milliseconds: 700), () {
+      _retryTimer?.cancel();
+      _retryTimer = Timer(const Duration(milliseconds: 700), () {
         if (!mounted) return;
         _initializePlayer(fresh: false);
       });
@@ -199,10 +221,8 @@ class _PlayerScreenState extends State<PlayerScreen>
               _controller.pause();
               _controller.seekTo(Duration.zero);
               _controller.play();
-              setState(() {
-                // 长时间缓冲更新状态为 retrying
-                _playState = PlayState.retrying;
-              });
+              // 缓冲重试时保持视频画面 + 缓冲指示,不切到整页加载页,
+              // 否则断断续续的流会在「视频」与「加载页」间反复闪烁
             } else {
               // 长缓冲重试已达上限,不再无限重载,直接标记失败
               Logger.debug('长缓冲重试已达上限,标记失败');
@@ -242,15 +262,17 @@ class _PlayerScreenState extends State<PlayerScreen>
         _isHandlingError = true;
         _handleLoadError();
       }
-    } else if (!value.isPlaying && !value.isBuffering) {
+    } else if (!value.isPlaying &&
+        !value.isBuffering &&
+        _playState == PlayState.playing) {
+      // 仅在「正在播放 → 暂停」这一真实转变时更新,不每帧重复 setState
       Logger.debug('视频暂停');
       setState(() {
-        // 视频暂停更新状态为 paused
         _playState = PlayState.paused;
       });
     }
-
-    setState(() {});
+    // 注意:此处不再每个监听回调都 setState(() {}) —— 视频每帧位置更新都会触发监听,
+    // 整页无谓重建(每秒多次)。视图只依赖 _playState / 是否初始化,相关转变上面都已各自 setState。
   }
 
   void _toggleControlsVisibility() {
@@ -328,9 +350,8 @@ class _PlayerScreenState extends State<PlayerScreen>
 
     Logger.debug('开启定时器');
 
-    setState(() {
-      _controlsVisible = true;
-    });
+    // 仅逻辑标记,build() 不读它 —— 不用 setState,避免控制条弹出时整页重建/视频闪一下
+    _controlsVisible = true;
 
     showGeneralDialog(
       context: context,
@@ -390,9 +411,8 @@ class _PlayerScreenState extends State<PlayerScreen>
       },
     ).then((value) {
       cancelAutoCloseTimer();
-      setState(() {
-        _controlsVisible = false;
-      });
+      // 同上:不 setState,关闭控制条时不触发整页重建
+      _controlsVisible = false;
     });
   }
 
@@ -468,6 +488,64 @@ class _PlayerScreenState extends State<PlayerScreen>
     }
   }
 
+  /// 加载/重试中的展示:频道台标 + 名称 + 进度;重试时显示「第 N 次重新加载」。
+  Widget _buildLoadingView() {
+    final l = AppLocalizations.of(context)!;
+    final retryAttempt = _retryTimes > 0 ? _retryTimes : _bufferingRetryTimes;
+    final status =
+        retryAttempt > 0 ? l.reloadingAttempt(retryAttempt) : l.loading;
+    final logo = _channel.logo;
+    final title = _channel.name.isNotEmpty ? _channel.name : _channel.id;
+    return Center(
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Container(
+            width: 96,
+            height: 96,
+            decoration: BoxDecoration(
+              color: Colors.white.withOpacity(0.06),
+              borderRadius: BorderRadius.circular(20),
+              border: Border.all(color: Colors.white.withOpacity(0.10)),
+            ),
+            clipBehavior: Clip.antiAlias,
+            alignment: Alignment.center,
+            child: (logo != null && logo.isNotEmpty)
+                ? Padding(
+                    padding: const EdgeInsets.all(14),
+                    child: CachedNetworkImage(
+                      imageUrl: logo,
+                      fit: BoxFit.contain,
+                      errorWidget: (_, __, ___) => const Icon(Icons.live_tv,
+                          color: Colors.white54, size: 40),
+                    ),
+                  )
+                : const Icon(Icons.live_tv, color: Colors.white54, size: 40),
+          ),
+          const SizedBox(height: 18),
+          Text(
+            title,
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
+            style: const TextStyle(
+                color: Colors.white, fontSize: 18, fontWeight: FontWeight.w600),
+          ),
+          const SizedBox(height: 22),
+          const SizedBox(
+            width: 26,
+            height: 26,
+            child: CircularProgressIndicator(strokeWidth: 2.4),
+          ),
+          const SizedBox(height: 14),
+          Text(
+            status,
+            style: const TextStyle(color: Colors.white70, fontSize: 13),
+          ),
+        ],
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
@@ -482,10 +560,22 @@ class _PlayerScreenState extends State<PlayerScreen>
         },
         child: Scaffold(
           backgroundColor: Colors.black,
-          body: Center(
-            child: Stack(
-              fit: StackFit.loose,
-              children: [
+          body: Stack(
+            fit: StackFit.expand,
+            children: [
+              // 加载/失败时铺首页同款模糊背景图(正在播放视频时仍黑底),加载页不再纯黑
+              if (_playState == PlayState.failed ||
+                  _playState == PlayState.loading ||
+                  _playState == PlayState.retrying ||
+                  !(_controller.value.isInitialized &&
+                      _controller.value.aspectRatio > 0))
+                Positioned.fill(
+                  child: BgWrapper(child: const SizedBox.shrink()),
+                ),
+              Center(
+                child: Stack(
+                  fit: StackFit.loose,
+                  children: [
                 if (_playState == PlayState.failed)
                   Center(
                     child: Column(
@@ -525,19 +615,7 @@ class _PlayerScreenState extends State<PlayerScreen>
                   )
                 else if (_playState == PlayState.loading ||
                     _playState == PlayState.retrying)
-                  Center(
-                    child: Column(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        const CircularProgressIndicator(),
-                        const SizedBox(height: 16),
-                        Text(
-                          '${_channel.id} ${_playState == PlayState.retrying ? AppLocalizations.of(context)!.retrying : ''}${AppLocalizations.of(context)!.loading}',
-                          style: const TextStyle(color: Colors.white),
-                        ),
-                      ],
-                    ),
-                  )
+                  _buildLoadingView()
                 else if (_controller.value.isInitialized &&
                     _controller.value.aspectRatio > 0)
                   AspectRatio(
@@ -546,19 +624,7 @@ class _PlayerScreenState extends State<PlayerScreen>
                   )
                 else
                   // 控制器尚未就绪时显示加载,避免渲染未初始化播放器导致黑屏空白
-                  Center(
-                    child: Column(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        const CircularProgressIndicator(),
-                        const SizedBox(height: 16),
-                        Text(
-                          AppLocalizations.of(context)!.loading,
-                          style: const TextStyle(color: Colors.white),
-                        ),
-                      ],
-                    ),
-                  ),
+                  _buildLoadingView(),
                 if (_playState == PlayState.buffering)
                   Positioned.fill(
                     child: Center(
@@ -576,8 +642,10 @@ class _PlayerScreenState extends State<PlayerScreen>
                       ),
                     ),
                   ),
-              ],
+                ],
+              ),
             ),
+            ],
           ),
         ),
       ),

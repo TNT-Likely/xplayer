@@ -39,4 +39,42 @@ class UpdateProxy {
       await prefs.setString(prefKey, v);
     }
   }
+
+  static const String _useUpdateKey = 'proxy_use_update';
+  static const String _useSourceKey = 'proxy_use_source';
+
+  /// 是否将代理用于「应用更新下载」(默认 开,保持原有行为)。
+  static Future<bool> getUseForUpdate() async {
+    final prefs = await SharedPreferences.getInstance();
+    return prefs.getBool(_useUpdateKey) ?? true;
+  }
+
+  static Future<void> setUseForUpdate(bool v) async {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setBool(_useUpdateKey, v);
+  }
+
+  /// 是否将代理用于「拉取直播源 / EPG」(默认 关)。
+  static Future<bool> getUseForSource() async {
+    final prefs = await SharedPreferences.getInstance();
+    return prefs.getBool(_useSourceKey) ?? false;
+  }
+
+  static Future<void> setUseForSource(bool v) async {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setBool(_useSourceKey, v);
+  }
+
+  /// 更新下载用代理:仅当「用于更新」开启且已配置时返回 `host:port`,否则 null。
+  static Future<String?> forUpdate() async {
+    if (!await getUseForUpdate()) return null;
+    return get();
+  }
+
+  /// 拉取直播源 / EPG 用代理:仅当「用于直播源」开启且已配置时返回 `host:port`,否则 null。
+  /// 注意:直播流本身经 video_player(ExoPlayer/AVPlayer)播放,无法走 HTTP 代理。
+  static Future<String?> forSource() async {
+    if (!await getUseForSource()) return null;
+    return get();
+  }
 }

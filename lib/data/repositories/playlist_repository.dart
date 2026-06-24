@@ -7,6 +7,7 @@ import 'package:path/path.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:xplayer/data/models/playlist_model.dart';
 import 'package:xplayer/data/models/programme_model.dart';
+import 'package:xplayer/services/update/update_proxy.dart';
 import 'package:xml/xml.dart';
 import 'package:m3u_parser_nullsafe/m3u_parser_nullsafe.dart';
 import 'dart:convert';
@@ -248,6 +249,12 @@ class PlaylistRepository {
         // 企业内网证书处理（Zscaler等代理证书）
         httpClient.badCertificateCallback = (X509Certificate cert, String host, int port) => true;
 
+        // 可选:拉取直播源走代理(「网络代理」设置里开启)
+        final sourceProxy = await UpdateProxy.forSource();
+        if (sourceProxy != null) {
+          httpClient.findProxy = (uri) => 'PROXY $sourceProxy';
+        }
+
         try {
           final request = await httpClient.getUrl(uri);
           final response = await request.close();
@@ -320,13 +327,33 @@ class PlaylistRepository {
     // 企业内网证书处理
     httpClient.badCertificateCallback = (X509Certificate cert, String host, int port) => true;
 
+    // 可选:拉取 EPG 走代理(「网络代理」设置里开启)
+    final sourceProxy = await UpdateProxy.forSource();
+    if (sourceProxy != null) {
+      httpClient.findProxy = (uri) => 'PROXY $sourceProxy';
+    }
+
     try {
       final uri = Uri.parse(url);
       final request = await httpClient.getUrl(uri);
       final response = await request.close();
 
       if (response.statusCode == 200) {
-        final body = await response.transform(utf8.decoder).join();
+        // EPG 常见为 .gz 压缩(如 iptv-api 的 epg.gz),不能直接当 utf8 文本解析。
+        // 按 gzip 魔数(0x1f 0x8b)判断后解压;若服务端已解压则按原样。
+        final bytes = <int>[];
+        await for (final chunk in response) {
+          bytes.addAll(chunk);
+        }
+        List<int> data = bytes;
+        if (bytes.length >= 2 && bytes[0] == 0x1f && bytes[1] == 0x8b) {
+          try {
+            data = gzip.decode(bytes);
+          } catch (_) {
+            data = bytes;
+          }
+        }
+        final body = utf8.decode(data, allowMalformed: true);
         final document = XmlDocument.parse(body);
         final programmes = <Programme>[];
 

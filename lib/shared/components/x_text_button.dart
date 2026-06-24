@@ -118,7 +118,8 @@ class XTextButton extends StatelessWidget {
       child: (bool isFocus) {
         return Container(
           width: _getWidth(),
-          height: _getHeight(),
+          // 用 minHeight 而非固定 height:文字一行放不下换行时容器可增高,不裁切
+          constraints: BoxConstraints(minHeight: _getHeight()),
           padding: padding ??
               EdgeInsets.symmetric(
                 horizontal: (size == XTextButtonSize.defaultSize ||
@@ -140,6 +141,9 @@ class XTextButton extends StatelessWidget {
           child: Text(
             text,
             style: _getTextStyle(context),
+            textAlign: TextAlign.center,
+            maxLines: 2,
+            overflow: TextOverflow.ellipsis,
           ),
         );
       },

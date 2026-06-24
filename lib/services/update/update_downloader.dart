@@ -122,8 +122,8 @@ class UpdateDownloader {
         );
       }
 
-      // 配置在线更新代理(若已设置):仅用于本次 APK 下载,加速国内更新
-      final proxy = await UpdateProxy.get();
+      // 配置在线更新代理(若已设置且「用于更新」开启):仅用于本次 APK 下载,加速国内更新
+      final proxy = await UpdateProxy.forUpdate();
       _dio.httpClientAdapter = IOHttpClientAdapter(
         createHttpClient: () {
           final client = HttpClient();

@@ -16,12 +16,20 @@ class UpdateProxyDialog extends StatefulWidget {
 class _UpdateProxyDialogState extends State<UpdateProxyDialog> {
   final TextEditingController _controller = TextEditingController();
   final FocusNode _focus = FocusNode(debugLabel: 'updateProxy');
+  bool _useUpdate = true;
+  bool _useSource = false;
 
   @override
   void initState() {
     super.initState();
     UpdateProxy.get().then((v) {
       if (mounted) _controller.text = v ?? '';
+    });
+    UpdateProxy.getUseForUpdate().then((v) {
+      if (mounted) setState(() => _useUpdate = v);
+    });
+    UpdateProxy.getUseForSource().then((v) {
+      if (mounted) setState(() => _useSource = v);
     });
     // TV:上/下方向键把焦点移出文本框,避免被困(同搜索框处理)
     _focus.onKeyEvent = (node, event) {
@@ -50,6 +58,8 @@ class _UpdateProxyDialogState extends State<UpdateProxyDialog> {
 
   Future<void> _save() async {
     await UpdateProxy.set(_controller.text); // 空 = 清除(直连)
+    await UpdateProxy.setUseForUpdate(_useUpdate);
+    await UpdateProxy.setUseForSource(_useSource);
     if (mounted) Navigator.of(context).pop();
   }
 
@@ -81,6 +91,27 @@ class _UpdateProxyDialogState extends State<UpdateProxyDialog> {
               hintText: '127.0.0.1:7890',
               hintStyle: TextStyle(color: AppTokens.textTertiary),
             ),
+          ),
+          const SizedBox(height: 8),
+          SwitchListTile(
+            contentPadding: EdgeInsets.zero,
+            dense: true,
+            activeColor: AppTokens.brand,
+            title: Text(l.proxyForUpdate,
+                style: const TextStyle(
+                    color: AppTokens.textPrimary, fontSize: 14)),
+            value: _useUpdate,
+            onChanged: (v) => setState(() => _useUpdate = v),
+          ),
+          SwitchListTile(
+            contentPadding: EdgeInsets.zero,
+            dense: true,
+            activeColor: AppTokens.brand,
+            title: Text(l.proxyForSource,
+                style: const TextStyle(
+                    color: AppTokens.textPrimary, fontSize: 14)),
+            value: _useSource,
+            onChanged: (v) => setState(() => _useSource = v),
           ),
         ],
       ),

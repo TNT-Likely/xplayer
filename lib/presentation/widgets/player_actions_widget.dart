@@ -150,16 +150,17 @@ class _PlayerActionsWidgetState extends State<PlayerActionsWidget>
 
     final isMobile = globalProvider.isMobile;
 
-    return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 16.0),
-      child: Align(
-        alignment: Alignment.bottomCenter,
-        child: Container(
-          height: min(MediaQuery.of(context).size.height, 130),
-          decoration: const BoxDecoration(color: Colors.transparent),
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
+    return Align(
+      alignment: Alignment.bottomCenter,
+      child: Container(
+        width: double.infinity,
+        height: min(MediaQuery.of(context).size.height, 130),
+        // 通栏淡灰底:无圆角、无边框,与视频画面区分但不抢眼
+        color: const Color.fromRGBO(48, 48, 48, 0.55),
+        padding: const EdgeInsets.symmetric(horizontal: 16.0),
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
               Row(
                 crossAxisAlignment: CrossAxisAlignment.center,
                 children: [
@@ -183,16 +184,20 @@ class _PlayerActionsWidgetState extends State<PlayerActionsWidget>
                     mainAxisSize: MainAxisSize.min,
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      if (programmeInfo.$2 != null)
-                        Text(
-                          programmeInfo.$2!.title,
-                          style: const TextStyle(
-                              color: Colors.white,
-                              decoration: TextDecoration.none,
-                              fontSize: 22),
-                          overflow: TextOverflow.ellipsis,
-                          maxLines: 1,
-                        ),
+                      // 主行:有节目单显示当前节目,否则显示频道名(无节目单时不再空白)
+                      Text(
+                        programmeInfo.$2 != null
+                            ? programmeInfo.$2!.title
+                            : (widget.channel.name.isNotEmpty
+                                ? widget.channel.name
+                                : widget.channel.id),
+                        style: const TextStyle(
+                            color: Colors.white,
+                            decoration: TextDecoration.none,
+                            fontSize: 22),
+                        overflow: TextOverflow.ellipsis,
+                        maxLines: 1,
+                      ),
                       if (programmeInfo.$3 != null)
                         Text(
                           "${formatTime(programmeInfo.$3!.start)}-${formatTime(programmeInfo.$3!.stop)}  ${programmeInfo.$3!.title}",
@@ -209,7 +214,8 @@ class _PlayerActionsWidgetState extends State<PlayerActionsWidget>
               ),
               const SizedBox(height: 8),
               Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                // 左对齐成一组:按钮不放中间、也不两边拉散
+                mainAxisAlignment: MainAxisAlignment.start,
                 children: [
                   if (widget.controller.value.hasError)
                     Row(children: [
@@ -279,8 +285,7 @@ class _PlayerActionsWidgetState extends State<PlayerActionsWidget>
             ],
           ),
         ),
-      ),
-    );
+      );
   }
 
   String formatTime(DateTime time) {
