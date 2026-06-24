@@ -132,31 +132,33 @@ class _ChannelSelectorWidgetState extends State<ChannelSelectorWidget> {
       },
     );
 
-    if (wide) {
-      return Row(
-        children: [
-          SizedBox(
-            width: 140,
-            child: _GroupList(
-                groups: groups, selected: _group, onSelect: _onGroup),
-          ),
-          const VerticalDivider(width: 1, color: Colors.white24),
-          Expanded(flex: 3, child: channelList),
-          const VerticalDivider(width: 1, color: Colors.white24),
-          Expanded(
-            flex: 2,
-            child: _NowNextList(channel: _focused, programmes: mp.programmes),
-          ),
-        ],
-      );
-    }
-    return Column(
-      children: [
-        _GroupChips(groups: groups, selected: _group, onSelect: _onGroup),
-        const Divider(height: 1, color: Colors.white24),
-        Expanded(child: channelList),
-      ],
-    );
+    final Widget body = wide
+        ? Row(
+            children: [
+              SizedBox(
+                width: 140,
+                child: _GroupList(
+                    groups: groups, selected: _group, onSelect: _onGroup),
+              ),
+              const VerticalDivider(width: 1, color: Colors.white24),
+              Expanded(flex: 3, child: channelList),
+              const VerticalDivider(width: 1, color: Colors.white24),
+              Expanded(
+                flex: 2,
+                child:
+                    _NowNextList(channel: _focused, programmes: mp.programmes),
+              ),
+            ],
+          )
+        : Column(
+            children: [
+              _GroupChips(groups: groups, selected: _group, onSelect: _onGroup),
+              const Divider(height: 1, color: Colors.white24),
+              Expanded(child: channelList),
+            ],
+          );
+    // InkWell 需要 Material 祖先;showGeneralDialog 内容没有,故包一层透明 Material。
+    return Material(type: MaterialType.transparency, child: body);
   }
 }
 
