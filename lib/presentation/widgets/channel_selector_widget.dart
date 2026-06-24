@@ -34,7 +34,8 @@ class _ChannelSelectorWidgetState extends State<ChannelSelectorWidget> {
   String _group = kAllGroups;
   late Channel _focused; // 宽屏右栏跟随的台
   final ScrollController _scroll = ScrollController();
-  final Map<String, FocusNode> _nodes = {}; // 按频道 id 稳定持有,避免重建时 dispose 焦点中的 node
+  final Map<String, FocusNode> _nodes =
+      {}; // 按频道 id 稳定持有,避免重建时 dispose 焦点中的 node
 
   FocusNode _nodeFor(String id) => _nodes.putIfAbsent(id, () => FocusNode());
 
@@ -66,8 +67,8 @@ class _ChannelSelectorWidgetState extends State<ChannelSelectorWidget> {
     final idx = list.indexWhere((c) => c.id == widget.currentChannel.id);
     if (idx < 0) return;
     if (_scroll.hasClients) {
-      final target = (idx * _kRowH - 120)
-          .clamp(0.0, _scroll.position.maxScrollExtent);
+      final target =
+          (idx * _kRowH - 120).clamp(0.0, _scroll.position.maxScrollExtent);
       _scroll.jumpTo(target);
     }
     WidgetsBinding.instance.addPostFrameCallback((_) {
@@ -98,7 +99,8 @@ class _ChannelSelectorWidgetState extends State<ChannelSelectorWidget> {
                     fontWeight: FontWeight.w600),
               ),
             ),
-            Expanded(child: _NowNextList(channel: c, programmes: mp.programmes)),
+            Expanded(
+                child: _NowNextList(channel: c, programmes: mp.programmes)),
           ],
         ),
       ),
@@ -197,13 +199,19 @@ class _ChannelRow extends StatelessWidget {
         .$2;
     final bg = selected
         ? theme.withOpacity(0.85)
-        : (focused ? theme.withOpacity(0.30) : Colors.transparent);
+        : (focused ? theme.withOpacity(0.5) : Colors.transparent);
     return InkWell(
       focusNode: focusNode,
       onTap: onTap,
       onFocusChange: onFocusChange,
       child: Container(
-        color: bg,
+        decoration: BoxDecoration(
+          color: bg,
+          border: Border.all(
+            color: focused ? Colors.white : Colors.transparent,
+            width: 2,
+          ),
+        ),
         padding: const EdgeInsets.symmetric(horizontal: 10),
         child: Row(
           children: [
@@ -255,6 +263,32 @@ class _ChannelRow extends StatelessWidget {
   }
 }
 
+/// 遥控器 D-pad 友好的可点条目:自己跟踪焦点,交给 builder 渲染明显高亮。
+class _FocusItem extends StatefulWidget {
+  final bool selected;
+  final VoidCallback onTap;
+  final Widget Function(bool focused, bool selected) builder;
+  const _FocusItem(
+      {required this.selected, required this.onTap, required this.builder});
+
+  @override
+  State<_FocusItem> createState() => _FocusItemState();
+}
+
+class _FocusItemState extends State<_FocusItem> {
+  bool _focused = false;
+  @override
+  Widget build(BuildContext context) {
+    return InkWell(
+      onTap: widget.onTap,
+      onFocusChange: (has) {
+        if (mounted) setState(() => _focused = has);
+      },
+      child: widget.builder(_focused, widget.selected),
+    );
+  }
+}
+
 /// 宽屏左侧分组栏。
 class _GroupList extends StatelessWidget {
   final List<String> groups;
@@ -271,10 +305,19 @@ class _GroupList extends StatelessWidget {
       itemBuilder: (_, i) {
         final g = groups[i];
         final sel = g == selected;
-        return InkWell(
+        return _FocusItem(
+          selected: sel,
           onTap: () => onSelect(g),
-          child: Container(
-            color: sel ? theme.withOpacity(0.6) : Colors.transparent,
+          builder: (focused, sel) => Container(
+            decoration: BoxDecoration(
+              color: focused
+                  ? theme.withOpacity(0.9)
+                  : (sel ? theme.withOpacity(0.55) : Colors.transparent),
+              border: Border.all(
+                color: focused ? Colors.white : Colors.transparent,
+                width: 2,
+              ),
+            ),
             padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 12),
             child: Text(
               g == kAllGroups ? AppLocalizations.of(context)!.allGroups : g,
@@ -310,21 +353,26 @@ class _GroupChips extends StatelessWidget {
         itemBuilder: (_, i) {
           final g = groups[i];
           final sel = g == selected;
-          return InkWell(
+          return _FocusItem(
+            selected: sel,
             onTap: () => onSelect(g),
-            child: Container(
+            builder: (focused, sel) => Container(
               padding: const EdgeInsets.symmetric(horizontal: 12),
               alignment: Alignment.center,
               decoration: BoxDecoration(
-                color: sel
-                    ? theme.withOpacity(0.85)
-                    : Colors.white.withOpacity(0.12),
+                color: focused
+                    ? theme.withOpacity(0.95)
+                    : (sel
+                        ? theme.withOpacity(0.85)
+                        : Colors.white.withOpacity(0.12)),
                 borderRadius: BorderRadius.circular(16),
+                border: Border.all(
+                  color: focused ? Colors.white : Colors.transparent,
+                  width: 2,
+                ),
               ),
               child: Text(
-                  g == kAllGroups
-                      ? AppLocalizations.of(context)!.allGroups
-                      : g,
+                  g == kAllGroups ? AppLocalizations.of(context)!.allGroups : g,
                   style: const TextStyle(color: Colors.white, fontSize: 13)),
             ),
           );
@@ -364,8 +412,8 @@ class _NowNextList extends StatelessWidget {
               if (live)
                 const Padding(
                   padding: EdgeInsets.only(right: 6, top: 2),
-                  child: Icon(Icons.play_arrow,
-                      color: Colors.redAccent, size: 16),
+                  child:
+                      Icon(Icons.play_arrow, color: Colors.redAccent, size: 16),
                 ),
               Expanded(
                 child: Text(

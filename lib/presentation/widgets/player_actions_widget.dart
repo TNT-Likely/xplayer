@@ -50,7 +50,7 @@ class _PlayerActionsWidgetState extends State<PlayerActionsWidget>
     with TickerProviderStateMixin {
   late bool _isPlaying;
   bool _isFavorite = false;
-  bool isPortrait = true;
+  bool _orientationLocked = false; // false=自动跟随设备旋转, true=锁定当前朝向
   late final AnimationController controller = AnimationController(
     duration: const Duration(milliseconds: 500),
     vsync: this,
@@ -108,23 +108,22 @@ class _PlayerActionsWidgetState extends State<PlayerActionsWidget>
     });
   }
 
-  void toggleOrientation() {
-    setState(() {
-      isPortrait = !isPortrait;
-      if (isPortrait) {
-        // 切换到竖屏
-        SystemChrome.setPreferredOrientations([
-          DeviceOrientation.portraitUp,
-          DeviceOrientation.portraitDown,
-        ]);
-      } else {
-        // 切换到横屏
-        SystemChrome.setPreferredOrientations([
-          DeviceOrientation.landscapeLeft,
-          DeviceOrientation.landscapeRight,
-        ]);
-      }
-    });
+  void _toggleOrientationLock() {
+    setState(() => _orientationLocked = !_orientationLocked);
+    if (_orientationLocked) {
+      // 锁定到当前朝向
+      final portraitNow =
+          MediaQuery.of(context).orientation == Orientation.portrait;
+      SystemChrome.setPreferredOrientations(portraitNow
+          ? const [DeviceOrientation.portraitUp, DeviceOrientation.portraitDown]
+          : const [
+              DeviceOrientation.landscapeLeft,
+              DeviceOrientation.landscapeRight
+            ]);
+    } else {
+      // 解锁:交还系统,跟随设备传感器自动旋转
+      SystemChrome.setPreferredOrientations(const []);
+    }
   }
 
   void _handlePlayPause() {
@@ -253,8 +252,10 @@ class _PlayerActionsWidgetState extends State<PlayerActionsWidget>
       if (isMobile) const SizedBox(width: 8),
       if (isMobile)
         XIconButton(
-          icon: isPortrait ? Icons.fullscreen : Icons.fullscreen_exit,
-          onPressed: toggleOrientation,
+          icon: _orientationLocked
+              ? Icons.screen_lock_rotation
+              : Icons.screen_rotation,
+          onPressed: _toggleOrientationLock,
         ),
     ];
 
