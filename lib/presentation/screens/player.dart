@@ -153,7 +153,10 @@ class _PlayerScreenState extends State<PlayerScreen>
 
     try {
       _controller = VideoPlayerController.networkUrl(Uri.parse(_sourceLink),
-          videoPlayerOptions: VideoPlayerOptions(mixWithOthers: true));
+          videoPlayerOptions: VideoPlayerOptions(mixWithOthers: true),
+          // 用 SurfaceView 渲染(而非 Flutter 纹理):视频直送显示层,吃到设备/电视的
+          // 硬件视频引擎(放大+锐化)。这是和 TVMate 在电视上清晰度差距的关键。
+          viewType: VideoViewType.platformView);
 
       _controller.addListener(_listenToVideoController);
 
