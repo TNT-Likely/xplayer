@@ -58,13 +58,29 @@ class _DiagLogScreenState extends State<DiagLogScreen> {
     if (mounted) setState(() => _logs = s);
   }
 
+  // 解码器探测 + 日志的完整文本(复制全部 与 HTTP 导出共用)。
+  String _composed(String logcat) =>
+      '===== 解码器能力 (MediaCodec) =====\n\n$_codecs\n'
+      '===== LOGCAT =====\n\n$logcat';
+
+  void _copyAll() {
+    Clipboard.setData(ClipboardData(text: _composed(_logs)));
+    if (mounted) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('已复制全部(含解码器探测 + 日志)'),
+          duration: Duration(seconds: 2),
+        ),
+      );
+    }
+  }
+
   Future<void> _startServer() async {
     try {
       _server = await HttpServer.bind(InternetAddress.anyIPv4, _port, shared: true);
       _server!.listen((HttpRequest req) async {
         final logcat = await _fetchLogcat();
-        final body = '===== 解码器能力 (MediaCodec) =====\n\n'
-            '$_codecs\n===== LOGCAT =====\n\n$logcat';
+        final body = _composed(logcat);
         req.response
           ..headers.contentType = ContentType.text
           ..write(body);
@@ -119,7 +135,7 @@ class _DiagLogScreenState extends State<DiagLogScreen> {
           IconButton(
             icon: const Icon(Icons.copy, color: Colors.white),
             tooltip: '复制全部',
-            onPressed: () => Clipboard.setData(ClipboardData(text: _logs)),
+            onPressed: _copyAll,
           ),
           IconButton(
             icon: const Icon(Icons.refresh, color: Colors.white),
