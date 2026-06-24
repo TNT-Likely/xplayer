@@ -153,7 +153,10 @@ class _PlayerScreenState extends State<PlayerScreen>
 
     try {
       _controller = VideoPlayerController.networkUrl(Uri.parse(_sourceLink),
-          videoPlayerOptions: VideoPlayerOptions(mixWithOthers: true));
+          videoPlayerOptions: VideoPlayerOptions(mixWithOthers: true),
+          // 用 SurfaceView 渲染(而非 Flutter 纹理):视频直送显示层,吃到设备/电视的
+          // 硬件视频引擎(放大+锐化)。这是和 TVMate 在电视上清晰度差距的关键。
+          viewType: VideoViewType.platformView);
 
       _controller.addListener(_listenToVideoController);
 
@@ -291,6 +294,17 @@ class _PlayerScreenState extends State<PlayerScreen>
     }
   }
 
+  /// (重新)开始 5 秒自动收起操作栏的倒计时;有交互时调用即可重置。
+  /// 触发时直接 pop 掉操作栏那个 showGeneralDialog 顶层路由。
+  void _startAutoCloseTimer() {
+    cancelAutoCloseTimer();
+    autoCloseTimer = Timer(const Duration(seconds: 5), () {
+      if (mounted && _controlsVisible) {
+        Navigator.of(context).pop();
+      }
+    });
+  }
+
   void _showChannelSelectWidget(BuildContext context) {
     final mediaProvider = Provider.of<MediaProvider>(context, listen: false);
     final channels = mediaProvider.channels;
@@ -344,12 +358,8 @@ class _PlayerScreenState extends State<PlayerScreen>
   }
 
   void _showBottomControls() {
-    cancelAutoCloseTimer();
-
-    autoCloseTimer = Timer(const Duration(seconds: 5), () {
-      // _toggleControlsVisibility();
-      // Logger.debug(AppLocalizations.of(context)!.automaticClose);
-    });
+    // 开始 5 秒自动收起倒计时(之前这里定时器体被注释掉了 → 操作栏永不自动关闭)
+    _startAutoCloseTimer();
 
     Logger.debug('开启定时器');
 
@@ -381,7 +391,8 @@ class _PlayerScreenState extends State<PlayerScreen>
               }
             },
             onFocusChange: () {
-              cancelAutoCloseTimer();
+              // 有交互(如遥控器移动焦点)就重置倒计时,停手 5 秒后再自动收起
+              _startAutoCloseTimer();
             },
             onPlayPause: (isPlaying) {
               if (isPlaying) {
