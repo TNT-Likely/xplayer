@@ -1,3 +1,5 @@
+import 'dart:io';
+
 import 'package:flutter/material.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:package_info_plus/package_info_plus.dart';
@@ -667,22 +669,24 @@ class _HomeScreenState extends State<HomeScreen> {
                     await launch('https://github.com/TNT-Likely/xplayer');
                   },
                 ),
-                XBaseButton(
-                  child: animeContainer(
-                    ListTile(
-                      leading: const Icon(Icons.system_update,
-                          color: Colors.white),
-                      title: Text(
-                        localizations.checkUpdate,
-                        style: const TextStyle(color: Colors.white),
+                // iOS/iPadOS:App Store 不允许应用自更新,隐藏检查更新入口
+                if (!Platform.isIOS)
+                  XBaseButton(
+                    child: animeContainer(
+                      ListTile(
+                        leading: const Icon(Icons.system_update,
+                            color: Colors.white),
+                        title: Text(
+                          localizations.checkUpdate,
+                          style: const TextStyle(color: Colors.white),
+                        ),
                       ),
                     ),
+                    onPressed: () async {
+                      Navigator.of(context).pop();
+                      await UpdateService.checkUpdateWithUI(context);
+                    },
                   ),
-                  onPressed: () async {
-                    Navigator.of(context).pop();
-                    await UpdateService.checkUpdateWithUI(context);
-                  },
-                ),
                 XBaseButton(
                   onPressed: () {
                     Navigator.of(context).pop();
