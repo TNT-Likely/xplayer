@@ -7,7 +7,7 @@ import 'package:xplayer/data/models/playlist_model.dart';
 // 导入 FavoritesRepository
 import 'package:xplayer/presentation/screens/playlist.dart';
 import 'package:xplayer/presentation/screens/epg_screen.dart';
-import 'package:xplayer/presentation/screens/diag_log_screen.dart';
+import 'package:xplayer/presentation/screens/log_center_screen.dart';
 import 'package:xplayer/services/update_service.dart';
 import 'package:xplayer/shared/components/x_base_button.dart';
 import 'package:xplayer/presentation/widgets/bg_wrapper.dart';
@@ -544,7 +544,7 @@ class _HomeScreenState extends State<HomeScreen> {
                   onPressed: () {
                     Navigator.of(context).pop();
                     Navigator.of(context).push(
-                      MaterialPageRoute(builder: (_) => const DiagLogScreen()),
+                      MaterialPageRoute(builder: (_) => const LogCenterScreen()),
                     );
                   },
                 ),

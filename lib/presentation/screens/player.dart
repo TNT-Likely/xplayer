@@ -16,6 +16,7 @@ import 'package:xplayer/providers/media_provider.dart';
 import 'package:xplayer/utils/logger_util.dart';
 import 'package:xplayer/utils/playlist_util.dart';
 import 'package:xplayer/utils/toast.dart';
+import 'package:xplayer/services/log_store.dart';
 import 'package:provider/provider.dart';
 import 'dart:async';
 import 'package:flutter_gen/gen_l10n/app_localizations.dart';
@@ -158,15 +159,13 @@ class _PlayerScreenState extends State<PlayerScreen>
 
     // 打印本次播放地址:直接进控制台(flutter logs / adb logcat 立见),
     // 同时推到诊断中心「ExoPlayer 应用内日志」(电视也能看)。
-    // ignore: avoid_print
-    print('▶ 播放地址: $_sourceLink');
-    const ch = MethodChannel('diag/logcat');
-    ch.invokeMethod('appLog', {'msg': '▶ 播放: $_sourceLink'}).catchError(
-        (_) => null);
-    // 设备端探流:读出每条轨道的真实编码(查"没声音"是哪种音频编码),打到控制台 + 应用内日志
-    ch.invokeMethod<String>('probeStream', {'url': _sourceLink}).then((t) {
-      // ignore: avoid_print
-      print('🎵 流轨道:\n$t');
+    // 播放地址 + 设备端探流(各轨道真实编码)写入日志中心
+    LogStore.instance.i('player', '▶ 播放: $_sourceLink');
+    const MethodChannel('diag/logcat')
+        .invokeMethod<String>('probeStream', {'url': _sourceLink}).then((t) {
+      if (t != null && t.trim().isNotEmpty) {
+        LogStore.instance.i('probe', '🎵 流轨道:\n${t.trim()}');
+      }
     }).catchError((_) => null);
 
     try {

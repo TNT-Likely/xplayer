@@ -140,5 +140,5 @@
   "hideUnplayable": "Hide unplayable",
   "autoRefreshOnLaunch": "Auto-update on launch",
   "nowPlaying": "Now: {title}",
-  "diagLog": "Diagnostics"
+  "diagLog": "Log Center"
 }

@@ -15,6 +15,7 @@ import 'package:xplayer/providers/remote_provider.dart';
 import 'package:xplayer/presentation/screens/remote_input.dart';
 import 'package:xplayer/shared/navigation.dart';
 import 'package:xplayer/shared/theme/app_theme.dart';
+import 'package:xplayer/services/log_store.dart';
 
 /// 启动诊断日志(仅 Windows):写到 %TEMP%\xplayer_startup.log。
 /// release 版控制台不可靠,用文件日志定位"白屏不出帧"卡在哪一步。
@@ -37,6 +38,8 @@ void main() {
 
     FlutterError.onError = (FlutterErrorDetails details) {
       _winLog('FlutterError: ${details.exceptionAsString()}');
+      LogStore.instance
+          .e('flutter', '${details.exceptionAsString()}\n${details.stack}');
       FlutterError.presentError(details);
     };
 
@@ -60,6 +63,7 @@ void main() {
     _winLog('runApp returned');
   }, (Object error, StackTrace stack) {
     _winLog('ZONE ERROR: $error\n$stack');
+    LogStore.instance.e('zone', '$error\n$stack');
   });
 }
 

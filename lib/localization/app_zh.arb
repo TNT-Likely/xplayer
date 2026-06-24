@@ -140,5 +140,5 @@
     "hideUnplayable": "隐藏无法播放",
     "autoRefreshOnLaunch": "启动时自动更新",
     "nowPlaying": "正在:{title}",
-    "diagLog": "诊断日志"
+    "diagLog": "日志中心"
 }

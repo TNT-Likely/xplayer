@@ -1,4 +1,5 @@
 import 'package:flutter/foundation.dart';
+import 'package:xplayer/services/log_store.dart';
 
 enum Level { debug, info, warning, error }
 
@@ -15,40 +16,42 @@ class Logger {
   // 是否启用日志输出，默认为 kDebugMode 的值
   static bool get isEnabled => kDebugMode;
 
-  // 打印debug级别的日志
-  static void debug(String message, [dynamic error, StackTrace? stackTrace]) {
-    if (isEnabled) {
+  // 各级别:始终写入应用日志中心(release 也捕获);控制台仅 debug 模式打印。
+  static void debug(String message, [dynamic error, StackTrace? stackTrace]) =>
       _printLog(Level.debug, message, error, stackTrace);
-    }
-  }
 
-  // 打印info级别的日志
-  static void info(String message, [dynamic error, StackTrace? stackTrace]) {
-    if (isEnabled) {
+  static void info(String message, [dynamic error, StackTrace? stackTrace]) =>
       _printLog(Level.info, message, error, stackTrace);
-    }
-  }
 
-  // 打印warning级别的日志
-  static void warning(String message, [dynamic error, StackTrace? stackTrace]) {
-    if (isEnabled) {
+  static void warning(String message,
+          [dynamic error, StackTrace? stackTrace]) =>
       _printLog(Level.warning, message, error, stackTrace);
-    }
-  }
 
-  // 打印error级别的日志
-  static void error(String message, [dynamic error, StackTrace? stackTrace]) {
-    if (isEnabled) {
+  static void error(String message, [dynamic error, StackTrace? stackTrace]) =>
       _printLog(Level.error, message, error, stackTrace);
+
+  static LogLevel _storeLevel(Level level) {
+    switch (level) {
+      case Level.debug:
+        return LogLevel.debug;
+      case Level.info:
+        return LogLevel.info;
+      case Level.warning:
+        return LogLevel.warning;
+      case Level.error:
+        return LogLevel.error;
     }
   }
 
-  // 实际的日志打印方法
+  // 实际日志方法:写入日志中心 +(debug 模式)打印控制台
   static void _printLog(Level level, String message,
       [dynamic error, StackTrace? stackTrace]) {
-    final prefix = _getLevelPrefix(level);
-    print(
-        '$prefix: $message${error != null ? '\nError: $error' : ''}${stackTrace != null ? '\nStack Trace: $stackTrace' : ''}');
+    final text =
+        '$message${error != null ? '\nError: $error' : ''}${stackTrace != null ? '\nStack: $stackTrace' : ''}';
+    LogStore.instance.add(_storeLevel(level), 'app', text);
+    if (kDebugMode) {
+      print('${_getLevelPrefix(level)}: $text');
+    }
   }
 
   // 获取日志级别的前缀字符串
@@ -62,8 +65,6 @@ class Logger {
         return '[WARNING]';
       case Level.error:
         return '[ERROR]';
-      default:
-        return '';
     }
   }
 }
