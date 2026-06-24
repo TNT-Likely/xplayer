@@ -5,7 +5,6 @@ import 'package:xplayer/data/models/channel_model.dart';
 import 'package:xplayer/data/models/programme_model.dart';
 import 'package:xplayer/presentation/widgets/channel_selector_widget.dart';
 import 'package:xplayer/presentation/widgets/channel_source_widget.dart';
-import 'package:xplayer/presentation/widgets/programme_list_widget.dart';
 
 class PlayerDialogs {
   static void showChannelSelectWidget(
@@ -50,44 +49,7 @@ class PlayerDialogs {
     );
   }
 
-  static void showProgrammeList(
-    BuildContext context,
-    List<Programme> programmes,
-    Function(Programme) onSelected,
-  ) {
-    showGeneralDialog(
-      context: context,
-      barrierLabel: "Barrier",
-      barrierDismissible: true,
-      barrierColor: Colors.transparent,
-      transitionDuration: const Duration(milliseconds: 200),
-      pageBuilder: (_, __, ___) {
-        return Align(
-          alignment: Alignment.centerLeft,
-          child: Container(
-            width: max(200, MediaQuery.of(context).size.width * 0.3),
-            height: MediaQuery.of(context).size.height * 1.0,
-            decoration: BoxDecoration(
-              color: const Color.fromRGBO(0, 0, 0, 0.3),
-              borderRadius: BorderRadius.circular(16.0),
-            ),
-            child: ProgrammeListWidget(
-              programmes: programmes,
-              onSelected: onSelected,
-            ),
-          ),
-        );
-      },
-      transitionBuilder: (_, anim, __, child) {
-        return SlideTransition(
-          position:
-              Tween(begin: const Offset(-1.0, 0.0), end: const Offset(0.0, 0.0))
-                  .animate(anim),
-          child: child,
-        );
-      },
-    );
-  }
+  // showProgrammeList 已删除:节目单入口合并进频道选择器(ChannelSelectorWidget)。
 
   static void showSourceSwitcher(
     BuildContext context,

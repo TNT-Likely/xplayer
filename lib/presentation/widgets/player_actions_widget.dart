@@ -25,7 +25,6 @@ class PlayerActionsWidget extends StatefulWidget {
   final List<Channel> favoriteChannels;
   final Channel channel;
   final VoidCallback? onFocusChange;
-  final VoidCallback? onProgramme;
   final VoidCallback? showChannelSelect;
   final VoidCallback? onRetryInit;
   final VoidCallback? showSourceSwitch;
@@ -38,7 +37,6 @@ class PlayerActionsWidget extends StatefulWidget {
       required this.favoriteChannels,
       required this.channel,
       this.onFocusChange,
-      this.onProgramme,
       this.showChannelSelect,
       this.onRetryInit,
       this.showSourceSwitch})
@@ -240,15 +238,6 @@ class _PlayerActionsWidgetState extends State<PlayerActionsWidget>
         onPressed: () {
           if (widget.showSourceSwitch != null) {
             widget.showSourceSwitch!();
-          }
-        },
-      ),
-      const SizedBox(width: 8),
-      XIconButton(
-        icon: Icons.event_note,
-        onPressed: () {
-          if (widget.onProgramme != null) {
-            widget.onProgramme!();
           }
         },
       ),
