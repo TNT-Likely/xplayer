@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 import 'package:xplayer/services/log_store.dart';
+import 'package:xplayer/shared/components/dpad_escapable.dart';
 import 'package:xplayer/utils/toast.dart';
 
 /// 统一日志中心:
@@ -223,16 +224,19 @@ class _LogCenterScreenState extends State<LogCenterScreen> {
                     ),
                   ),
                   const SizedBox(height: 6),
-                  TextField(
-                    style: const TextStyle(color: Colors.white, fontSize: 13),
-                    decoration: const InputDecoration(
-                      hintText: '过滤关键字',
-                      hintStyle: TextStyle(color: Colors.white38),
-                      isDense: true,
-                      prefixIcon:
-                          Icon(Icons.search, color: Colors.white38, size: 18),
+                  DpadEscapable(
+                    child: TextField(
+                      style:
+                          const TextStyle(color: Colors.white, fontSize: 13),
+                      decoration: const InputDecoration(
+                        hintText: '过滤关键字',
+                        hintStyle: TextStyle(color: Colors.white38),
+                        isDense: true,
+                        prefixIcon: Icon(Icons.search,
+                            color: Colors.white38, size: 18),
+                      ),
+                      onChanged: (v) => setState(() => _filter = v),
                     ),
-                    onChanged: (v) => setState(() => _filter = v),
                   ),
                 ],
               ),

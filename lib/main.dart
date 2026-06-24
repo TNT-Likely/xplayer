@@ -17,6 +17,7 @@ import 'package:xplayer/presentation/screens/remote_input.dart';
 import 'package:xplayer/shared/navigation.dart';
 import 'package:xplayer/shared/theme/app_theme.dart';
 import 'package:xplayer/services/log_store.dart';
+import 'package:xplayer/utils/player_settings.dart';
 
 /// 启动诊断日志(仅 Windows):写到 %TEMP%\xplayer_startup.log。
 /// release 版控制台不可靠,用文件日志定位"白屏不出帧"卡在哪一步。
@@ -50,6 +51,7 @@ void main() {
   runZonedGuarded(() {
     WidgetsFlutterBinding.ensureInitialized();
     _winLog('binding initialized');
+    loadRenderMode(); // 载入渲染模式偏好(SurfaceView/纹理)
 
     FlutterError.onError = (FlutterErrorDetails details) {
       _winLog('FlutterError: ${details.exceptionAsString()}');

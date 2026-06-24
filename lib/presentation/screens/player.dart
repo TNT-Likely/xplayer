@@ -17,6 +17,7 @@ import 'package:xplayer/utils/logger_util.dart';
 import 'package:xplayer/utils/playlist_util.dart';
 import 'package:xplayer/utils/toast.dart';
 import 'package:xplayer/services/log_store.dart';
+import 'package:xplayer/utils/player_settings.dart';
 import 'package:provider/provider.dart';
 import 'dart:async';
 import 'package:flutter_gen/gen_l10n/app_localizations.dart';
@@ -169,8 +170,14 @@ class _PlayerScreenState extends State<PlayerScreen>
     }).catchError((_) => null);
 
     try {
-      _controller = VideoPlayerController.networkUrl(Uri.parse(_sourceLink),
-          videoPlayerOptions: VideoPlayerOptions(mixWithOthers: true));
+      // 渲染模式:SurfaceView(platformView,吃硬件 VPP/电视更清晰)或 纹理(textureView)
+      _controller = VideoPlayerController.networkUrl(
+        Uri.parse(_sourceLink),
+        viewType: useSurfaceView.value
+            ? VideoViewType.platformView
+            : VideoViewType.textureView,
+        videoPlayerOptions: VideoPlayerOptions(mixWithOthers: true),
+      );
 
       _controller.addListener(_listenToVideoController);
 
