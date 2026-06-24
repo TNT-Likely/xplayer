@@ -291,6 +291,17 @@ class _PlayerScreenState extends State<PlayerScreen>
     }
   }
 
+  /// (重新)开始 5 秒自动收起操作栏的倒计时;有交互时调用即可重置。
+  /// 触发时直接 pop 掉操作栏那个 showGeneralDialog 顶层路由。
+  void _startAutoCloseTimer() {
+    cancelAutoCloseTimer();
+    autoCloseTimer = Timer(const Duration(seconds: 5), () {
+      if (mounted && _controlsVisible) {
+        Navigator.of(context).pop();
+      }
+    });
+  }
+
   void _showChannelSelectWidget(BuildContext context) {
     final mediaProvider = Provider.of<MediaProvider>(context, listen: false);
     final channels = mediaProvider.channels;
@@ -344,12 +355,8 @@ class _PlayerScreenState extends State<PlayerScreen>
   }
 
   void _showBottomControls() {
-    cancelAutoCloseTimer();
-
-    autoCloseTimer = Timer(const Duration(seconds: 5), () {
-      // _toggleControlsVisibility();
-      // Logger.debug(AppLocalizations.of(context)!.automaticClose);
-    });
+    // 开始 5 秒自动收起倒计时(之前这里定时器体被注释掉了 → 操作栏永不自动关闭)
+    _startAutoCloseTimer();
 
     Logger.debug('开启定时器');
 
@@ -381,7 +388,8 @@ class _PlayerScreenState extends State<PlayerScreen>
               }
             },
             onFocusChange: () {
-              cancelAutoCloseTimer();
+              // 有交互(如遥控器移动焦点)就重置倒计时,停手 5 秒后再自动收起
+              _startAutoCloseTimer();
             },
             onPlayPause: (isPlaying) {
               if (isPlaying) {
