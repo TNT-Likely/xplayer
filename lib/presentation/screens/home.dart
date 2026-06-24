@@ -9,6 +9,7 @@ import 'package:xplayer/presentation/screens/playlist.dart';
 import 'package:xplayer/presentation/screens/epg_screen.dart';
 import 'package:xplayer/presentation/screens/log_center_screen.dart';
 import 'package:xplayer/utils/logger_util.dart';
+import 'package:xplayer/utils/player_settings.dart';
 import 'package:xplayer/services/update_service.dart';
 import 'package:xplayer/shared/components/x_base_button.dart';
 import 'package:xplayer/presentation/widgets/bg_wrapper.dart';
@@ -549,6 +550,26 @@ class _HomeScreenState extends State<HomeScreen> {
                       MaterialPageRoute(builder: (_) => const LogCenterScreen()),
                     );
                   },
+                ),
+                // 渲染模式开关:SurfaceView(电视更清晰)/ 纹理。切换后播放器按新模式重建。
+                ValueListenableBuilder<bool>(
+                  valueListenable: useSurfaceView,
+                  builder: (_, surface, __) => ListTile(
+                    leading: const Icon(Icons.hd, color: Colors.white),
+                    title: Text(
+                      '${localizations.renderMode}: ${surface ? "SurfaceView" : "Texture"}',
+                      style: const TextStyle(color: Colors.white),
+                    ),
+                    subtitle: Text(
+                      localizations.renderModeHint,
+                      style:
+                          const TextStyle(color: Colors.white54, fontSize: 11),
+                    ),
+                    trailing: Switch(
+                      value: surface,
+                      onChanged: (v) => setUseSurfaceView(v),
+                    ),
+                  ),
                 ),
                 XBaseButton(
                   child: animeContainer(

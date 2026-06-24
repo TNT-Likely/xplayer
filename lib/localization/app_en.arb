@@ -144,5 +144,7 @@
   "logLevelDebug": "Debug",
   "logLevelInfo": "Info",
   "logLevelWarning": "Warning",
-  "logLevelError": "Error"
+  "logLevelError": "Error",
+  "renderMode": "Render Mode",
+  "renderModeHint": "On = SurfaceView (sharper on TV); Off = Texture (most compatible)"
 }

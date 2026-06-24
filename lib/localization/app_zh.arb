@@ -144,5 +144,7 @@
     "logLevelDebug": "调试",
     "logLevelInfo": "信息",
     "logLevelWarning": "警告",
-    "logLevelError": "错误"
+    "logLevelError": "错误",
+    "renderMode": "渲染模式",
+    "renderModeHint": "开 = SurfaceView(电视更清晰);关 = 纹理(更兼容)"
 }
