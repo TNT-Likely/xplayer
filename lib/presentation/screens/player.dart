@@ -56,8 +56,7 @@ class _PlayerScreenState extends State<PlayerScreen>
 
   PlayState _playState = PlayState.idle;
 
-  // 诊断面板
-  bool _showDiag = false;
+  // 信息浮层
   Map<String, dynamic> _streamInfo = {}; // 探流结果(结构化:视频/音频编码、解码器、码率…)
   int? _ttffMs; // 首帧耗时
   DateTime? _loadStartedAt;
@@ -452,7 +451,7 @@ class _PlayerScreenState extends State<PlayerScreen>
               onToggleDiag: () {
                 cancelAutoCloseTimer();
                 Navigator.of(context).pop(); // 关闭操作栏
-                setState(() => _showDiag = true);
+                _showStreamInfoSheet(context);
               },
             ),
           ),
@@ -548,8 +547,33 @@ class _PlayerScreenState extends State<PlayerScreen>
   }
 
   /// 加载/重试中的展示:频道台标 + 名称 + 进度;重试时显示「第 N 次重新加载」。
-  // 信息浮层(仿 StreamVault):来源/渲染面/编码/分辨率/TTFF 等;含渲染面即时切换做 A/B。
-  Widget _buildInfoOverlay() {
+  // 信息浮层:右侧滑出(和源选择一致),内容溢出内部滚动;含渲染面即时切换做 A/B。
+  void _showStreamInfoSheet(BuildContext context) {
+    final w = (MediaQuery.of(context).size.width * 0.34).clamp(300.0, 600.0);
+    showGeneralDialog(
+      context: context,
+      barrierLabel: 'StreamInfo',
+      barrierDismissible: true,
+      barrierColor: Colors.transparent,
+      transitionDuration: const Duration(milliseconds: 200),
+      pageBuilder: (_, __, ___) => Align(
+        alignment: Alignment.centerRight,
+        child: Container(
+          width: w,
+          height: MediaQuery.of(context).size.height,
+          color: const Color.fromRGBO(0, 0, 0, 0.85),
+          child: SafeArea(child: _buildStreamInfoContent()),
+        ),
+      ),
+      transitionBuilder: (_, anim, __, child) => SlideTransition(
+        position:
+            Tween(begin: const Offset(1, 0), end: Offset.zero).animate(anim),
+        child: child,
+      ),
+    );
+  }
+
+  Widget _buildStreamInfoContent() {
     final l = AppLocalizations.of(context)!;
     final size = _controller.value.isInitialized
         ? _controller.value.size
@@ -605,22 +629,14 @@ class _PlayerScreenState extends State<PlayerScreen>
                   color: theme, fontSize: 13, fontWeight: FontWeight.bold)),
         );
 
-    // 右侧全高浮层(仿节目列表),内容溢出时内部滚动
-    return Positioned(
-      top: 0,
-      right: 0,
-      bottom: 0,
-      child: Material(
-        type: MaterialType.transparency,
-        child: SafeArea(
-          child: Container(
-            width: 380,
-            padding: const EdgeInsets.all(12),
-            decoration: BoxDecoration(
-              color: Colors.black.withOpacity(0.82),
-            ),
-            child: SingleChildScrollView(
-              child: Column(
+    return Material(
+      type: MaterialType.transparency,
+      child: Padding(
+        padding: const EdgeInsets.all(12),
+        child: SingleChildScrollView(
+          child: ValueListenableBuilder<bool>(
+            valueListenable: useSurfaceView,
+            builder: (_, surface, __) => Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Row(
@@ -632,7 +648,7 @@ class _PlayerScreenState extends State<PlayerScreen>
                             fontWeight: FontWeight.bold)),
                     const Spacer(),
                     InkWell(
-                      onTap: () => setState(() => _showDiag = false),
+                      onTap: () => Navigator.of(context).pop(),
                       child: const Icon(Icons.close,
                           color: Colors.white70, size: 20),
                     ),
@@ -641,11 +657,8 @@ class _PlayerScreenState extends State<PlayerScreen>
                 const Divider(color: Colors.white24, height: 12),
                 // 基本
                 row(l.infoSource, _sourceLink),
-                row(
-                    l.infoRenderSurface,
-                    useSurfaceView.value
-                        ? 'SurfaceView (HW VPP)'
-                        : 'Texture'),
+                row(l.infoRenderSurface,
+                    surface ? 'SurfaceView (HW VPP)' : 'Texture'),
                 row(l.infoActiveDecoder, fmt(i['videoDecoder'])),
                 row(l.infoPlayState, _playState.name),
                 // 视频
@@ -665,9 +678,9 @@ class _PlayerScreenState extends State<PlayerScreen>
                         color: Colors.white38, fontSize: 10)),
                 const SizedBox(height: 8),
                 ElevatedButton.icon(
-                  onPressed: () => setUseSurfaceView(!useSurfaceView.value),
+                  onPressed: () => setUseSurfaceView(!surface),
                   icon: const Icon(Icons.hd, size: 18),
-                  label: Text(useSurfaceView.value
+                  label: Text(surface
                       ? '${l.infoSwitchRender} → Texture'
                       : '${l.infoSwitchRender} → SurfaceView'),
                 ),
@@ -676,7 +689,6 @@ class _PlayerScreenState extends State<PlayerScreen>
           ),
         ),
       ),
-    ),
     );
   }
 
@@ -833,7 +845,6 @@ class _PlayerScreenState extends State<PlayerScreen>
                           ),
                         ),
                       ),
-                    if (_showDiag) _buildInfoOverlay(),
                   ],
                 ),
               ),
