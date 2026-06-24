@@ -339,7 +339,21 @@ class PlaylistRepository {
       final response = await request.close();
 
       if (response.statusCode == 200) {
-        final body = await response.transform(utf8.decoder).join();
+        // EPG 常见为 .gz 压缩(如 iptv-api 的 epg.gz),不能直接当 utf8 文本解析。
+        // 按 gzip 魔数(0x1f 0x8b)判断后解压;若服务端已解压则按原样。
+        final bytes = <int>[];
+        await for (final chunk in response) {
+          bytes.addAll(chunk);
+        }
+        List<int> data = bytes;
+        if (bytes.length >= 2 && bytes[0] == 0x1f && bytes[1] == 0x8b) {
+          try {
+            data = gzip.decode(bytes);
+          } catch (_) {
+            data = bytes;
+          }
+        }
+        final body = utf8.decode(data, allowMalformed: true);
         final document = XmlDocument.parse(body);
         final programmes = <Programme>[];
 
