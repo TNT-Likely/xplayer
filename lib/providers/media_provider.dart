@@ -1,4 +1,4 @@
-// 用于 jsonEncode
+import 'dart:convert'; // 用于 jsonEncode/jsonDecode
 
 import 'package:flutter/material.dart';
 import 'package:xplayer/data/models/playlist_model.dart';
@@ -33,6 +33,9 @@ class MediaProvider with ChangeNotifier {
 
   // 首页频道项显示大小档位(0 最大 .. 4 最小,2=默认)
   int _gridSizeLevel = 2;
+
+  // 每个频道用户手动选择并记住的源链接(channelId -> link;持久化)
+  Map<String, String> _preferredSources = {};
 
   // 测速后是否隐藏「无法播放」的频道(可恢复,持久化)
   bool _hideUnplayable = false;
@@ -119,6 +122,10 @@ class MediaProvider with ChangeNotifier {
 
   /// 首页频道项显示大小档位(0..4)。
   int get gridSizeLevel => _gridSizeLevel;
+
+  /// 某频道用户记住的源链接(无则返回 null)。
+  String? preferredSourceLink(String channelId) =>
+      _preferredSources[channelId];
 
   List<Channel> get favoriteChannels => _favoriteChannels;
   List<Programme> get programmes => _programmes;
@@ -220,6 +227,28 @@ class MediaProvider with ChangeNotifier {
     await prefs.setInt('grid_size_level', _gridSizeLevel);
   }
 
+  /// 读取持久化的「每频道偏好源」映射。
+  Future<void> loadPreferredSources() async {
+    final prefs = await SharedPreferences.getInstance();
+    final raw = prefs.getString('preferred_sources');
+    if (raw == null || raw.isEmpty) return;
+    try {
+      final map = jsonDecode(raw) as Map<String, dynamic>;
+      _preferredSources = map.map((k, v) => MapEntry(k, v.toString()));
+      notifyListeners();
+    } catch (_) {
+      // 解析失败则保持空表,使用默认源
+    }
+  }
+
+  /// 记住某频道用户选择的源链接并持久化。
+  Future<void> setPreferredSource(String channelId, String link) async {
+    if (channelId.isEmpty) return;
+    _preferredSources[channelId] = link;
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setString('preferred_sources', jsonEncode(_preferredSources));
+  }
+
   /// 读取持久化的「隐藏无法播放」开关。
   Future<void> loadHideUnplayable() async {
     final prefs = await SharedPreferences.getInstance();
@@ -275,6 +304,9 @@ class MediaProvider with ChangeNotifier {
 
       // 加载显示大小偏好
       await loadGridSizeLevel();
+
+      // 加载每频道偏好源(记住用户为某频道手动选过的源)
+      await loadPreferredSources();
 
       // 加载「隐藏无法播放」偏好
       await loadHideUnplayable();

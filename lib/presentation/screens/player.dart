@@ -80,7 +80,7 @@ class _PlayerScreenState extends State<PlayerScreen>
     final mediaProvider = Provider.of<MediaProvider>(context, listen: false);
 
     _channel = widget.channel;
-    _sourceLink = widget.channel.source.first.link;
+    _sourceLink = _resolveSourceLink(widget.channel);
     _currentIndex = mediaProvider.channels.indexOf(_channel);
     _channels = mediaProvider.channels;
 
@@ -335,6 +335,9 @@ class _PlayerScreenState extends State<PlayerScreen>
       setState(() {
         _sourceLink = link;
       });
+      // 记住该频道的源选择,下次进入同一频道默认用它
+      Provider.of<MediaProvider>(context, listen: false)
+          .setPreferredSource(_channel.id, link);
       _initializePlayer();
       Navigator.of(context).pop();
     });
@@ -416,6 +419,16 @@ class _PlayerScreenState extends State<PlayerScreen>
     });
   }
 
+  /// 解析某频道应播放的源:优先用户记住的源(仍在列表中时),否则第一个。
+  String _resolveSourceLink(Channel channel) {
+    final media = Provider.of<MediaProvider>(context, listen: false);
+    final preferred = media.preferredSourceLink(channel.id);
+    if (preferred != null && channel.source.any((s) => s.link == preferred)) {
+      return preferred;
+    }
+    return channel.source.first.link;
+  }
+
   void _switchChannel(int delta) async {
     if (_channels.isEmpty) return;
 
@@ -428,7 +441,7 @@ class _PlayerScreenState extends State<PlayerScreen>
 
     setState(() {
       _channel = newChannel;
-      _sourceLink = newChannel.source.first.link;
+      _sourceLink = _resolveSourceLink(newChannel);
       _currentIndex = newIndex;
     });
 
