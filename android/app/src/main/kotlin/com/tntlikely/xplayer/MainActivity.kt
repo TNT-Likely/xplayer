@@ -2,6 +2,8 @@ package com.tntlikely.xplayer
 
 import android.media.MediaCodec
 import android.media.MediaCodecList
+import android.media.MediaExtractor
+import android.media.MediaFormat
 import android.os.Build
 import androidx.media3.common.util.Log as Media3Log
 import io.flutter.embedding.android.FlutterActivity
@@ -56,6 +58,11 @@ class MainActivity : FlutterActivity() {
                             "D", "app", call.argument<String>("msg") ?: "", null)
                         result.success(null)
                     }
+                    "probeStream" -> {
+                        val url = call.argument<String>("url") ?: ""
+                        // 网络 I/O 放后台线程,结果回主线程
+                        Thread { probeStream(url, result) }.start()
+                    }
                     else -> result.notImplemented()
                 }
             }
@@ -75,6 +82,39 @@ class MainActivity : FlutterActivity() {
         }
         reader.close()
         return sb.toString()
+    }
+
+    // 设备版 ffprobe:用 MediaExtractor 读流里每条轨道的编码(不解码),
+    // 在设备能连到该源时直接拿到 video/audio 的真实 MIME(查"没声音"是哪种音频编码)。
+    private fun probeStream(url: String, result: MethodChannel.Result) {
+        val sb = StringBuilder()
+        var ex: MediaExtractor? = null
+        try {
+            ex = MediaExtractor()
+            ex.setDataSource(url)
+            sb.append("轨道数: ${ex.trackCount}\n")
+            for (i in 0 until ex.trackCount) {
+                val f = ex.getTrackFormat(i)
+                val mime = f.getString(MediaFormat.KEY_MIME) ?: "?"
+                sb.append("  track$i: $mime")
+                fun optInt(k: String) =
+                    if (f.containsKey(k)) f.getInteger(k) else -1
+                when {
+                    mime.startsWith("audio/") -> sb.append(
+                        "  ${optInt(MediaFormat.KEY_SAMPLE_RATE)}Hz ${optInt(MediaFormat.KEY_CHANNEL_COUNT)}ch")
+                    mime.startsWith("video/") -> sb.append(
+                        "  ${optInt(MediaFormat.KEY_WIDTH)}x${optInt(MediaFormat.KEY_HEIGHT)}")
+                }
+                sb.append("\n")
+            }
+        } catch (e: Exception) {
+            sb.append("探测失败: ${e.message}\n")
+        } finally {
+            try { ex?.release() } catch (_: Exception) {}
+        }
+        val out = sb.toString()
+        MediaLogBuffer.add("D", "probe", out, null)
+        runOnUiThread { result.success(out) }
     }
 
     // 不需任何权限:枚举 MediaCodec 解码器,判定常见视频编码是否有硬件解码器。

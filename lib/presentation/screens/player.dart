@@ -160,9 +160,14 @@ class _PlayerScreenState extends State<PlayerScreen>
     // 同时推到诊断中心「ExoPlayer 应用内日志」(电视也能看)。
     // ignore: avoid_print
     print('▶ 播放地址: $_sourceLink');
-    const MethodChannel('diag/logcat')
-        .invokeMethod('appLog', {'msg': '▶ 播放: $_sourceLink'}).catchError(
-            (_) => null);
+    const ch = MethodChannel('diag/logcat');
+    ch.invokeMethod('appLog', {'msg': '▶ 播放: $_sourceLink'}).catchError(
+        (_) => null);
+    // 设备端探流:读出每条轨道的真实编码(查"没声音"是哪种音频编码),打到控制台 + 应用内日志
+    ch.invokeMethod<String>('probeStream', {'url': _sourceLink}).then((t) {
+      // ignore: avoid_print
+      print('🎵 流轨道:\n$t');
+    }).catchError((_) => null);
 
     try {
       _controller = VideoPlayerController.networkUrl(Uri.parse(_sourceLink),
