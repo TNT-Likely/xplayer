@@ -105,6 +105,10 @@ class MainActivity : FlutterActivity() {
                     mime.startsWith("video/") -> sb.append(
                         "  ${optInt(MediaFormat.KEY_WIDTH)}x${optInt(MediaFormat.KEY_HEIGHT)}")
                 }
+                // 码率:MediaExtractor 若声明了 KEY_BIT_RATE 就带上(直播 TS 常无,届时不显示)
+                if (f.containsKey(MediaFormat.KEY_BIT_RATE)) {
+                    sb.append("  ${f.getInteger(MediaFormat.KEY_BIT_RATE) / 1000}kbps")
+                }
                 sb.append("\n")
             }
         } catch (e: Exception) {

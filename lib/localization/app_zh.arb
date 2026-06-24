@@ -146,5 +146,14 @@
     "logLevelWarning": "警告",
     "logLevelError": "错误",
     "renderMode": "渲染模式",
-    "renderModeHint": "开 = SurfaceView(电视更清晰);关 = 纹理(更兼容)"
+    "renderModeHint": "开 = SurfaceView(电视更清晰);关 = 纹理(更兼容)",
+    "streamInfo": "信息",
+    "infoChannel": "频道",
+    "infoSource": "来源",
+    "infoRenderSurface": "渲染面",
+    "infoPlayState": "播放状态",
+    "infoResolution": "分辨率",
+    "infoCodecs": "轨道编码",
+    "infoTtff": "首帧耗时",
+    "infoSwitchRender": "切换渲染面"
 }

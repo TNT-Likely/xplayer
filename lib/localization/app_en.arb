@@ -146,5 +146,14 @@
   "logLevelWarning": "Warning",
   "logLevelError": "Error",
   "renderMode": "Render Mode",
-  "renderModeHint": "On = SurfaceView (sharper on TV); Off = Texture (most compatible)"
+  "renderModeHint": "On = SurfaceView (sharper on TV); Off = Texture (most compatible)",
+  "streamInfo": "Info",
+  "infoChannel": "Channel",
+  "infoSource": "Source",
+  "infoRenderSurface": "Render",
+  "infoPlayState": "State",
+  "infoResolution": "Resolution",
+  "infoCodecs": "Codecs",
+  "infoTtff": "First Frame",
+  "infoSwitchRender": "Switch Render"
 }

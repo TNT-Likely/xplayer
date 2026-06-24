@@ -56,6 +56,12 @@ class _PlayerScreenState extends State<PlayerScreen>
 
   PlayState _playState = PlayState.idle;
 
+  // 诊断面板
+  bool _showDiag = false;
+  String _streamTracks = ''; // 探流结果(各轨道编码)
+  int? _ttffMs; // 首帧耗时
+  DateTime? _loadStartedAt;
+
   List<Programme> get programmes {
     final mediaProvider = Provider.of<MediaProvider>(context, listen: false);
 
@@ -92,6 +98,9 @@ class _PlayerScreenState extends State<PlayerScreen>
     // 手机随设备方向自动旋转(交还系统,跟随传感器),无需手动按钮。
     SystemChrome.setPreferredOrientations(const []);
 
+    // 渲染模式改变(侧边栏或诊断面板切换)→ 按新模式重建播放器,支持实时 A/B
+    useSurfaceView.addListener(_onRenderModeChanged);
+
     // 首次进入播放页弹一次操作引导(看过后不再弹,可从控制条「帮助」再看)
     WidgetsBinding.instance
         .addPostFrameCallback((_) => _maybeShowOperationHint());
@@ -120,6 +129,7 @@ class _PlayerScreenState extends State<PlayerScreen>
     _bufferingTimer?.cancel();
     autoCloseTimer?.cancel();
     _controller.removeListener(_listenToVideoController);
+    useSurfaceView.removeListener(_onRenderModeChanged);
     WidgetsBinding.instance.removeObserver(this);
     _focusNode.dispose();
     _controller.pause();
@@ -129,6 +139,10 @@ class _PlayerScreenState extends State<PlayerScreen>
     super.dispose();
   }
 
+  void _onRenderModeChanged() {
+    if (mounted) _initializePlayer();
+  }
+
   Future<void> _initializePlayer({bool fresh = true}) async {
     // 本次加载代号:期间若又触发新加载/切台,旧加载的异步回调据此丢弃,避免互相打架
     final token = ++_loadToken;
@@ -136,6 +150,7 @@ class _PlayerScreenState extends State<PlayerScreen>
     _retryTimer?.cancel();
     _bufferingTimer?.cancel();
     _isHandlingBuffering = false;
+    _loadStartedAt = DateTime.now();
 
     if (fresh) {
       // 用户主动加载(首次/切台/换源/手动重试):重置重试计数
@@ -166,6 +181,7 @@ class _PlayerScreenState extends State<PlayerScreen>
         .invokeMethod<String>('probeStream', {'url': _sourceLink}).then((t) {
       if (t != null && t.trim().isNotEmpty) {
         LogStore.instance.i('probe', '🎵 流轨道:\n${t.trim()}');
+        if (mounted) setState(() => _streamTracks = t.trim());
       }
     }).catchError((_) => null);
 
@@ -187,6 +203,9 @@ class _PlayerScreenState extends State<PlayerScreen>
         setState(() {
           // 初始化成功后更新状态为 playing
           _playState = PlayState.playing;
+          _ttffMs = _loadStartedAt != null
+              ? DateTime.now().difference(_loadStartedAt!).inMilliseconds
+              : null;
         });
       }).catchError((error) {
         if (token != _loadToken || !mounted) return; // 已被新加载取代,丢弃
@@ -429,6 +448,11 @@ class _PlayerScreenState extends State<PlayerScreen>
               showSourceSwitch: () {
                 _showSourceSwitcher(context);
               },
+              onToggleDiag: () {
+                cancelAutoCloseTimer();
+                Navigator.of(context).pop(); // 关闭操作栏
+                setState(() => _showDiag = true);
+              },
             ),
           ),
         );
@@ -523,6 +547,96 @@ class _PlayerScreenState extends State<PlayerScreen>
   }
 
   /// 加载/重试中的展示:频道台标 + 名称 + 进度;重试时显示「第 N 次重新加载」。
+  // 信息浮层(仿 StreamVault):来源/渲染面/编码/分辨率/TTFF 等;含渲染面即时切换做 A/B。
+  Widget _buildInfoOverlay() {
+    final l = AppLocalizations.of(context)!;
+    final size = _controller.value.isInitialized
+        ? _controller.value.size
+        : Size.zero;
+    final res = size.width > 0
+        ? '${size.width.toInt()}x${size.height.toInt()}'
+        : '—';
+
+    Widget row(String k, String v) => Padding(
+          padding: const EdgeInsets.symmetric(vertical: 2),
+          child: Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              SizedBox(
+                  width: 84,
+                  child: Text(k,
+                      style: const TextStyle(
+                          color: Colors.white60, fontSize: 12))),
+              Expanded(
+                  child: SelectableText(v,
+                      style: const TextStyle(
+                          color: Colors.white, fontSize: 12))),
+            ],
+          ),
+        );
+
+    return Positioned(
+      left: 12,
+      top: 12,
+      child: SafeArea(
+        child: Container(
+          width: 360,
+          constraints: const BoxConstraints(maxHeight: 480),
+          padding: const EdgeInsets.all(12),
+          decoration: BoxDecoration(
+            color: Colors.black.withOpacity(0.72),
+            borderRadius: BorderRadius.circular(8),
+          ),
+          child: SingleChildScrollView(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Row(
+                  children: [
+                    Text(l.streamInfo,
+                        style: const TextStyle(
+                            color: Colors.white,
+                            fontSize: 15,
+                            fontWeight: FontWeight.bold)),
+                    const Spacer(),
+                    InkWell(
+                      onTap: () => setState(() => _showDiag = false),
+                      child: const Icon(Icons.close,
+                          color: Colors.white70, size: 20),
+                    ),
+                  ],
+                ),
+                const Divider(color: Colors.white24),
+                row(l.infoChannel,
+                    _channel.name.isNotEmpty ? _channel.name : _channel.id),
+                row(l.infoSource, _sourceLink),
+                row(
+                    l.infoRenderSurface,
+                    useSurfaceView.value
+                        ? 'SurfaceView (HW VPP)'
+                        : 'Texture'),
+                row(l.infoPlayState, _playState.name),
+                row(l.infoResolution, res),
+                row(l.infoCodecs,
+                    _streamTracks.isEmpty ? '…' : _streamTracks),
+                row('FFmpeg', '—'),
+                row(l.infoTtff, _ttffMs != null ? '$_ttffMs ms' : '—'),
+                const SizedBox(height: 8),
+                ElevatedButton.icon(
+                  onPressed: () => setUseSurfaceView(!useSurfaceView.value),
+                  icon: const Icon(Icons.hd, size: 18),
+                  label: Text(useSurfaceView.value
+                      ? '${l.infoSwitchRender} → Texture'
+                      : '${l.infoSwitchRender} → SurfaceView'),
+                ),
+              ],
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+
   Widget _buildLoadingView() {
     final l = AppLocalizations.of(context)!;
     final retryAttempt = _retryTimes > 0 ? _retryTimes : _bufferingRetryTimes;
@@ -676,6 +790,7 @@ class _PlayerScreenState extends State<PlayerScreen>
                           ),
                         ),
                       ),
+                    if (_showDiag) _buildInfoOverlay(),
                   ],
                 ),
               ),
