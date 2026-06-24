@@ -185,8 +185,9 @@ class AndroidVideoPlayer extends VideoPlayerPlatform {
 
     return switch (viewState) {
       _VideoPlayerTextureViewState(:final int textureId) =>
-        // 定制:纹理放大用高质量采样(默认是 low/双线性),减轻大屏上的边缘锯齿/发软
-        Texture(textureId: textureId, filterQuality: FilterQuality.high),
+        // 注意:filterQuality 别设 high/medium —— 部分电视 GPU 在高质量采样下会黑屏,
+        // 且对锯齿无效。保持默认(low/双线性)。
+        Texture(textureId: textureId),
       _VideoPlayerPlatformViewState() => PlatformViewPlayer(playerId: playerId),
       null => throw Exception(
           'Could not find corresponding view type for playerId: $playerId',
