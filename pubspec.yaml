@@ -37,7 +37,9 @@ dependencies:
   # 桌面端(Windows/Linux)用 FFI 时需要它打包 sqlite3 原生库,否则开库失败
   sqlite3_flutter_libs: ^0.5.0
   url_launcher: ^6.3.1
-  video_player: ^2.9.2
+  # 锁死 2.10.0:兼容 Flutter 3.27/Dart 3.6 的最高版(2.10.1+ 要 Flutter 3.29);
+  # 底层是更新的 Media3 ExoPlayer。注意:用它必须保持 android.enableJetifier=false。
+  video_player: 2.10.0
   video_player_win: ^3.1.1
   xml: ^6.5.0
   bonsoir: ^5.1.11
@@ -52,9 +54,6 @@ dev_dependencies:
 
   flutter_launcher_icons: "^0.13.1"
   flutter_lints: ^2.0.0
-
-dependency_overrides:
-    video_player_android: 2.7.17
 
 flutter:
   uses-material-design: true
