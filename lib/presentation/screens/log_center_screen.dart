@@ -195,37 +195,44 @@ class _LogCenterScreenState extends State<LogCenterScreen> {
                 style: const TextStyle(color: Colors.greenAccent, fontSize: 13),
               ),
             ),
-            // 级别过滤 chips + 搜索
+            // 级别过滤 chips(第一行)+ 搜索框(第二行,占满整行不被挤短)
             Padding(
               padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-              child: Row(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  for (final lv in LogLevel.values)
-                    Padding(
-                      padding: const EdgeInsets.only(right: 6),
-                      child: FilterChip(
-                        autofocus: lv == LogLevel.debug, // 进页面默认焦点落在第一个 chip
-                        label: Text(_levelName(l10n, lv),
-                            style: const TextStyle(fontSize: 12)),
-                        selected: _levels.contains(lv),
-                        onSelected: (s) => setState(() =>
-                            s ? _levels.add(lv) : _levels.remove(lv)),
-                        visualDensity: VisualDensity.compact,
-                      ),
+                  SingleChildScrollView(
+                    scrollDirection: Axis.horizontal,
+                    child: Row(
+                      children: [
+                        for (final lv in LogLevel.values)
+                          Padding(
+                            padding: const EdgeInsets.only(right: 6),
+                            child: FilterChip(
+                              autofocus: lv ==
+                                  LogLevel.debug, // 进页面默认焦点落在第一个 chip
+                              label: Text(_levelName(l10n, lv),
+                                  style: const TextStyle(fontSize: 12)),
+                              selected: _levels.contains(lv),
+                              onSelected: (s) => setState(() =>
+                                  s ? _levels.add(lv) : _levels.remove(lv)),
+                              visualDensity: VisualDensity.compact,
+                            ),
+                          ),
+                      ],
                     ),
-                  Expanded(
-                    child: TextField(
-                      style:
-                          const TextStyle(color: Colors.white, fontSize: 13),
-                      decoration: const InputDecoration(
-                        hintText: '过滤关键字',
-                        hintStyle: TextStyle(color: Colors.white38),
-                        isDense: true,
-                        prefixIcon: Icon(Icons.search,
-                            color: Colors.white38, size: 18),
-                      ),
-                      onChanged: (v) => setState(() => _filter = v),
+                  ),
+                  const SizedBox(height: 6),
+                  TextField(
+                    style: const TextStyle(color: Colors.white, fontSize: 13),
+                    decoration: const InputDecoration(
+                      hintText: '过滤关键字',
+                      hintStyle: TextStyle(color: Colors.white38),
+                      isDense: true,
+                      prefixIcon:
+                          Icon(Icons.search, color: Colors.white38, size: 18),
                     ),
+                    onChanged: (v) => setState(() => _filter = v),
                   ),
                 ],
               ),
