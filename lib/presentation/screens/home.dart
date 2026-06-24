@@ -535,8 +535,8 @@ class _HomeScreenState extends State<HomeScreen> {
                     ListTile(
                       leading:
                           const Icon(Icons.bug_report, color: Colors.white),
-                      title: const Text('诊断日志',
-                          style: TextStyle(color: Colors.white)),
+                      title: Text(AppLocalizations.of(context)!.diagLog,
+                          style: const TextStyle(color: Colors.white)),
                     ),
                   ),
                   onPressed: () {

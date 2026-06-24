@@ -138,5 +138,7 @@
     "hintMenu": "呼出菜单：OK 键 或 单击屏幕",
     "hintGotIt": "知道了",
     "hideUnplayable": "隐藏无法播放",
-    "autoRefreshOnLaunch": "启动时自动更新"
+    "autoRefreshOnLaunch": "启动时自动更新",
+    "nowPlaying": "正在:{title}",
+    "diagLog": "诊断日志"
 }

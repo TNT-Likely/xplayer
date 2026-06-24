@@ -8,6 +8,7 @@ import 'package:xplayer/providers/media_provider.dart';
 import 'package:xplayer/utils/channel_filter.dart';
 import 'package:xplayer/utils/epg_metrics.dart';
 import 'package:xplayer/utils/playlist_util.dart';
+import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 
 const String kAllGroups = '全部';
 const double _kRowH = 64.0;
@@ -233,7 +234,7 @@ class _ChannelRow extends StatelessWidget {
                   ),
                   if (cur != null)
                     Text(
-                      '正在:${cur.title}',
+                      AppLocalizations.of(context)!.nowPlaying(cur.title),
                       maxLines: 1,
                       overflow: TextOverflow.ellipsis,
                       style:
@@ -276,7 +277,7 @@ class _GroupList extends StatelessWidget {
             color: sel ? theme.withOpacity(0.6) : Colors.transparent,
             padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 12),
             child: Text(
-              g,
+              g == kAllGroups ? AppLocalizations.of(context)!.allGroups : g,
               maxLines: 1,
               overflow: TextOverflow.ellipsis,
               style: const TextStyle(color: Colors.white, fontSize: 13),
@@ -320,7 +321,10 @@ class _GroupChips extends StatelessWidget {
                     : Colors.white.withOpacity(0.12),
                 borderRadius: BorderRadius.circular(16),
               ),
-              child: Text(g,
+              child: Text(
+                  g == kAllGroups
+                      ? AppLocalizations.of(context)!.allGroups
+                      : g,
                   style: const TextStyle(color: Colors.white, fontSize: 13)),
             ),
           );
@@ -341,9 +345,9 @@ class _NowNextList extends StatelessWidget {
     final now = DateTime.now();
     final items = upcomingProgrammes(programmes, channel.id, now);
     if (items.isEmpty) {
-      return const Center(
-        child: Text('暂无节目单',
-            style: TextStyle(color: Colors.white54, fontSize: 13)),
+      return Center(
+        child: Text(AppLocalizations.of(context)!.noProgramme,
+            style: const TextStyle(color: Colors.white54, fontSize: 13)),
       );
     }
     return ListView.builder(
