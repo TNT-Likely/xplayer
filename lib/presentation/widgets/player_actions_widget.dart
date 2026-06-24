@@ -147,8 +147,119 @@ class _PlayerActionsWidgetState extends State<PlayerActionsWidget>
     );
 
     final globalProvider = Provider.of<GlobalProvider>(context, listen: false);
-
     final isMobile = globalProvider.isMobile;
+    // 宽屏(平板/TV/横屏):右侧空间富余,按钮组放到右边;
+    // 窄屏(手机竖屏):按钮另起一行左对齐。
+    final wide = MediaQuery.of(context).size.width >= 600;
+
+    // 频道信息:台标 + 当前/下一节目(无节目单时显示频道名)
+    final infoRow = Row(
+      crossAxisAlignment: CrossAxisAlignment.center,
+      children: [
+        if (widget.channel.logo != null && widget.channel.logo!.isNotEmpty)
+          CachedNetworkImage(
+            imageUrl: widget.channel.logo!,
+            height: 42,
+            fit: BoxFit.fitHeight,
+            errorWidget: (context, url, error) => iDWidget,
+          )
+        else
+          iDWidget,
+        const SizedBox(width: 8),
+        Expanded(
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                programmeInfo.$2 != null
+                    ? programmeInfo.$2!.title
+                    : (widget.channel.name.isNotEmpty
+                        ? widget.channel.name
+                        : widget.channel.id),
+                style: const TextStyle(
+                    color: Colors.white,
+                    decoration: TextDecoration.none,
+                    fontSize: 22),
+                overflow: TextOverflow.ellipsis,
+                maxLines: 1,
+              ),
+              if (programmeInfo.$3 != null)
+                Text(
+                  "${formatTime(programmeInfo.$3!.start)}-${formatTime(programmeInfo.$3!.stop)}  ${programmeInfo.$3!.title}",
+                  style: const TextStyle(
+                      color: Colors.white,
+                      decoration: TextDecoration.none,
+                      fontSize: 12),
+                  overflow: TextOverflow.ellipsis,
+                  maxLines: 1,
+                ),
+            ],
+          ),
+        ),
+      ],
+    );
+
+    // 操作按钮组(两种布局共用同一组按钮)
+    final actionButtons = <Widget>[
+      if (widget.controller.value.hasError) ...[
+        XIconButton(
+          icon: Icons.refresh,
+          onPressed: () {
+            if (widget.onRetryInit != null) {
+              widget.onRetryInit!();
+            }
+          },
+        ),
+        const SizedBox(width: 8),
+      ],
+      XIconButton(
+        onPressed: _handlePlayPause,
+        icon: _isPlaying ? Icons.pause : Icons.play_arrow,
+      ),
+      const SizedBox(width: 8),
+      XIconButton(
+        icon: Icons.list,
+        onPressed: () {
+          if (widget.showChannelSelect != null) {
+            widget.showChannelSelect!();
+          }
+        },
+      ),
+      const SizedBox(width: 8),
+      XIconButton(
+        icon: Icons.swap_horiz,
+        onPressed: () {
+          if (widget.showSourceSwitch != null) {
+            widget.showSourceSwitch!();
+          }
+        },
+      ),
+      const SizedBox(width: 8),
+      XIconButton(
+        icon: Icons.event_note,
+        onPressed: () {
+          if (widget.onProgramme != null) {
+            widget.onProgramme!();
+          }
+        },
+      ),
+      const SizedBox(width: 8),
+      XIconButton(
+        onPressed: () async {
+          await widget.onFavorite();
+          _updateIsFavorite();
+        },
+        iconColor: _isFavorite ? Colors.red : Colors.white,
+        icon: _isFavorite ? Icons.favorite : Icons.favorite_outline,
+      ),
+      if (isMobile) const SizedBox(width: 8),
+      if (isMobile)
+        XIconButton(
+          icon: isPortrait ? Icons.fullscreen : Icons.fullscreen_exit,
+          onPressed: toggleOrientation,
+        ),
+    ];
 
     return Align(
       alignment: Alignment.bottomCenter,
@@ -158,134 +269,31 @@ class _PlayerActionsWidgetState extends State<PlayerActionsWidget>
         // 通栏淡灰底:无圆角、无边框,与视频画面区分但不抢眼
         color: const Color.fromRGBO(48, 48, 48, 0.55),
         padding: const EdgeInsets.symmetric(horizontal: 16.0),
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-              Row(
+        child: wide
+            // 宽屏:频道信息占左侧,按钮组靠右,填满右侧空白
+            ? Row(
                 crossAxisAlignment: CrossAxisAlignment.center,
                 children: [
-                  if (widget.channel.logo != null &&
-                      widget.channel.logo!.isNotEmpty)
-                    CachedNetworkImage(
-                      imageUrl: widget.channel.logo!,
-                      height: 42,
-                      fit: BoxFit.fitHeight,
-                      errorWidget: (context, url, error) {
-                        return iDWidget;
-                      },
-                    )
-                  else
-                    iDWidget,
-                  const SizedBox(
-                    width: 8,
-                  ),
-                  Expanded(
-                      child: Column(
-                    mainAxisSize: MainAxisSize.min,
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      // 主行:有节目单显示当前节目,否则显示频道名(无节目单时不再空白)
-                      Text(
-                        programmeInfo.$2 != null
-                            ? programmeInfo.$2!.title
-                            : (widget.channel.name.isNotEmpty
-                                ? widget.channel.name
-                                : widget.channel.id),
-                        style: const TextStyle(
-                            color: Colors.white,
-                            decoration: TextDecoration.none,
-                            fontSize: 22),
-                        overflow: TextOverflow.ellipsis,
-                        maxLines: 1,
-                      ),
-                      if (programmeInfo.$3 != null)
-                        Text(
-                          "${formatTime(programmeInfo.$3!.start)}-${formatTime(programmeInfo.$3!.stop)}  ${programmeInfo.$3!.title}",
-                          style: const TextStyle(
-                              color: Colors.white,
-                              decoration: TextDecoration.none,
-                              fontSize: 12),
-                          overflow: TextOverflow.ellipsis,
-                          maxLines: 1,
-                        ),
-                    ],
-                  )),
+                  Expanded(child: infoRow),
+                  const SizedBox(width: 16),
+                  Row(mainAxisSize: MainAxisSize.min, children: actionButtons),
                 ],
-              ),
-              const SizedBox(height: 8),
-              Row(
-                // 左对齐成一组:按钮不放中间、也不两边拉散
-                mainAxisAlignment: MainAxisAlignment.start,
+              )
+            // 窄屏:信息在上、按钮在下并左对齐
+            : Column(
+                mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  if (widget.controller.value.hasError)
-                    Row(children: [
-                      XIconButton(
-                        icon: Icons.refresh,
-                        onPressed: () {
-                          if (widget.onRetryInit != null) {
-                            widget.onRetryInit!();
-                          }
-                        },
-                      ),
-                      const SizedBox(width: 8),
-                    ]),
-                  XIconButton(
-                    onPressed: _handlePlayPause,
-                    icon: _isPlaying ? Icons.pause : Icons.play_arrow,
+                  infoRow,
+                  const SizedBox(height: 8),
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.start,
+                    children: actionButtons,
                   ),
-                  const SizedBox(width: 8),
-                  XIconButton(
-                    icon: Icons.list,
-                    onPressed: () {
-                      if (widget.showChannelSelect != null) {
-                        widget.showChannelSelect!();
-                      }
-                    },
-                  ),
-                  const SizedBox(width: 8),
-                  XIconButton(
-                    icon: Icons.swap_horiz,
-                    onPressed: () {
-                      if (widget.showSourceSwitch != null) {
-                        widget.showSourceSwitch!();
-                      }
-                    },
-                  ),
-                  const SizedBox(width: 8),
-                  XIconButton(
-                    icon: Icons.event_note,
-                    onPressed: () {
-                      if (widget.onProgramme != null) {
-                        widget.onProgramme!();
-                      }
-                    },
-                  ),
-                  const SizedBox(width: 8),
-                  XIconButton(
-                    onPressed: () async {
-                      await widget.onFavorite();
-                      _updateIsFavorite();
-                    },
-                    iconColor: _isFavorite ? Colors.red : Colors.white,
-                    icon: _isFavorite ? Icons.favorite : Icons.favorite_outline,
-                  ),
-                  if (isMobile)
-                    const SizedBox(
-                      width: 8,
-                    ),
-                  if (isMobile)
-                    XIconButton(
-                      icon:
-                          isPortrait ? Icons.fullscreen : Icons.fullscreen_exit,
-                      onPressed: toggleOrientation,
-                    )
+                  const SizedBox(height: 8),
                 ],
               ),
-              const SizedBox(height: 8),
-            ],
-          ),
-        ),
-      );
+      ),
+    );
   }
 
   String formatTime(DateTime time) {
