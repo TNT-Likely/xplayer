@@ -122,6 +122,8 @@ class _PlayerScreenState extends State<PlayerScreen>
     _focusNode.dispose();
     _controller.pause();
     _controller.dispose();
+    // 离开播放页恢复自动旋转,避免播放页设的朝向锁定带到其它页面
+    SystemChrome.setPreferredOrientations(const []);
     super.dispose();
   }
 
