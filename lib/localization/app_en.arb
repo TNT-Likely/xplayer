@@ -138,5 +138,7 @@
   "hintMenu": "Menu: OK or tap screen",
   "hintGotIt": "Got it",
   "hideUnplayable": "Hide unplayable",
-  "autoRefreshOnLaunch": "Auto-update on launch"
+  "autoRefreshOnLaunch": "Auto-update on launch",
+  "nowPlaying": "Now: {title}",
+  "diagLog": "Diagnostics"
 }

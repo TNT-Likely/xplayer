@@ -2,6 +2,7 @@ import 'dart:io';
 
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 
 /// 诊断日志中心:
 /// - 原生 `diag/logcat` 通道读取本应用 logcat(含 MediaCodec 解码器行等)。
@@ -96,7 +97,8 @@ class _DiagLogScreenState extends State<DiagLogScreen> {
     return Scaffold(
       backgroundColor: const Color.fromARGB(255, 18, 18, 18),
       appBar: AppBar(
-        title: const Text('诊断日志', style: TextStyle(color: Colors.white)),
+        title: Text(AppLocalizations.of(context)!.diagLog,
+            style: const TextStyle(color: Colors.white)),
         backgroundColor: Colors.transparent,
         elevation: 0,
         iconTheme: const IconThemeData(color: Colors.white),
