@@ -4,6 +4,7 @@ import 'package:package_info_plus/package_info_plus.dart';
 import 'package:xplayer/data/models/playlist_model.dart';
 // 导入 FavoritesRepository
 import 'package:xplayer/presentation/screens/playlist.dart';
+import 'package:xplayer/presentation/screens/epg_screen.dart';
 import 'package:xplayer/services/update_service.dart';
 import 'package:xplayer/shared/components/x_base_button.dart';
 import 'package:xplayer/presentation/widgets/bg_wrapper.dart';
@@ -499,6 +500,24 @@ class _HomeScreenState extends State<HomeScreen> {
                         localizations.channelsUpdateFailed(e.toString()),
                       );
                     }
+                  },
+                ),
+                XBaseButton(
+                  child: animeContainer(
+                    ListTile(
+                      leading: const Icon(Icons.calendar_view_day,
+                          color: Colors.white),
+                      title: Text(
+                        localizations.epg,
+                        style: const TextStyle(color: Colors.white),
+                      ),
+                    ),
+                  ),
+                  onPressed: () {
+                    Navigator.of(context).pop();
+                    Navigator.of(context).push(
+                      MaterialPageRoute(builder: (_) => const EpgScreen()),
+                    );
                   },
                 ),
                 XBaseButton(
