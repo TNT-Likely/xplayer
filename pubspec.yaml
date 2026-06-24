@@ -55,6 +55,11 @@ dev_dependencies:
   flutter_launcher_icons: "^0.13.1"
   flutter_lints: ^2.0.0
 
+# 用仓库内 fork 的 video_player_android(定制纹理 FilterQuality 等),覆盖 pub.dev 版本
+dependency_overrides:
+  video_player_android:
+    path: third_party/video_player_android
+
 flutter:
   uses-material-design: true
 

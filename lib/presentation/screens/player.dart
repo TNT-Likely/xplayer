@@ -641,7 +641,17 @@ class _PlayerScreenState extends State<PlayerScreen>
                     _controller.value.aspectRatio > 0)
                   AspectRatio(
                     aspectRatio: _controller.value.aspectRatio,
-                    child: VideoPlayer(_controller),
+                    // 实验:轻微提亮+对比度,逼近 TVMate「更明亮」观感(纹理路拿不到硬件 VPP,
+                    // 先用 ColorFilter 近似)。数值偏保守,需在电视上微调。
+                    child: ColorFiltered(
+                      colorFilter: const ColorFilter.matrix(<double>[
+                        1.10, 0, 0, 0, -2.75, //
+                        0, 1.10, 0, 0, -2.75, //
+                        0, 0, 1.10, 0, -2.75, //
+                        0, 0, 0, 1, 0, //
+                      ]),
+                      child: VideoPlayer(_controller),
+                    ),
                   )
                 else
                   // 控制器尚未就绪时显示加载,避免渲染未初始化播放器导致黑屏空白
