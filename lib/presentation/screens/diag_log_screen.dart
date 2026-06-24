@@ -3,6 +3,7 @@ import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_gen/gen_l10n/app_localizations.dart';
+import 'package:xplayer/utils/toast.dart';
 
 /// 诊断日志中心:
 /// - 原生 `diag/logcat` 通道读取本应用 logcat(含 MediaCodec 解码器行等)。
@@ -65,14 +66,7 @@ class _DiagLogScreenState extends State<DiagLogScreen> {
 
   void _copyAll() {
     Clipboard.setData(ClipboardData(text: _composed(_logs)));
-    if (mounted) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('已复制全部(含解码器探测 + 日志)'),
-          duration: Duration(seconds: 2),
-        ),
-      );
-    }
+    showToast('已复制全部(含解码器探测 + 日志)');
   }
 
   Future<void> _startServer() async {
@@ -118,10 +112,13 @@ class _DiagLogScreenState extends State<DiagLogScreen> {
 
   @override
   Widget build(BuildContext context) {
+    // 倒序:最新日志在最上面,不用滚到底。
     final lines = _logs
         .split('\n')
         .where((l) =>
             _filter.isEmpty || l.toLowerCase().contains(_filter.toLowerCase()))
+        .toList()
+        .reversed
         .toList();
     return Scaffold(
       backgroundColor: const Color.fromARGB(255, 18, 18, 18),
