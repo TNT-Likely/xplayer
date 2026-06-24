@@ -54,9 +54,6 @@ class MainActivity : FlutterActivity() {
     // 不需任何权限:枚举 MediaCodec 解码器,判定常见视频编码是否有硬件解码器。
     // 用于在无法读 logcat 的设备(电视/受限系统)上排查「硬解是否存在/被回退」。
     private fun probeCodecs(): String {
-        val sb = StringBuilder()
-        sb.append("设备: ${Build.MANUFACTURER} ${Build.MODEL}  Android API=${Build.VERSION.SDK_INT}\n")
-        sb.append("[HW]=硬件解码器  [SW]=软件解码器  (CCTV 等直播通常是 H.264/video-avc 或 H.265/video-hevc)\n\n")
         val mimes = listOf(
             "video/avc" to "H.264",
             "video/hevc" to "H.265",
@@ -65,9 +62,12 @@ class MainActivity : FlutterActivity() {
             "video/av01" to "AV1"
         )
         val list = MediaCodecList(MediaCodecList.ALL_CODECS)
+        val detail = StringBuilder()
+        val summary = StringBuilder()
         for ((mime, label) in mimes) {
-            sb.append("== $label ($mime) ==\n")
+            detail.append("== $label ($mime) ==\n")
             var found = false
+            var hasHw = false
             for (info in list.codecInfos) {
                 if (info.isEncoder) continue
                 if (info.supportedTypes.none { it.equals(mime, ignoreCase = true) }) continue
@@ -78,6 +78,7 @@ class MainActivity : FlutterActivity() {
                 } else {
                     !(name.startsWith("OMX.google", true) || name.startsWith("c2.android", true))
                 }
+                if (hw) hasHw = true
                 var dims = ""
                 try {
                     val vc = info.getCapabilitiesForType(mime).videoCapabilities
@@ -86,11 +87,33 @@ class MainActivity : FlutterActivity() {
                     }
                 } catch (_: Exception) {
                 }
-                sb.append("  ${if (hw) "[HW]" else "[SW]"} $name$dims\n")
+                detail.append("  ${if (hw) "[HW]" else "[SW]"} $name$dims\n")
             }
-            if (!found) sb.append("  (无解码器)\n")
-            sb.append("\n")
+            if (!found) detail.append("  (无解码器)\n")
+            detail.append("\n")
+            // 仅直播最常见的 H.264 / H.265 进结论
+            if (mime == "video/avc" || mime == "video/hevc") {
+                val verdict = when {
+                    !found -> "—(本机无此解码器)"
+                    hasHw -> "✅ 有硬件解码器"
+                    else -> "❌ 仅软件解码器(无硬解)"
+                }
+                summary.append("  $label: $verdict\n")
+            }
         }
+
+        val sb = StringBuilder()
+        sb.append("设备: ${Build.MANUFACTURER} ${Build.MODEL}  Android API=${Build.VERSION.SDK_INT}\n\n")
+        sb.append("【结论】直播常用编码的硬解能力:\n")
+        sb.append(summary)
+        sb.append("  → 有硬解时 ExoPlayer 默认就走硬解;若画面仍模糊/卡顿,\n")
+        sb.append("    多半是渲染路径(Flutter 纹理绕过显示引擎 VPP)或直播源本身,\n")
+        sb.append("    而非\"没有硬解能力\"。若这里显示 ❌ 仅软解,才是硬解缺失的实锤。\n\n")
+        sb.append("【图例】[HW]=厂商硬件解码器(如 c2.qti./OMX.qcom./OMX.MTK./c2.amlogic.)\n")
+        sb.append("        [SW]=系统软件解码器(c2.android./OMX.google.,CPU 解码,无 VPP/锐化)\n")
+        sb.append("        .secure=DRM 加密流  .low_latency=低延迟  max=最大支持分辨率\n\n")
+        sb.append("----- 详细列表 -----\n\n")
+        sb.append(detail)
         return sb.toString()
     }
 }
