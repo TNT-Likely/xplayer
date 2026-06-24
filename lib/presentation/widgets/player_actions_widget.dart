@@ -25,7 +25,6 @@ class PlayerActionsWidget extends StatefulWidget {
   final List<Channel> favoriteChannels;
   final Channel channel;
   final VoidCallback? onFocusChange;
-  final VoidCallback? onProgramme;
   final VoidCallback? showChannelSelect;
   final VoidCallback? onRetryInit;
   final VoidCallback? showSourceSwitch;
@@ -38,7 +37,6 @@ class PlayerActionsWidget extends StatefulWidget {
       required this.favoriteChannels,
       required this.channel,
       this.onFocusChange,
-      this.onProgramme,
       this.showChannelSelect,
       this.onRetryInit,
       this.showSourceSwitch})
@@ -171,18 +169,26 @@ class _PlayerActionsWidgetState extends State<PlayerActionsWidget>
             mainAxisSize: MainAxisSize.min,
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Text(
-                programmeInfo.$2 != null
-                    ? programmeInfo.$2!.title
-                    : (widget.channel.name.isNotEmpty
-                        ? widget.channel.name
-                        : widget.channel.id),
-                style: const TextStyle(
-                    color: Colors.white,
-                    decoration: TextDecoration.none,
-                    fontSize: 22),
-                overflow: TextOverflow.ellipsis,
-                maxLines: 1,
+              Row(
+                children: [
+                  Flexible(
+                    child: Text(
+                      programmeInfo.$2 != null
+                          ? programmeInfo.$2!.title
+                          : (widget.channel.name.isNotEmpty
+                              ? widget.channel.name
+                              : widget.channel.id),
+                      style: const TextStyle(
+                          color: Colors.white,
+                          decoration: TextDecoration.none,
+                          fontSize: 22),
+                      overflow: TextOverflow.ellipsis,
+                      maxLines: 1,
+                    ),
+                  ),
+                  const SizedBox(width: 8),
+                  _streamInfoChip(),
+                ],
               ),
               if (programmeInfo.$3 != null)
                 Text(
@@ -237,15 +243,6 @@ class _PlayerActionsWidgetState extends State<PlayerActionsWidget>
       ),
       const SizedBox(width: 8),
       XIconButton(
-        icon: Icons.event_note,
-        onPressed: () {
-          if (widget.onProgramme != null) {
-            widget.onProgramme!();
-          }
-        },
-      ),
-      const SizedBox(width: 8),
-      XIconButton(
         onPressed: () async {
           await widget.onFavorite();
           _updateIsFavorite();
@@ -292,6 +289,39 @@ class _PlayerActionsWidgetState extends State<PlayerActionsWidget>
                   const SizedBox(height: 8),
                 ],
               ),
+      ),
+    );
+  }
+
+  /// 由视频分辨率(取较短边作为"线数")映射清晰度档:4K/1080P/720P/576P/SD。
+  String? _resolutionLabel() {
+    final Size s = widget.controller.value.size;
+    final int lines = (s.width < s.height ? s.width : s.height).round();
+    if (lines <= 0) return null;
+    if (lines >= 2000) return '4K';
+    if (lines >= 1000) return '1080P';
+    if (lines >= 700) return '720P';
+    if (lines >= 500) return '576P';
+    return 'SD';
+  }
+
+  /// 流信息小标签(分辨率;fps 待 fork 透出后再拼上)。
+  Widget _streamInfoChip() {
+    final String? label = _resolutionLabel();
+    if (label == null) return const SizedBox.shrink();
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+      decoration: BoxDecoration(
+        color: Colors.white.withOpacity(0.18),
+        borderRadius: BorderRadius.circular(4),
+      ),
+      child: Text(
+        label,
+        style: const TextStyle(
+            color: Colors.white,
+            fontSize: 11,
+            fontWeight: FontWeight.w600,
+            decoration: TextDecoration.none),
       ),
     );
   }

@@ -323,19 +323,6 @@ class _PlayerScreenState extends State<PlayerScreen>
     );
   }
 
-  void _showProgrammeList(BuildContext context) {
-    final mediaProvider = Provider.of<MediaProvider>(context, listen: false);
-    final programmes =
-        PlaylistUtil.findProgramme(mediaProvider.programmes, _channel.id);
-
-    if (_controlsVisible) {
-      Navigator.of(context).pop();
-    }
-
-    PlayerDialogs.showProgrammeList(
-        context, programmes, (Programme programe) {});
-  }
-
   void _showSourceSwitcher(BuildContext context) {
     if (_controlsVisible) {
       Navigator.of(context).pop();
@@ -407,9 +394,6 @@ class _PlayerScreenState extends State<PlayerScreen>
             channel: _channel,
             onRetryInit: () {
               _initializePlayer();
-            },
-            onProgramme: () {
-              _showProgrammeList(context);
             },
             showChannelSelect: () {
               _showChannelSelectWidget(context);

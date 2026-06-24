@@ -81,4 +81,21 @@ void main() {
             now),
         false);
   });
+
+  test('upcomingProgrammes: now 起的当前+后续, 升序, 过滤已结束, 限 count', () {
+    final now0 = base.add(const Duration(hours: 20)); // 20:00
+    final progs = [
+      _p('c', now0.subtract(const Duration(hours: 2)),
+          now0.subtract(const Duration(hours: 1)), '过去'),
+      _p('c', now0.subtract(const Duration(minutes: 30)),
+          now0.add(const Duration(minutes: 30)), '正在'),
+      _p('c', now0.add(const Duration(minutes: 30)),
+          now0.add(const Duration(hours: 1)), '接着1'),
+      _p('c', now0.add(const Duration(hours: 1)),
+          now0.add(const Duration(hours: 2)), '接着2'),
+      _p('X', now0, now0.add(const Duration(hours: 1)), '别的台'),
+    ];
+    final r = upcomingProgrammes(progs, 'c', now0, count: 2);
+    expect(r.map((p) => p.title).toList(), ['正在', '接着1']);
+  });
 }

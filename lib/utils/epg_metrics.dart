@@ -65,3 +65,13 @@ List<Programme> programmesFor(List<Programme> all, String channelId) {
 /// 是否正在播:start <= now < stop。
 bool isLive(Programme p, DateTime now) =>
     !p.start.isAfter(now) && p.stop.isAfter(now);
+
+/// 某频道从 [now] 起「正在 + 后续」节目(丢弃已结束的),按 start 升序,最多 count 条。
+List<Programme> upcomingProgrammes(List<Programme> all, String channelId,
+    DateTime now,
+    {int count = 8}) {
+  final list = programmesFor(all, channelId)
+      .where((p) => p.stop.isAfter(now))
+      .toList();
+  return list.length > count ? list.sublist(0, count) : list;
+}
