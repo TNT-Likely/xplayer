@@ -56,6 +56,11 @@ class _PlayerScreenState extends State<PlayerScreen>
 
   PlayState _playState = PlayState.idle;
 
+  // 信息浮层
+  Map<String, dynamic> _streamInfo = {}; // 探流结果(结构化:视频/音频编码、解码器、码率…)
+  int? _ttffMs; // 首帧耗时
+  DateTime? _loadStartedAt;
+
   List<Programme> get programmes {
     final mediaProvider = Provider.of<MediaProvider>(context, listen: false);
 
@@ -92,6 +97,9 @@ class _PlayerScreenState extends State<PlayerScreen>
     // 手机随设备方向自动旋转(交还系统,跟随传感器),无需手动按钮。
     SystemChrome.setPreferredOrientations(const []);
 
+    // 渲染模式改变(侧边栏或诊断面板切换)→ 按新模式重建播放器,支持实时 A/B
+    useSurfaceView.addListener(_onRenderModeChanged);
+
     // 首次进入播放页弹一次操作引导(看过后不再弹,可从控制条「帮助」再看)
     WidgetsBinding.instance
         .addPostFrameCallback((_) => _maybeShowOperationHint());
@@ -120,6 +128,7 @@ class _PlayerScreenState extends State<PlayerScreen>
     _bufferingTimer?.cancel();
     autoCloseTimer?.cancel();
     _controller.removeListener(_listenToVideoController);
+    useSurfaceView.removeListener(_onRenderModeChanged);
     WidgetsBinding.instance.removeObserver(this);
     _focusNode.dispose();
     _controller.pause();
@@ -129,6 +138,10 @@ class _PlayerScreenState extends State<PlayerScreen>
     super.dispose();
   }
 
+  void _onRenderModeChanged() {
+    if (mounted) _initializePlayer();
+  }
+
   Future<void> _initializePlayer({bool fresh = true}) async {
     // 本次加载代号:期间若又触发新加载/切台,旧加载的异步回调据此丢弃,避免互相打架
     final token = ++_loadToken;
@@ -136,6 +149,7 @@ class _PlayerScreenState extends State<PlayerScreen>
     _retryTimer?.cancel();
     _bufferingTimer?.cancel();
     _isHandlingBuffering = false;
+    _loadStartedAt = DateTime.now();
 
     if (fresh) {
       // 用户主动加载(首次/切台/换源/手动重试):重置重试计数
@@ -163,9 +177,11 @@ class _PlayerScreenState extends State<PlayerScreen>
     // 播放地址 + 设备端探流(各轨道真实编码)写入日志中心
     LogStore.instance.i('player', '▶ 播放: $_sourceLink');
     const MethodChannel('diag/logcat')
-        .invokeMethod<String>('probeStream', {'url': _sourceLink}).then((t) {
-      if (t != null && t.trim().isNotEmpty) {
-        LogStore.instance.i('probe', '🎵 流轨道:\n${t.trim()}');
+        .invokeMethod<Map>('probeStream', {'url': _sourceLink}).then((m) {
+      if (m != null && mounted) {
+        final info = Map<String, dynamic>.from(m);
+        setState(() => _streamInfo = info);
+        LogStore.instance.i('probe', '🎵 流信息: $info');
       }
     }).catchError((_) => null);
 
@@ -187,6 +203,9 @@ class _PlayerScreenState extends State<PlayerScreen>
         setState(() {
           // 初始化成功后更新状态为 playing
           _playState = PlayState.playing;
+          _ttffMs = _loadStartedAt != null
+              ? DateTime.now().difference(_loadStartedAt!).inMilliseconds
+              : null;
         });
       }).catchError((error) {
         if (token != _loadToken || !mounted) return; // 已被新加载取代,丢弃
@@ -429,6 +448,11 @@ class _PlayerScreenState extends State<PlayerScreen>
               showSourceSwitch: () {
                 _showSourceSwitcher(context);
               },
+              onToggleDiag: () {
+                cancelAutoCloseTimer();
+                Navigator.of(context).pop(); // 关闭操作栏
+                _showStreamInfoSheet(context);
+              },
             ),
           ),
         );
@@ -523,6 +547,151 @@ class _PlayerScreenState extends State<PlayerScreen>
   }
 
   /// 加载/重试中的展示:频道台标 + 名称 + 进度;重试时显示「第 N 次重新加载」。
+  // 信息浮层:右侧滑出(和源选择一致),内容溢出内部滚动;含渲染面即时切换做 A/B。
+  void _showStreamInfoSheet(BuildContext context) {
+    final w = (MediaQuery.of(context).size.width * 0.34).clamp(300.0, 600.0);
+    showGeneralDialog(
+      context: context,
+      barrierLabel: 'StreamInfo',
+      barrierDismissible: true,
+      barrierColor: Colors.transparent,
+      transitionDuration: const Duration(milliseconds: 200),
+      pageBuilder: (_, __, ___) => Align(
+        alignment: Alignment.centerRight,
+        child: Container(
+          width: w,
+          height: MediaQuery.of(context).size.height,
+          color: const Color.fromRGBO(0, 0, 0, 0.85),
+          child: SafeArea(child: _buildStreamInfoContent()),
+        ),
+      ),
+      transitionBuilder: (_, anim, __, child) => SlideTransition(
+        position:
+            Tween(begin: const Offset(1, 0), end: Offset.zero).animate(anim),
+        child: child,
+      ),
+    );
+  }
+
+  Widget _buildStreamInfoContent() {
+    final l = AppLocalizations.of(context)!;
+    final size = _controller.value.isInitialized
+        ? _controller.value.size
+        : Size.zero;
+    final res = size.width > 0
+        ? '${size.width.toInt()}x${size.height.toInt()}'
+        : '—';
+
+    final i = _streamInfo;
+    String fmt(dynamic v) =>
+        (v == null || v == -1 || v == '') ? '—' : v.toString();
+    final theme = Theme.of(context).primaryColor;
+
+    // 视频:分辨率(优先探流的宽高,否则用 controller.size)、编码、码率
+    final vw = i['videoWidth'];
+    final vRes = (vw is int && vw > 0) ? '${vw}x${i['videoHeight']}' : res;
+    final vb = i['videoBitrate'];
+    final vBitrate = (vb is int && vb > 0) ? '${vb ~/ 1000} kbps' : '—';
+    // 音频:编码 + 采样率/声道
+    String audioCodec() {
+      final m = i['audioMime'];
+      if (m == null) return '—';
+      final sr = i['audioSampleRate'];
+      final ch = i['audioChannels'];
+      return [
+        m,
+        if (sr is int && sr > 0) '${sr}Hz',
+        if (ch is int && ch > 0) '${ch}ch',
+      ].join('  ');
+    }
+
+    Widget row(String k, String v) => Padding(
+          padding: const EdgeInsets.symmetric(vertical: 2),
+          child: Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              SizedBox(
+                  width: 92,
+                  child: Text(k,
+                      style: const TextStyle(
+                          color: Colors.white60, fontSize: 12))),
+              Expanded(
+                  child: SelectableText(v,
+                      style: const TextStyle(
+                          color: Colors.white, fontSize: 12))),
+            ],
+          ),
+        );
+    Widget header(String t) => Padding(
+          padding: const EdgeInsets.only(top: 8, bottom: 2),
+          child: Text(t,
+              style: TextStyle(
+                  color: theme, fontSize: 13, fontWeight: FontWeight.bold)),
+        );
+
+    return Material(
+      type: MaterialType.transparency,
+      child: Padding(
+        padding: const EdgeInsets.all(12),
+        child: SingleChildScrollView(
+          child: ValueListenableBuilder<bool>(
+            valueListenable: useSurfaceView,
+            builder: (_, surface, __) => Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Row(
+                  children: [
+                    Text(l.streamInfo,
+                        style: const TextStyle(
+                            color: Colors.white,
+                            fontSize: 15,
+                            fontWeight: FontWeight.bold)),
+                    const Spacer(),
+                    InkWell(
+                      onTap: () => Navigator.of(context).pop(),
+                      child: const Icon(Icons.close,
+                          color: Colors.white70, size: 20),
+                    ),
+                  ],
+                ),
+                const Divider(color: Colors.white24, height: 12),
+                // 基本
+                row(l.infoSource, _sourceLink),
+                row(l.infoRenderSurface,
+                    surface ? 'SurfaceView (HW VPP)' : 'Texture'),
+                row(l.infoActiveDecoder, fmt(i['videoDecoder'])),
+                row(l.infoPlayState, _playState.name),
+                // 视频
+                header(l.secVideo),
+                row(l.infoResolution, vRes),
+                row(l.infoVideoCodec, fmt(i['videoMime'])),
+                row(l.infoBitrate, vBitrate),
+                row(l.infoTtff, _ttffMs != null ? '$_ttffMs ms' : '—'),
+                // 音频
+                header(l.secAudio),
+                row(l.infoAudioCodec, audioCodec()),
+                row(l.infoAudioDecoder, fmt(i['audioDecoder'])),
+                row('FFmpeg', '—'),
+                const SizedBox(height: 6),
+                Text(l.infoTier2Hint,
+                    style: const TextStyle(
+                        color: Colors.white38, fontSize: 10)),
+                const SizedBox(height: 8),
+                ElevatedButton.icon(
+                  onPressed: () => setUseSurfaceView(!surface),
+                  icon: const Icon(Icons.hd, size: 18),
+                  label: Text(surface
+                      ? '${l.infoSwitchRender} → Texture'
+                      : '${l.infoSwitchRender} → SurfaceView'),
+                ),
+              ],
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+
   Widget _buildLoadingView() {
     final l = AppLocalizations.of(context)!;
     final retryAttempt = _retryTimes > 0 ? _retryTimes : _bufferingRetryTimes;

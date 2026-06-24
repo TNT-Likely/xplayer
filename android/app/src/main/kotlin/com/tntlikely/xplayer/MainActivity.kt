@@ -87,34 +87,53 @@ class MainActivity : FlutterActivity() {
     // 设备版 ffprobe:用 MediaExtractor 读流里每条轨道的编码(不解码),
     // 在设备能连到该源时直接拿到 video/audio 的真实 MIME(查"没声音"是哪种音频编码)。
     private fun probeStream(url: String, result: MethodChannel.Result) {
-        val sb = StringBuilder()
+        val info = HashMap<String, Any>()
         var ex: MediaExtractor? = null
         try {
             ex = MediaExtractor()
             ex.setDataSource(url)
-            sb.append("轨道数: ${ex.trackCount}\n")
+            info["trackCount"] = ex.trackCount
             for (i in 0 until ex.trackCount) {
                 val f = ex.getTrackFormat(i)
-                val mime = f.getString(MediaFormat.KEY_MIME) ?: "?"
-                sb.append("  track$i: $mime")
+                val mime = f.getString(MediaFormat.KEY_MIME) ?: continue
                 fun optInt(k: String) =
                     if (f.containsKey(k)) f.getInteger(k) else -1
-                when {
-                    mime.startsWith("audio/") -> sb.append(
-                        "  ${optInt(MediaFormat.KEY_SAMPLE_RATE)}Hz ${optInt(MediaFormat.KEY_CHANNEL_COUNT)}ch")
-                    mime.startsWith("video/") -> sb.append(
-                        "  ${optInt(MediaFormat.KEY_WIDTH)}x${optInt(MediaFormat.KEY_HEIGHT)}")
+                if (mime.startsWith("video/") && !info.containsKey("videoMime")) {
+                    info["videoMime"] = mime
+                    info["videoWidth"] = optInt(MediaFormat.KEY_WIDTH)
+                    info["videoHeight"] = optInt(MediaFormat.KEY_HEIGHT)
+                    info["videoBitrate"] = optInt(MediaFormat.KEY_BIT_RATE)
+                    info["videoDecoder"] = defaultDecoderName(mime)
+                } else if (mime.startsWith("audio/") &&
+                    !info.containsKey("audioMime")) {
+                    info["audioMime"] = mime
+                    info["audioSampleRate"] = optInt(MediaFormat.KEY_SAMPLE_RATE)
+                    info["audioChannels"] = optInt(MediaFormat.KEY_CHANNEL_COUNT)
+                    info["audioBitrate"] = optInt(MediaFormat.KEY_BIT_RATE)
+                    info["audioDecoder"] = defaultDecoderName(mime)
                 }
-                sb.append("\n")
             }
         } catch (e: Exception) {
-            sb.append("探测失败: ${e.message}\n")
+            info["error"] = e.message ?: "probe failed"
         } finally {
             try { ex?.release() } catch (_: Exception) {}
         }
-        val out = sb.toString()
-        MediaLogBuffer.add("D", "probe", out, null)
-        runOnUiThread { result.success(out) }
+        MediaLogBuffer.add("D", "probe", "探流: $info", null)
+        runOnUiThread { result.success(info) }
+    }
+
+    // 给定 MIME 返回系统默认解码器名 + HW/SW(≈活动解码器代理)
+    private fun defaultDecoderName(mime: String): String {
+        return try {
+            val codec = MediaCodec.createDecoderByType(mime)
+            val name = codec.name
+            codec.release()
+            val hw = !(name.startsWith("OMX.google", true) ||
+                name.startsWith("c2.android", true))
+            "$name ${if (hw) "[HW]" else "[SW]"}"
+        } catch (e: Exception) {
+            "—"
+        }
     }
 
     // 不需任何权限:枚举 MediaCodec 解码器,判定常见视频编码是否有硬件解码器。

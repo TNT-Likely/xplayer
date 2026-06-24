@@ -31,6 +31,7 @@ class PlayerActionsWidget extends StatefulWidget {
   final VoidCallback? showChannelSelect;
   final VoidCallback? onRetryInit;
   final VoidCallback? showSourceSwitch;
+  final VoidCallback? onToggleDiag;
 
   const PlayerActionsWidget(
       {Key? key,
@@ -42,7 +43,8 @@ class PlayerActionsWidget extends StatefulWidget {
       this.onFocusChange,
       this.showChannelSelect,
       this.onRetryInit,
-      this.showSourceSwitch})
+      this.showSourceSwitch,
+      this.onToggleDiag})
       : super(key: key);
 
   @override
@@ -258,6 +260,15 @@ class _PlayerActionsWidgetState extends State<PlayerActionsWidget>
         onPressed: () {
           if (widget.showSourceSwitch != null) {
             widget.showSourceSwitch!();
+          }
+        },
+      ),
+      const SizedBox(width: 8),
+      XIconButton(
+        icon: Icons.info_outline,
+        onPressed: () {
+          if (widget.onToggleDiag != null) {
+            widget.onToggleDiag!();
           }
         },
       ),
