@@ -350,9 +350,8 @@ class _PlayerScreenState extends State<PlayerScreen>
 
     Logger.debug('开启定时器');
 
-    setState(() {
-      _controlsVisible = true;
-    });
+    // 仅逻辑标记,build() 不读它 —— 不用 setState,避免控制条弹出时整页重建/视频闪一下
+    _controlsVisible = true;
 
     showGeneralDialog(
       context: context,
@@ -412,9 +411,8 @@ class _PlayerScreenState extends State<PlayerScreen>
       },
     ).then((value) {
       cancelAutoCloseTimer();
-      setState(() {
-        _controlsVisible = false;
-      });
+      // 同上:不 setState,关闭控制条时不触发整页重建
+      _controlsVisible = false;
     });
   }
 
