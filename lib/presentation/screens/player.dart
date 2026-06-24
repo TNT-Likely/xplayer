@@ -87,6 +87,9 @@ class _PlayerScreenState extends State<PlayerScreen>
     _initializePlayer();
     _focusNode.requestFocus();
 
+    // 手机随设备方向自动旋转(交还系统,跟随传感器),无需手动按钮。
+    SystemChrome.setPreferredOrientations(const []);
+
     // 首次进入播放页弹一次操作引导(看过后不再弹,可从控制条「帮助」再看)
     WidgetsBinding.instance
         .addPostFrameCallback((_) => _maybeShowOperationHint());
@@ -119,6 +122,8 @@ class _PlayerScreenState extends State<PlayerScreen>
     _focusNode.dispose();
     _controller.pause();
     _controller.dispose();
+    // 离开播放页恢复自动旋转,避免播放页设的朝向锁定带到其它页面
+    SystemChrome.setPreferredOrientations(const []);
     super.dispose();
   }
 
@@ -361,46 +366,50 @@ class _PlayerScreenState extends State<PlayerScreen>
         final mediaProvider =
             Provider.of<MediaProvider>(context, listen: false);
 
-        return SlideTransition(
-          position: Tween(begin: const Offset(0, 1), end: const Offset(0, 0))
-              .animate(animation),
-          child: PlayerActionsWidget(
-            onFavorite: () async {
-              if (await mediaProvider.isFavorite(_channel)) {
-                await mediaProvider.removeFavorite(_channel);
-                showToast(AppLocalizations.of(context)!.removedFromFavorites);
-              } else {
-                await mediaProvider.addFavorite(_channel);
-                showToast(AppLocalizations.of(context)!.addedToFavorites);
-              }
-            },
-            onFocusChange: () {
-              // 有交互(如遥控器移动焦点)就重置倒计时,停手 5 秒后再自动收起
-              _startAutoCloseTimer();
-            },
-            onPlayPause: (isPlaying) {
-              if (isPlaying) {
-                setState(() {
-                  _playState = PlayState.playing;
-                });
-              } else {
-                setState(() {
-                  _playState = PlayState.paused;
-                });
-              }
-            },
-            controller: _controller,
-            favoriteChannels: widget.favoriteChannels,
-            channel: _channel,
-            onRetryInit: () {
-              _initializePlayer();
-            },
-            showChannelSelect: () {
-              _showChannelSelectWidget(context);
-            },
-            showSourceSwitch: () {
-              _showSourceSwitcher(context);
-            },
+        return FadeTransition(
+          opacity: animation,
+          child: SlideTransition(
+            position: Tween(begin: const Offset(0, 1), end: const Offset(0, 0))
+                .animate(CurvedAnimation(
+                    parent: animation, curve: Curves.easeOutCubic)),
+            child: PlayerActionsWidget(
+              onFavorite: () async {
+                if (await mediaProvider.isFavorite(_channel)) {
+                  await mediaProvider.removeFavorite(_channel);
+                  showToast(AppLocalizations.of(context)!.removedFromFavorites);
+                } else {
+                  await mediaProvider.addFavorite(_channel);
+                  showToast(AppLocalizations.of(context)!.addedToFavorites);
+                }
+              },
+              onFocusChange: () {
+                // 有交互(如遥控器移动焦点)就重置倒计时,停手 5 秒后再自动收起
+                _startAutoCloseTimer();
+              },
+              onPlayPause: (isPlaying) {
+                if (isPlaying) {
+                  setState(() {
+                    _playState = PlayState.playing;
+                  });
+                } else {
+                  setState(() {
+                    _playState = PlayState.paused;
+                  });
+                }
+              },
+              controller: _controller,
+              favoriteChannels: widget.favoriteChannels,
+              channel: _channel,
+              onRetryInit: () {
+                _initializePlayer();
+              },
+              showChannelSelect: () {
+                _showChannelSelectWidget(context);
+              },
+              showSourceSwitch: () {
+                _showSourceSwitcher(context);
+              },
+            ),
           ),
         );
       },
@@ -581,75 +590,75 @@ class _PlayerScreenState extends State<PlayerScreen>
                 child: Stack(
                   fit: StackFit.loose,
                   children: [
-                if (_playState == PlayState.failed)
-                  Center(
-                    child: Column(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        const Icon(
-                          Icons.cloud_off,
-                          color: Colors.white,
-                          size: 80,
-                        ),
-                        const SizedBox(height: 12),
-                        Text(
-                          AppLocalizations.of(context)!.loadingFailed,
-                          style: const TextStyle(
-                              color: Colors.white, fontSize: 16),
-                        ),
-                        const SizedBox(height: 20),
-                        Row(
+                    if (_playState == PlayState.failed)
+                      Center(
+                        child: Column(
                           mainAxisAlignment: MainAxisAlignment.center,
                           children: [
-                            XTextButton(
-                              text: AppLocalizations.of(context)!.retry,
-                              type: XTextButtonType.primary,
-                              onPressed: () {
-                                _initializePlayer();
-                              },
+                            const Icon(
+                              Icons.cloud_off,
+                              color: Colors.white,
+                              size: 80,
                             ),
-                            const SizedBox(width: 16),
-                            XTextButton(
-                              text: AppLocalizations.of(context)!.back,
-                              onPressed: () => Navigator.of(context).pop(),
+                            const SizedBox(height: 12),
+                            Text(
+                              AppLocalizations.of(context)!.loadingFailed,
+                              style: const TextStyle(
+                                  color: Colors.white, fontSize: 16),
+                            ),
+                            const SizedBox(height: 20),
+                            Row(
+                              mainAxisAlignment: MainAxisAlignment.center,
+                              children: [
+                                XTextButton(
+                                  text: AppLocalizations.of(context)!.retry,
+                                  type: XTextButtonType.primary,
+                                  onPressed: () {
+                                    _initializePlayer();
+                                  },
+                                ),
+                                const SizedBox(width: 16),
+                                XTextButton(
+                                  text: AppLocalizations.of(context)!.back,
+                                  onPressed: () => Navigator.of(context).pop(),
+                                ),
+                              ],
                             ),
                           ],
                         ),
-                      ],
-                    ),
-                  )
-                else if (_playState == PlayState.loading ||
-                    _playState == PlayState.retrying)
-                  _buildLoadingView()
-                else if (_controller.value.isInitialized &&
-                    _controller.value.aspectRatio > 0)
-                  AspectRatio(
-                    aspectRatio: _controller.value.aspectRatio,
-                    child: VideoPlayer(_controller),
-                  )
-                else
-                  // 控制器尚未就绪时显示加载,避免渲染未初始化播放器导致黑屏空白
-                  _buildLoadingView(),
-                if (_playState == PlayState.buffering)
-                  Positioned.fill(
-                    child: Center(
-                      child: Column(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: [
-                          const CircularProgressIndicator(
-                            color: Colors.white,
+                      )
+                    else if (_playState == PlayState.loading ||
+                        _playState == PlayState.retrying)
+                      _buildLoadingView()
+                    else if (_controller.value.isInitialized &&
+                        _controller.value.aspectRatio > 0)
+                      AspectRatio(
+                        aspectRatio: _controller.value.aspectRatio,
+                        child: VideoPlayer(_controller),
+                      )
+                    else
+                      // 控制器尚未就绪时显示加载,避免渲染未初始化播放器导致黑屏空白
+                      _buildLoadingView(),
+                    if (_playState == PlayState.buffering)
+                      Positioned.fill(
+                        child: Center(
+                          child: Column(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: [
+                              const CircularProgressIndicator(
+                                color: Colors.white,
+                              ),
+                              Text(
+                                AppLocalizations.of(context)!.buffering,
+                                style: const TextStyle(color: Colors.white),
+                              ),
+                            ],
                           ),
-                          Text(
-                            AppLocalizations.of(context)!.buffering,
-                            style: const TextStyle(color: Colors.white),
-                          ),
-                        ],
+                        ),
                       ),
-                    ),
-                  ),
-                ],
+                  ],
+                ),
               ),
-            ),
             ],
           ),
         ),

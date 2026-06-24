@@ -3,6 +3,7 @@ import 'dart:math';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
+import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
 import 'package:video_player/video_player.dart';
 import 'package:xplayer/data/models/channel_model.dart';
@@ -12,11 +13,13 @@ import 'package:xplayer/shared/components/x_base_button.dart';
 import 'package:xplayer/shared/components/x_icon_button.dart';
 import 'package:xplayer/providers/media_provider.dart';
 import 'package:xplayer/utils/playlist_util.dart';
-import 'package:flutter/services.dart';
 
 // 定义回调函数类型
 typedef PlayPauseCallback = void Function(bool isPlaying);
 typedef FavoriteCallback = Future<void> Function();
+
+/// 朝向模式:自动跟随设备 / 锁定竖屏 / 锁定横屏(锁定即使系统开了自动旋转也生效)。
+enum _OrientMode { auto, portrait, landscape }
 
 class PlayerActionsWidget extends StatefulWidget {
   final VideoPlayerController controller;
@@ -50,7 +53,7 @@ class _PlayerActionsWidgetState extends State<PlayerActionsWidget>
     with TickerProviderStateMixin {
   late bool _isPlaying;
   bool _isFavorite = false;
-  bool isPortrait = true;
+  _OrientMode _orientMode = _OrientMode.auto;
   late final AnimationController controller = AnimationController(
     duration: const Duration(milliseconds: 500),
     vsync: this,
@@ -108,25 +111,6 @@ class _PlayerActionsWidgetState extends State<PlayerActionsWidget>
     });
   }
 
-  void toggleOrientation() {
-    setState(() {
-      isPortrait = !isPortrait;
-      if (isPortrait) {
-        // 切换到竖屏
-        SystemChrome.setPreferredOrientations([
-          DeviceOrientation.portraitUp,
-          DeviceOrientation.portraitDown,
-        ]);
-      } else {
-        // 切换到横屏
-        SystemChrome.setPreferredOrientations([
-          DeviceOrientation.landscapeLeft,
-          DeviceOrientation.landscapeRight,
-        ]);
-      }
-    });
-  }
-
   void _handlePlayPause() {
     if (_isPlaying) {
       widget.controller.pause();
@@ -134,6 +118,42 @@ class _PlayerActionsWidgetState extends State<PlayerActionsWidget>
       widget.controller.play();
     }
     widget.onPlayPause(_isPlaying);
+  }
+
+  // 朝向按钮:循环 自动 → 锁竖屏 → 锁横屏 → 自动。
+  // 自动=交还系统跟随传感器;锁定=钉到单一朝向(覆盖系统的自动旋转)。
+  void _cycleOrientation() {
+    setState(() {
+      _orientMode = _OrientMode.values[(_orientMode.index + 1) % 3];
+    });
+    switch (_orientMode) {
+      case _OrientMode.auto:
+        SystemChrome.setPreferredOrientations(const []);
+        break;
+      case _OrientMode.portrait:
+        SystemChrome.setPreferredOrientations(const [
+          DeviceOrientation.portraitUp,
+          DeviceOrientation.portraitDown,
+        ]);
+        break;
+      case _OrientMode.landscape:
+        SystemChrome.setPreferredOrientations(const [
+          DeviceOrientation.landscapeLeft,
+          DeviceOrientation.landscapeRight,
+        ]);
+        break;
+    }
+  }
+
+  IconData get _orientIcon {
+    switch (_orientMode) {
+      case _OrientMode.auto:
+        return Icons.screen_rotation; // 自动旋转
+      case _OrientMode.portrait:
+        return Icons.screen_lock_portrait; // 锁定竖屏
+      case _OrientMode.landscape:
+        return Icons.screen_lock_landscape; // 锁定横屏
+    }
   }
 
   @override
@@ -253,8 +273,8 @@ class _PlayerActionsWidgetState extends State<PlayerActionsWidget>
       if (isMobile) const SizedBox(width: 8),
       if (isMobile)
         XIconButton(
-          icon: isPortrait ? Icons.fullscreen : Icons.fullscreen_exit,
-          onPressed: toggleOrientation,
+          icon: _orientIcon,
+          onPressed: _cycleOrientation,
         ),
     ];
 

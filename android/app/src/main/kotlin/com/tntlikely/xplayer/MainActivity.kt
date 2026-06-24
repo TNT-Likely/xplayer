@@ -1,5 +1,6 @@
 package com.tntlikely.xplayer
 
+import android.media.MediaCodec
 import android.media.MediaCodecList
 import android.os.Build
 import androidx.media3.common.util.Log as Media3Log
@@ -17,6 +18,21 @@ class MainActivity : FlutterActivity() {
         // 提升 Media3(video_player 底层 ExoPlayer)日志级别,诊断时多透出内部 debug
         // (格式切换、解码器复用/回退、丢帧、缓冲原因等)。系统级 ACodec/MediaCodec 日志不受此影响,始终有。
         Media3Log.setLogLevel(Media3Log.LOG_LEVEL_ALL)
+        // 用自定义 logger 把 ExoPlayer 日志截获到应用内缓冲区:进程内,不依赖 logcat,
+        // 故电视(读不到 logcat)上也能看到 ExoPlayer 内部日志。
+        Media3Log.setLogger(object : Media3Log.Logger {
+            override fun d(tag: String, message: String, t: Throwable?) =
+                MediaLogBuffer.add("D", tag, message, t)
+
+            override fun i(tag: String, message: String, t: Throwable?) =
+                MediaLogBuffer.add("I", tag, message, t)
+
+            override fun w(tag: String, message: String, t: Throwable?) =
+                MediaLogBuffer.add("W", tag, message, t)
+
+            override fun e(tag: String, message: String, t: Throwable?) =
+                MediaLogBuffer.add("E", tag, message, t)
+        })
         MethodChannel(flutterEngine.dartExecutor.binaryMessenger, diagChannel)
             .setMethodCallHandler { call, result ->
                 when (call.method) {
@@ -34,6 +50,7 @@ class MainActivity : FlutterActivity() {
                             result.error("CODEC_ERR", e.message, null)
                         }
                     }
+                    "getAppLog" -> result.success(MediaLogBuffer.dump())
                     else -> result.notImplemented()
                 }
             }
@@ -113,6 +130,11 @@ class MainActivity : FlutterActivity() {
         sb.append("  → 有硬解时 ExoPlayer 默认就走硬解;若画面仍模糊/卡顿,\n")
         sb.append("    多半是渲染路径(Flutter 纹理绕过显示引擎 VPP)或直播源本身,\n")
         sb.append("    而非\"没有硬解能力\"。若这里显示 ❌ 仅软解,才是硬解缺失的实锤。\n\n")
+        sb.append("【系统默认选中(= 播放器默认会用的那个)】\n")
+        sb.append(defaultDecoderLine("video/avc", "H.264"))
+        sb.append(defaultDecoderLine("video/hevc", "H.265"))
+        sb.append("  (createDecoderByType 返回默认解码器,ExoPlayer 默认选择逻辑与此一致;\n")
+        sb.append("   电视读不到 logcat 时,这是\"播放实际用哪个解码器\"最接近的判断)\n\n")
         sb.append("【图例】[HW]=厂商硬件解码器(如 c2.qti./OMX.qcom./OMX.MTK./c2.amlogic.)\n")
         sb.append("        [SW]=系统软件解码器(c2.android./OMX.google.,CPU 解码,无 VPP/锐化)\n")
         sb.append("        .secure=DRM 加密流  .low_latency=低延迟  max=最大支持分辨率\n\n")
@@ -120,4 +142,36 @@ class MainActivity : FlutterActivity() {
         sb.append(detail)
         return sb.toString()
     }
+
+    // 系统默认会把哪个解码器交给播放器:createDecoderByType 返回默认选中的那个。
+    // ExoPlayer 默认选择逻辑与此一致,故无 logcat 时这是"实际用哪个"最接近的判断。
+    private fun defaultDecoderLine(mime: String, label: String): String {
+        return try {
+            val codec = MediaCodec.createDecoderByType(mime)
+            val name = codec.name
+            codec.release()
+            val hw = !(name.startsWith("OMX.google", true) ||
+                name.startsWith("c2.android", true))
+            "  $label: $name  [${if (hw) "HW 硬件" else "SW 软件"}]\n"
+        } catch (e: Exception) {
+            "  $label: 探测失败(${e.message})\n"
+        }
+    }
+}
+
+// ExoPlayer(Media3)日志的应用内环形缓冲:进程内截获,不依赖 logcat(电视也能看)。
+object MediaLogBuffer {
+    private const val MAX = 3000
+    private val lines = ArrayDeque<String>()
+
+    @Synchronized
+    fun add(level: String, tag: String, message: String, t: Throwable?) {
+        lines.addLast("$level/$tag: $message" + if (t != null) "  ${t.message}" else "")
+        while (lines.size > MAX) lines.removeFirst()
+    }
+
+    @Synchronized
+    fun dump(): String =
+        if (lines.isEmpty()) "(暂无 ExoPlayer 日志;播放一下再回来刷新)"
+        else lines.joinToString("\n")
 }
