@@ -3,6 +3,7 @@ import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_gen/gen_l10n/app_localizations.dart';
+import 'package:xplayer/utils/toast.dart';
 
 /// 诊断日志中心:
 /// - 原生 `diag/logcat` 通道读取本应用 logcat(含 MediaCodec 解码器行等)。
@@ -21,6 +22,7 @@ class _DiagLogScreenState extends State<DiagLogScreen> {
   static const int _port = 8099;
 
   String _logs = '';
+  String _codecs = '';
   String _filter = '';
   HttpServer? _server;
   String _exportInfo = '局域网导出:启动中…';
@@ -28,8 +30,18 @@ class _DiagLogScreenState extends State<DiagLogScreen> {
   @override
   void initState() {
     super.initState();
+    _probeCodecs();
     _refresh();
     _startServer();
+  }
+
+  Future<void> _probeCodecs() async {
+    try {
+      final s = await _channel.invokeMethod<String>('getCodecs') ?? '';
+      if (mounted) setState(() => _codecs = s);
+    } catch (e) {
+      if (mounted) setState(() => _codecs = '解码器探测失败:$e');
+    }
   }
 
   Future<String> _fetchLogcat() async {
@@ -47,11 +59,44 @@ class _DiagLogScreenState extends State<DiagLogScreen> {
     if (mounted) setState(() => _logs = s);
   }
 
+  // 从 logcat 提取本次播放实际使用的视频解码器(ACodec/Codec2 行),并判定硬/软解。
+  // 仅匹配视频解码器(含 video 或视频编码名),避开 c2.android.aac.decoder 这类音频。
+  static final RegExp _decoderRe = RegExp(
+    r'OMX\.[A-Za-z0-9]+\.video\.decoder\.[A-Za-z0-9.]+'
+    r'|c2\.[A-Za-z0-9]+\.(?:avc|hevc|h264|h265|mpeg2|mpeg4|vp8|vp9|av01|av1)\.decoder(?:\.[A-Za-z0-9_]+)?',
+    caseSensitive: false,
+  );
+
+  String _detectedDecoder(String logs) {
+    String? name;
+    for (final m in _decoderRe.allMatches(logs)) {
+      name = m.group(0); // 取最后一个(日志时间正序,最新即当前)
+    }
+    if (name == null) {
+      return '◆ 本次实际解码器: 未从日志提取到(logcat 不可读 或 尚未播放;见下方能力探测)';
+    }
+    final lower = name.toLowerCase();
+    final isSw = lower.startsWith('omx.google') || lower.startsWith('c2.android');
+    return '◆ 本次实际解码器: $name  [${isSw ? "SW 软件解码" : "HW 硬件解码"}]';
+  }
+
+  // 实际解码器 + 解码器能力 + 日志的完整文本(复制全部 与 HTTP 导出共用)。
+  String _composed(String logcat) =>
+      '${_detectedDecoder(logcat)}\n\n'
+      '===== 解码器能力 (MediaCodec) =====\n\n$_codecs\n'
+      '===== LOGCAT =====\n\n$logcat';
+
+  void _copyAll() {
+    Clipboard.setData(ClipboardData(text: _composed(_logs)));
+    showToast('已复制全部(含解码器探测 + 日志)');
+  }
+
   Future<void> _startServer() async {
     try {
       _server = await HttpServer.bind(InternetAddress.anyIPv4, _port, shared: true);
       _server!.listen((HttpRequest req) async {
-        final body = await _fetchLogcat();
+        final logcat = await _fetchLogcat();
+        final body = _composed(logcat);
         req.response
           ..headers.contentType = ContentType.text
           ..write(body);
@@ -89,10 +134,13 @@ class _DiagLogScreenState extends State<DiagLogScreen> {
 
   @override
   Widget build(BuildContext context) {
+    // 倒序:最新日志在最上面,不用滚到底。
     final lines = _logs
         .split('\n')
         .where((l) =>
             _filter.isEmpty || l.toLowerCase().contains(_filter.toLowerCase()))
+        .toList()
+        .reversed
         .toList();
     return Scaffold(
       backgroundColor: const Color.fromARGB(255, 18, 18, 18),
@@ -106,7 +154,7 @@ class _DiagLogScreenState extends State<DiagLogScreen> {
           IconButton(
             icon: const Icon(Icons.copy, color: Colors.white),
             tooltip: '复制全部',
-            onPressed: () => Clipboard.setData(ClipboardData(text: _logs)),
+            onPressed: _copyAll,
           ),
           IconButton(
             icon: const Icon(Icons.refresh, color: Colors.white),
@@ -124,6 +172,39 @@ class _DiagLogScreenState extends State<DiagLogScreen> {
             child: SelectableText(
               _exportInfo,
               style: const TextStyle(color: Colors.greenAccent, fontSize: 13),
+            ),
+          ),
+          Container(
+            width: double.infinity,
+            constraints: const BoxConstraints(maxHeight: 240),
+            margin: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+            padding: const EdgeInsets.all(8),
+            decoration: BoxDecoration(
+              color: Colors.black26,
+              borderRadius: BorderRadius.circular(6),
+            ),
+            child: SingleChildScrollView(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  SelectableText(
+                    _detectedDecoder(_logs),
+                    style: const TextStyle(
+                        color: Colors.amberAccent,
+                        fontSize: 13,
+                        fontWeight: FontWeight.bold,
+                        fontFamily: 'monospace'),
+                  ),
+                  const Divider(color: Colors.white24, height: 14),
+                  SelectableText(
+                    _codecs.isEmpty ? '解码器探测中…' : _codecs,
+                    style: const TextStyle(
+                        color: Colors.white,
+                        fontSize: 12,
+                        fontFamily: 'monospace'),
+                  ),
+                ],
+              ),
             ),
           ),
           Padding(
