@@ -73,7 +73,7 @@ class _DiagLogScreenState extends State<DiagLogScreen> {
       name = m.group(0); // 取最后一个(日志时间正序,最新即当前)
     }
     if (name == null) {
-      return '◆ 本次实际解码器: 未从日志提取到(logcat 不可读 或 尚未播放;见下方能力探测)';
+      return '◆ 本次实际解码器: 未从日志提取到(电视等 logcat 不可读;改看下方「系统默认选中」)';
     }
     final lower = name.toLowerCase();
     final isSw = lower.startsWith('omx.google') || lower.startsWith('c2.android');

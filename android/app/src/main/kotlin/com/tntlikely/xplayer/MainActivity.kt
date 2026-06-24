@@ -1,5 +1,6 @@
 package com.tntlikely.xplayer
 
+import android.media.MediaCodec
 import android.media.MediaCodecList
 import android.os.Build
 import androidx.media3.common.util.Log as Media3Log
@@ -113,11 +114,31 @@ class MainActivity : FlutterActivity() {
         sb.append("  → 有硬解时 ExoPlayer 默认就走硬解;若画面仍模糊/卡顿,\n")
         sb.append("    多半是渲染路径(Flutter 纹理绕过显示引擎 VPP)或直播源本身,\n")
         sb.append("    而非\"没有硬解能力\"。若这里显示 ❌ 仅软解,才是硬解缺失的实锤。\n\n")
+        sb.append("【系统默认选中(= 播放器默认会用的那个)】\n")
+        sb.append(defaultDecoderLine("video/avc", "H.264"))
+        sb.append(defaultDecoderLine("video/hevc", "H.265"))
+        sb.append("  (createDecoderByType 返回默认解码器,ExoPlayer 默认选择逻辑与此一致;\n")
+        sb.append("   电视读不到 logcat 时,这是\"播放实际用哪个解码器\"最接近的判断)\n\n")
         sb.append("【图例】[HW]=厂商硬件解码器(如 c2.qti./OMX.qcom./OMX.MTK./c2.amlogic.)\n")
         sb.append("        [SW]=系统软件解码器(c2.android./OMX.google.,CPU 解码,无 VPP/锐化)\n")
         sb.append("        .secure=DRM 加密流  .low_latency=低延迟  max=最大支持分辨率\n\n")
         sb.append("----- 详细列表 -----\n\n")
         sb.append(detail)
         return sb.toString()
+    }
+
+    // 系统默认会把哪个解码器交给播放器:createDecoderByType 返回默认选中的那个。
+    // ExoPlayer 默认选择逻辑与此一致,故无 logcat 时这是"实际用哪个"最接近的判断。
+    private fun defaultDecoderLine(mime: String, label: String): String {
+        return try {
+            val codec = MediaCodec.createDecoderByType(mime)
+            val name = codec.name
+            codec.release()
+            val hw = !(name.startsWith("OMX.google", true) ||
+                name.startsWith("c2.android", true))
+            "  $label: $name  [${if (hw) "HW 硬件" else "SW 软件"}]\n"
+        } catch (e: Exception) {
+            "  $label: 探测失败(${e.message})\n"
+        }
     }
 }
