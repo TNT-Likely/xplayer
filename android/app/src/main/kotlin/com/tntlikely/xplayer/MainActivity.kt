@@ -51,6 +51,11 @@ class MainActivity : FlutterActivity() {
                         }
                     }
                     "getAppLog" -> result.success(MediaLogBuffer.dump())
+                    "appLog" -> {
+                        MediaLogBuffer.add(
+                            "D", "app", call.argument<String>("msg") ?: "", null)
+                        result.success(null)
+                    }
                     else -> result.notImplemented()
                 }
             }

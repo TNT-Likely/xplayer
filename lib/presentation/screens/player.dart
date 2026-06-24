@@ -156,6 +156,12 @@ class _PlayerScreenState extends State<PlayerScreen>
       _playState = PlayState.loading;
     });
 
+    // 打印本次播放地址:进 logcat,同时推到诊断中心的「ExoPlayer 应用内日志」(电视也能看)
+    Logger.debug('▶ 播放地址: $_sourceLink');
+    const MethodChannel('diag/logcat')
+        .invokeMethod('appLog', {'msg': '▶ 播放: $_sourceLink'}).catchError(
+            (_) => null);
+
     try {
       _controller = VideoPlayerController.networkUrl(Uri.parse(_sourceLink),
           videoPlayerOptions: VideoPlayerOptions(mixWithOthers: true));
