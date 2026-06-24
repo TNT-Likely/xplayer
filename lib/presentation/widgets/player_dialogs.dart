@@ -3,7 +3,7 @@ import 'dart:math';
 import 'package:flutter/material.dart';
 import 'package:xplayer/data/models/channel_model.dart';
 import 'package:xplayer/data/models/programme_model.dart';
-import 'package:xplayer/presentation/widgets/channel_select_list_widget.dart';
+import 'package:xplayer/presentation/widgets/channel_selector_widget.dart';
 import 'package:xplayer/presentation/widgets/channel_source_widget.dart';
 import 'package:xplayer/presentation/widgets/programme_list_widget.dart';
 
@@ -14,26 +14,28 @@ class PlayerDialogs {
     Channel selectedChannel,
     Function(Channel) onSelected,
   ) {
+    final bool wide = MediaQuery.of(context).size.width >= 720;
     showGeneralDialog(
       context: context,
       barrierLabel: "Barrier",
       barrierDismissible: true,
-      barrierColor: Colors.transparent,
+      barrierColor: Colors.black.withOpacity(0.25),
       transitionDuration: const Duration(milliseconds: 200),
-      pageBuilder: (_, __, ___) {
+      pageBuilder: (dialogCtx, __, ___) {
         return Align(
-          alignment: Alignment.centerLeft,
+          alignment: wide ? Alignment.center : Alignment.centerLeft,
           child: Container(
-            width: max(200, MediaQuery.of(context).size.width * 0.3),
-            height: MediaQuery.of(context).size.height * 1.0,
-            decoration: BoxDecoration(
-              color: const Color.fromRGBO(0, 0, 0, 0.3),
-              borderRadius: BorderRadius.circular(16.0),
-            ),
-            child: ChannelSelectListWidget(
-              channels: channels,
+            width: wide
+                ? MediaQuery.of(context).size.width * 0.9
+                : max(280, MediaQuery.of(context).size.width * 0.85),
+            height: MediaQuery.of(context).size.height,
+            color: const Color.fromRGBO(0, 0, 0, 0.55),
+            child: ChannelSelectorWidget(
               currentChannel: selectedChannel,
-              onSelected: onSelected,
+              onSelected: (c) {
+                Navigator.of(dialogCtx).pop(); // 点台即关
+                onSelected(c);
+              },
             ),
           ),
         );
