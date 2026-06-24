@@ -87,7 +87,7 @@ class _PlayerScreenState extends State<PlayerScreen>
     _initializePlayer();
     _focusNode.requestFocus();
 
-    // 默认允许自动旋转(跟随设备传感器);锁定交给操作栏的锁定按钮。
+    // 手机随设备方向自动旋转(交还系统,跟随传感器),无需手动按钮。
     SystemChrome.setPreferredOrientations(const []);
 
     // 首次进入播放页弹一次操作引导(看过后不再弹,可从控制条「帮助」再看)
@@ -122,8 +122,6 @@ class _PlayerScreenState extends State<PlayerScreen>
     _focusNode.dispose();
     _controller.pause();
     _controller.dispose();
-    // 离开播放页清掉可能残留的朝向锁定,交还系统默认
-    SystemChrome.setPreferredOrientations(const []);
     super.dispose();
   }
 

@@ -7,12 +7,10 @@ import 'package:provider/provider.dart';
 import 'package:video_player/video_player.dart';
 import 'package:xplayer/data/models/channel_model.dart';
 import 'package:xplayer/data/models/programme_model.dart';
-import 'package:xplayer/providers/global_provider.dart';
 import 'package:xplayer/shared/components/x_base_button.dart';
 import 'package:xplayer/shared/components/x_icon_button.dart';
 import 'package:xplayer/providers/media_provider.dart';
 import 'package:xplayer/utils/playlist_util.dart';
-import 'package:flutter/services.dart';
 
 // 定义回调函数类型
 typedef PlayPauseCallback = void Function(bool isPlaying);
@@ -50,7 +48,6 @@ class _PlayerActionsWidgetState extends State<PlayerActionsWidget>
     with TickerProviderStateMixin {
   late bool _isPlaying;
   bool _isFavorite = false;
-  bool _orientationLocked = false; // false=自动跟随设备旋转, true=锁定当前朝向
   late final AnimationController controller = AnimationController(
     duration: const Duration(milliseconds: 500),
     vsync: this,
@@ -108,24 +105,6 @@ class _PlayerActionsWidgetState extends State<PlayerActionsWidget>
     });
   }
 
-  void _toggleOrientationLock() {
-    setState(() => _orientationLocked = !_orientationLocked);
-    if (_orientationLocked) {
-      // 锁定到当前朝向
-      final portraitNow =
-          MediaQuery.of(context).orientation == Orientation.portrait;
-      SystemChrome.setPreferredOrientations(portraitNow
-          ? const [DeviceOrientation.portraitUp, DeviceOrientation.portraitDown]
-          : const [
-              DeviceOrientation.landscapeLeft,
-              DeviceOrientation.landscapeRight
-            ]);
-    } else {
-      // 解锁:交还系统,跟随设备传感器自动旋转
-      SystemChrome.setPreferredOrientations(const []);
-    }
-  }
-
   void _handlePlayPause() {
     if (_isPlaying) {
       widget.controller.pause();
@@ -143,8 +122,6 @@ class _PlayerActionsWidgetState extends State<PlayerActionsWidget>
           color: Colors.white, fontSize: 50, decoration: TextDecoration.none),
     );
 
-    final globalProvider = Provider.of<GlobalProvider>(context, listen: false);
-    final isMobile = globalProvider.isMobile;
     // 宽屏(平板/TV/横屏):右侧空间富余,按钮组放到右边;
     // 窄屏(手机竖屏):按钮另起一行左对齐。
     final wide = MediaQuery.of(context).size.width >= 600;
@@ -249,14 +226,6 @@ class _PlayerActionsWidgetState extends State<PlayerActionsWidget>
         iconColor: _isFavorite ? Colors.red : Colors.white,
         icon: _isFavorite ? Icons.favorite : Icons.favorite_outline,
       ),
-      if (isMobile) const SizedBox(width: 8),
-      if (isMobile)
-        XIconButton(
-          icon: _orientationLocked
-              ? Icons.screen_lock_rotation
-              : Icons.screen_rotation,
-          onPressed: _toggleOrientationLock,
-        ),
     ];
 
     return Align(

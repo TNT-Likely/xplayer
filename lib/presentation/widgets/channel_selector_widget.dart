@@ -205,13 +205,7 @@ class _ChannelRow extends StatelessWidget {
       onTap: onTap,
       onFocusChange: onFocusChange,
       child: Container(
-        decoration: BoxDecoration(
-          color: bg,
-          border: Border.all(
-            color: focused ? Colors.white : Colors.transparent,
-            width: 2,
-          ),
-        ),
+        color: bg,
         padding: const EdgeInsets.symmetric(horizontal: 10),
         child: Row(
           children: [
@@ -309,15 +303,9 @@ class _GroupList extends StatelessWidget {
           selected: sel,
           onTap: () => onSelect(g),
           builder: (focused, sel) => Container(
-            decoration: BoxDecoration(
-              color: focused
-                  ? theme.withOpacity(0.9)
-                  : (sel ? theme.withOpacity(0.55) : Colors.transparent),
-              border: Border.all(
-                color: focused ? Colors.white : Colors.transparent,
-                width: 2,
-              ),
-            ),
+            color: focused
+                ? theme.withOpacity(0.9)
+                : (sel ? theme.withOpacity(0.55) : Colors.transparent),
             padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 12),
             child: Text(
               g == kAllGroups ? AppLocalizations.of(context)!.allGroups : g,
@@ -366,10 +354,6 @@ class _GroupChips extends StatelessWidget {
                         ? theme.withOpacity(0.85)
                         : Colors.white.withOpacity(0.12)),
                 borderRadius: BorderRadius.circular(16),
-                border: Border.all(
-                  color: focused ? Colors.white : Colors.transparent,
-                  width: 2,
-                ),
               ),
               child: Text(
                   g == kAllGroups ? AppLocalizations.of(context)!.allGroups : g,
