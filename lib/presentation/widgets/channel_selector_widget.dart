@@ -158,7 +158,11 @@ class _ChannelSelectorWidgetState extends State<ChannelSelectorWidget> {
             ],
           );
     // InkWell 需要 Material 祖先;showGeneralDialog 内容没有,故包一层透明 Material。
-    return Material(type: MaterialType.transparency, child: body);
+    // SafeArea:窄屏避免顶部 chips 被状态栏遮挡(宽屏/电视无状态栏时无副作用)。
+    return Material(
+      type: MaterialType.transparency,
+      child: SafeArea(child: body),
+    );
   }
 }
 
