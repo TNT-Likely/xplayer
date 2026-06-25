@@ -473,6 +473,15 @@ class AppLocalizationsZh extends AppLocalizations {
   String get renderModeHint => '开 = SurfaceView(电视更清晰);关 = 纹理(更兼容)';
 
   @override
+  String get playerEngine => '播放引擎';
+
+  @override
+  String get playerEngineNative => '原生 (SurfaceView)';
+
+  @override
+  String get playerEngineVideoPlayer => 'video_player';
+
+  @override
   String get streamInfo => '信息';
 
   @override

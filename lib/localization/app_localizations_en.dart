@@ -480,6 +480,15 @@ class AppLocalizationsEn extends AppLocalizations {
       'On = SurfaceView (sharper on TV); Off = Texture (most compatible)';
 
   @override
+  String get playerEngine => 'Player Engine';
+
+  @override
+  String get playerEngineNative => 'Native (SurfaceView)';
+
+  @override
+  String get playerEngineVideoPlayer => 'video_player';
+
+  @override
   String get streamInfo => 'Info';
 
   @override

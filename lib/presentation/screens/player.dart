@@ -779,8 +779,11 @@ class _PlayerScreenState extends State<PlayerScreen>
                 const Divider(color: Colors.white24, height: 12),
                 // 基本
                 row(l.infoSource, _sourceLink),
-                row(l.infoRenderSurface,
-                    surface ? 'SurfaceView (HW VPP)' : 'Texture'),
+                row(
+                    l.infoRenderSurface,
+                    _backend is NativePlayerBackend
+                        ? 'SurfaceView (native)'
+                        : (surface ? 'SurfaceView (HW VPP)' : 'Texture')),
                 row(l.infoActiveDecoder, fmt(i['videoDecoder'])),
                 row(l.infoPlayState, _playState.name),
                 // 视频

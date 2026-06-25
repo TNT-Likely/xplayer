@@ -571,6 +571,29 @@ class _HomeScreenState extends State<HomeScreen> {
                     ),
                   ),
                 ),
+                // 播放引擎开关:原生(SurfaceView,硬件 VPP)/ video_player。仅 Android。
+                if (Platform.isAndroid)
+                  ValueListenableBuilder<bool>(
+                    valueListenable: useNativeEngine,
+                    builder: (_, on, __) => ListTile(
+                      leading: const Icon(Icons.memory, color: Colors.white),
+                      title: Text(
+                        localizations.playerEngine,
+                        style: const TextStyle(color: Colors.white),
+                      ),
+                      subtitle: Text(
+                        on
+                            ? localizations.playerEngineNative
+                            : localizations.playerEngineVideoPlayer,
+                        style: const TextStyle(
+                            color: Colors.white54, fontSize: 11),
+                      ),
+                      trailing: Switch(
+                        value: on,
+                        onChanged: (v) => setUseNativeEngine(v),
+                      ),
+                    ),
+                  ),
                 XBaseButton(
                   child: animeContainer(
                     ListTile(
