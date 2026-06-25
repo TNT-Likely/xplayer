@@ -10,12 +10,15 @@ enum PlayerMode { none, fullscreen, mini }
 const double kMiniMargin = 12; // 距屏幕右/下边距
 const double kMiniHeader = 26; // 顶部操作条高(放 X/展开,露出在视频之上)
 
-/// 小窗卡片整体矩形(右下角)。
+/// 小窗卡片整体矩形(右上角)。平板/TV(shortestSide>=600)用更大尺寸。
 Rect miniCardRect(Size screen, EdgeInsets padding) {
-  final w = (screen.width * 0.4).clamp(160.0, 240.0);
+  final isLarge = screen.shortestSide >= 600; // 平板 / TV
+  final w = isLarge
+      ? (screen.width * 0.34).clamp(320.0, 520.0)
+      : (screen.width * 0.46).clamp(200.0, 300.0);
   final h = w * 9 / 16 + kMiniHeader; // 视频 16:9 + 顶部操作条
   final left = screen.width - w - kMiniMargin - padding.right;
-  final top = screen.height - h - kMiniMargin - padding.bottom;
+  final top = kMiniMargin + padding.top; // 右上角
   return Rect.fromLTWH(left, top, w, h);
 }
 
