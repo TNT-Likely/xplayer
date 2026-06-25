@@ -464,6 +464,10 @@ class AppLocalizationsEn extends AppLocalizations {
   String get openSourceLicenses => 'Open-source Licenses';
 
   @override
+  String get githubTvHint =>
+      'Open this URL in a browser on your phone or computer:';
+
+  @override
   String get sleepTimer => 'Sleep Timer';
 
   @override

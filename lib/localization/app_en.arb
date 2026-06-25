@@ -142,6 +142,7 @@
   "nowPlaying": "Now: {title}",
   "diagLog": "Log Center",
   "openSourceLicenses": "Open-source Licenses",
+  "githubTvHint": "Open this URL in a browser on your phone or computer:",
   "sleepTimer": "Sleep Timer",
   "sleepOff": "Off",
   "sleepMinutes": "{n} min",

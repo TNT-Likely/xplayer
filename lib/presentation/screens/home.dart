@@ -770,7 +770,38 @@ class _HomeScreenState extends State<HomeScreen> {
                     ),
                   ),
                   onPressed: () async {
-                    await launch('https://github.com/TNT-Likely/xplayer');
+                    const url = 'https://github.com/TNT-Likely/xplayer';
+                    // TV 无浏览器,launch 无效 → 弹窗显示地址供手机/电脑访问;其余打开浏览器。
+                    final isTV =
+                        Provider.of<GlobalProvider>(context, listen: false).isTV;
+                    if (isTV) {
+                      showDialog(
+                        context: context,
+                        builder: (_) => AlertDialog(
+                          title: const Text('Github'),
+                          content: Column(
+                            mainAxisSize: MainAxisSize.min,
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(localizations.githubTvHint),
+                              const SizedBox(height: 8),
+                              const SelectableText(
+                                url,
+                                style: TextStyle(fontWeight: FontWeight.w600),
+                              ),
+                            ],
+                          ),
+                          actions: [
+                            TextButton(
+                              onPressed: () => Navigator.of(context).pop(),
+                              child: Text(localizations.cancel),
+                            ),
+                          ],
+                        ),
+                      );
+                    } else {
+                      await launch(url);
+                    }
                   },
                 ),
                 XBaseButton(

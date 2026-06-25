@@ -458,6 +458,9 @@ class AppLocalizationsZh extends AppLocalizations {
   String get openSourceLicenses => '开源许可';
 
   @override
+  String get githubTvHint => '请在手机或电脑浏览器中访问该地址:';
+
+  @override
   String get sleepTimer => '睡眠定时';
 
   @override

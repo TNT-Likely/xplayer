@@ -950,6 +950,12 @@ abstract class AppLocalizations {
   /// **'Open-source Licenses'**
   String get openSourceLicenses;
 
+  /// No description provided for @githubTvHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Open this URL in a browser on your phone or computer:'**
+  String get githubTvHint;
+
   /// No description provided for @sleepTimer.
   ///
   /// In en, this message translates to:
