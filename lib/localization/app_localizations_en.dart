@@ -464,6 +464,57 @@ class AppLocalizationsEn extends AppLocalizations {
   String get openSourceLicenses => 'Open-source Licenses';
 
   @override
+  String get githubTvHint =>
+      'Open this URL in a browser on your phone or computer:';
+
+  @override
+  String get sleepTimer => 'Sleep Timer';
+
+  @override
+  String get sleepOff => 'Off';
+
+  @override
+  String sleepMinutes(int n) {
+    return '$n min';
+  }
+
+  @override
+  String get sleepStopped => 'Sleep timer stopped playback';
+
+  @override
+  String get audioTrack => 'Audio Track';
+
+  @override
+  String get secNetwork => 'Buffer / Network';
+
+  @override
+  String get secRecovery => 'Recovery';
+
+  @override
+  String get infoBuffered => 'Buffered';
+
+  @override
+  String get infoBandwidth => 'Bandwidth';
+
+  @override
+  String get infoDropped => 'Dropped Frames';
+
+  @override
+  String get infoRebuffer => 'Rebuffers';
+
+  @override
+  String get infoFrameRate => 'Frame Rate';
+
+  @override
+  String get infoHdr => 'HDR';
+
+  @override
+  String get infoLastError => 'Last Error';
+
+  @override
+  String get infoRetries => 'Retries';
+
+  @override
   String get logLevelDebug => 'Debug';
 
   @override

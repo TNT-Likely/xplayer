@@ -950,6 +950,102 @@ abstract class AppLocalizations {
   /// **'Open-source Licenses'**
   String get openSourceLicenses;
 
+  /// No description provided for @githubTvHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Open this URL in a browser on your phone or computer:'**
+  String get githubTvHint;
+
+  /// No description provided for @sleepTimer.
+  ///
+  /// In en, this message translates to:
+  /// **'Sleep Timer'**
+  String get sleepTimer;
+
+  /// No description provided for @sleepOff.
+  ///
+  /// In en, this message translates to:
+  /// **'Off'**
+  String get sleepOff;
+
+  /// No description provided for @sleepMinutes.
+  ///
+  /// In en, this message translates to:
+  /// **'{n} min'**
+  String sleepMinutes(int n);
+
+  /// No description provided for @sleepStopped.
+  ///
+  /// In en, this message translates to:
+  /// **'Sleep timer stopped playback'**
+  String get sleepStopped;
+
+  /// No description provided for @audioTrack.
+  ///
+  /// In en, this message translates to:
+  /// **'Audio Track'**
+  String get audioTrack;
+
+  /// No description provided for @secNetwork.
+  ///
+  /// In en, this message translates to:
+  /// **'Buffer / Network'**
+  String get secNetwork;
+
+  /// No description provided for @secRecovery.
+  ///
+  /// In en, this message translates to:
+  /// **'Recovery'**
+  String get secRecovery;
+
+  /// No description provided for @infoBuffered.
+  ///
+  /// In en, this message translates to:
+  /// **'Buffered'**
+  String get infoBuffered;
+
+  /// No description provided for @infoBandwidth.
+  ///
+  /// In en, this message translates to:
+  /// **'Bandwidth'**
+  String get infoBandwidth;
+
+  /// No description provided for @infoDropped.
+  ///
+  /// In en, this message translates to:
+  /// **'Dropped Frames'**
+  String get infoDropped;
+
+  /// No description provided for @infoRebuffer.
+  ///
+  /// In en, this message translates to:
+  /// **'Rebuffers'**
+  String get infoRebuffer;
+
+  /// No description provided for @infoFrameRate.
+  ///
+  /// In en, this message translates to:
+  /// **'Frame Rate'**
+  String get infoFrameRate;
+
+  /// No description provided for @infoHdr.
+  ///
+  /// In en, this message translates to:
+  /// **'HDR'**
+  String get infoHdr;
+
+  /// No description provided for @infoLastError.
+  ///
+  /// In en, this message translates to:
+  /// **'Last Error'**
+  String get infoLastError;
+
+  /// No description provided for @infoRetries.
+  ///
+  /// In en, this message translates to:
+  /// **'Retries'**
+  String get infoRetries;
+
   /// No description provided for @logLevelDebug.
   ///
   /// In en, this message translates to:

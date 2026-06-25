@@ -6,6 +6,11 @@ import 'package:xplayer/data/models/programme_model.dart';
 import 'package:xplayer/presentation/widgets/channel_selector_widget.dart';
 import 'package:xplayer/presentation/widgets/channel_source_widget.dart';
 import 'package:xplayer/presentation/widgets/quality_selector_widget.dart';
+import 'package:xplayer/presentation/widgets/audio_track_selector_widget.dart';
+import 'package:xplayer/services/player/x_player_backend.dart';
+import 'package:xplayer/shared/components/x_text_button.dart';
+import 'package:xplayer/localization/app_localizations.dart';
+import 'package:xplayer/services/sleep_timer.dart';
 import 'package:xplayer/utils/hls_probe.dart';
 
 class PlayerDialogs {
@@ -133,6 +138,93 @@ class PlayerDialogs {
           child: child,
         );
       },
+    );
+  }
+
+  /// 通用右侧浮层容器(睡眠/音轨复用)。
+  static void _rightSheet(BuildContext context, Widget child) {
+    showGeneralDialog(
+      context: context,
+      barrierLabel: "Barrier",
+      barrierDismissible: true,
+      barrierColor: Colors.transparent,
+      transitionDuration: const Duration(milliseconds: 200),
+      pageBuilder: (_, __, ___) => Align(
+        alignment: Alignment.centerRight,
+        child: Container(
+          width: max(220, MediaQuery.of(context).size.width * 0.3),
+          height: MediaQuery.of(context).size.height,
+          decoration: BoxDecoration(
+            color: const Color.fromRGBO(0, 0, 0, 0.3),
+            borderRadius: BorderRadius.circular(16.0),
+          ),
+          child: child,
+        ),
+      ),
+      transitionBuilder: (_, anim, __, child) => SlideTransition(
+        position:
+            Tween(begin: const Offset(1.0, 0.0), end: const Offset(0.0, 0.0))
+                .animate(anim),
+        child: child,
+      ),
+    );
+  }
+
+  /// 睡眠定时浮层:关闭 / 15 / 30 / 60 / 90 分钟。null = 关闭。
+  static void showSleepTimerSwitcher(
+    BuildContext context,
+    Future<void> Function(Duration? d) onSelect,
+  ) {
+    final l = AppLocalizations.of(context)!;
+    final options = <(String, Duration?)>[
+      (l.sleepOff, null),
+      (l.sleepMinutes(15), const Duration(minutes: 15)),
+      (l.sleepMinutes(30), const Duration(minutes: 30)),
+      (l.sleepMinutes(60), const Duration(minutes: 60)),
+      (l.sleepMinutes(90), const Duration(minutes: 90)),
+    ];
+    _rightSheet(
+      context,
+      Center(
+        child: SingleChildScrollView(
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: options.map((o) {
+              final selected = o.$2 == null
+                  ? !sleepTimer.isActive
+                  : (sleepTimer.isActive &&
+                      sleepTimer.remaining != null &&
+                      (sleepTimer.remaining!.inMinutes - o.$2!.inMinutes).abs() <=
+                          1);
+              return Padding(
+                padding: const EdgeInsets.only(bottom: 8),
+                child: XTextButton(
+                  text: o.$1,
+                  size: XTextButtonSize.large,
+                  width: 180,
+                  textStyle: const TextStyle(fontSize: 13),
+                  type: selected
+                      ? XTextButtonType.primary
+                      : XTextButtonType.defaultType,
+                  onPressed: () => onSelect(o.$2),
+                ),
+              );
+            }).toList(),
+          ),
+        ),
+      ),
+    );
+  }
+
+  /// 音轨选择浮层。
+  static void showAudioTrackSwitcher(
+    BuildContext context,
+    List<AudioTrack> tracks,
+    Future<void> Function(String id) onSelect,
+  ) {
+    _rightSheet(
+      context,
+      AudioTrackSelectorWidget(tracks: tracks, onSelect: onSelect),
     );
   }
 }

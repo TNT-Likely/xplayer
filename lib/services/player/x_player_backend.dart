@@ -2,6 +2,28 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/painting.dart' show Size;
 import 'package:flutter/widgets.dart' show Widget;
 
+/// 音轨信息(用于多音轨/多语言切换)。
+@immutable
+class AudioTrack {
+  final String id;
+  final String? label;
+  final String? language;
+  final String? codec;
+  final int? channels;
+  final bool isSelected;
+  const AudioTrack({
+    required this.id,
+    this.label,
+    this.language,
+    this.codec,
+    this.channels,
+    required this.isSelected,
+  });
+
+  /// 展示名:标签 > 语言 > 编码 > id。
+  String get displayName => label ?? language ?? codec ?? id;
+}
+
 /// 统一的播放状态值对象(屏蔽 video_player / 原生引擎差异)。
 @immutable
 class XPlayerValue {
@@ -76,4 +98,10 @@ abstract class XPlayerBackend {
 
   /// 运行时诊断信息(如真实音频解码器名);仅原生后端提供,默认无。
   ValueListenable<Map<String, dynamic>>? get diagnostics => null;
+
+  /// 当前可选音轨(多音轨/多语言)。
+  Future<List<AudioTrack>> getAudioTracks();
+
+  /// 选择音轨(id 由 getAudioTracks 返回)。
+  Future<void> selectAudioTrack(String id);
 }

@@ -243,6 +243,19 @@ class _HomeScreenState extends State<HomeScreen> {
     return result ?? false;
   }
 
+  /// 抽屉分组标题。
+  Widget _drawerSectionHeader(String title) => Padding(
+        padding: const EdgeInsets.fromLTRB(16, 16, 16, 4),
+        child: Text(
+          title.toUpperCase(),
+          style: const TextStyle(
+              color: Colors.white38,
+              fontSize: 11,
+              fontWeight: FontWeight.w600,
+              letterSpacing: 1.0),
+        ),
+      );
+
   @override
   Widget build(BuildContext context) {
     return PopScope(
@@ -415,6 +428,70 @@ class _HomeScreenState extends State<HomeScreen> {
                   ),
                 ),
                 const Divider(color: Colors.white24, height: 1),
+                _drawerSectionHeader('播放与显示'),
+                // 渲染模式开关:SurfaceView(platformView)/ 纹理。仅非 Android 显示 ——
+                // Android 的清晰度走「播放引擎=原生」(见下),且全局透明下 platformView 会卡;
+                // iOS/macOS(avfoundation 支持 platformView)保留此选项。
+                if (!Platform.isAndroid)
+                  ValueListenableBuilder<bool>(
+                    valueListenable: useSurfaceView,
+                    builder: (_, surface, __) => ListTile(
+                      leading: const Icon(Icons.hd, color: Colors.white),
+                      title: Text(
+                        '${localizations.renderMode}: ${surface ? "SurfaceView" : "Texture"}',
+                        style: const TextStyle(color: Colors.white),
+                      ),
+                      subtitle: Text(
+                        localizations.renderModeHint,
+                        style: const TextStyle(
+                            color: Colors.white54, fontSize: 11),
+                      ),
+                      trailing: Switch(
+                        value: surface,
+                        onChanged: (v) => setUseSurfaceView(v),
+                      ),
+                    ),
+                  ),
+                // 播放引擎开关:原生(SurfaceView,硬件 VPP)/ video_player。仅 Android。
+                if (Platform.isAndroid)
+                  ValueListenableBuilder<bool>(
+                    valueListenable: useNativeEngine,
+                    builder: (_, on, __) => ListTile(
+                      leading: const Icon(Icons.memory, color: Colors.white),
+                      title: Text(
+                        localizations.playerEngine,
+                        style: const TextStyle(color: Colors.white),
+                      ),
+                      subtitle: Text(
+                        on
+                            ? localizations.playerEngineNative
+                            : localizations.playerEngineVideoPlayer,
+                        style: const TextStyle(
+                            color: Colors.white54, fontSize: 11),
+                      ),
+                      trailing: Switch(
+                        value: on,
+                        onChanged: (v) => setUseNativeEngine(v),
+                      ),
+                    ),
+                  ),
+                XBaseButton(
+                  child: animeContainer(
+                    ListTile(
+                      leading: const Icon(Icons.photo_size_select_large,
+                          color: Colors.white),
+                      title: Text(
+                        localizations.itemSize,
+                        style: const TextStyle(color: Colors.white),
+                      ),
+                    ),
+                  ),
+                  onPressed: () {
+                    Navigator.of(context).pop();
+                    _showSizeDialog(context);
+                  },
+                ),
+                _drawerSectionHeader('源与节目单'),
                 Consumer<MediaProvider>(
                   builder: (BuildContext context2, mediaProvider, _) {
                     final playlist = [
@@ -472,7 +549,28 @@ class _HomeScreenState extends State<HomeScreen> {
                     );
                   },
                 ),
-                const Divider(color: Colors.white12, height: 8),
+                XBaseButton(
+                  onPressed: () {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (context) => const PlaylistListScreen(),
+                      ),
+                    );
+                  },
+                  child: animeContainer(
+                    ListTile(
+                      leading: const Icon(
+                        Icons.play_arrow,
+                        color: Colors.white,
+                      ),
+                      title: Text(
+                        localizations.playlist,
+                        style: const TextStyle(color: Colors.white),
+                      ),
+                    ),
+                  ),
+                ),
                 XBaseButton(
                   child: animeContainer(
                     ListTile(
@@ -522,103 +620,6 @@ class _HomeScreenState extends State<HomeScreen> {
                 XBaseButton(
                   child: animeContainer(
                     ListTile(
-                      leading: const Icon(Icons.photo_size_select_large,
-                          color: Colors.white),
-                      title: Text(
-                        localizations.itemSize,
-                        style: const TextStyle(color: Colors.white),
-                      ),
-                    ),
-                  ),
-                  onPressed: () {
-                    Navigator.of(context).pop();
-                    _showSizeDialog(context);
-                  },
-                ),
-                XBaseButton(
-                  child: animeContainer(
-                    ListTile(
-                      leading:
-                          const Icon(Icons.bug_report, color: Colors.white),
-                      title: Text(AppLocalizations.of(context)!.diagLog,
-                          style: const TextStyle(color: Colors.white)),
-                    ),
-                  ),
-                  onPressed: () {
-                    Navigator.of(context).pop();
-                    Navigator.of(context).push(
-                      MaterialPageRoute(builder: (_) => const LogCenterScreen()),
-                    );
-                  },
-                ),
-                XBaseButton(
-                  child: animeContainer(
-                    ListTile(
-                      leading: const Icon(Icons.description_outlined,
-                          color: Colors.white),
-                      title: Text(
-                          AppLocalizations.of(context)!.openSourceLicenses,
-                          style: const TextStyle(color: Colors.white)),
-                    ),
-                  ),
-                  onPressed: () {
-                    Navigator.of(context).pop();
-                    showLicensePage(
-                      context: context,
-                      applicationName: 'XPlayer',
-                      applicationVersion: _version,
-                    );
-                  },
-                ),
-                // 渲染模式开关:SurfaceView(platformView)/ 纹理。仅非 Android 显示 ——
-                // Android 的清晰度走「播放引擎=原生」(见下),且全局透明下 platformView 会卡;
-                // iOS/macOS(avfoundation 支持 platformView)保留此选项。
-                if (!Platform.isAndroid)
-                  ValueListenableBuilder<bool>(
-                    valueListenable: useSurfaceView,
-                    builder: (_, surface, __) => ListTile(
-                      leading: const Icon(Icons.hd, color: Colors.white),
-                      title: Text(
-                        '${localizations.renderMode}: ${surface ? "SurfaceView" : "Texture"}',
-                        style: const TextStyle(color: Colors.white),
-                      ),
-                      subtitle: Text(
-                        localizations.renderModeHint,
-                        style: const TextStyle(
-                            color: Colors.white54, fontSize: 11),
-                      ),
-                      trailing: Switch(
-                        value: surface,
-                        onChanged: (v) => setUseSurfaceView(v),
-                      ),
-                    ),
-                  ),
-                // 播放引擎开关:原生(SurfaceView,硬件 VPP)/ video_player。仅 Android。
-                if (Platform.isAndroid)
-                  ValueListenableBuilder<bool>(
-                    valueListenable: useNativeEngine,
-                    builder: (_, on, __) => ListTile(
-                      leading: const Icon(Icons.memory, color: Colors.white),
-                      title: Text(
-                        localizations.playerEngine,
-                        style: const TextStyle(color: Colors.white),
-                      ),
-                      subtitle: Text(
-                        on
-                            ? localizations.playerEngineNative
-                            : localizations.playerEngineVideoPlayer,
-                        style: const TextStyle(
-                            color: Colors.white54, fontSize: 11),
-                      ),
-                      trailing: Switch(
-                        value: on,
-                        onChanged: (v) => setUseNativeEngine(v),
-                      ),
-                    ),
-                  ),
-                XBaseButton(
-                  child: animeContainer(
-                    ListTile(
                       leading: const Icon(
                         Icons.event_note,
                         color: Colors.white,
@@ -646,29 +647,6 @@ class _HomeScreenState extends State<HomeScreen> {
                     }
                   },
                 ),
-                const Divider(color: Colors.white12, height: 8),
-                XBaseButton(
-                  onPressed: () {
-                    Navigator.push(
-                      context,
-                      MaterialPageRoute(
-                        builder: (context) => const PlaylistListScreen(),
-                      ),
-                    );
-                  },
-                  child: animeContainer(
-                    ListTile(
-                      leading: const Icon(
-                        Icons.play_arrow,
-                        color: Colors.white,
-                      ),
-                      title: Text(
-                        localizations.playlist,
-                        style: const TextStyle(color: Colors.white),
-                      ),
-                    ),
-                  ),
-                ),
                 if (!kStoreBuild)
                 XBaseButton(
                   onPressed: () {
@@ -686,56 +664,41 @@ class _HomeScreenState extends State<HomeScreen> {
                     ),
                   ),
                 ),
-                const Divider(color: Colors.white12, height: 8),
-                Consumer<GlobalProvider>(builder: (context, g, _) {
-                  if (g.isTV) return const SizedBox.shrink();
-                  return XBaseButton(
+                Consumer<MediaProvider>(
+                  builder: (context, mp, _) => XBaseButton(
+                    onPressed: () =>
+                        mp.setAutoRefreshOnLaunch(!mp.autoRefreshOnLaunch),
                     child: animeContainer(
                       ListTile(
                         leading:
-                            const Icon(Icons.phonelink, color: Colors.white),
+                            const Icon(Icons.autorenew, color: Colors.white),
                         title: Text(
-                          AppLocalizations.of(context)!.remoteInput,
+                          localizations.autoRefreshOnLaunch,
                           style: const TextStyle(color: Colors.white),
+                        ),
+                        trailing: Switch(
+                          value: mp.autoRefreshOnLaunch,
+                          onChanged: mp.setAutoRefreshOnLaunch,
                         ),
                       ),
                     ),
-                    onPressed: () {
-                      Navigator.of(context).pop();
-                      Navigator.pushNamed(context, '/remote');
-                    },
-                  );
-                }),
+                  ),
+                ),
+                _drawerSectionHeader('诊断与系统'),
                 XBaseButton(
                   child: animeContainer(
                     ListTile(
-                      leading: const Icon(Icons.language, color: Colors.white),
-                      title: Text(
-                        localeProvider.locale.languageCode == 'zh'
-                            ? '中文'
-                            : 'English',
-                        style: const TextStyle(color: Colors.white),
-                      ),
+                      leading:
+                          const Icon(Icons.bug_report, color: Colors.white),
+                      title: Text(AppLocalizations.of(context)!.diagLog,
+                          style: const TextStyle(color: Colors.white)),
                     ),
                   ),
                   onPressed: () {
                     Navigator.of(context).pop();
-                    _showLanguageSwitcher(context, localeProvider);
-                  },
-                ),
-                XBaseButton(
-                  child: animeContainer(
-                    ListTile(
-                      leading: const FaIcon(FontAwesomeIcons.github,
-                          color: Colors.white),
-                      title: Text(
-                        'Github',
-                        style: const TextStyle(color: Colors.white),
-                      ),
-                    ),
-                  ),
-                  onPressed: () async {
-                    await launch('https://github.com/TNT-Likely/xplayer');
+                    Navigator.of(context).push(
+                      MaterialPageRoute(builder: (_) => const LogCenterScreen()),
+                    );
                   },
                 ),
                 // iOS/iPadOS:App Store 不允许应用自更新,隐藏检查更新入口
@@ -775,25 +738,88 @@ class _HomeScreenState extends State<HomeScreen> {
                     ),
                   ),
                 ),
-                Consumer<MediaProvider>(
-                  builder: (context, mp, _) => XBaseButton(
-                    onPressed: () =>
-                        mp.setAutoRefreshOnLaunch(!mp.autoRefreshOnLaunch),
+                Consumer<GlobalProvider>(builder: (context, g, _) {
+                  if (g.isTV) return const SizedBox.shrink();
+                  return XBaseButton(
                     child: animeContainer(
                       ListTile(
                         leading:
-                            const Icon(Icons.autorenew, color: Colors.white),
+                            const Icon(Icons.phonelink, color: Colors.white),
                         title: Text(
-                          localizations.autoRefreshOnLaunch,
+                          AppLocalizations.of(context)!.remoteInput,
                           style: const TextStyle(color: Colors.white),
-                        ),
-                        trailing: Switch(
-                          value: mp.autoRefreshOnLaunch,
-                          onChanged: mp.setAutoRefreshOnLaunch,
                         ),
                       ),
                     ),
+                    onPressed: () {
+                      Navigator.of(context).pop();
+                      Navigator.pushNamed(context, '/remote');
+                    },
+                  );
+                }),
+                _drawerSectionHeader('关于'),
+                XBaseButton(
+                  child: animeContainer(
+                    ListTile(
+                      leading: const FaIcon(FontAwesomeIcons.github,
+                          color: Colors.white),
+                      title: Text(
+                        'Github',
+                        style: const TextStyle(color: Colors.white),
+                      ),
+                    ),
                   ),
+                  onPressed: () async {
+                    const url = 'https://github.com/TNT-Likely/xplayer';
+                    // TV 无浏览器,launch 无效 → 弹窗显示地址供手机/电脑访问;其余打开浏览器。
+                    final isTV =
+                        Provider.of<GlobalProvider>(context, listen: false).isTV;
+                    if (isTV) {
+                      showDialog(
+                        context: context,
+                        builder: (_) => AlertDialog(
+                          title: const Text('Github'),
+                          content: Column(
+                            mainAxisSize: MainAxisSize.min,
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(localizations.githubTvHint),
+                              const SizedBox(height: 8),
+                              const SelectableText(
+                                url,
+                                style: TextStyle(fontWeight: FontWeight.w600),
+                              ),
+                            ],
+                          ),
+                          actions: [
+                            TextButton(
+                              onPressed: () => Navigator.of(context).pop(),
+                              child: Text(localizations.cancel),
+                            ),
+                          ],
+                        ),
+                      );
+                    } else {
+                      await launch(url);
+                    }
+                  },
+                ),
+                XBaseButton(
+                  child: animeContainer(
+                    ListTile(
+                      leading: const Icon(Icons.language, color: Colors.white),
+                      title: Text(
+                        localeProvider.locale.languageCode == 'zh'
+                            ? '中文'
+                            : 'English',
+                        style: const TextStyle(color: Colors.white),
+                      ),
+                    ),
+                  ),
+                  onPressed: () {
+                    Navigator.of(context).pop();
+                    _showLanguageSwitcher(context, localeProvider);
+                  },
                 ),
               ],
             ),

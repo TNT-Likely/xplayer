@@ -9,8 +9,11 @@ import android.view.View
 import android.widget.FrameLayout
 import androidx.media3.common.C
 import androidx.media3.common.MediaItem
+import androidx.media3.common.Format
 import androidx.media3.common.PlaybackException
 import androidx.media3.common.Player
+import androidx.media3.common.TrackGroup
+import androidx.media3.common.TrackSelectionOverride
 import androidx.media3.common.VideoSize
 import androidx.media3.exoplayer.DefaultLoadControl
 import androidx.media3.exoplayer.DefaultRenderersFactory
@@ -35,6 +38,10 @@ class NativeVideoEngine(
     private var aspectFrame: AspectRatioFrameLayout? = null
     private var events: EventChannel.EventSink? = null
     private var positionPoller: Runnable? = null
+    // 诊断统计
+    private var droppedFrames = 0
+    private var rebufferCount = 0
+    private var hasReachedReady = false
 
     companion object {
         const val METHOD_CHANNEL = "native_player"
@@ -61,6 +68,8 @@ class NativeVideoEngine(
             "play" -> { main.post { player?.play() }; result.success(null) }
             "pause" -> { main.post { player?.pause() }; result.success(null) }
             "seekTo" -> { val ms = (call.argument<Int>("ms") ?: 0).toLong(); main.post { player?.seekTo(ms) }; result.success(null) }
+            "getAudioTracks" -> result.success(getAudioTracks())
+            "selectAudioTrack" -> { selectAudioTrack(call.argument<String>("id")!!); result.success(null) }
             "release" -> { release(); result.success(null) }
             else -> result.notImplemented()
         }
@@ -102,6 +111,7 @@ class NativeVideoEngine(
     private fun load(url: String, profile: String) {
         main.post {
             ensureSurface()
+            droppedFrames = 0; rebufferCount = 0; hasReachedReady = false
             if (player == null) player = buildPlayer(profile)
             val p = player!!
             surfaceView?.holder?.surface?.let { p.setVideoSurface(it) }
@@ -127,11 +137,18 @@ class NativeVideoEngine(
             override fun onPlaybackStateChanged(state: Int) {
                 when (state) {
                     Player.STATE_READY -> {
+                        hasReachedReady = true
                         emit(mapOf("event" to "initialized",
                             "width" to (p.videoSize.width), "height" to (p.videoSize.height)))
                         emit(mapOf("event" to "buffering", "value" to false))
                     }
-                    Player.STATE_BUFFERING -> emit(mapOf("event" to "buffering", "value" to true))
+                    Player.STATE_BUFFERING -> {
+                        emit(mapOf("event" to "buffering", "value" to true))
+                        if (hasReachedReady) {
+                            rebufferCount++
+                            emit(mapOf("event" to "stats", "rebufferCount" to rebufferCount))
+                        }
+                    }
                     else -> {}
                 }
             }
@@ -161,6 +178,47 @@ class NativeVideoEngine(
                 val isFfmpeg = decoderName.contains("ffmpeg", ignoreCase = true)
                 emit(mapOf("event" to "audioDecoder", "name" to decoderName, "ffmpeg" to isFfmpeg))
             }
+            override fun onDroppedVideoFrames(
+                eventTime: AnalyticsListener.EventTime, dropped: Int, elapsedMs: Long
+            ) {
+                droppedFrames += dropped
+                emit(mapOf("event" to "stats", "droppedFrames" to droppedFrames))
+            }
+            override fun onBandwidthEstimate(
+                eventTime: AnalyticsListener.EventTime, totalLoadTimeMs: Int,
+                totalBytesLoaded: Long, bitrateEstimate: Long
+            ) {
+                emit(mapOf("event" to "stats", "bandwidthBps" to bitrateEstimate))
+            }
+            override fun onVideoInputFormatChanged(
+                eventTime: AnalyticsListener.EventTime, format: Format,
+                decoderReuseEvaluation: androidx.media3.exoplayer.DecoderReuseEvaluation?
+            ) {
+                val fps = if (format.frameRate > 0) format.frameRate else -1f
+                val ct = format.colorInfo?.colorTransfer
+                val hdr = ct == C.COLOR_TRANSFER_HLG || ct == C.COLOR_TRANSFER_ST2084
+                val br = if (format.bitrate != Format.NO_VALUE) format.bitrate
+                    else if (format.averageBitrate != Format.NO_VALUE) format.averageBitrate else -1
+                // 直接取自 ExoPlayer Format(HLS 也准;MediaExtractor 的 probeStream 对 .m3u8 无效)
+                emit(mapOf("event" to "stats",
+                    "frameRate" to fps, "isHdr" to hdr,
+                    "videoMime" to (format.sampleMimeType ?: format.codecs),
+                    "videoWidth" to (if (format.width != Format.NO_VALUE) format.width else null),
+                    "videoHeight" to (if (format.height != Format.NO_VALUE) format.height else null),
+                    "videoBitrate" to (if (br > 0) br else null)))
+            }
+            override fun onAudioInputFormatChanged(
+                eventTime: AnalyticsListener.EventTime, format: Format,
+                decoderReuseEvaluation: androidx.media3.exoplayer.DecoderReuseEvaluation?
+            ) {
+                val br = if (format.bitrate != Format.NO_VALUE) format.bitrate
+                    else if (format.averageBitrate != Format.NO_VALUE) format.averageBitrate else -1
+                emit(mapOf("event" to "stats",
+                    "audioMime" to (format.sampleMimeType ?: format.codecs),
+                    "audioSampleRate" to (if (format.sampleRate != Format.NO_VALUE) format.sampleRate else null),
+                    "audioChannels" to (if (format.channelCount != Format.NO_VALUE) format.channelCount else null),
+                    "audioBitrate" to (if (br > 0) br else null)))
+            }
         })
         startPositionPolling(p)
         return p
@@ -172,13 +230,50 @@ class NativeVideoEngine(
             override fun run() {
                 if (player === p) {
                     emit(mapOf("event" to "position", "ms" to p.currentPosition,
-                        "duration" to (if (p.duration == C.TIME_UNSET) 0L else p.duration)))
+                        "duration" to (if (p.duration == C.TIME_UNSET) 0L else p.duration),
+                        "bufferedMs" to (p.bufferedPosition - p.currentPosition).coerceAtLeast(0L)))
                     main.postDelayed(this, 500)
                 }
             }
         }
         positionPoller = r
         main.postDelayed(r, 500)
+    }
+
+    private fun getAudioTracks(): List<Map<String, Any?>> {
+        val p = player ?: return emptyList()
+        val out = mutableListOf<Map<String, Any?>>()
+        val groups = p.currentTracks.groups
+        for (gi in groups.indices) {
+            val g = groups[gi]
+            if (g.type != C.TRACK_TYPE_AUDIO) continue
+            for (ti in 0 until g.length) {
+                val f = g.getTrackFormat(ti)
+                out.add(mapOf(
+                    "id" to "$gi:$ti",
+                    "label" to f.label,
+                    "language" to f.language,
+                    "codec" to (f.codecs ?: f.sampleMimeType),
+                    "channels" to (if (f.channelCount != Format.NO_VALUE) f.channelCount else null),
+                    "isSelected" to g.isTrackSelected(ti)
+                ))
+            }
+        }
+        return out
+    }
+
+    private fun selectAudioTrack(id: String) {
+        val p = player ?: return
+        val parts = id.split(":")
+        if (parts.size != 2) return
+        val gi = parts[0].toIntOrNull() ?: return
+        val ti = parts[1].toIntOrNull() ?: return
+        val groups = p.currentTracks.groups
+        if (gi < 0 || gi >= groups.size) return
+        val group: TrackGroup = groups[gi].mediaTrackGroup
+        p.trackSelectionParameters = p.trackSelectionParameters.buildUpon()
+            .setOverrideForType(TrackSelectionOverride(group, ti))
+            .build()
     }
 
     /** 供宿主 Activity 销毁时释放底层 ExoPlayer / SurfaceView。 */
