@@ -58,14 +58,20 @@ class LanSyncDiscovery {
             (s.attributes['host'] as String).isNotEmpty) {
           host = s.attributes['host'] as String;
         }
-        if (host == null || host.isEmpty || s.port <= 0) return;
+        // 端口优先取 json['port'](该 bonsoir 版本 resolved 端口在此;s.port 可能为 0)。
+        final port = (json['port'] as num?)?.toInt() ?? s.port;
+        if (host == null || host.isEmpty || port <= 0) {
+          debugPrint('[lansync] resolved but skipped: host=$host port=$port json=$json');
+          return;
+        }
         // .local 主机名常带尾点,去掉以便 HttpClient 解析。
         if (host.endsWith('.')) host = host.substring(0, host.length - 1);
-        final peer = SyncPeer(name: s.name, host: host, port: s.port);
+        final peer = SyncPeer(name: s.name, host: host, port: port);
         final list = [...peers.value]
           ..removeWhere((p) => p.host == peer.host && p.port == peer.port);
         list.add(peer);
         peers.value = list;
+        debugPrint('[lansync] peer listed: ${peer.name} ${peer.host}:${peer.port} (total ${list.length})');
       }
       // 不处理 LOST:同步会话很短,bonsoir 的 TXT 重试会产生 lost→found 抖动,
       // 按名移除会把刚解析到的设备清掉;保留已发现项,失效项用户点了再报错即可。
