@@ -148,6 +148,9 @@ class NativeVideoEngine(
         main.postDelayed(r, 500)
     }
 
+    /** 供宿主 Activity 销毁时释放底层 ExoPlayer / SurfaceView。 */
+    fun dispose() { release() }
+
     private fun release() {
         main.post {
             positionPoller?.let { main.removeCallbacks(it) }

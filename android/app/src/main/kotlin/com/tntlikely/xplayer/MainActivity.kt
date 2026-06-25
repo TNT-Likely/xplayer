@@ -21,6 +21,12 @@ class MainActivity : FlutterActivity() {
 
     override fun getTransparencyMode(): TransparencyMode = TransparencyMode.transparent
 
+    override fun onDestroy() {
+        nativeEngine?.dispose()
+        nativeEngine = null
+        super.onDestroy()
+    }
+
     override fun configureFlutterEngine(flutterEngine: FlutterEngine) {
         super.configureFlutterEngine(flutterEngine)
         // 提升 Media3(video_player 底层 ExoPlayer)日志级别,诊断时多透出内部 debug

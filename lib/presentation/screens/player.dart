@@ -43,6 +43,7 @@ class PlayerScreen extends StatefulWidget {
 class _PlayerScreenState extends State<PlayerScreen>
     with WidgetsBindingObserver {
   late XPlayerBackend _backend;
+  bool _hasBackend = false; // _backend 是否已赋值(首次加载前为 false,避免对 late 字段读前初始化)
   bool _controlsVisible = false;
   final FocusNode _focusNode = FocusNode();
   late Channel _channel;
@@ -190,11 +191,13 @@ class _PlayerScreenState extends State<PlayerScreen>
     }
     _isHandlingError = false; // 新一轮加载,允许下次错误被处理
 
-    try {
-      _backend.notifier.removeListener(_listenToVideoController);
-      _backend.pause();
-      await _backend.dispose();
-    } catch (error) {}
+    if (_hasBackend) {
+      try {
+        _backend.notifier.removeListener(_listenToVideoController);
+        _backend.pause();
+        await _backend.dispose();
+      } catch (error) {}
+    }
 
     // dispose 是异步的,其间若又触发了新加载或页面已卸载,则放弃本次
     if (token != _loadToken || !mounted) return;
@@ -225,6 +228,7 @@ class _PlayerScreenState extends State<PlayerScreen>
       // 其余一律 video_player。渲染模式(SurfaceView/纹理)由 VideoPlayerBackend.initialize 内部读
       // useSurfaceView.value 决定 viewType。
       _backend = _createBackend();
+      _hasBackend = true;
 
       _backend.notifier.addListener(_listenToVideoController);
 

@@ -11,6 +11,9 @@ ThemeData buildAppTheme() {
       seedColor: AppTokens.brand,
       brightness: Brightness.light,
     ),
+    // FlutterView 现已全局透明:给 Scaffold 兜一个不透明深色背景,
+    // 否则页面会透出窗口后面的黑/花屏。与 bg_wrapper 的黑底一致。
+    scaffoldBackgroundColor: Colors.black,
     useMaterial3: true,
   );
 }
