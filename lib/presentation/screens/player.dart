@@ -209,6 +209,7 @@ class _PlayerScreenState extends State<PlayerScreen>
     setState(() {
       // 更新初始化时的状态为 loading
       _playState = PlayState.loading;
+      _streamInfo = {}; // 重置探流信息,避免切台/换源残留上一条流的数据
     });
 
     // 打印本次播放地址:直接进控制台(flutter logs / adb logcat 立见),
@@ -219,7 +220,8 @@ class _PlayerScreenState extends State<PlayerScreen>
         .invokeMethod<Map>('probeStream', {'url': _playUrl}).then((m) {
       if (m != null && mounted) {
         final info = Map<String, dynamic>.from(m);
-        setState(() => _streamInfo = info);
+        // 原生引擎的 Format 回调(diag)是 HLS 的权威来源,优先;probeStream 仅填补空缺。
+        setState(() => _streamInfo = {...info, ..._streamInfo});
         LogStore.instance.i('probe', '🎵 流信息: $info');
       }
     }).catchError((_) => null);

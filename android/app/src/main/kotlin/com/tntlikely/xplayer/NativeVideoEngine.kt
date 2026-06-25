@@ -197,7 +197,27 @@ class NativeVideoEngine(
                 val fps = if (format.frameRate > 0) format.frameRate else -1f
                 val ct = format.colorInfo?.colorTransfer
                 val hdr = ct == C.COLOR_TRANSFER_HLG || ct == C.COLOR_TRANSFER_ST2084
-                emit(mapOf("event" to "stats", "frameRate" to fps, "isHdr" to hdr))
+                val br = if (format.bitrate != Format.NO_VALUE) format.bitrate
+                    else if (format.averageBitrate != Format.NO_VALUE) format.averageBitrate else -1
+                // 直接取自 ExoPlayer Format(HLS 也准;MediaExtractor 的 probeStream 对 .m3u8 无效)
+                emit(mapOf("event" to "stats",
+                    "frameRate" to fps, "isHdr" to hdr,
+                    "videoMime" to (format.sampleMimeType ?: format.codecs),
+                    "videoWidth" to (if (format.width != Format.NO_VALUE) format.width else null),
+                    "videoHeight" to (if (format.height != Format.NO_VALUE) format.height else null),
+                    "videoBitrate" to (if (br > 0) br else null)))
+            }
+            override fun onAudioInputFormatChanged(
+                eventTime: AnalyticsListener.EventTime, format: Format,
+                decoderReuseEvaluation: androidx.media3.exoplayer.DecoderReuseEvaluation?
+            ) {
+                val br = if (format.bitrate != Format.NO_VALUE) format.bitrate
+                    else if (format.averageBitrate != Format.NO_VALUE) format.averageBitrate else -1
+                emit(mapOf("event" to "stats",
+                    "audioMime" to (format.sampleMimeType ?: format.codecs),
+                    "audioSampleRate" to (if (format.sampleRate != Format.NO_VALUE) format.sampleRate else null),
+                    "audioChannels" to (if (format.channelCount != Format.NO_VALUE) format.channelCount else null),
+                    "audioBitrate" to (if (br > 0) br else null)))
             }
         })
         startPositionPolling(p)
