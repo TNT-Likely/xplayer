@@ -8,7 +8,7 @@ import 'package:xplayer/providers/media_provider.dart';
 import 'package:xplayer/utils/channel_filter.dart';
 import 'package:xplayer/utils/epg_metrics.dart';
 import 'package:xplayer/utils/playlist_util.dart';
-import 'package:flutter_gen/gen_l10n/app_localizations.dart';
+import 'package:xplayer/localization/app_localizations.dart';
 
 const String kAllGroups = '全部';
 const double _kRowH = 64.0;

@@ -29,7 +29,7 @@ import 'package:xplayer/utils/dialog.dart';
 import 'package:xplayer/utils/toast.dart';
 import 'package:xplayer/providers/media_provider.dart';
 import 'package:provider/provider.dart';
-import 'package:flutter_gen/gen_l10n/app_localizations.dart';
+import 'package:xplayer/localization/app_localizations.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'package:xplayer/providers/remote_provider.dart';
 import 'package:xplayer/providers/global_provider.dart';
@@ -681,7 +681,7 @@ class _HomeScreenState extends State<HomeScreen> {
                 XBaseButton(
                   child: animeContainer(
                     ListTile(
-                      leading: const Icon(FontAwesomeIcons.github,
+                      leading: const FaIcon(FontAwesomeIcons.github,
                           color: Colors.white),
                       title: Text(
                         'Github',

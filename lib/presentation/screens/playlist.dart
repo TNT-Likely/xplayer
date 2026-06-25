@@ -7,7 +7,7 @@ import 'package:xplayer/shared/components/x_icon_button.dart';
 import 'package:xplayer/utils/toast.dart';
 import 'package:xplayer/presentation/widgets/playlist_widget.dart';
 import 'package:xplayer/providers/media_provider.dart';
-import 'package:flutter_gen/gen_l10n/app_localizations.dart';
+import 'package:xplayer/localization/app_localizations.dart';
 
 class PlaylistListScreen extends StatelessWidget {
   const PlaylistListScreen({super.key});

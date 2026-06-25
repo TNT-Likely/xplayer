@@ -3,7 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'package:xplayer/utils/toast.dart';
 import 'package:xplayer/shared/components/x_text_button.dart';
-import 'package:flutter_gen/gen_l10n/app_localizations.dart';
+import 'package:xplayer/localization/app_localizations.dart';
 import 'update/update_result.dart';
 import 'update/update_checker.dart';
 import 'update/update_cache.dart';

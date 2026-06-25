@@ -14,7 +14,7 @@ import 'package:xplayer/services/channel_test_service.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:xplayer/extensions/m3u.dart';
 import 'package:xplayer/utils/toast.dart'; // 导入 showToast
-import 'package:flutter_gen/gen_l10n/app_localizations.dart';
+import 'package:xplayer/localization/app_localizations.dart';
 
 class MediaProvider with ChangeNotifier {
   final PlaylistRepository _playlistRepository = PlaylistRepository();

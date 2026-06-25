@@ -2,7 +2,7 @@ import 'dart:io';
 
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:flutter_gen/gen_l10n/app_localizations.dart';
+import 'package:xplayer/localization/app_localizations.dart';
 import 'package:xplayer/services/log_store.dart';
 import 'package:xplayer/shared/components/dpad_escapable.dart';
 import 'package:xplayer/utils/toast.dart';

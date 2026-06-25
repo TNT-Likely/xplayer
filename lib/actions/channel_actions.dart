@@ -5,7 +5,7 @@ import 'package:xplayer/shared/components/x_text_button.dart';
 import 'package:xplayer/utils/dialog.dart';
 import 'package:xplayer/utils/toast.dart';
 import 'package:xplayer/providers/media_provider.dart';
-import 'package:flutter_gen/gen_l10n/app_localizations.dart';
+import 'package:xplayer/localization/app_localizations.dart';
 
 class ChannelActions {
   static Future<void> handleMoreAction(BuildContext context, Channel channel,

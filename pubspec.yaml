@@ -7,7 +7,7 @@ publish_to: 'none'
 version: 1.0.0+1
 
 environment:
-  sdk: '>=3.2.3 <4.0.0'
+  sdk: '>=3.11.0 <4.0.0'
 
 dependencies:
   bot_toast: ^4.1.3
@@ -19,7 +19,7 @@ dependencies:
     sdk: flutter
   flutter_localizations:
     sdk: flutter
-  font_awesome_flutter: ^10.8.0
+  font_awesome_flutter: ^11.0.0
   http: ^1.2.0
   open_filex: ^4.5.0
   intl_utils: ^2.8.7
@@ -37,9 +37,8 @@ dependencies:
   # 桌面端(Windows/Linux)用 FFI 时需要它打包 sqlite3 原生库,否则开库失败
   sqlite3_flutter_libs: ^0.5.0
   url_launcher: ^6.3.1
-  # 锁死 2.10.0:兼容 Flutter 3.27/Dart 3.6 的最高版(2.10.1+ 要 Flutter 3.29);
-  # 底层是更新的 Media3 ExoPlayer。注意:用它必须保持 android.enableJetifier=false。
-  video_player: 2.10.0
+  # spike: 升到最新(Flutter 3.44),验证新版 platformView/SurfaceView 是否解决 TV 模糊+卡顿
+  video_player: ^2.11.1
   video_player_win: ^3.1.1
   xml: ^6.5.0
   bonsoir: ^5.1.11

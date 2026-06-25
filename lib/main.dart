@@ -4,7 +4,7 @@ import 'package:xplayer/presentation/screens/splash.dart';
 import 'package:xplayer/providers/global_provider.dart';
 import 'presentation/screens/playlist.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
-import 'package:flutter_gen/gen_l10n/app_localizations.dart';
+import 'package:xplayer/localization/app_localizations.dart';
 import 'package:provider/provider.dart';
 import 'providers/locale_provider.dart';
 import 'package:xplayer/providers/media_provider.dart';

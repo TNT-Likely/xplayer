@@ -4,7 +4,7 @@ import 'package:dio/io.dart';
 import 'package:flutter/material.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:xplayer/shared/components/x_text_button.dart';
-import 'package:flutter_gen/gen_l10n/app_localizations.dart';
+import 'package:xplayer/localization/app_localizations.dart';
 import 'update_result.dart';
 import 'update_cache.dart';
 import 'update_proxy.dart';

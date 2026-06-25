@@ -1,7 +1,7 @@
 import 'package:flutter/widgets.dart';
 import 'package:xplayer/data/models/channel_model.dart';
 import 'package:xplayer/shared/components/x_text_button.dart';
-import 'package:flutter_gen/gen_l10n/app_localizations.dart';
+import 'package:xplayer/localization/app_localizations.dart';
 
 typedef OnSourceSwitchCallback = Future<void> Function(String link);
 
