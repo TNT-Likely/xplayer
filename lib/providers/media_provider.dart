@@ -10,6 +10,8 @@ import 'package:xplayer/utils/channel_filter.dart';
 import 'package:xplayer/shared/build_flags.dart';
 import 'package:xplayer/data/repositories/playlist_repository.dart';
 import 'package:xplayer/data/repositories/favorites_repository.dart';
+import 'package:xplayer/data/repositories/recent_repository.dart';
+import 'package:xplayer/utils/recent_util.dart';
 import 'package:xplayer/services/channel_test_service.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:xplayer/extensions/m3u.dart';
@@ -19,12 +21,14 @@ import 'package:xplayer/localization/app_localizations.dart';
 class MediaProvider with ChangeNotifier {
   final PlaylistRepository _playlistRepository = PlaylistRepository();
   final FavoritesRepository _favoritesRepository = FavoritesRepository();
+  final RecentRepository _recentRepository = RecentRepository();
   final ChannelTestService _testService = ChannelTestService();
 
   List<Playlist> _playlists = [];
   int _currentPlaylistId = -1;
   List<Channel> _channels = [];
   List<Channel> _favoriteChannels = [];
+  List<Channel> _recentChannels = [];
   List<Programme> _programmes = [];
 
   // 频道筛选状态(分组 + 搜索)
@@ -147,6 +151,7 @@ class MediaProvider with ChangeNotifier {
   Future<void> initialize() async {
     await fetchPlaylists();
     await fetchFavoriteChannels();
+    await loadRecent();
     await loadLastSelectedPlaylistId();
     await refreshProgrammes();
   }
@@ -320,6 +325,9 @@ class MediaProvider with ChangeNotifier {
       // 加载收藏频道
       await fetchFavoriteChannels();
 
+      // 加载最近播放
+      await loadRecent();
+
       // 加载上次选择的播放列表(频道走缓存优先,启动快;不在此处阻塞联网)
       await loadLastSelectedPlaylistId();
     } catch (e) {
@@ -439,6 +447,32 @@ class MediaProvider with ChangeNotifier {
     final favoriteChannels = await _favoritesRepository.getAllFavorites();
     _favoriteChannels = favoriteChannels;
     notifyListeners();
+  }
+
+  // ---- 最近播放 ----
+  List<Channel> get recentChannels => _recentChannels;
+
+  Future<void> loadRecent() async {
+    _recentChannels = await _recentRepository.getRecent();
+    notifyListeners();
+  }
+
+  Future<void> addRecent(Channel channel) async {
+    _recentChannels = mergeRecent(_recentChannels, channel);
+    notifyListeners();
+    await _recentRepository.addRecent(channel);
+  }
+
+  Future<void> removeRecent(String id) async {
+    _recentChannels.removeWhere((c) => c.id == id);
+    notifyListeners();
+    await _recentRepository.removeRecent(id);
+  }
+
+  Future<void> clearRecent() async {
+    _recentChannels = [];
+    notifyListeners();
+    await _recentRepository.clearRecent();
   }
 
   Future<void> refreshPlaylistWithM3uById(int id, String url) async {

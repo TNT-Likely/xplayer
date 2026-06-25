@@ -47,3 +47,23 @@ Future<void> setUseNativeEngine(bool v) async {
     await prefs.setBool(_kNativeEngineKey, v);
   } catch (_) {}
 }
+
+/// 首页「最近播放」模块显示开关(默认开;关闭只影响显示,不停止记录)。
+final ValueNotifier<bool> showRecentModule = ValueNotifier<bool>(true);
+
+const String _kShowRecentKey = 'home_show_recent';
+
+Future<void> loadRecentModuleSetting() async {
+  try {
+    final prefs = await SharedPreferences.getInstance();
+    showRecentModule.value = prefs.getBool(_kShowRecentKey) ?? true;
+  } catch (_) {}
+}
+
+Future<void> setShowRecentModule(bool v) async {
+  showRecentModule.value = v;
+  try {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setBool(_kShowRecentKey, v);
+  } catch (_) {}
+}
