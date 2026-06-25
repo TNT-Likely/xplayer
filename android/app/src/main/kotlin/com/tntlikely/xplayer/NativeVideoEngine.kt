@@ -36,6 +36,7 @@ class NativeVideoEngine(
     private var player: ExoPlayer? = null
     private var surfaceView: SurfaceView? = null
     private var aspectFrame: AspectRatioFrameLayout? = null
+    private var surfaceOnTop = false // 当前 SurfaceView 是否置于窗口之上(小窗续播时为 true)
     private var events: EventChannel.EventSink? = null
     private var positionPoller: Runnable? = null
     // 诊断统计
@@ -76,14 +77,22 @@ class NativeVideoEngine(
         }
     }
 
-    private fun ensureSurface() {
-        if (surfaceView != null) return
+    // 新建一个 SurfaceView 并设好 z-order。注意:setZOrderOnTop 必须在 surface 创建前调用
+    // 才可靠(多数设备上运行时改 z-order 不生效),所以切换 z-order 走重建(见 applyZOrder)。
+    private fun newSurfaceView(onTop: Boolean): SurfaceView {
         val sv = SurfaceView(context)
+        if (onTop) sv.setZOrderOnTop(true)
         sv.holder.addCallback(object : SurfaceHolder.Callback {
             override fun surfaceCreated(holder: SurfaceHolder) { player?.setVideoSurface(holder.surface) }
             override fun surfaceChanged(holder: SurfaceHolder, f: Int, w: Int, h: Int) {}
             override fun surfaceDestroyed(holder: SurfaceHolder) { player?.setVideoSurface(null) }
         })
+        return sv
+    }
+
+    private fun ensureSurface() {
+        if (surfaceView != null) return
+        val sv = newSurfaceView(false) // 默认全屏:垫在透明窗口之下(hole-punch)
         // 用 AspectRatioFrameLayout(RESIZE_MODE_FIT)包住 SurfaceView,按视频实际比例
         // letterbox,而不是把 SurfaceView 拉满全屏导致变形(SCALE_TO_FIT 会拉伸)。
         val frame = AspectRatioFrameLayout(context)
@@ -95,6 +104,20 @@ class NativeVideoEngine(
             android.view.Gravity.CENTER))
         surfaceView = sv
         aspectFrame = frame
+        surfaceOnTop = false
+    }
+
+    // 切换 z-order:重建 SurfaceView(运行时直接 setZOrderOnTop 在多数设备不生效 → 小窗黑屏)。
+    private fun applyZOrder(onTop: Boolean) {
+        if (onTop == surfaceOnTop) return
+        val frame = aspectFrame ?: return
+        surfaceView?.let { frame.removeView(it) }
+        val sv = newSurfaceView(onTop)
+        frame.addView(sv, FrameLayout.LayoutParams(
+            FrameLayout.LayoutParams.MATCH_PARENT, FrameLayout.LayoutParams.MATCH_PARENT))
+        surfaceView = sv
+        surfaceOnTop = onTop
+        // 新 surface 创建后 surfaceCreated 回调会重新 setVideoSurface,无需手动重连。
     }
 
     private fun setSurfaceShown(shown: Boolean) {
@@ -292,14 +315,14 @@ class NativeVideoEngine(
             val frame = aspectFrame ?: return@post
             if (call.argument<Boolean>("fullscreen") == true) {
                 // 全屏:SurfaceView 垫回窗口之下(hole-punch),让 Flutter 控制层画在视频上方。
-                surfaceView?.setZOrderOnTop(false)
+                applyZOrder(false)
                 frame.layoutParams = FrameLayout.LayoutParams(
                     FrameLayout.LayoutParams.MATCH_PARENT,
                     FrameLayout.LayoutParams.MATCH_PARENT,
                     android.view.Gravity.CENTER)
             } else {
                 // 小窗:SurfaceView 置于窗口之上,否则会被不透明的首页盖住(只剩声音)。
-                surfaceView?.setZOrderOnTop(true)
+                applyZOrder(true)
                 val x = call.argument<Int>("x") ?: 0
                 val y = call.argument<Int>("y") ?: 0
                 val w = call.argument<Int>("w") ?: 0
@@ -359,6 +382,7 @@ class NativeVideoEngine(
             aspectFrame?.let { container.removeView(it) }
             aspectFrame = null
             surfaceView = null
+            surfaceOnTop = false // 重置,下次从全屏(窗口之下)开始
         }
     }
 }

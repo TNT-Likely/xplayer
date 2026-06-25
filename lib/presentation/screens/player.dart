@@ -1123,8 +1123,9 @@ class _PlayerScreenState extends State<PlayerScreen>
       onKey: _handleKeyPress,
       child: GestureDetector(
         onVerticalDragEnd: _onVerticalDragEnd,
-        // iOS:不拦截横向滑动 —— 让系统左缘返回手势可用,避免误触换台/换源挡住返回
-        onHorizontalDragEnd: Platform.isIOS ? null : _onHorizontalDragEnd,
+        // iOS:横向滑动(左/右)直接返回首页(无硬件返回键);其它平台维持换台/换源
+        onHorizontalDragEnd:
+            Platform.isIOS ? (_) => _handleBack() : _onHorizontalDragEnd,
         onTap: () {
           _toggleControlsVisibility();
         },
