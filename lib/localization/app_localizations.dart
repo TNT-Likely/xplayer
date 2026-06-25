@@ -956,6 +956,36 @@ abstract class AppLocalizations {
   /// **'Open this URL in a browser on your phone or computer:'**
   String get githubTvHint;
 
+  /// No description provided for @recentlyPlayed.
+  ///
+  /// In en, this message translates to:
+  /// **'Recently Played'**
+  String get recentlyPlayed;
+
+  /// No description provided for @showRecentOnHome.
+  ///
+  /// In en, this message translates to:
+  /// **'Show Recently Played on Home'**
+  String get showRecentOnHome;
+
+  /// No description provided for @showFavoritesOnHome.
+  ///
+  /// In en, this message translates to:
+  /// **'Show Favorites on Home'**
+  String get showFavoritesOnHome;
+
+  /// No description provided for @allChannels.
+  ///
+  /// In en, this message translates to:
+  /// **'All Channels'**
+  String get allChannels;
+
+  /// No description provided for @clearAll.
+  ///
+  /// In en, this message translates to:
+  /// **'Clear'**
+  String get clearAll;
+
   /// No description provided for @sleepTimer.
   ///
   /// In en, this message translates to:

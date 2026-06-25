@@ -7,6 +7,7 @@ import 'package:xplayer/data/models/playlist_model.dart';
 // 导入 FavoritesRepository
 import 'package:xplayer/presentation/screens/playlist.dart';
 import 'package:xplayer/presentation/screens/epg_screen.dart';
+import 'package:xplayer/presentation/widgets/recent_played_widget.dart';
 import 'package:xplayer/presentation/screens/log_center_screen.dart';
 import 'package:xplayer/utils/logger_util.dart';
 import 'package:xplayer/utils/player_settings.dart';
@@ -130,6 +131,14 @@ class _HomeScreenState extends State<HomeScreen> {
     showDialog(
       context: context,
       builder: (_) => const ChannelGroupDialog(),
+    );
+  }
+
+  /// 「启动时自动更新」弹窗:分别开关 刷新频道 / 刷新节目单。
+  void _showAutoRefreshDialog(BuildContext context) {
+    showDialog(
+      context: context,
+      builder: (_) => const AutoRefreshDialog(),
     );
   }
 
@@ -428,7 +437,7 @@ class _HomeScreenState extends State<HomeScreen> {
                   ),
                 ),
                 const Divider(color: Colors.white24, height: 1),
-                _drawerSectionHeader('播放与显示'),
+                _drawerSectionHeader('播放'),
                 // 渲染模式开关:SurfaceView(platformView)/ 纹理。仅非 Android 显示 ——
                 // Android 的清晰度走「播放引擎=原生」(见下),且全局透明下 platformView 会卡;
                 // iOS/macOS(avfoundation 支持 platformView)保留此选项。
@@ -475,6 +484,7 @@ class _HomeScreenState extends State<HomeScreen> {
                       ),
                     ),
                   ),
+                _drawerSectionHeader('界面'),
                 XBaseButton(
                   child: animeContainer(
                     ListTile(
@@ -489,6 +499,49 @@ class _HomeScreenState extends State<HomeScreen> {
                   onPressed: () {
                     Navigator.of(context).pop();
                     _showSizeDialog(context);
+                  },
+                ),
+                // 首页「最近播放」模块显示开关
+                ValueListenableBuilder<bool>(
+                  valueListenable: showRecentModule,
+                  builder: (_, on, __) => ListTile(
+                    leading: const Icon(Icons.history, color: Colors.white),
+                    title: Text(localizations.showRecentOnHome,
+                        style: const TextStyle(color: Colors.white)),
+                    trailing: Switch(
+                      value: on,
+                      onChanged: (v) => setShowRecentModule(v),
+                    ),
+                  ),
+                ),
+                // 首页「收藏」行显示开关
+                ValueListenableBuilder<bool>(
+                  valueListenable: showFavoritesRow,
+                  builder: (_, on, __) => ListTile(
+                    leading: const Icon(Icons.favorite, color: Colors.white),
+                    title: Text(localizations.showFavoritesOnHome,
+                        style: const TextStyle(color: Colors.white)),
+                    trailing: Switch(
+                      value: on,
+                      onChanged: (v) => setShowFavoritesRow(v),
+                    ),
+                  ),
+                ),
+                XBaseButton(
+                  child: animeContainer(
+                    ListTile(
+                      leading: const Icon(Icons.language, color: Colors.white),
+                      title: Text(
+                        localeProvider.locale.languageCode == 'zh'
+                            ? '中文'
+                            : 'English',
+                        style: const TextStyle(color: Colors.white),
+                      ),
+                    ),
+                  ),
+                  onPressed: () {
+                    Navigator.of(context).pop();
+                    _showLanguageSwitcher(context, localeProvider);
                   },
                 ),
                 _drawerSectionHeader('源与节目单'),
@@ -664,22 +717,18 @@ class _HomeScreenState extends State<HomeScreen> {
                     ),
                   ),
                 ),
-                Consumer<MediaProvider>(
-                  builder: (context, mp, _) => XBaseButton(
-                    onPressed: () =>
-                        mp.setAutoRefreshOnLaunch(!mp.autoRefreshOnLaunch),
-                    child: animeContainer(
-                      ListTile(
-                        leading:
-                            const Icon(Icons.autorenew, color: Colors.white),
-                        title: Text(
-                          localizations.autoRefreshOnLaunch,
-                          style: const TextStyle(color: Colors.white),
-                        ),
-                        trailing: Switch(
-                          value: mp.autoRefreshOnLaunch,
-                          onChanged: mp.setAutoRefreshOnLaunch,
-                        ),
+                XBaseButton(
+                  onPressed: () {
+                    Navigator.of(context).pop();
+                    _showAutoRefreshDialog(context);
+                  },
+                  child: animeContainer(
+                    ListTile(
+                      leading:
+                          const Icon(Icons.autorenew, color: Colors.white),
+                      title: Text(
+                        localizations.autoRefreshOnLaunch,
+                        style: const TextStyle(color: Colors.white),
                       ),
                     ),
                   ),
@@ -804,23 +853,6 @@ class _HomeScreenState extends State<HomeScreen> {
                     }
                   },
                 ),
-                XBaseButton(
-                  child: animeContainer(
-                    ListTile(
-                      leading: const Icon(Icons.language, color: Colors.white),
-                      title: Text(
-                        localeProvider.locale.languageCode == 'zh'
-                            ? '中文'
-                            : 'English',
-                        style: const TextStyle(color: Colors.white),
-                      ),
-                    ),
-                  ),
-                  onPressed: () {
-                    Navigator.of(context).pop();
-                    _showLanguageSwitcher(context, localeProvider);
-                  },
-                ),
               ],
             ),
           ),
@@ -925,24 +957,35 @@ class _HomeScreenState extends State<HomeScreen> {
                       ),
                     );
                   }
-                  return ChannelListWidget(
-                    channels: filtered,
-                    favoriteChannels: mediaProvider.favoriteChannels,
-                    sizeLevel: mediaProvider.gridSizeLevel,
-                    onChannelUpdated: () async {
-                      try {
-                        final mp = Provider.of<MediaProvider>(
-                          context,
-                          listen: false,
-                        );
-                        await mp.refreshChannels();
-                        showToast(localizations.channelsUpdatedSuccessfully);
-                      } catch (e, s) {
-                        Logger.error('刷新频道失败: $e', e, s);
-                        showToast(
-                            localizations.channelsUpdateFailed(e.toString()));
-                      }
-                    },
+                  return Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      const RecentPlayedWidget(),
+                      const FavoritesRowWidget(),
+                      const AllChannelsHeader(),
+                      Expanded(
+                        child: ChannelListWidget(
+                          channels: filtered,
+                          favoriteChannels: mediaProvider.favoriteChannels,
+                          sizeLevel: mediaProvider.gridSizeLevel,
+                          onChannelUpdated: () async {
+                            try {
+                              final mp = Provider.of<MediaProvider>(
+                                context,
+                                listen: false,
+                              );
+                              await mp.refreshChannels();
+                              showToast(
+                                  localizations.channelsUpdatedSuccessfully);
+                            } catch (e, s) {
+                              Logger.error('刷新频道失败: $e', e, s);
+                              showToast(localizations
+                                  .channelsUpdateFailed(e.toString()));
+                            }
+                          },
+                        ),
+                      ),
+                    ],
                   );
                 }
               },

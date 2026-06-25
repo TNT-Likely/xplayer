@@ -192,3 +192,44 @@ class ChannelSizeDialog extends StatelessWidget {
     );
   }
 }
+
+/// 「启动时自动更新」弹窗:分别开关 刷新频道 / 刷新节目单。沿用统一弹窗外壳与设计 token。
+class AutoRefreshDialog extends StatelessWidget {
+  const AutoRefreshDialog({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    final l = AppLocalizations.of(context)!;
+    return _FilterDialogShell(
+      title: l.autoRefreshOnLaunch,
+      child: Consumer<MediaProvider>(
+        builder: (context, mp, _) => Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            _row(l.refreshChannels, mp.autoRefreshChannels,
+                mp.setAutoRefreshChannels),
+            const SizedBox(height: AppDimens.s8),
+            _row(l.refreshProgrammes, mp.autoRefreshProgrammes,
+                mp.setAutoRefreshProgrammes),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _row(String label, bool value, ValueChanged<bool> onChanged) {
+    return Row(
+      children: [
+        Expanded(
+          child: Text(label,
+              style: const TextStyle(color: AppTokens.textPrimary)),
+        ),
+        Switch(
+          value: value,
+          activeColor: AppTokens.brand,
+          onChanged: onChanged,
+        ),
+      ],
+    );
+  }
+}

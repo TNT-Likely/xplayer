@@ -249,6 +249,10 @@ class _PlayerScreenState extends State<PlayerScreen>
             ? DateTime.now().difference(_loadStartedAt!).inMilliseconds
             : null;
       });
+      // 记录最近播放(失败不记录)
+      if (mounted) {
+        Provider.of<MediaProvider>(context, listen: false).addRecent(_channel);
+      }
       // 拉取音轨(多音轨才会显示音轨按钮)
       _backend.getAudioTracks().then((t) {
         if (token == _loadToken && mounted) setState(() => _audioTracks = t);
