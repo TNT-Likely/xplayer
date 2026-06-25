@@ -12,6 +12,7 @@ import 'package:xplayer/presentation/widgets/operation_hint_dialog.dart';
 import 'package:xplayer/shared/components/x_text_button.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:xplayer/providers/media_provider.dart';
+import 'package:xplayer/providers/global_provider.dart';
 import 'package:xplayer/utils/logger_util.dart';
 import 'package:xplayer/utils/hls_probe.dart';
 import 'package:xplayer/services/sleep_timer.dart';
@@ -63,7 +64,11 @@ class _PlayerScreenState extends State<PlayerScreen>
   bool _forcedFallback = false; // 原生引擎初始化失败后强制降级 video_player(切换设置时复位)
   bool _handedOff = false; // 已把 backend 交接给小窗(dispose 时不销毁)
   bool _inPip = false; // 当前处于系统画中画(Android)
+  bool _isTv = false; // TV 不启用系统画中画(系统无 PiP,且用遥控器)
   static const _pipChannel = MethodChannel('native_pip');
+  // 信息面板:TV 遥控器上下键滚动(SingleChildScrollView 默认不响应方向键)
+  final ScrollController _infoScroll = ScrollController();
+  final FocusNode _infoFocus = FocusNode(debugLabel: 'streamInfo');
 
   PlayState _playState = PlayState.idle;
 
@@ -108,6 +113,7 @@ class _PlayerScreenState extends State<PlayerScreen>
     super.initState();
     WidgetsBinding.instance.addObserver(this);
     final mediaProvider = Provider.of<MediaProvider>(context, listen: false);
+    _isTv = Provider.of<GlobalProvider>(context, listen: false).isTV;
 
     _channel = widget.channel;
     _sourceLink = _resolveSourceLink(widget.channel);
@@ -124,6 +130,8 @@ class _PlayerScreenState extends State<PlayerScreen>
       _playState = PlayState.playing;
       WidgetsBinding.instance.addPostFrameCallback((_) => _setSurfaceFullscreen());
     } else {
+      // 已有小窗但要播放别的频道 → 先关掉旧小窗(否则与新后端争抢同一原生引擎 → 黑屏)
+      if (mini.hasMini) mini.close();
       _initializePlayer();
     }
     _focusNode.requestFocus();
@@ -182,6 +190,8 @@ class _PlayerScreenState extends State<PlayerScreen>
     useNativeEngine.removeListener(_onRenderModeChanged);
     WidgetsBinding.instance.removeObserver(this);
     _focusNode.dispose();
+    _infoScroll.dispose();
+    _infoFocus.dispose();
     if (Platform.isAndroid) {
       _setPipEligible(false); // 离开播放页 → 不再允许进 PiP
       _pipChannel.setMethodCallHandler(null);
@@ -746,6 +756,28 @@ class _PlayerScreenState extends State<PlayerScreen>
     });
   }
 
+  /// 信息面板遥控器滚动:上下键按步长滚动(TV 无触屏,SingleChildScrollView 不响应方向键)。
+  KeyEventResult _onInfoPanelKey(FocusNode node, KeyEvent event) {
+    if (event is! KeyDownEvent && event is! KeyRepeatEvent) {
+      return KeyEventResult.ignored;
+    }
+    if (!_infoScroll.hasClients) return KeyEventResult.ignored;
+    const step = 120.0;
+    double? target;
+    if (event.logicalKey == LogicalKeyboardKey.arrowDown) {
+      target = _infoScroll.offset + step;
+    } else if (event.logicalKey == LogicalKeyboardKey.arrowUp) {
+      target = _infoScroll.offset - step;
+    }
+    if (target == null) return KeyEventResult.ignored;
+    _infoScroll.animateTo(
+      target.clamp(0.0, _infoScroll.position.maxScrollExtent),
+      duration: const Duration(milliseconds: 150),
+      curve: Curves.easeOut,
+    );
+    return KeyEventResult.handled;
+  }
+
   void _showStreamInfoSheet(BuildContext context) {
     final w = (MediaQuery.of(context).size.width * 0.34).clamp(300.0, 600.0);
     showGeneralDialog(
@@ -756,7 +788,11 @@ class _PlayerScreenState extends State<PlayerScreen>
       transitionDuration: const Duration(milliseconds: 200),
       pageBuilder: (_, __, ___) => Align(
         alignment: Alignment.centerRight,
-        child: Container(
+        child: Focus(
+          focusNode: _infoFocus,
+          autofocus: true,
+          onKeyEvent: _onInfoPanelKey,
+          child: Container(
           width: w,
           height: MediaQuery.of(context).size.height,
           color: const Color.fromRGBO(0, 0, 0, 0.85),
@@ -776,6 +812,7 @@ class _PlayerScreenState extends State<PlayerScreen>
               },
             ),
           ),
+        ),
         ),
       ),
       transitionBuilder: (_, anim, __, child) => SlideTransition(
@@ -874,6 +911,7 @@ class _PlayerScreenState extends State<PlayerScreen>
       child: Padding(
         padding: const EdgeInsets.all(12),
         child: SingleChildScrollView(
+          controller: _infoScroll,
           child: ValueListenableBuilder<bool>(
             valueListenable: useSurfaceView,
             builder: (_, surface, __) => Column(
@@ -1048,20 +1086,13 @@ class _PlayerScreenState extends State<PlayerScreen>
   /// 声明"当前可进系统画中画":仅 Android 且开关打开、且正在播放时为 true。
   /// 实际进入 PiP 由 MainActivity.onUserLeaveHint(回桌面)按此触发。
   void _setPipEligible(bool eligible) {
-    if (!Platform.isAndroid) return;
+    if (!Platform.isAndroid || _isTv) return; // TV 不启用 PiP
     _pipChannel.invokeMethod('setEligible', eligible && pipOnLeave.value);
   }
 
   void _setSurfaceMini() {
     final media = MediaQuery.of(context);
-    final w = (media.size.width * 0.4).clamp(160.0, 240.0);
-    final h = w * 9 / 16;
-    final rect = Rect.fromLTWH(
-      media.size.width - w - 12 - media.padding.right,
-      media.size.height - h - 12 - media.padding.bottom,
-      w,
-      h,
-    );
+    final rect = miniVideoRect(media.size, media.padding);
     _backend.setSurfaceBounds(rect, media.devicePixelRatio);
   }
 
@@ -1092,7 +1123,8 @@ class _PlayerScreenState extends State<PlayerScreen>
       onKey: _handleKeyPress,
       child: GestureDetector(
         onVerticalDragEnd: _onVerticalDragEnd,
-        onHorizontalDragEnd: _onHorizontalDragEnd,
+        // iOS:不拦截横向滑动 —— 让系统左缘返回手势可用,避免误触换台/换源挡住返回
+        onHorizontalDragEnd: Platform.isIOS ? null : _onHorizontalDragEnd,
         onTap: () {
           _toggleControlsVisibility();
         },
@@ -1184,6 +1216,27 @@ class _PlayerScreenState extends State<PlayerScreen>
                   ],
                 ),
               ),
+              // 返回按钮:iOS/桌面无硬件返回键(且 PopScope 拦掉了 iOS 左缘返回),
+              // 给一个常驻的返回入口(走 _handleBack → 满足条件则小窗续播)。
+              if (Platform.isIOS ||
+                  Platform.isMacOS ||
+                  Platform.isWindows ||
+                  Platform.isLinux)
+                Positioned(
+                  top: 0,
+                  left: 0,
+                  child: SafeArea(
+                    child: Material(
+                      color: Colors.black38,
+                      shape: const CircleBorder(),
+                      clipBehavior: Clip.antiAlias,
+                      child: IconButton(
+                        icon: const Icon(Icons.arrow_back, color: Colors.white),
+                        onPressed: _handleBack,
+                      ),
+                    ),
+                  ),
+                ),
             ],
           ),
         ),

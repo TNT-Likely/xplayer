@@ -32,7 +32,10 @@ class MainActivity : FlutterActivity() {
     // 回到桌面(用户主动离开)时,若允许 → 进系统画中画
     override fun onUserLeaveHint() {
         super.onUserLeaveHint()
-        if (pipEligible && android.os.Build.VERSION.SDK_INT >= 26) {
+        val supported = android.os.Build.VERSION.SDK_INT >= 26 &&
+            packageManager.hasSystemFeature(
+                android.content.pm.PackageManager.FEATURE_PICTURE_IN_PICTURE)
+        if (pipEligible && supported) {
             try {
                 enterPictureInPictureMode(
                     android.app.PictureInPictureParams.Builder().build())

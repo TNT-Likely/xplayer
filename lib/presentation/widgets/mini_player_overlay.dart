@@ -14,43 +14,63 @@ class MiniPlayerOverlay extends StatelessWidget {
       builder: (context, c, _) {
         if (!c.hasMini) return const SizedBox.shrink();
         final media = MediaQuery.of(context);
-        final w = (media.size.width * 0.4).clamp(160.0, 240.0);
-        final h = w * 9 / 16;
+        final card = miniCardRect(media.size, media.padding);
+        void expand() {
+          final ch = c.channel;
+          if (ch == null) return;
+          AppNav.key.currentState?.push(MaterialPageRoute(
+            builder: (_) =>
+                PlayerScreen(channel: ch, favoriteChannels: c.favorites),
+          ));
+        }
+
         return Positioned(
-          right: 12 + media.padding.right,
-          bottom: 12 + media.padding.bottom,
-          width: w,
-          height: h,
+          left: card.left,
+          top: card.top,
+          width: card.width,
+          height: card.height,
           child: Material(
             elevation: 8,
             color: Colors.black,
             borderRadius: BorderRadius.circular(8),
             clipBehavior: Clip.antiAlias,
-            child: Stack(
-              fit: StackFit.expand,
+            child: Column(
               children: [
-                GestureDetector(
-                  onTap: () {
-                    final ch = c.channel;
-                    if (ch == null) return;
-                    AppNav.key.currentState?.push(MaterialPageRoute(
-                      builder: (_) => PlayerScreen(
-                          channel: ch, favoriteChannels: c.favorites),
-                    ));
-                  },
-                  child: c.backend!.buildView(),
+                // 顶部操作条:画在视频之上(原生小窗 SurfaceView 置顶,只盖住下方视频区)。
+                SizedBox(
+                  height: kMiniHeader,
+                  child: Row(
+                    children: [
+                      const SizedBox(width: 6),
+                      Expanded(
+                        child: GestureDetector(
+                          behavior: HitTestBehavior.opaque,
+                          onTap: expand,
+                          child: const Align(
+                            alignment: Alignment.centerLeft,
+                            child: Icon(Icons.open_in_full,
+                                color: Colors.white70, size: 14),
+                          ),
+                        ),
+                      ),
+                      InkWell(
+                        onTap: () => c.close(),
+                        child: const Padding(
+                          padding: EdgeInsets.symmetric(horizontal: 6),
+                          child: Icon(Icons.close,
+                              color: Colors.white, size: 18),
+                        ),
+                      ),
+                    ],
+                  ),
                 ),
-                Positioned(
-                  top: 0,
-                  right: 0,
-                  child: InkWell(
-                    onTap: () => c.close(),
-                    child: Container(
-                      padding: const EdgeInsets.all(4),
-                      color: Colors.black54,
-                      child: const Icon(Icons.close,
-                          color: Colors.white, size: 18),
-                    ),
+                // 视频区:video_player 后端显示 Flutter 视图;原生后端为透明占位,
+                // 由置顶的 SurfaceView 在此矩形渲染。点击放大回全屏。
+                Expanded(
+                  child: GestureDetector(
+                    behavior: HitTestBehavior.opaque,
+                    onTap: expand,
+                    child: c.backend!.buildView(),
                   ),
                 ),
               ],

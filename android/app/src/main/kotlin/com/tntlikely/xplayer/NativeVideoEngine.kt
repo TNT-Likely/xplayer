@@ -291,11 +291,15 @@ class NativeVideoEngine(
         main.post {
             val frame = aspectFrame ?: return@post
             if (call.argument<Boolean>("fullscreen") == true) {
+                // 全屏:SurfaceView 垫回窗口之下(hole-punch),让 Flutter 控制层画在视频上方。
+                surfaceView?.setZOrderOnTop(false)
                 frame.layoutParams = FrameLayout.LayoutParams(
                     FrameLayout.LayoutParams.MATCH_PARENT,
                     FrameLayout.LayoutParams.MATCH_PARENT,
                     android.view.Gravity.CENTER)
             } else {
+                // 小窗:SurfaceView 置于窗口之上,否则会被不透明的首页盖住(只剩声音)。
+                surfaceView?.setZOrderOnTop(true)
                 val x = call.argument<Int>("x") ?: 0
                 val y = call.argument<Int>("y") ?: 0
                 val w = call.argument<Int>("w") ?: 0
