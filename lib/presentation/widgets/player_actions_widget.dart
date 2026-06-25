@@ -11,8 +11,10 @@ import 'package:xplayer/data/models/programme_model.dart';
 import 'package:xplayer/providers/global_provider.dart';
 import 'package:xplayer/shared/components/x_base_button.dart';
 import 'package:xplayer/shared/components/x_icon_button.dart';
+import 'package:xplayer/shared/components/ipv6_badge.dart';
 import 'package:xplayer/providers/media_provider.dart';
 import 'package:xplayer/utils/playlist_util.dart';
+import 'package:xplayer/utils/url_utils.dart';
 
 // 定义回调函数类型
 typedef PlayPauseCallback = void Function(bool isPlaying);
@@ -32,6 +34,8 @@ class PlayerActionsWidget extends StatefulWidget {
   final VoidCallback? onRetryInit;
   final VoidCallback? showSourceSwitch;
   final VoidCallback? onToggleDiag;
+  /// 当前播放的源地址(用于判断 IPv6 角标)
+  final String? sourceLink;
 
   const PlayerActionsWidget(
       {Key? key,
@@ -44,7 +48,8 @@ class PlayerActionsWidget extends StatefulWidget {
       this.showChannelSelect,
       this.onRetryInit,
       this.showSourceSwitch,
-      this.onToggleDiag})
+      this.onToggleDiag,
+      this.sourceLink})
       : super(key: key);
 
   @override
@@ -210,6 +215,10 @@ class _PlayerActionsWidgetState extends State<PlayerActionsWidget>
                   ),
                   const SizedBox(width: 8),
                   _streamInfoChip(),
+                  if (isIpv6Url(widget.sourceLink)) ...[
+                    const SizedBox(width: 6),
+                    const Ipv6Badge(),
+                  ],
                 ],
               ),
               if (programmeInfo.$3 != null)
