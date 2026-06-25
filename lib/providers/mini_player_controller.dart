@@ -1,5 +1,6 @@
 import 'package:flutter/foundation.dart';
 import 'package:flutter/painting.dart' show Rect, Size, EdgeInsets;
+import 'package:flutter/scheduler.dart';
 import 'package:xplayer/data/models/channel_model.dart';
 import 'package:xplayer/services/player/x_player_backend.dart';
 
@@ -39,13 +40,24 @@ class MiniPlayerController extends ChangeNotifier {
   PlayerMode get mode => _mode;
   bool get hasMini => _mode == PlayerMode.mini && _backend != null;
 
+  /// 若在 build/layout 阶段被调用(如新路由 initState 里 take()),延后到帧末通知,
+  /// 否则 Consumer 的重建会被吞掉(小窗浮层不刷新/不消失)。
+  void _safeNotify() {
+    if (SchedulerBinding.instance.schedulerPhase ==
+        SchedulerPhase.persistentCallbacks) {
+      SchedulerBinding.instance.addPostFrameCallback((_) => notifyListeners());
+    } else {
+      notifyListeners();
+    }
+  }
+
   void attachFullscreen(
       XPlayerBackend backend, Channel channel, List<Channel> favorites) {
     _backend = backend;
     _channel = channel;
     _favorites = favorites;
     _mode = PlayerMode.fullscreen;
-    notifyListeners();
+    _safeNotify();
   }
 
   void enterMini(
@@ -54,13 +66,13 @@ class MiniPlayerController extends ChangeNotifier {
     _channel = channel;
     _favorites = favorites;
     _mode = PlayerMode.mini;
-    notifyListeners();
+    _safeNotify();
   }
 
   XPlayerBackend? take() {
     if (_backend == null) return null;
     _mode = PlayerMode.fullscreen;
-    notifyListeners();
+    _safeNotify();
     return _backend;
   }
 
@@ -69,7 +81,7 @@ class MiniPlayerController extends ChangeNotifier {
     _backend = null;
     _channel = null;
     _mode = PlayerMode.none;
-    notifyListeners();
+    _safeNotify();
     await b?.pause();
     await b?.dispose();
   }
@@ -78,6 +90,6 @@ class MiniPlayerController extends ChangeNotifier {
     _backend = null;
     _channel = null;
     _mode = PlayerMode.none;
-    notifyListeners();
+    _safeNotify();
   }
 }

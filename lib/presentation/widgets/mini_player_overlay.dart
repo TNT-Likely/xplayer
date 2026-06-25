@@ -18,6 +18,9 @@ class MiniPlayerOverlay extends StatelessWidget {
         void expand() {
           final ch = c.channel;
           if (ch == null) return;
+          // 先在点击回调里(非 build 阶段)切回全屏 → 浮层立即干净隐藏;
+          // 若放到新路由 initState 里 take(),notifyListeners 落在 build 期会被吞掉,小窗不消失。
+          c.take();
           AppNav.key.currentState?.push(MaterialPageRoute(
             builder: (_) =>
                 PlayerScreen(channel: ch, favoriteChannels: c.favorites),
