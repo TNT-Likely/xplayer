@@ -5,7 +5,6 @@ import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
-import 'package:video_player/video_player.dart';
 import 'package:xplayer/data/models/channel_model.dart';
 import 'package:xplayer/data/models/programme_model.dart';
 import 'package:xplayer/providers/global_provider.dart';
@@ -13,6 +12,7 @@ import 'package:xplayer/shared/components/x_base_button.dart';
 import 'package:xplayer/shared/components/x_icon_button.dart';
 import 'package:xplayer/shared/components/ipv6_badge.dart';
 import 'package:xplayer/providers/media_provider.dart';
+import 'package:xplayer/services/player/x_player_backend.dart';
 import 'package:xplayer/utils/playlist_util.dart';
 import 'package:xplayer/utils/url_utils.dart';
 
@@ -24,7 +24,7 @@ typedef FavoriteCallback = Future<void> Function();
 enum _OrientMode { auto, portrait, landscape }
 
 class PlayerActionsWidget extends StatefulWidget {
-  final VideoPlayerController controller;
+  final XPlayerBackend backend;
   final PlayPauseCallback onPlayPause;
   final FavoriteCallback onFavorite;
   final List<Channel> favoriteChannels;
@@ -42,7 +42,7 @@ class PlayerActionsWidget extends StatefulWidget {
 
   const PlayerActionsWidget(
       {Key? key,
-      required this.controller,
+      required this.backend,
       required this.onPlayPause,
       required this.onFavorite,
       required this.favoriteChannels,
@@ -103,31 +103,31 @@ class _PlayerActionsWidgetState extends State<PlayerActionsWidget>
   @override
   void initState() {
     super.initState();
-    _isPlaying = widget.controller.value.isPlaying;
+    _isPlaying = widget.backend.notifier.value.isPlaying;
     _updateIsFavorite();
-    if (!widget.controller.value.hasError) {
-      widget.controller.addListener(_updateIsPlaying);
+    if (!widget.backend.notifier.value.hasError) {
+      widget.backend.notifier.addListener(_updateIsPlaying);
     }
   }
 
   @override
   void dispose() {
-    widget.controller.removeListener(_updateIsPlaying);
+    widget.backend.notifier.removeListener(_updateIsPlaying);
     super.dispose();
     // controller.dispose();
   }
 
   void _updateIsPlaying() {
     setState(() {
-      _isPlaying = widget.controller.value.isPlaying;
+      _isPlaying = widget.backend.notifier.value.isPlaying;
     });
   }
 
   void _handlePlayPause() {
     if (_isPlaying) {
-      widget.controller.pause();
+      widget.backend.pause();
     } else {
-      widget.controller.play();
+      widget.backend.play();
     }
     widget.onPlayPause(_isPlaying);
   }
@@ -244,7 +244,7 @@ class _PlayerActionsWidgetState extends State<PlayerActionsWidget>
 
     // 操作按钮组(两种布局共用同一组按钮)
     final actionButtons = <Widget>[
-      if (widget.controller.value.hasError) ...[
+      if (widget.backend.notifier.value.hasError) ...[
         XIconButton(
           icon: Icons.refresh,
           onPressed: () {
@@ -352,7 +352,7 @@ class _PlayerActionsWidgetState extends State<PlayerActionsWidget>
 
   /// 由视频分辨率(取较短边作为"线数")映射清晰度档:4K/1080P/720P/576P/SD。
   String? _resolutionLabel() {
-    final Size s = widget.controller.value.size;
+    final Size s = widget.backend.notifier.value.size;
     final int lines = (s.width < s.height ? s.width : s.height).round();
     if (lines <= 0) return null;
     if (lines >= 2000) return '4K';
