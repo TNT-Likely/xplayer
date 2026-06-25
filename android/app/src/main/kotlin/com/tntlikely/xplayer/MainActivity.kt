@@ -5,15 +5,21 @@ import android.media.MediaCodecList
 import android.media.MediaExtractor
 import android.media.MediaFormat
 import android.os.Build
+import android.widget.FrameLayout
 import androidx.media3.common.util.Log as Media3Log
 import io.flutter.embedding.android.FlutterActivity
+import io.flutter.embedding.android.TransparencyMode
 import io.flutter.embedding.engine.FlutterEngine
+import io.flutter.plugin.common.EventChannel
 import io.flutter.plugin.common.MethodChannel
 import java.io.BufferedReader
 import java.io.InputStreamReader
 
 class MainActivity : FlutterActivity() {
     private val diagChannel = "diag/logcat"
+    private var nativeEngine: NativeVideoEngine? = null
+
+    override fun getTransparencyMode(): TransparencyMode = TransparencyMode.transparent
 
     override fun configureFlutterEngine(flutterEngine: FlutterEngine) {
         super.configureFlutterEngine(flutterEngine)
@@ -66,6 +72,14 @@ class MainActivity : FlutterActivity() {
                     else -> result.notImplemented()
                 }
             }
+
+        val content = findViewById<FrameLayout>(android.R.id.content)
+        val engine = NativeVideoEngine(this, content)
+        nativeEngine = engine
+        MethodChannel(flutterEngine.dartExecutor.binaryMessenger, NativeVideoEngine.METHOD_CHANNEL)
+            .setMethodCallHandler(engine)
+        EventChannel(flutterEngine.dartExecutor.binaryMessenger, NativeVideoEngine.EVENT_CHANNEL)
+            .setStreamHandler(engine)
     }
 
     // 读取本应用最近的 logcat(-d:dump 后退出;-t:最后 N 行)。
