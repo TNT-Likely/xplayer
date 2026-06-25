@@ -25,6 +25,27 @@ class NativePlayerBackend implements XPlayerBackend {
   ValueListenable<Map<String, dynamic>>? get diagnostics => _diag;
 
   @override
+  Future<List<AudioTrack>> getAudioTracks() async {
+    final list = await _method.invokeMethod<List<dynamic>>('getAudioTracks');
+    if (list == null) return [];
+    return list.map((e) {
+      final m = Map<String, dynamic>.from(e as Map);
+      return AudioTrack(
+        id: m['id'] as String,
+        label: m['label'] as String?,
+        language: m['language'] as String?,
+        codec: m['codec'] as String?,
+        channels: (m['channels'] as num?)?.toInt(),
+        isSelected: m['isSelected'] == true,
+      );
+    }).toList();
+  }
+
+  @override
+  Future<void> selectAudioTrack(String id) =>
+      _method.invokeMethod('selectAudioTrack', {'id': id});
+
+  @override
   Future<void> initialize(String url) async {
     await _method.invokeMethod('setSurfaceShown', true);
     _sub ??= _events.receiveBroadcastStream().listen(_onEvent);
@@ -60,6 +81,12 @@ class NativePlayerBackend implements XPlayerBackend {
           position: Duration(milliseconds: (m['ms'] as num).toInt()),
           duration: Duration(milliseconds: (m['duration'] as num).toInt()),
         );
+        if (m['bufferedMs'] != null) {
+          _diag.value = {..._diag.value, 'bufferedMs': m['bufferedMs']};
+        }
+        break;
+      case 'stats':
+        _diag.value = {..._diag.value, ...m}..remove('event');
         break;
       case 'error':
         _notifier.value = v.copyWith(

@@ -14,6 +14,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'package:xplayer/providers/media_provider.dart';
 import 'package:xplayer/utils/logger_util.dart';
 import 'package:xplayer/utils/hls_probe.dart';
+import 'package:xplayer/services/sleep_timer.dart';
 import 'package:xplayer/utils/playlist_util.dart';
 import 'package:xplayer/utils/toast.dart';
 import 'package:xplayer/services/log_store.dart';
@@ -66,6 +67,7 @@ class _PlayerScreenState extends State<PlayerScreen>
   Map<String, dynamic> _streamInfo = {}; // 探流结果(结构化:视频/音频编码、解码器、码率…)
   int? _ttffMs; // 首帧耗时
   DateTime? _loadStartedAt;
+  List<AudioTrack> _audioTracks = []; // 当前流可选音轨
   HlsProbeResult? _hlsProbe; // HLS 码率变体探测结果
   String? _hlsProbedLink; // 已探测过的地址(切源后重探)
   bool _hlsProbing = false;
@@ -245,6 +247,10 @@ class _PlayerScreenState extends State<PlayerScreen>
             ? DateTime.now().difference(_loadStartedAt!).inMilliseconds
             : null;
       });
+      // 拉取音轨(多音轨才会显示音轨按钮)
+      _backend.getAudioTracks().then((t) {
+        if (token == _loadToken && mounted) setState(() => _audioTracks = t);
+      }).catchError((_) {});
     } catch (e) {
       if (token != _loadToken || !mounted) return; // 已被新加载取代,丢弃
       // 原生引擎初始化失败 → 强制降级 video_player,重跑一次本方法(届时 _createBackend 选 video_player)。
@@ -434,6 +440,7 @@ class _PlayerScreenState extends State<PlayerScreen>
         _qualityOverrideUrl = null; // 换源 → 画质回到自动
         _hlsProbe = null; // 新源重新探测变体
         _hlsProbedLink = null;
+      _audioTracks = [];
       });
       // 记住该频道的源选择,下次进入同一频道默认用它
       Provider.of<MediaProvider>(context, listen: false)
@@ -511,6 +518,13 @@ class _PlayerScreenState extends State<PlayerScreen>
               showQualitySelect: () {
                 _showQualitySwitcher(context);
               },
+              showSleepTimer: () {
+                _showSleepTimer(context);
+              },
+              hasAudioTracks: _audioTracks.length > 1,
+              showAudioTrackSelect: () {
+                _showAudioTrackSwitcher(context);
+              },
               onToggleDiag: () {
                 cancelAutoCloseTimer();
                 Navigator.of(context).pop(); // 关闭操作栏
@@ -554,6 +568,7 @@ class _PlayerScreenState extends State<PlayerScreen>
       _qualityOverrideUrl = null; // 切台 → 画质回到自动
       _hlsProbe = null; // 新频道重新探测变体
       _hlsProbedLink = null;
+      _audioTracks = [];
     });
 
     _initializePlayer();
@@ -654,6 +669,35 @@ class _PlayerScreenState extends State<PlayerScreen>
         if (mounted) Navigator.of(context).pop();
       },
     );
+  }
+
+  void _showSleepTimer(BuildContext context) {
+    if (_controlsVisible) Navigator.of(context).pop();
+    PlayerDialogs.showSleepTimerSwitcher(context, (d) async {
+      if (d == null) {
+        sleepTimer.cancel();
+      } else {
+        sleepTimer.start(d, onFire: () {
+          if (mounted) {
+            _backend.pause();
+            showToast(AppLocalizations.of(context)!.sleepStopped);
+          }
+        });
+      }
+      if (mounted) Navigator.of(context).pop();
+    });
+  }
+
+  void _showAudioTrackSwitcher(BuildContext context) {
+    if (_controlsVisible) Navigator.of(context).pop();
+    PlayerDialogs.showAudioTrackSwitcher(context, _audioTracks, (id) async {
+      await _backend.selectAudioTrack(id);
+      final t = await _backend.getAudioTracks();
+      if (mounted) {
+        setState(() => _audioTracks = t);
+        Navigator.of(context).pop();
+      }
+    });
   }
 
   void _showStreamInfoSheet(BuildContext context) {
@@ -820,6 +864,37 @@ class _PlayerScreenState extends State<PlayerScreen>
                     i['ffmpeg'] == true
                         ? '已启用(当前音轨软解)'
                         : (_backend is NativePlayerBackend ? '已启用' : '—')),
+                // 缓冲/网络(原生引擎)
+                header(l.secNetwork),
+                row(
+                    l.infoBuffered,
+                    i['bufferedMs'] is num
+                        ? '${(i['bufferedMs'] / 1000).toStringAsFixed(1)} s'
+                        : '—'),
+                row(
+                    l.infoBandwidth,
+                    i['bandwidthBps'] is num && i['bandwidthBps'] > 0
+                        ? '${(i['bandwidthBps'] / 1000000).toStringAsFixed(1)} Mbps'
+                        : '—'),
+                row(l.infoDropped,
+                    i['droppedFrames'] is num ? '${i['droppedFrames']}' : '—'),
+                row(l.infoRebuffer,
+                    i['rebufferCount'] is num ? '${i['rebufferCount']}' : '—'),
+                row(
+                    l.infoFrameRate,
+                    i['frameRate'] is num && i['frameRate'] > 0
+                        ? '${(i['frameRate'] as num).toStringAsFixed(0)} fps'
+                        : '—'),
+                row(
+                    l.infoHdr,
+                    i['isHdr'] == true
+                        ? '是'
+                        : (i['isHdr'] == false ? '否' : '—')),
+                // 恢复/排障
+                header(l.secRecovery),
+                row(l.infoLastError,
+                    _backend.notifier.value.errorDescription ?? '—'),
+                row(l.infoRetries, '$_retryTimes'),
                 // 码流变体(验证是否因 ABR 选了低清档)
                 header(l.secVariants),
                 ..._buildVariantRows(row),

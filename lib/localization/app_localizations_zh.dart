@@ -458,6 +458,53 @@ class AppLocalizationsZh extends AppLocalizations {
   String get openSourceLicenses => '开源许可';
 
   @override
+  String get sleepTimer => '睡眠定时';
+
+  @override
+  String get sleepOff => '关闭';
+
+  @override
+  String sleepMinutes(int n) {
+    return '$n 分钟';
+  }
+
+  @override
+  String get sleepStopped => '睡眠定时已停止播放';
+
+  @override
+  String get audioTrack => '音轨';
+
+  @override
+  String get secNetwork => '缓冲/网络';
+
+  @override
+  String get secRecovery => '恢复';
+
+  @override
+  String get infoBuffered => '缓冲';
+
+  @override
+  String get infoBandwidth => '网速估算';
+
+  @override
+  String get infoDropped => '丢帧';
+
+  @override
+  String get infoRebuffer => '重缓冲次数';
+
+  @override
+  String get infoFrameRate => '帧率';
+
+  @override
+  String get infoHdr => 'HDR';
+
+  @override
+  String get infoLastError => '最近错误';
+
+  @override
+  String get infoRetries => '重试次数';
+
+  @override
   String get logLevelDebug => '调试';
 
   @override

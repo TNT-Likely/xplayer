@@ -39,6 +39,10 @@ class PlayerActionsWidget extends StatefulWidget {
   /// 当前流是否有多档画质可选(决定画质按钮是否显示)
   final bool hasQualityOptions;
   final VoidCallback? showQualitySelect;
+  final VoidCallback? showSleepTimer;
+  /// 是否有多音轨(决定音轨按钮是否显示)
+  final bool hasAudioTracks;
+  final VoidCallback? showAudioTrackSelect;
 
   const PlayerActionsWidget(
       {Key? key,
@@ -54,7 +58,10 @@ class PlayerActionsWidget extends StatefulWidget {
       this.onToggleDiag,
       this.sourceLink,
       this.hasQualityOptions = false,
-      this.showQualitySelect})
+      this.showQualitySelect,
+      this.showSleepTimer,
+      this.hasAudioTracks = false,
+      this.showAudioTrackSelect})
       : super(key: key);
 
   @override
@@ -290,6 +297,26 @@ class _PlayerActionsWidgetState extends State<PlayerActionsWidget>
         ),
         const SizedBox(width: 8),
       ],
+      // 音轨选择:仅多音轨时出现
+      if (widget.hasAudioTracks) ...[
+        XIconButton(
+          icon: Icons.audiotrack,
+          onPressed: () {
+            if (widget.showAudioTrackSelect != null) {
+              widget.showAudioTrackSelect!();
+            }
+          },
+        ),
+        const SizedBox(width: 8),
+      ],
+      // 睡眠定时:始终显示
+      XIconButton(
+        icon: Icons.bedtime,
+        onPressed: () {
+          if (widget.showSleepTimer != null) widget.showSleepTimer!();
+        },
+      ),
+      const SizedBox(width: 8),
       XIconButton(
         icon: Icons.info_outline,
         onPressed: () {

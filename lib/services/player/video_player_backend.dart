@@ -18,6 +18,31 @@ class VideoPlayerBackend implements XPlayerBackend {
   ValueListenable<Map<String, dynamic>>? get diagnostics => null;
 
   @override
+  Future<List<AudioTrack>> getAudioTracks() async {
+    final c = _controller;
+    if (c == null) return [];
+    try {
+      final tracks = await c.getAudioTracks();
+      return tracks
+          .map((t) => AudioTrack(
+                id: t.id,
+                label: t.label,
+                language: t.language,
+                codec: t.codec,
+                channels: t.channelCount,
+                isSelected: t.isSelected,
+              ))
+          .toList();
+    } catch (_) {
+      return [];
+    }
+  }
+
+  @override
+  Future<void> selectAudioTrack(String id) async =>
+      _controller?.selectAudioTrack(id);
+
+  @override
   Future<void> initialize(String url) async {
     await _controller?.dispose();
     // Android:强制 textureView。原因有二:① 清晰度走原生引擎(NativePlayerBackend),
