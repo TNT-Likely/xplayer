@@ -44,8 +44,10 @@ class MediaProvider with ChangeNotifier {
   // 测速后是否隐藏「无法播放」的频道(可恢复,持久化)
   bool _hideUnplayable = false;
 
-  // 启动时是否自动联网更新频道/节目单(后台静默,不阻塞进入;持久化,默认开)
-  bool _autoRefreshOnLaunch = true;
+  // 启动时是否自动联网更新(后台静默,不阻塞进入;持久化,默认开)。
+  // 频道 / 节目单 各自独立开关。
+  bool _autoRefreshChannels = true;
+  bool _autoRefreshProgrammes = true;
 
   // 频道测试相关
   Map<String, ChannelTestResult> _channelTestResults = {};
@@ -118,8 +120,9 @@ class MediaProvider with ChangeNotifier {
   /// 是否隐藏无法播放的频道。
   bool get hideUnplayable => _hideUnplayable;
 
-  /// 启动时是否自动更新(后台静默刷新)。
-  bool get autoRefreshOnLaunch => _autoRefreshOnLaunch;
+  /// 启动时是否自动刷新频道 / 节目单(后台静默)。
+  bool get autoRefreshChannels => _autoRefreshChannels;
+  bool get autoRefreshProgrammes => _autoRefreshProgrammes;
 
   /// 当前频道里去重的分组(供筛选 chips)。
   List<String> get availableGroups => distinctGroups(channels);
@@ -272,16 +275,29 @@ class MediaProvider with ChangeNotifier {
   /// 读取「启动时自动更新」开关(默认开)。
   Future<void> loadAutoRefreshOnLaunch() async {
     final prefs = await SharedPreferences.getInstance();
-    _autoRefreshOnLaunch = prefs.getBool('auto_refresh_on_launch') ?? true;
+    // 兼容旧版单一开关:新键缺失时回退旧键,旧键也无则默认开。
+    final legacy = prefs.getBool('auto_refresh_on_launch');
+    _autoRefreshChannels =
+        prefs.getBool('auto_refresh_channels') ?? legacy ?? true;
+    _autoRefreshProgrammes =
+        prefs.getBool('auto_refresh_programmes') ?? legacy ?? true;
     notifyListeners();
   }
 
-  /// 设置并持久化「启动时自动更新」开关。
-  Future<void> setAutoRefreshOnLaunch(bool value) async {
-    _autoRefreshOnLaunch = value;
+  /// 设置并持久化「启动自动刷新频道」开关。
+  Future<void> setAutoRefreshChannels(bool value) async {
+    _autoRefreshChannels = value;
     notifyListeners();
     final prefs = await SharedPreferences.getInstance();
-    await prefs.setBool('auto_refresh_on_launch', value);
+    await prefs.setBool('auto_refresh_channels', value);
+  }
+
+  /// 设置并持久化「启动自动刷新节目单」开关。
+  Future<void> setAutoRefreshProgrammes(bool value) async {
+    _autoRefreshProgrammes = value;
+    notifyListeners();
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setBool('auto_refresh_programmes', value);
   }
 
   void _resetFilters() {
@@ -339,19 +355,23 @@ class MediaProvider with ChangeNotifier {
 
     // 进入首页后,若开启「启动时自动更新」,后台静默刷新频道 + 节目单,
     // 不阻塞进入(修复每次启动都卡在联网更新导致很慢的问题)。
-    if (_autoRefreshOnLaunch) {
+    if (_autoRefreshChannels || _autoRefreshProgrammes) {
       _refreshOnLaunchInBackground();
     }
   }
 
-  /// 启动后台静默刷新:失败不打扰(已有本地缓存兜底)。
+  /// 启动后台静默刷新:按各自开关执行;失败不打扰(已有本地缓存兜底)。
   Future<void> _refreshOnLaunchInBackground() async {
-    try {
-      await fetchChannels(forceRefresh: true, silent: true);
-    } catch (_) {}
-    try {
-      await refreshProgrammes();
-    } catch (_) {}
+    if (_autoRefreshChannels) {
+      try {
+        await fetchChannels(forceRefresh: true, silent: true);
+      } catch (_) {}
+    }
+    if (_autoRefreshProgrammes) {
+      try {
+        await refreshProgrammes();
+      } catch (_) {}
+    }
   }
 
   /// 首启无源时,自动添加并选中默认预置源(运行时拉取,不打包快照)。

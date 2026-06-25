@@ -134,6 +134,42 @@ class _HomeScreenState extends State<HomeScreen> {
     );
   }
 
+  /// 「启动时自动更新」弹窗:分别开关 刷新频道 / 刷新节目单。
+  void _showAutoRefreshDialog(BuildContext context) {
+    final l = AppLocalizations.of(context)!;
+    showDialog(
+      context: context,
+      builder: (_) => AlertDialog(
+        title: Text(l.autoRefreshOnLaunch),
+        content: Consumer<MediaProvider>(
+          builder: (context, mp, __) => Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              SwitchListTile(
+                contentPadding: EdgeInsets.zero,
+                title: Text(l.refreshChannels),
+                value: mp.autoRefreshChannels,
+                onChanged: mp.setAutoRefreshChannels,
+              ),
+              SwitchListTile(
+                contentPadding: EdgeInsets.zero,
+                title: Text(l.refreshProgrammes),
+                value: mp.autoRefreshProgrammes,
+                onChanged: mp.setAutoRefreshProgrammes,
+              ),
+            ],
+          ),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(context).pop(),
+            child: Text(l.cancel),
+          ),
+        ],
+      ),
+    );
+  }
+
   void _showSizeDialog(BuildContext context) {
     showDialog(
       context: context,
@@ -696,22 +732,18 @@ class _HomeScreenState extends State<HomeScreen> {
                     ),
                   ),
                 ),
-                Consumer<MediaProvider>(
-                  builder: (context, mp, _) => XBaseButton(
-                    onPressed: () =>
-                        mp.setAutoRefreshOnLaunch(!mp.autoRefreshOnLaunch),
-                    child: animeContainer(
-                      ListTile(
-                        leading:
-                            const Icon(Icons.autorenew, color: Colors.white),
-                        title: Text(
-                          localizations.autoRefreshOnLaunch,
-                          style: const TextStyle(color: Colors.white),
-                        ),
-                        trailing: Switch(
-                          value: mp.autoRefreshOnLaunch,
-                          onChanged: mp.setAutoRefreshOnLaunch,
-                        ),
+                XBaseButton(
+                  onPressed: () {
+                    Navigator.of(context).pop();
+                    _showAutoRefreshDialog(context);
+                  },
+                  child: animeContainer(
+                    ListTile(
+                      leading:
+                          const Icon(Icons.autorenew, color: Colors.white),
+                      title: Text(
+                        localizations.autoRefreshOnLaunch,
+                        style: const TextStyle(color: Colors.white),
                       ),
                     ),
                   ),
