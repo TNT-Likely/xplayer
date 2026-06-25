@@ -1,5 +1,5 @@
 import 'package:flutter/foundation.dart';
-import 'package:flutter/painting.dart' show Size;
+import 'package:flutter/painting.dart' show Size, Rect;
 import 'package:flutter/widgets.dart' show Widget;
 
 /// 音轨信息(用于多音轨/多语言切换)。
@@ -104,4 +104,7 @@ abstract class XPlayerBackend {
 
   /// 选择音轨(id 由 getAudioTracks 返回)。
   Future<void> selectAudioTrack(String id);
+
+  /// 设置渲染矩形(逻辑像素);null=全屏。仅原生引擎需要(video_player 无操作)。
+  Future<void> setSurfaceBounds(Rect? rect, double devicePixelRatio);
 }

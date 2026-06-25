@@ -43,6 +43,11 @@ class VideoPlayerBackend implements XPlayerBackend {
       _controller?.selectAudioTrack(id);
 
   @override
+  Future<void> setSurfaceBounds(Rect? rect, double devicePixelRatio) async {
+    // video_player 用 Flutter widget 渲染,几何由 widget 树决定,无需操作。
+  }
+
+  @override
   Future<void> initialize(String url) async {
     await _controller?.dispose();
     // Android:强制 textureView。原因有二:① 清晰度走原生引擎(NativePlayerBackend),

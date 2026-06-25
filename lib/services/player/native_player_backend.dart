@@ -46,6 +46,20 @@ class NativePlayerBackend implements XPlayerBackend {
       _method.invokeMethod('selectAudioTrack', {'id': id});
 
   @override
+  Future<void> setSurfaceBounds(Rect? rect, double dpr) async {
+    if (rect == null) {
+      await _method.invokeMethod('setSurfaceBounds', {'fullscreen': true});
+    } else {
+      await _method.invokeMethod('setSurfaceBounds', {
+        'x': (rect.left * dpr).round(),
+        'y': (rect.top * dpr).round(),
+        'w': (rect.width * dpr).round(),
+        'h': (rect.height * dpr).round(),
+      });
+    }
+  }
+
+  @override
   Future<void> initialize(String url) async {
     await _method.invokeMethod('setSurfaceShown', true);
     _sub ??= _events.receiveBroadcastStream().listen(_onEvent);

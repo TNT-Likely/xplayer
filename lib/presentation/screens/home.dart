@@ -486,6 +486,50 @@ class _HomeScreenState extends State<HomeScreen> {
                       ),
                     ),
                   ),
+                // 返回首页小窗续播开关(全平台)
+                ValueListenableBuilder<bool>(
+                  valueListenable: miniPlayerOnExit,
+                  builder: (_, on, __) => ListTile(
+                    leading: const Icon(Icons.picture_in_picture_alt,
+                        color: Colors.white),
+                    title: Text(localizations.miniPlayerOnExit,
+                        style: const TextStyle(color: Colors.white)),
+                    subtitle: Text(
+                      localizations.miniPlayerOnExitHint,
+                      style:
+                          const TextStyle(color: Colors.white54, fontSize: 11),
+                    ),
+                    trailing: Switch(
+                      value: on,
+                      onChanged: (v) => setMiniPlayerOnExit(v),
+                    ),
+                  ),
+                ),
+                // 回桌面系统画中画开关(仅 Android 手机/平板;TV 无系统 PiP,隐藏)
+                if (Platform.isAndroid)
+                  Consumer<GlobalProvider>(
+                    builder: (context, g, _) {
+                      if (g.isTV) return const SizedBox.shrink();
+                      return ValueListenableBuilder<bool>(
+                        valueListenable: pipOnLeave,
+                        builder: (_, on, __) => ListTile(
+                          leading: const Icon(Icons.picture_in_picture,
+                              color: Colors.white),
+                          title: Text(localizations.pipOnLeave,
+                              style: const TextStyle(color: Colors.white)),
+                          subtitle: Text(
+                            localizations.pipOnLeaveHint,
+                            style: const TextStyle(
+                                color: Colors.white54, fontSize: 11),
+                          ),
+                          trailing: Switch(
+                            value: on,
+                            onChanged: (v) => setPipOnLeave(v),
+                          ),
+                        ),
+                      );
+                    },
+                  ),
                 _drawerSectionHeader('界面'),
                 XBaseButton(
                   child: animeContainer(

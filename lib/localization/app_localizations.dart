@@ -974,6 +974,30 @@ abstract class AppLocalizations {
   /// **'Show Favorites on Home'**
   String get showFavoritesOnHome;
 
+  /// No description provided for @miniPlayerOnExit.
+  ///
+  /// In en, this message translates to:
+  /// **'Mini player on home'**
+  String get miniPlayerOnExit;
+
+  /// No description provided for @miniPlayerOnExitHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Keep playing in a corner window when returning home'**
+  String get miniPlayerOnExitHint;
+
+  /// No description provided for @pipOnLeave.
+  ///
+  /// In en, this message translates to:
+  /// **'Picture-in-picture'**
+  String get pipOnLeave;
+
+  /// No description provided for @pipOnLeaveHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Keep playing in a system PiP window when leaving the app'**
+  String get pipOnLeaveHint;
+
   /// No description provided for @lanSync.
   ///
   /// In en, this message translates to:

@@ -18,6 +18,8 @@ import java.io.InputStreamReader
 class MainActivity : FlutterActivity() {
     private val diagChannel = "diag/logcat"
     private var nativeEngine: NativeVideoEngine? = null
+    private var pipEligible = false
+    private var pipChannel: MethodChannel? = null
 
     override fun getTransparencyMode(): TransparencyMode = TransparencyMode.transparent
 
@@ -25,6 +27,28 @@ class MainActivity : FlutterActivity() {
         nativeEngine?.dispose()
         nativeEngine = null
         super.onDestroy()
+    }
+
+    // 回到桌面(用户主动离开)时,若允许 → 进系统画中画
+    override fun onUserLeaveHint() {
+        super.onUserLeaveHint()
+        val supported = android.os.Build.VERSION.SDK_INT >= 26 &&
+            packageManager.hasSystemFeature(
+                android.content.pm.PackageManager.FEATURE_PICTURE_IN_PICTURE)
+        if (pipEligible && supported) {
+            try {
+                enterPictureInPictureMode(
+                    android.app.PictureInPictureParams.Builder().build())
+            } catch (_: Exception) {}
+        }
+    }
+
+    override fun onPictureInPictureModeChanged(
+        isInPictureInPictureMode: Boolean,
+        newConfig: android.content.res.Configuration
+    ) {
+        super.onPictureInPictureModeChanged(isInPictureInPictureMode, newConfig)
+        pipChannel?.invokeMethod("pipModeChanged", isInPictureInPictureMode)
     }
 
     override fun configureFlutterEngine(flutterEngine: FlutterEngine) {
@@ -86,6 +110,19 @@ class MainActivity : FlutterActivity() {
             .setMethodCallHandler(engine)
         EventChannel(flutterEngine.dartExecutor.binaryMessenger, NativeVideoEngine.EVENT_CHANNEL)
             .setStreamHandler(engine)
+
+        // 系统画中画(PiP):Flutter 侧用 setEligible 声明"当前可进 PiP"
+        // (仅播放进行中且开关打开时为 true);回桌面(onUserLeaveHint)再据此进 PiP。
+        pipChannel = MethodChannel(flutterEngine.dartExecutor.binaryMessenger, "native_pip")
+        pipChannel?.setMethodCallHandler { call, result ->
+            when (call.method) {
+                "setEligible" -> {
+                    pipEligible = call.arguments as? Boolean ?: false
+                    result.success(null)
+                }
+                else -> result.notImplemented()
+            }
+        }
     }
 
     // 读取本应用最近的 logcat(-d:dump 后退出;-t:最后 N 行)。

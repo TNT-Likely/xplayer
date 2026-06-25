@@ -12,9 +12,11 @@ import 'package:xplayer/presentation/widgets/operation_hint_dialog.dart';
 import 'package:xplayer/shared/components/x_text_button.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:xplayer/providers/media_provider.dart';
+import 'package:xplayer/providers/global_provider.dart';
 import 'package:xplayer/utils/logger_util.dart';
 import 'package:xplayer/utils/hls_probe.dart';
 import 'package:xplayer/services/sleep_timer.dart';
+import 'package:xplayer/providers/mini_player_controller.dart';
 import 'package:xplayer/utils/playlist_util.dart';
 import 'package:xplayer/utils/toast.dart';
 import 'package:xplayer/services/log_store.dart';
@@ -60,6 +62,13 @@ class _PlayerScreenState extends State<PlayerScreen>
   bool _isHandlingBuffering = false;
   bool _isHandlingError = false;
   bool _forcedFallback = false; // 原生引擎初始化失败后强制降级 video_player(切换设置时复位)
+  bool _handedOff = false; // 已把 backend 交接给小窗(dispose 时不销毁)
+  bool _inPip = false; // 当前处于系统画中画(Android)
+  bool _isTv = false; // TV 不启用系统画中画(系统无 PiP,且用遥控器)
+  static const _pipChannel = MethodChannel('native_pip');
+  // 信息面板:TV 遥控器上下键滚动(SingleChildScrollView 默认不响应方向键)
+  final ScrollController _infoScroll = ScrollController();
+  final FocusNode _infoFocus = FocusNode(debugLabel: 'streamInfo');
 
   PlayState _playState = PlayState.idle;
 
@@ -104,14 +113,41 @@ class _PlayerScreenState extends State<PlayerScreen>
     super.initState();
     WidgetsBinding.instance.addObserver(this);
     final mediaProvider = Provider.of<MediaProvider>(context, listen: false);
+    _isTv = Provider.of<GlobalProvider>(context, listen: false).isTV;
 
     _channel = widget.channel;
     _sourceLink = _resolveSourceLink(widget.channel);
     _currentIndex = mediaProvider.channels.indexOf(_channel);
     _channels = mediaProvider.channels;
 
-    _initializePlayer();
+    final mini = Provider.of<MiniPlayerController>(context, listen: false);
+    if (mini.backend != null && mini.channel?.id == _channel.id) {
+      // 从小窗展开:取回正在播的 backend,不重连
+      _backend = mini.take()!;
+      _hasBackend = true;
+      _backend.notifier.addListener(_listenToVideoController);
+      _backend.diagnostics?.addListener(_onBackendDiag);
+      _playState = PlayState.playing;
+      WidgetsBinding.instance.addPostFrameCallback((_) => _setSurfaceFullscreen());
+    } else {
+      // 已有小窗但要播放别的频道 → 先关掉旧小窗(否则与新后端争抢同一原生引擎 → 黑屏)
+      if (mini.hasMini) mini.close();
+      _initializePlayer();
+    }
     _focusNode.requestFocus();
+
+    // Android 系统画中画:监听原生 PiP 模式变化 → 进 PiP 时收起操作栏。
+    if (Platform.isAndroid) {
+      _pipChannel.setMethodCallHandler((call) async {
+        if (call.method == 'pipModeChanged') {
+          _inPip = call.arguments == true;
+          if (_inPip && _controlsVisible && mounted) {
+            Navigator.of(context).pop(); // 收起 showGeneralDialog 的操作栏
+          }
+        }
+        return null;
+      });
+    }
 
     // 手机随设备方向自动旋转(交还系统,跟随传感器),无需手动按钮。
     SystemChrome.setPreferredOrientations(const []);
@@ -154,8 +190,17 @@ class _PlayerScreenState extends State<PlayerScreen>
     useNativeEngine.removeListener(_onRenderModeChanged);
     WidgetsBinding.instance.removeObserver(this);
     _focusNode.dispose();
-    _backend.pause();
-    _backend.dispose();
+    _infoScroll.dispose();
+    _infoFocus.dispose();
+    if (Platform.isAndroid) {
+      _setPipEligible(false); // 离开播放页 → 不再允许进 PiP
+      _pipChannel.setMethodCallHandler(null);
+    }
+    if (!_handedOff) {
+      // 未交接给小窗 → 正常销毁;已交接则由 MiniPlayerController 持有,不销毁
+      _backend.pause();
+      _backend.dispose();
+    }
     // 离开播放页恢复自动旋转,避免播放页设的朝向锁定带到其它页面
     SystemChrome.setPreferredOrientations(const []);
     super.dispose();
@@ -235,6 +280,9 @@ class _PlayerScreenState extends State<PlayerScreen>
       // useSurfaceView.value 决定 viewType。
       _backend = _createBackend();
       _hasBackend = true;
+      // 登记到小窗控制器(全屏态),供返回时交接续播
+      Provider.of<MiniPlayerController>(context, listen: false)
+          .attachFullscreen(_backend, _channel, widget.favoriteChannels);
 
       _backend.notifier.addListener(_listenToVideoController);
       _backend.diagnostics?.addListener(_onBackendDiag);
@@ -249,6 +297,7 @@ class _PlayerScreenState extends State<PlayerScreen>
             ? DateTime.now().difference(_loadStartedAt!).inMilliseconds
             : null;
       });
+      _setPipEligible(true); // 播放中 → 允许回桌面进 PiP(Android+开关)
       // 记录最近播放(失败不记录)
       if (mounted) {
         Provider.of<MediaProvider>(context, listen: false).addRecent(_channel);
@@ -387,6 +436,7 @@ class _PlayerScreenState extends State<PlayerScreen>
   }
 
   void _toggleControlsVisibility() {
+    if (_inPip) return; // PiP 小窗里不弹操作栏
     if (_controlsVisible) {
       cancelAutoCloseTimer();
       Navigator.of(context).pop();
@@ -706,6 +756,28 @@ class _PlayerScreenState extends State<PlayerScreen>
     });
   }
 
+  /// 信息面板遥控器滚动:上下键按步长滚动(TV 无触屏,SingleChildScrollView 不响应方向键)。
+  KeyEventResult _onInfoPanelKey(FocusNode node, KeyEvent event) {
+    if (event is! KeyDownEvent && event is! KeyRepeatEvent) {
+      return KeyEventResult.ignored;
+    }
+    if (!_infoScroll.hasClients) return KeyEventResult.ignored;
+    const step = 120.0;
+    double? target;
+    if (event.logicalKey == LogicalKeyboardKey.arrowDown) {
+      target = _infoScroll.offset + step;
+    } else if (event.logicalKey == LogicalKeyboardKey.arrowUp) {
+      target = _infoScroll.offset - step;
+    }
+    if (target == null) return KeyEventResult.ignored;
+    _infoScroll.animateTo(
+      target.clamp(0.0, _infoScroll.position.maxScrollExtent),
+      duration: const Duration(milliseconds: 150),
+      curve: Curves.easeOut,
+    );
+    return KeyEventResult.handled;
+  }
+
   void _showStreamInfoSheet(BuildContext context) {
     final w = (MediaQuery.of(context).size.width * 0.34).clamp(300.0, 600.0);
     showGeneralDialog(
@@ -716,7 +788,11 @@ class _PlayerScreenState extends State<PlayerScreen>
       transitionDuration: const Duration(milliseconds: 200),
       pageBuilder: (_, __, ___) => Align(
         alignment: Alignment.centerRight,
-        child: Container(
+        child: Focus(
+          focusNode: _infoFocus,
+          autofocus: true,
+          onKeyEvent: _onInfoPanelKey,
+          child: Container(
           width: w,
           height: MediaQuery.of(context).size.height,
           color: const Color.fromRGBO(0, 0, 0, 0.85),
@@ -736,6 +812,7 @@ class _PlayerScreenState extends State<PlayerScreen>
               },
             ),
           ),
+        ),
         ),
       ),
       transitionBuilder: (_, anim, __, child) => SlideTransition(
@@ -834,6 +911,7 @@ class _PlayerScreenState extends State<PlayerScreen>
       child: Padding(
         padding: const EdgeInsets.all(12),
         child: SingleChildScrollView(
+          controller: _infoScroll,
           child: ValueListenableBuilder<bool>(
             valueListenable: useSurfaceView,
             builder: (_, surface, __) => Column(
@@ -1000,15 +1078,54 @@ class _PlayerScreenState extends State<PlayerScreen>
     );
   }
 
+  void _setSurfaceFullscreen() {
+    if (!mounted) return;
+    _backend.setSurfaceBounds(null, MediaQuery.of(context).devicePixelRatio);
+  }
+
+  /// 声明"当前可进系统画中画":仅 Android 且开关打开、且正在播放时为 true。
+  /// 实际进入 PiP 由 MainActivity.onUserLeaveHint(回桌面)按此触发。
+  void _setPipEligible(bool eligible) {
+    if (!Platform.isAndroid || _isTv) return; // TV 不启用 PiP
+    _pipChannel.invokeMethod('setEligible', eligible && pipOnLeave.value);
+  }
+
+  void _setSurfaceMini() {
+    final media = MediaQuery.of(context);
+    final rect = miniVideoRect(media.size, media.padding);
+    _backend.setSurfaceBounds(rect, media.devicePixelRatio);
+  }
+
+  /// 返回:小窗开 && 在播 → 交接小窗续播(不销毁);否则正常关闭。
+  void _handleBack() {
+    final v = _backend.notifier.value;
+    final mini = Provider.of<MiniPlayerController>(context, listen: false);
+    if (miniPlayerOnExit.value && _hasBackend && v.isPlaying && !v.hasError) {
+      _handedOff = true;
+      _setSurfaceMini();
+      mini.enterMini(_backend, _channel, widget.favoriteChannels);
+    } else {
+      mini.clearReference();
+    }
+    Navigator.of(context).pop();
+  }
+
   @override
   Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-    return RawKeyboardListener(
+    return PopScope(
+      canPop: false,
+      onPopInvokedWithResult: (didPop, _) {
+        if (didPop) return;
+        _handleBack();
+      },
+      child: RawKeyboardListener(
       focusNode: _focusNode,
       onKey: _handleKeyPress,
       child: GestureDetector(
         onVerticalDragEnd: _onVerticalDragEnd,
-        onHorizontalDragEnd: _onHorizontalDragEnd,
+        // iOS:横向滑动(左/右)直接返回首页(无硬件返回键);其它平台维持换台/换源
+        onHorizontalDragEnd:
+            Platform.isIOS ? (_) => _handleBack() : _onHorizontalDragEnd,
         onTap: () {
           _toggleControlsVisibility();
         },
@@ -1104,6 +1221,7 @@ class _PlayerScreenState extends State<PlayerScreen>
           ),
         ),
       ),
+    ),
     );
   }
 }
