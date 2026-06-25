@@ -1046,6 +1046,12 @@ abstract class AppLocalizations {
   /// **'Audio'**
   String get secAudio;
 
+  /// No description provided for @secVariants.
+  ///
+  /// In en, this message translates to:
+  /// **'Bitrate Variants'**
+  String get secVariants;
+
   /// No description provided for @infoActiveDecoder.
   ///
   /// In en, this message translates to:

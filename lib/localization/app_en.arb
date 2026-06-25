@@ -158,6 +158,7 @@
   "infoSwitchRender": "Switch Render",
   "secVideo": "Video",
   "secAudio": "Audio",
+  "secVariants": "Bitrate Variants",
   "infoActiveDecoder": "Active Decoder",
   "infoVideoCodec": "Video Codec",
   "infoBitrate": "Bitrate",
