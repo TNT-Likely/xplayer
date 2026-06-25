@@ -99,4 +99,6 @@ dependencies {
     // 版本对齐到 AndroidXMedia3/1.9.2。
     implementation 'androidx.media3:media3-common:1.9.2'
     implementation 'androidx.media3:media3-exoplayer:1.9.2'
+    // media3-ui:用 AspectRatioFrameLayout 让原生 SurfaceView 按视频比例 letterbox(防变形)。
+    implementation 'androidx.media3:media3-ui:1.9.2'
 }

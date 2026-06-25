@@ -15,6 +15,7 @@ import androidx.media3.common.VideoSize
 import androidx.media3.exoplayer.DefaultLoadControl
 import androidx.media3.exoplayer.DefaultRenderersFactory
 import androidx.media3.exoplayer.ExoPlayer
+import androidx.media3.ui.AspectRatioFrameLayout
 import io.flutter.plugin.common.EventChannel
 import io.flutter.plugin.common.MethodChannel
 
@@ -30,6 +31,7 @@ class NativeVideoEngine(
     private val main = Handler(Looper.getMainLooper())
     private var player: ExoPlayer? = null
     private var surfaceView: SurfaceView? = null
+    private var aspectFrame: AspectRatioFrameLayout? = null
     private var events: EventChannel.EventSink? = null
     private var positionPoller: Runnable? = null
 
@@ -69,15 +71,23 @@ class NativeVideoEngine(
             override fun surfaceChanged(holder: SurfaceHolder, f: Int, w: Int, h: Int) {}
             override fun surfaceDestroyed(holder: SurfaceHolder) { player?.setVideoSurface(null) }
         })
-        container.addView(sv, 0, FrameLayout.LayoutParams(
+        // 用 AspectRatioFrameLayout(RESIZE_MODE_FIT)包住 SurfaceView,按视频实际比例
+        // letterbox,而不是把 SurfaceView 拉满全屏导致变形(SCALE_TO_FIT 会拉伸)。
+        val frame = AspectRatioFrameLayout(context)
+        frame.resizeMode = AspectRatioFrameLayout.RESIZE_MODE_FIT
+        frame.addView(sv, FrameLayout.LayoutParams(
             FrameLayout.LayoutParams.MATCH_PARENT, FrameLayout.LayoutParams.MATCH_PARENT))
+        container.addView(frame, 0, FrameLayout.LayoutParams(
+            FrameLayout.LayoutParams.MATCH_PARENT, FrameLayout.LayoutParams.MATCH_PARENT,
+            android.view.Gravity.CENTER))
         surfaceView = sv
+        aspectFrame = frame
     }
 
     private fun setSurfaceShown(shown: Boolean) {
         main.post {
             ensureSurface()
-            surfaceView?.visibility = if (shown) View.VISIBLE else View.GONE
+            aspectFrame?.visibility = if (shown) View.VISIBLE else View.GONE
         }
     }
 
@@ -124,6 +134,11 @@ class NativeVideoEngine(
             }
             override fun onVideoSizeChanged(size: VideoSize) {
                 emit(mapOf("event" to "videoSizeChanged", "width" to size.width, "height" to size.height))
+                // 按视频实际显示比例(含非方形像素 pixelWidthHeightRatio)设置 letterbox 比例
+                if (size.width > 0 && size.height > 0) {
+                    val ratio = size.width * size.pixelWidthHeightRatio / size.height
+                    main.post { aspectFrame?.setAspectRatio(ratio) }
+                }
             }
             override fun onPlayerError(error: PlaybackException) {
                 emit(mapOf("event" to "error", "code" to error.errorCodeName, "msg" to (error.message ?: "")))
@@ -155,7 +170,9 @@ class NativeVideoEngine(
         main.post {
             positionPoller?.let { main.removeCallbacks(it) }
             player?.release(); player = null
-            surfaceView?.let { container.removeView(it) }; surfaceView = null
+            aspectFrame?.let { container.removeView(it) }
+            aspectFrame = null
+            surfaceView = null
         }
     }
 }
