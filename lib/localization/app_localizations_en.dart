@@ -471,6 +471,12 @@ class AppLocalizationsEn extends AppLocalizations {
   String get recentlyPlayed => 'Recently Played';
 
   @override
+  String get showRecentOnHome => 'Show Recently Played on Home';
+
+  @override
+  String get allChannels => 'All Channels';
+
+  @override
   String get clearAll => 'Clear';
 
   @override

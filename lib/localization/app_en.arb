@@ -144,6 +144,8 @@
   "openSourceLicenses": "Open-source Licenses",
   "githubTvHint": "Open this URL in a browser on your phone or computer:",
   "recentlyPlayed": "Recently Played",
+  "showRecentOnHome": "Show Recently Played on Home",
+  "allChannels": "All Channels",
   "clearAll": "Clear",
   "sleepTimer": "Sleep Timer",
   "sleepOff": "Off",

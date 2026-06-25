@@ -429,7 +429,7 @@ class _HomeScreenState extends State<HomeScreen> {
                   ),
                 ),
                 const Divider(color: Colors.white24, height: 1),
-                _drawerSectionHeader('播放与显示'),
+                _drawerSectionHeader('播放'),
                 // 渲染模式开关:SurfaceView(platformView)/ 纹理。仅非 Android 显示 ——
                 // Android 的清晰度走「播放引擎=原生」(见下),且全局透明下 platformView 会卡;
                 // iOS/macOS(avfoundation 支持 platformView)保留此选项。
@@ -476,6 +476,7 @@ class _HomeScreenState extends State<HomeScreen> {
                       ),
                     ),
                   ),
+                _drawerSectionHeader('界面'),
                 XBaseButton(
                   child: animeContainer(
                     ListTile(
@@ -497,13 +498,30 @@ class _HomeScreenState extends State<HomeScreen> {
                   valueListenable: showRecentModule,
                   builder: (_, on, __) => ListTile(
                     leading: const Icon(Icons.history, color: Colors.white),
-                    title: Text(localizations.recentlyPlayed,
+                    title: Text(localizations.showRecentOnHome,
                         style: const TextStyle(color: Colors.white)),
                     trailing: Switch(
                       value: on,
                       onChanged: (v) => setShowRecentModule(v),
                     ),
                   ),
+                ),
+                XBaseButton(
+                  child: animeContainer(
+                    ListTile(
+                      leading: const Icon(Icons.language, color: Colors.white),
+                      title: Text(
+                        localeProvider.locale.languageCode == 'zh'
+                            ? '中文'
+                            : 'English',
+                        style: const TextStyle(color: Colors.white),
+                      ),
+                    ),
+                  ),
+                  onPressed: () {
+                    Navigator.of(context).pop();
+                    _showLanguageSwitcher(context, localeProvider);
+                  },
                 ),
                 _drawerSectionHeader('源与节目单'),
                 Consumer<MediaProvider>(
@@ -818,23 +836,6 @@ class _HomeScreenState extends State<HomeScreen> {
                     }
                   },
                 ),
-                XBaseButton(
-                  child: animeContainer(
-                    ListTile(
-                      leading: const Icon(Icons.language, color: Colors.white),
-                      title: Text(
-                        localeProvider.locale.languageCode == 'zh'
-                            ? '中文'
-                            : 'English',
-                        style: const TextStyle(color: Colors.white),
-                      ),
-                    ),
-                  ),
-                  onPressed: () {
-                    Navigator.of(context).pop();
-                    _showLanguageSwitcher(context, localeProvider);
-                  },
-                ),
               ],
             ),
           ),
@@ -943,6 +944,7 @@ class _HomeScreenState extends State<HomeScreen> {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       const RecentPlayedWidget(),
+                      const AllChannelsHeader(),
                       Expanded(
                         child: ChannelListWidget(
                           channels: filtered,
