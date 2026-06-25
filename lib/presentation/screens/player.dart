@@ -439,6 +439,7 @@ class _PlayerScreenState extends State<PlayerScreen>
               controller: _controller,
               favoriteChannels: widget.favoriteChannels,
               channel: _channel,
+              sourceLink: _sourceLink,
               onRetryInit: () {
                 _initializePlayer();
               },

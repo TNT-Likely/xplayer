@@ -1,6 +1,8 @@
 import 'package:flutter/widgets.dart';
 import 'package:xplayer/data/models/channel_model.dart';
 import 'package:xplayer/shared/components/x_text_button.dart';
+import 'package:xplayer/shared/components/ipv6_badge.dart';
+import 'package:xplayer/utils/url_utils.dart';
 import 'package:xplayer/localization/app_localizations.dart';
 
 typedef OnSourceSwitchCallback = Future<void> Function(String link);
@@ -62,18 +64,30 @@ class _ChannelSourceWidgetState extends State<ChannelSourceWidget> {
 
         return Column(
           children: [
-            XTextButton(
-              text: getName(e.title),
-              size: XTextButtonSize.large,
-              width: 160,
-              onPressed: () {
-                if (!isSelected && widget.onSourceSwitch != null) {
-                  widget.onSourceSwitch!(e.link);
-                }
-              },
-              type: isSelected
-                  ? XTextButtonType.primary
-                  : XTextButtonType.defaultType,
+            Stack(
+              clipBehavior: Clip.none,
+              children: [
+                XTextButton(
+                  text: getName(e.title),
+                  size: XTextButtonSize.large,
+                  width: 160,
+                  onPressed: () {
+                    if (!isSelected && widget.onSourceSwitch != null) {
+                      widget.onSourceSwitch!(e.link);
+                    }
+                  },
+                  type: isSelected
+                      ? XTextButtonType.primary
+                      : XTextButtonType.defaultType,
+                ),
+                // IPv6 源:右上角浮标
+                if (isIpv6Url(e.link))
+                  const Positioned(
+                    top: -6,
+                    right: -6,
+                    child: Ipv6Badge(corner: true),
+                  ),
+              ],
             ),
             const SizedBox(
               height: 8,
