@@ -87,3 +87,37 @@ Future<void> setShowFavoritesRow(bool v) async {
     await prefs.setBool(_kShowFavRowKey, v);
   } catch (_) {}
 }
+
+/// 返回首页后小窗续播(默认开)。
+final ValueNotifier<bool> miniPlayerOnExit = ValueNotifier<bool>(true);
+const String _kMiniOnExitKey = 'mini_player_on_exit';
+Future<void> loadMiniPlayerSetting() async {
+  try {
+    final prefs = await SharedPreferences.getInstance();
+    miniPlayerOnExit.value = prefs.getBool(_kMiniOnExitKey) ?? true;
+  } catch (_) {}
+}
+Future<void> setMiniPlayerOnExit(bool v) async {
+  miniPlayerOnExit.value = v;
+  try {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setBool(_kMiniOnExitKey, v);
+  } catch (_) {}
+}
+
+/// 回桌面系统画中画(仅 Android;默认开)。
+final ValueNotifier<bool> pipOnLeave = ValueNotifier<bool>(true);
+const String _kPipOnLeaveKey = 'pip_on_leave';
+Future<void> loadPipSetting() async {
+  try {
+    final prefs = await SharedPreferences.getInstance();
+    pipOnLeave.value = prefs.getBool(_kPipOnLeaveKey) ?? true;
+  } catch (_) {}
+}
+Future<void> setPipOnLeave(bool v) async {
+  pipOnLeave.value = v;
+  try {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setBool(_kPipOnLeaveKey, v);
+  } catch (_) {}
+}

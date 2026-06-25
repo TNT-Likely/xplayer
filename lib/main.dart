@@ -15,6 +15,8 @@ import 'dart:async';
 import 'package:xplayer/providers/remote_provider.dart';
 import 'package:xplayer/presentation/screens/remote_input.dart';
 import 'package:xplayer/shared/navigation.dart';
+import 'package:xplayer/providers/mini_player_controller.dart';
+import 'package:xplayer/presentation/widgets/mini_player_overlay.dart';
 import 'package:xplayer/shared/theme/app_theme.dart';
 import 'package:xplayer/services/log_store.dart';
 import 'package:xplayer/utils/player_settings.dart';
@@ -55,6 +57,8 @@ void main() {
     loadNativeEngineMode(); // 载入播放引擎偏好(原生/video_player)
     loadRecentModuleSetting(); // 载入「最近播放」模块显示偏好
     loadFavoritesRowSetting(); // 载入「收藏」行显示偏好
+    loadMiniPlayerSetting(); // 载入「返回小窗续播」偏好
+    loadPipSetting(); // 载入「回桌面画中画」偏好
 
     FlutterError.onError = (FlutterErrorDetails details) {
       _winLog('FlutterError: ${details.exceptionAsString()}');
@@ -80,6 +84,7 @@ void main() {
       ChangeNotifierProvider(create: (_) => LocaleProvider()..loadLocale()),
       ChangeNotifierProvider(create: (_) => GlobalProvider()..loadDeviceInfo()),
       ChangeNotifierProvider(create: (_) => RemoteProvider()),
+      ChangeNotifierProvider(create: (_) => MiniPlayerController()),
     ], child: const MyApp()));
     _winLog('runApp returned');
   }, (Object error, StackTrace stack) {
@@ -109,7 +114,16 @@ class MyApp extends StatelessWidget {
       locale: localeProvider.locale,
       navigatorObservers: [BotToastNavigatorObserver()],
       builder: (context, child) {
-        return BotToastInit()(context, child); // 初始化 BotToast
+        // 初始化 BotToast + 注入全局小窗浮层
+        return BotToastInit()(
+          context,
+          Stack(
+            children: [
+              if (child != null) child,
+              const MiniPlayerOverlay(),
+            ],
+          ),
+        );
       },
       theme: buildAppTheme(),
       initialRoute: '/',
