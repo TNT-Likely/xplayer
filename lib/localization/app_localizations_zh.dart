@@ -506,6 +506,9 @@ class AppLocalizationsZh extends AppLocalizations {
   String get secAudio => '音频';
 
   @override
+  String get secVariants => '码流变体';
+
+  @override
   String get infoActiveDecoder => '活动解码器';
 
   @override

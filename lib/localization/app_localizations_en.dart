@@ -513,6 +513,9 @@ class AppLocalizationsEn extends AppLocalizations {
   String get secAudio => 'Audio';
 
   @override
+  String get secVariants => 'Bitrate Variants';
+
+  @override
   String get infoActiveDecoder => 'Active Decoder';
 
   @override

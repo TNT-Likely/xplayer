@@ -158,6 +158,7 @@
     "infoSwitchRender": "切换渲染面",
     "secVideo": "视频",
     "secAudio": "音频",
+    "secVariants": "码流变体",
     "infoActiveDecoder": "活动解码器",
     "infoVideoCodec": "视频编码",
     "infoBitrate": "码率",

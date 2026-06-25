@@ -14,6 +14,7 @@ import 'package:xplayer/shared/components/x_text_button.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:xplayer/providers/media_provider.dart';
 import 'package:xplayer/utils/logger_util.dart';
+import 'package:xplayer/utils/hls_probe.dart';
 import 'package:xplayer/utils/playlist_util.dart';
 import 'package:xplayer/utils/toast.dart';
 import 'package:xplayer/services/log_store.dart';
@@ -60,6 +61,9 @@ class _PlayerScreenState extends State<PlayerScreen>
   Map<String, dynamic> _streamInfo = {}; // 探流结果(结构化:视频/音频编码、解码器、码率…)
   int? _ttffMs; // 首帧耗时
   DateTime? _loadStartedAt;
+  HlsProbeResult? _hlsProbe; // HLS 码率变体探测结果
+  String? _hlsProbedLink; // 已探测过的地址(切源后重探)
+  bool _hlsProbing = false;
 
   List<Programme> get programmes {
     final mediaProvider = Provider.of<MediaProvider>(context, listen: false);
@@ -549,6 +553,22 @@ class _PlayerScreenState extends State<PlayerScreen>
 
   /// 加载/重试中的展示:频道台标 + 名称 + 进度;重试时显示「第 N 次重新加载」。
   // 信息浮层:右侧滑出(和源选择一致),内容溢出内部滚动;含渲染面即时切换做 A/B。
+  /// 信息面板打开时按需探测 HLS 变体(同一地址只探一次;切源后重探)。
+  void _ensureHlsProbe(void Function(void Function()) setLocal) {
+    if (_hlsProbing) return;
+    if (_hlsProbedLink == _sourceLink && _hlsProbe != null) return;
+    _hlsProbing = true;
+    final link = _sourceLink;
+    probeHlsVariants(link).then((r) {
+      _hlsProbe = r;
+      _hlsProbedLink = link;
+      _hlsProbing = false;
+      if (mounted) setLocal(() {});
+    }).catchError((_) {
+      _hlsProbing = false;
+    });
+  }
+
   void _showStreamInfoSheet(BuildContext context) {
     final w = (MediaQuery.of(context).size.width * 0.34).clamp(300.0, 600.0);
     showGeneralDialog(
@@ -563,7 +583,14 @@ class _PlayerScreenState extends State<PlayerScreen>
           width: w,
           height: MediaQuery.of(context).size.height,
           color: const Color.fromRGBO(0, 0, 0, 0.85),
-          child: SafeArea(child: _buildStreamInfoContent()),
+          child: SafeArea(
+            child: StatefulBuilder(
+              builder: (ctx, setLocal) {
+                _ensureHlsProbe(setLocal);
+                return _buildStreamInfoContent();
+              },
+            ),
+          ),
         ),
       ),
       transitionBuilder: (_, anim, __, child) => SlideTransition(
@@ -572,6 +599,32 @@ class _PlayerScreenState extends State<PlayerScreen>
         child: child,
       ),
     );
+  }
+
+  /// 码流变体小节内容:列出 master 清单里的所有变体并标注最高档。
+  List<Widget> _buildVariantRows(Widget Function(String, String) row) {
+    final p = _hlsProbe;
+    if (_hlsProbing && p == null) return [row('', '探测中…')];
+    if (p == null) return [row('', '—')];
+    if (p.notHls) return [row('', '非 HLS(直链)')];
+    if (p.error != null) return [row('', '探测失败: ${p.error}')];
+    if (!p.isMaster || p.variants.isEmpty) {
+      // 单档清单:没有低清档可选 → ABR 不会是模糊主因
+      return [row('', '单档清单(无多码率可选)')];
+    }
+    // master:列出每个变体,标注最高档
+    final best = p.best;
+    final rows = <Widget>[];
+    for (final v in p.variants) {
+      final isBest = v == best;
+      final label = [
+        v.resolution ?? '?',
+        v.bitrateLabel,
+        if (v.frameRate != null) '${v.frameRate}fps',
+      ].join(' · ');
+      rows.add(row(isBest ? '最高 ★' : '', label));
+    }
+    return rows;
   }
 
   Widget _buildStreamInfoContent() {
@@ -673,6 +726,9 @@ class _PlayerScreenState extends State<PlayerScreen>
                 row(l.infoAudioCodec, audioCodec()),
                 row(l.infoAudioDecoder, fmt(i['audioDecoder'])),
                 row('FFmpeg', '—'),
+                // 码流变体(验证是否因 ABR 选了低清档)
+                header(l.secVariants),
+                ..._buildVariantRows(row),
                 const SizedBox(height: 6),
                 Text(l.infoTier2Hint,
                     style: const TextStyle(
