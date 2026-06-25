@@ -19,6 +19,8 @@ import 'package:xplayer/utils/toast.dart';
 import 'package:xplayer/services/log_store.dart';
 import 'package:xplayer/services/player/x_player_backend.dart';
 import 'package:xplayer/services/player/video_player_backend.dart';
+import 'package:xplayer/services/player/native_player_backend.dart';
+import 'package:xplayer/services/player/player_backend_selector.dart';
 import 'package:xplayer/utils/player_settings.dart';
 import 'package:provider/provider.dart';
 import 'dart:async';
@@ -55,6 +57,7 @@ class _PlayerScreenState extends State<PlayerScreen>
   int _loadToken = 0; // 每次加载的代号:被新加载取代后,旧加载的异步回调据此丢弃
   bool _isHandlingBuffering = false;
   bool _isHandlingError = false;
+  bool _forcedFallback = false; // 原生引擎初始化失败后强制降级 video_player(切换设置时复位)
 
   PlayState _playState = PlayState.idle;
 
@@ -112,6 +115,8 @@ class _PlayerScreenState extends State<PlayerScreen>
 
     // 渲染模式改变(侧边栏或诊断面板切换)→ 按新模式重建播放器,支持实时 A/B
     useSurfaceView.addListener(_onRenderModeChanged);
+    // 播放引擎开关改变 → 同样按新设置重建(并复位强制降级,见 _onRenderModeChanged)
+    useNativeEngine.addListener(_onRenderModeChanged);
 
     // 首次进入播放页弹一次操作引导(看过后不再弹,可从控制条「帮助」再看)
     WidgetsBinding.instance
@@ -142,6 +147,7 @@ class _PlayerScreenState extends State<PlayerScreen>
     autoCloseTimer?.cancel();
     _backend.notifier.removeListener(_listenToVideoController);
     useSurfaceView.removeListener(_onRenderModeChanged);
+    useNativeEngine.removeListener(_onRenderModeChanged);
     WidgetsBinding.instance.removeObserver(this);
     _focusNode.dispose();
     _backend.pause();
@@ -152,7 +158,20 @@ class _PlayerScreenState extends State<PlayerScreen>
   }
 
   void _onRenderModeChanged() {
+    // 切换渲染模式/播放引擎设置时,给所选引擎一次重新尝试的机会(清掉上次的强制降级)
+    _forcedFallback = false;
     if (mounted) _initializePlayer();
+  }
+
+  /// 按设置(平台 + 引擎开关 + 是否已强制降级)选择后端实例。
+  XPlayerBackend _createBackend() {
+    final kind = selectBackendKind(
+      isAndroid: Platform.isAndroid,
+      nativeEnabled: useNativeEngine.value && !_forcedFallback,
+    );
+    return kind == PlayerBackendKind.native
+        ? NativePlayerBackend()
+        : VideoPlayerBackend();
   }
 
   Future<void> _initializePlayer({bool fresh = true}) async {
@@ -202,34 +221,40 @@ class _PlayerScreenState extends State<PlayerScreen>
     _maybeProbeHls();
 
     try {
-      // 渲染模式:SurfaceView(platformView,吃硬件 VPP/电视更清晰)或 纹理(textureView)
-      // 由 VideoPlayerBackend.initialize 内部读 useSurfaceView.value 决定 viewType。
-      _backend = VideoPlayerBackend();
+      // 后端选择:Android 且原生引擎开关开(且未被强制降级)→ 原生引擎(SurfaceView/硬件 VPP),
+      // 其余一律 video_player。渲染模式(SurfaceView/纹理)由 VideoPlayerBackend.initialize 内部读
+      // useSurfaceView.value 决定 viewType。
+      _backend = _createBackend();
 
       _backend.notifier.addListener(_listenToVideoController);
 
-      await _backend.initialize(_playUrl).then((_) {
-        if (token != _loadToken || !mounted) return; // 已被新加载取代,丢弃
-        _backend.play();
-        setState(() {
-          // 初始化成功后更新状态为 playing
-          _playState = PlayState.playing;
-          _ttffMs = _loadStartedAt != null
-              ? DateTime.now().difference(_loadStartedAt!).inMilliseconds
-              : null;
-        });
-      }).catchError((error) {
-        if (token != _loadToken || !mounted) return; // 已被新加载取代,丢弃
-        // 初始化失败:计入重试,超上限才 failed(统一走 _handleLoadError)
-        Logger.warning('播放器初始化失败(将重试): $error');
-        if (!_isHandlingError) {
-          _isHandlingError = true;
-          _handleLoadError();
-        }
+      await _backend.initialize(_playUrl);
+      if (token != _loadToken || !mounted) return; // 已被新加载取代,丢弃
+      _backend.play();
+      setState(() {
+        // 初始化成功后更新状态为 playing
+        _playState = PlayState.playing;
+        _ttffMs = _loadStartedAt != null
+            ? DateTime.now().difference(_loadStartedAt!).inMilliseconds
+            : null;
       });
     } catch (e) {
-      if (token != _loadToken || !mounted) return;
-      Logger.error('创建新播放器控制器失败: $e');
+      if (token != _loadToken || !mounted) return; // 已被新加载取代,丢弃
+      // 原生引擎初始化失败 → 强制降级 video_player,重跑一次本方法(届时 _createBackend 选 video_player)。
+      // 放在重试逻辑之前:否则会用同一个原生后端反复重试,降级不会发生。
+      if (_backend is NativePlayerBackend && !_forcedFallback) {
+        Logger.warning('原生引擎初始化失败,降级 video_player: $e');
+        LogStore.instance.w('player', '原生引擎失败→降级 video_player: $e');
+        _forcedFallback = true;
+        try {
+          _backend.notifier.removeListener(_listenToVideoController);
+          await _backend.dispose();
+        } catch (_) {}
+        if (token != _loadToken || !mounted) return; // dispose 期间被新加载取代
+        return _initializePlayer(fresh: false);
+      }
+      // video_player(或已降级后)失败:计入重试,超上限才 failed(统一走 _handleLoadError)
+      Logger.warning('播放器初始化失败(将重试): $e');
       if (!_isHandlingError) {
         _isHandlingError = true;
         _handleLoadError();
