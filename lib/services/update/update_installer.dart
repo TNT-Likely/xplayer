@@ -2,7 +2,7 @@ import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:open_filex/open_filex.dart';
 import 'package:xplayer/shared/components/x_text_button.dart';
-import 'package:flutter_gen/gen_l10n/app_localizations.dart';
+import 'package:xplayer/localization/app_localizations.dart';
 import 'update_permissions.dart';
 
 /// 更新安装管理类

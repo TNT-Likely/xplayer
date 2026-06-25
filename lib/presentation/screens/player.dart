@@ -20,7 +20,7 @@ import 'package:xplayer/services/log_store.dart';
 import 'package:xplayer/utils/player_settings.dart';
 import 'package:provider/provider.dart';
 import 'dart:async';
-import 'package:flutter_gen/gen_l10n/app_localizations.dart';
+import 'package:xplayer/localization/app_localizations.dart';
 
 enum PlayState { idle, loading, playing, paused, buffering, failed, retrying }
 

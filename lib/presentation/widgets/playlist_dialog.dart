@@ -3,7 +3,7 @@ import 'package:xplayer/data/models/playlist_model.dart';
 import 'package:xplayer/data/repositories/playlist_repository.dart';
 import 'package:xplayer/shared/components/x_text_button.dart';
 import 'package:xplayer/utils/toast.dart';
-import 'package:flutter_gen/gen_l10n/app_localizations.dart';
+import 'package:xplayer/localization/app_localizations.dart';
 import 'package:flutter/services.dart';
 import 'dart:io';
 import 'package:file_picker/file_picker.dart';

@@ -4,7 +4,7 @@ import 'package:xplayer/shared/components/x_icon_button.dart';
 import 'package:xplayer/utils/dialog.dart';
 import 'package:xplayer/utils/toast.dart';
 import '../../data/models/playlist_model.dart';
-import 'package:flutter_gen/gen_l10n/app_localizations.dart';
+import 'package:xplayer/localization/app_localizations.dart';
 
 class PlaylistListWidget extends StatelessWidget {
   final List<Playlist> playlists;

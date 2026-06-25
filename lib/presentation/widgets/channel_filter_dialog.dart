@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
-import 'package:flutter_gen/gen_l10n/app_localizations.dart';
+import 'package:xplayer/localization/app_localizations.dart';
 import 'package:xplayer/providers/media_provider.dart';
 import 'package:xplayer/shared/components/x_text_button.dart';
 import 'package:xplayer/shared/components/x_icon_button.dart';
