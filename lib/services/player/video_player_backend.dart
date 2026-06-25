@@ -1,0 +1,73 @@
+import 'package:flutter/foundation.dart';
+import 'package:flutter/material.dart';
+import 'package:video_player/video_player.dart';
+import 'package:xplayer/services/player/x_player_backend.dart';
+import 'package:xplayer/utils/player_settings.dart';
+
+/// video_player 实现(全平台可用;Android 默认被 NativePlayerBackend 取代)。
+class VideoPlayerBackend implements XPlayerBackend {
+  VideoPlayerController? _controller;
+  final ValueNotifier<XPlayerValue> _notifier =
+      ValueNotifier<XPlayerValue>(const XPlayerValue());
+
+  @override
+  ValueListenable<XPlayerValue> get notifier => _notifier;
+
+  @override
+  Future<void> initialize(String url) async {
+    await _controller?.dispose();
+    final c = VideoPlayerController.networkUrl(
+      Uri.parse(url),
+      viewType: useSurfaceView.value
+          ? VideoViewType.platformView
+          : VideoViewType.textureView,
+      videoPlayerOptions: VideoPlayerOptions(mixWithOthers: true),
+    );
+    _controller = c;
+    c.addListener(_onChanged);
+    await c.initialize();
+    _onChanged();
+  }
+
+  void _onChanged() {
+    final c = _controller;
+    if (c == null) return;
+    final v = c.value;
+    _notifier.value = XPlayerValue(
+      isInitialized: v.isInitialized,
+      isPlaying: v.isPlaying,
+      isBuffering: v.isBuffering,
+      hasError: v.hasError,
+      errorDescription: v.errorDescription,
+      size: v.size,
+      position: v.position,
+      duration: v.duration,
+    );
+  }
+
+  @override
+  Future<void> play() async => _controller?.play();
+  @override
+  Future<void> pause() async => _controller?.pause();
+  @override
+  Future<void> seekTo(Duration position) async => _controller?.seekTo(position);
+
+  @override
+  Future<void> dispose() async {
+    _controller?.removeListener(_onChanged);
+    await _controller?.dispose();
+    _controller = null;
+  }
+
+  @override
+  Widget buildView() {
+    final c = _controller;
+    if (c == null || !c.value.isInitialized || c.value.aspectRatio <= 0) {
+      return const SizedBox.shrink();
+    }
+    return AspectRatio(
+      aspectRatio: c.value.aspectRatio,
+      child: VideoPlayer(c),
+    );
+  }
+}
