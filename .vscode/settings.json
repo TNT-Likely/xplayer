@@ -1,6 +1,5 @@
 {
   "java.configuration.updateBuildConfiguration": "interactive",
-  // 阻止 Dart 插件在 pubspec 变更时自动跑在线 pub get（本机会卡死）。
-  // 需要更新依赖时手动：flutter pub get --offline
-  "dart.runPubGetOnPubspecChanges": false
+  "dart.runPubGetOnPubspecChanges": false,
+  "dart.flutterSdkPath": ".fvm/versions/3.41.9"
 }

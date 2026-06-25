@@ -30,7 +30,7 @@ permissions:
   contents: write
 
 env:
-  FLUTTER_VERSION: "3.27.3"
+  FLUTTER_VERSION: "3.41.9"
 
 jobs:
   android:
