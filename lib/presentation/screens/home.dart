@@ -136,37 +136,9 @@ class _HomeScreenState extends State<HomeScreen> {
 
   /// 「启动时自动更新」弹窗:分别开关 刷新频道 / 刷新节目单。
   void _showAutoRefreshDialog(BuildContext context) {
-    final l = AppLocalizations.of(context)!;
     showDialog(
       context: context,
-      builder: (_) => AlertDialog(
-        title: Text(l.autoRefreshOnLaunch),
-        content: Consumer<MediaProvider>(
-          builder: (context, mp, __) => Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              SwitchListTile(
-                contentPadding: EdgeInsets.zero,
-                title: Text(l.refreshChannels),
-                value: mp.autoRefreshChannels,
-                onChanged: mp.setAutoRefreshChannels,
-              ),
-              SwitchListTile(
-                contentPadding: EdgeInsets.zero,
-                title: Text(l.refreshProgrammes),
-                value: mp.autoRefreshProgrammes,
-                onChanged: mp.setAutoRefreshProgrammes,
-              ),
-            ],
-          ),
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.of(context).pop(),
-            child: Text(l.cancel),
-          ),
-        ],
-      ),
+      builder: (_) => const AutoRefreshDialog(),
     );
   }
 
@@ -539,6 +511,19 @@ class _HomeScreenState extends State<HomeScreen> {
                     trailing: Switch(
                       value: on,
                       onChanged: (v) => setShowRecentModule(v),
+                    ),
+                  ),
+                ),
+                // 首页「收藏」行显示开关
+                ValueListenableBuilder<bool>(
+                  valueListenable: showFavoritesRow,
+                  builder: (_, on, __) => ListTile(
+                    leading: const Icon(Icons.favorite, color: Colors.white),
+                    title: Text(localizations.showFavoritesOnHome,
+                        style: const TextStyle(color: Colors.white)),
+                    trailing: Switch(
+                      value: on,
+                      onChanged: (v) => setShowFavoritesRow(v),
                     ),
                   ),
                 ),
@@ -976,6 +961,7 @@ class _HomeScreenState extends State<HomeScreen> {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       const RecentPlayedWidget(),
+                      const FavoritesRowWidget(),
                       const AllChannelsHeader(),
                       Expanded(
                         child: ChannelListWidget(

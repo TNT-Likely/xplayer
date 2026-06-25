@@ -145,6 +145,7 @@
   "githubTvHint": "Open this URL in a browser on your phone or computer:",
   "recentlyPlayed": "Recently Played",
   "showRecentOnHome": "Show Recently Played on Home",
+  "showFavoritesOnHome": "Show Favorites on Home",
   "allChannels": "All Channels",
   "clearAll": "Clear",
   "sleepTimer": "Sleep Timer",

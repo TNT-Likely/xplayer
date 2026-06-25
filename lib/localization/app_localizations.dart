@@ -968,6 +968,12 @@ abstract class AppLocalizations {
   /// **'Show Recently Played on Home'**
   String get showRecentOnHome;
 
+  /// No description provided for @showFavoritesOnHome.
+  ///
+  /// In en, this message translates to:
+  /// **'Show Favorites on Home'**
+  String get showFavoritesOnHome;
+
   /// No description provided for @allChannels.
   ///
   /// In en, this message translates to:

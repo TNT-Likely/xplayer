@@ -54,6 +54,7 @@ void main() {
     loadRenderMode(); // 载入渲染模式偏好(SurfaceView/纹理)
     loadNativeEngineMode(); // 载入播放引擎偏好(原生/video_player)
     loadRecentModuleSetting(); // 载入「最近播放」模块显示偏好
+    loadFavoritesRowSetting(); // 载入「收藏」行显示偏好
 
     FlutterError.onError = (FlutterErrorDetails details) {
       _winLog('FlutterError: ${details.exceptionAsString()}');

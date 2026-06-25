@@ -469,6 +469,14 @@ class MediaProvider with ChangeNotifier {
     notifyListeners();
   }
 
+  /// 当前播放列表内的收藏频道(用于首页「收藏」行)。
+  /// 在收藏列表(id=-1)本身时返回空(列表即收藏,无需重复展示)。
+  List<Channel> get currentPlaylistFavorites {
+    if (_currentPlaylistId == -1) return [];
+    final ids = _channels.map((c) => c.id).toSet();
+    return _favoriteChannels.where((f) => ids.contains(f.id)).toList();
+  }
+
   // ---- 最近播放 ----
   List<Channel> get recentChannels => _recentChannels;
 

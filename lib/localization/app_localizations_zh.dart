@@ -467,6 +467,9 @@ class AppLocalizationsZh extends AppLocalizations {
   String get showRecentOnHome => '首页最近播放';
 
   @override
+  String get showFavoritesOnHome => '首页收藏';
+
+  @override
   String get allChannels => '全部频道';
 
   @override
