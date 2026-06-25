@@ -15,9 +15,14 @@ class NativePlayerBackend implements XPlayerBackend {
       ValueNotifier<XPlayerValue>(const XPlayerValue());
   StreamSubscription? _sub;
   Size _size = Size.zero;
+  final ValueNotifier<Map<String, dynamic>> _diag =
+      ValueNotifier<Map<String, dynamic>>(const {});
 
   @override
   ValueListenable<XPlayerValue> get notifier => _notifier;
+
+  @override
+  ValueListenable<Map<String, dynamic>>? get diagnostics => _diag;
 
   @override
   Future<void> initialize(String url) async {
@@ -59,6 +64,13 @@ class NativePlayerBackend implements XPlayerBackend {
       case 'error':
         _notifier.value = v.copyWith(
           hasError: true, errorDescription: '${m['code']}: ${m['msg']}');
+        break;
+      case 'audioDecoder':
+        _diag.value = {
+          ..._diag.value,
+          'audioDecoder': m['name'],
+          'ffmpeg': m['ffmpeg'] == true,
+        };
         break;
     }
   }

@@ -15,6 +15,9 @@ class VideoPlayerBackend implements XPlayerBackend {
   ValueListenable<XPlayerValue> get notifier => _notifier;
 
   @override
+  ValueListenable<Map<String, dynamic>>? get diagnostics => null;
+
+  @override
   Future<void> initialize(String url) async {
     await _controller?.dispose();
     // Android:强制 textureView。原因有二:① 清晰度走原生引擎(NativePlayerBackend),

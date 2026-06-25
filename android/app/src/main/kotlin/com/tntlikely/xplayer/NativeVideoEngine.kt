@@ -15,6 +15,7 @@ import androidx.media3.common.VideoSize
 import androidx.media3.exoplayer.DefaultLoadControl
 import androidx.media3.exoplayer.DefaultRenderersFactory
 import androidx.media3.exoplayer.ExoPlayer
+import androidx.media3.exoplayer.analytics.AnalyticsListener
 import androidx.media3.ui.AspectRatioFrameLayout
 import io.flutter.plugin.common.EventChannel
 import io.flutter.plugin.common.MethodChannel
@@ -111,7 +112,10 @@ class NativeVideoEngine(
 
     private fun buildPlayer(profile: String): ExoPlayer {
         val b = bufferDurations(profile)
-        val renderers = DefaultRenderersFactory(context).setEnableDecoderFallback(true)
+        val renderers = DefaultRenderersFactory(context)
+            .setEnableDecoderFallback(true)
+            // 硬解优先;设备无硬件解码器的音频(AC-3/E-AC-3/DTS/MP2 等)回退 FFmpeg 软解扩展。
+            .setExtensionRendererMode(DefaultRenderersFactory.EXTENSION_RENDERER_MODE_ON)
         val loadControl = DefaultLoadControl.Builder()
             .setBufferDurationsMs(b[0], b[1], b[2], b[3])
             .build()
@@ -144,6 +148,18 @@ class NativeVideoEngine(
             }
             override fun onPlayerError(error: PlaybackException) {
                 emit(mapOf("event" to "error", "code" to error.errorCodeName, "msg" to (error.message ?: "")))
+            }
+        })
+        // 透出真实音频解码器名(确认是否走了 FFmpeg 软解):ffmpeg 前缀 = 软解。
+        p.addAnalyticsListener(object : AnalyticsListener {
+            override fun onAudioDecoderInitialized(
+                eventTime: AnalyticsListener.EventTime,
+                decoderName: String,
+                initializedTimestampMs: Long,
+                initializationDurationMs: Long
+            ) {
+                val isFfmpeg = decoderName.contains("ffmpeg", ignoreCase = true)
+                emit(mapOf("event" to "audioDecoder", "name" to decoderName, "ffmpeg" to isFfmpeg))
             }
         })
         startPositionPolling(p)
