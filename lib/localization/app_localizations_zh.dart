@@ -470,6 +470,18 @@ class AppLocalizationsZh extends AppLocalizations {
   String get showFavoritesOnHome => '首页收藏';
 
   @override
+  String get miniPlayerOnExit => '返回小窗续播';
+
+  @override
+  String get miniPlayerOnExitHint => '从播放页返回首页时,在右下角小窗继续播放';
+
+  @override
+  String get pipOnLeave => '回桌面画中画';
+
+  @override
+  String get pipOnLeaveHint => '离开应用回到系统桌面时,用系统画中画继续播放';
+
+  @override
   String get lanSync => '局域网同步';
 
   @override

@@ -30,4 +30,6 @@ class FakeBackend implements XPlayerBackend {
   Future<List<AudioTrack>> getAudioTracks() async => [];
   @override
   Future<void> selectAudioTrack(String id) async {}
+  @override
+  Future<void> setSurfaceBounds(Rect? rect, double devicePixelRatio) async {}
 }

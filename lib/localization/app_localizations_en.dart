@@ -477,6 +477,20 @@ class AppLocalizationsEn extends AppLocalizations {
   String get showFavoritesOnHome => 'Show Favorites on Home';
 
   @override
+  String get miniPlayerOnExit => 'Mini player on home';
+
+  @override
+  String get miniPlayerOnExitHint =>
+      'Keep playing in a corner window when returning home';
+
+  @override
+  String get pipOnLeave => 'Picture-in-picture';
+
+  @override
+  String get pipOnLeaveHint =>
+      'Keep playing in a system PiP window when leaving the app';
+
+  @override
   String get lanSync => 'LAN Sync';
 
   @override
