@@ -20,9 +20,16 @@
 ## ✨ Features
 
 - 📺 **Built-in channels, zero setup** — ships with [iptv-org](https://github.com/iptv-org/iptv) public playlists; auto-loads China on first launch, plus one-tap presets for All / HK / TW / SG / US / UK / JP / KR + Sports / News / Movies. You can also import any M3U/M3U8 (local file or URL).
-- 🔎 **Grouping + Search** — filter instantly by name from the search bar, plus one-tap group chips (News / Sports / Movies…). Handy for finding the match during the World Cup.
+- 🖼️ **Sharper picture on TV** — a built-in native player engine on Android renders to the TV's hardware video plane (SurfaceView), tapping into the TV's VPP / upscaling for a noticeably crisper image than plain texture rendering; switch back anytime in settings.
+- 🔊 **Fixes "video but no sound"** — bundled FFmpeg audio decoding adds AC-3 / E-AC-3 / DTS / MP2 and other codecs many devices can't decode in hardware.
+- 🎚️ **Quality selection** — pick the resolution (1080P/720P/…) for multi-bitrate streams.
+- 🎧 **Audio track switching** — switch tracks on multi-language/multi-track channels.
+- 🔎 **Grouping + Search** — filter instantly by name from the search bar, plus one-tap group chips (News / Sports / Movies…).
 - 🗓️ **EPG** — XMLTV programme guide support.
-- ⭐ **Favorites** — one tap to favorite the channels you watch most.
+- ⭐ **Favorites + 🕘 Recently played** — quick rows on the home screen (recently-played spans playlists).
+- 😴 **Sleep timer** — auto-stop playback after a set time.
+- 🔁 **LAN config sync** — pull playlists / proxy / favorites / settings from another device on the same Wi-Fi, with a per-item preview before applying.
+- 📊 **Playback info panel** — real-time diagnostics: resolution / codec / bitrate / frame rate / buffer / dropped frames / decoder.
 - 🖥️ **Every platform** — Android (phone/tablet), Android TV, iOS / iPad, macOS, Windows, Linux from one codebase.
 - 📱 **Phone → TV remote input** — your phone auto-discovers the TV on the LAN and types remotely with real-time sync (delete key included).
 - 🌐 **Localized** — English / 中文.

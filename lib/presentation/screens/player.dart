@@ -853,7 +853,14 @@ class _PlayerScreenState extends State<PlayerScreen>
                     _backend is NativePlayerBackend
                         ? 'SurfaceView (native)'
                         : (surface ? 'SurfaceView (HW VPP)' : 'Texture')),
-                row(l.infoActiveDecoder, fmt(i['videoDecoder'])),
+                row(l.infoActiveDecoder, () {
+                  final d = i['videoDecoder'];
+                  if (d == null || d == '' || d == -1) return '—';
+                  final hw = i['videoHardware'];
+                  return hw == true
+                      ? '$d (硬解)'
+                      : (hw == false ? '$d (软解)' : '$d');
+                }()),
                 row(l.infoPlayState, _playState.name),
                 // 视频
                 header(l.secVideo),

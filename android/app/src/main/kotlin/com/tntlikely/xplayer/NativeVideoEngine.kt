@@ -178,6 +178,19 @@ class NativeVideoEngine(
                 val isFfmpeg = decoderName.contains("ffmpeg", ignoreCase = true)
                 emit(mapOf("event" to "audioDecoder", "name" to decoderName, "ffmpeg" to isFfmpeg))
             }
+            override fun onVideoDecoderInitialized(
+                eventTime: AnalyticsListener.EventTime,
+                decoderName: String,
+                initializedTimestampMs: Long,
+                initializationDurationMs: Long
+            ) {
+                // 软解线索:ffmpeg/c2.android.*(Google 软件 codec);其余视为硬件解码。
+                val sw = decoderName.contains("ffmpeg", ignoreCase = true) ||
+                    decoderName.startsWith("c2.android.") ||
+                    decoderName.startsWith("OMX.google.")
+                emit(mapOf("event" to "stats", "videoDecoder" to decoderName,
+                    "videoHardware" to !sw))
+            }
             override fun onDroppedVideoFrames(
                 eventTime: AnalyticsListener.EventTime, dropped: Int, elapsedMs: Long
             ) {
