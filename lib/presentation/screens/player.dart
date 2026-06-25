@@ -894,7 +894,11 @@ class _PlayerScreenState extends State<PlayerScreen>
           _toggleControlsVisibility();
         },
         child: Scaffold(
-          backgroundColor: Colors.black,
+          // 原生引擎:视频在 Flutter 之下的 SurfaceView 上,播放页必须透明才能露出来;
+          // video_player:维持黑底。(其它页靠主题全局黑底防透黑)
+          backgroundColor: (_hasBackend && _backend is NativePlayerBackend)
+              ? Colors.transparent
+              : Colors.black,
           body: Stack(
             fit: StackFit.expand,
             children: [
