@@ -9,13 +9,34 @@ class HlsVariant {
   final String? codecs;
   final String? frameRate;
 
+  /// 该变体的媒体清单绝对地址(选定画质时直接播这个 → ExoPlayer 锁定该档不再 ABR)
+  final String url;
+
   const HlsVariant({
+    required this.url,
     this.bandwidth,
     this.width,
     this.height,
     this.codecs,
     this.frameRate,
   });
+
+  /// 画质档位标签:4K / 1080P / 720P …(按高度)
+  String get qualityLabel {
+    final h = height;
+    if (h == null) return resolution ?? '?';
+    if (h >= 2160) return '4K';
+    return '${h}P';
+  }
+
+  /// "4.9 Mbps" / "840 kbps"
+  String get bandwidthLabel {
+    final b = bandwidth;
+    if (b == null || b <= 0) return '';
+    return b >= 1000000
+        ? '${(b / 1000000).toStringAsFixed(1)} Mbps'
+        : '${b ~/ 1000} kbps';
+  }
 
   /// "1920x1080" 或 null
   String? get resolution =>
@@ -102,7 +123,7 @@ Future<HlsProbeResult> probeHlsVariants(
       return const HlsProbeResult(isMaster: false);
     }
 
-    final variants = _parseStreamInf(text);
+    final variants = _parseStreamInf(text, Uri.parse(url.trim()));
     variants.sort((a, b) => (b.bandwidth ?? 0) - (a.bandwidth ?? 0));
     return HlsProbeResult(isMaster: true, variants: variants);
   } on TimeoutException {
@@ -114,14 +135,25 @@ Future<HlsProbeResult> probeHlsVariants(
   }
 }
 
-List<HlsVariant> _parseStreamInf(String text) {
+List<HlsVariant> _parseStreamInf(String text, Uri baseUri) {
   final out = <HlsVariant>[];
   final lines = text.split(RegExp(r'\r?\n'));
-  for (final line in lines) {
-    final t = line.trim();
+  for (int i = 0; i < lines.length; i++) {
+    final t = lines[i].trim();
     if (!t.startsWith('#EXT-X-STREAM-INF:')) continue;
     final attrs = t.substring('#EXT-X-STREAM-INF:'.length);
+    // URI 是紧随其后的第一个非空、非注释行
+    String? uri;
+    for (int j = i + 1; j < lines.length; j++) {
+      final u = lines[j].trim();
+      if (u.isEmpty || u.startsWith('#')) continue;
+      uri = u;
+      break;
+    }
+    if (uri == null) continue; // 没有对应媒体清单地址,跳过
+    final abs = baseUri.resolve(uri).toString();
     out.add(HlsVariant(
+      url: abs,
       bandwidth: _parseInt(_attr(attrs, 'AVERAGE-BANDWIDTH')) ??
           _parseInt(_attr(attrs, 'BANDWIDTH')),
       width: _parseRes(attrs)?.$1,

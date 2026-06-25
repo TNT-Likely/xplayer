@@ -36,6 +36,9 @@ class PlayerActionsWidget extends StatefulWidget {
   final VoidCallback? onToggleDiag;
   /// 当前播放的源地址(用于判断 IPv6 角标)
   final String? sourceLink;
+  /// 当前流是否有多档画质可选(决定画质按钮是否显示)
+  final bool hasQualityOptions;
+  final VoidCallback? showQualitySelect;
 
   const PlayerActionsWidget(
       {Key? key,
@@ -49,7 +52,9 @@ class PlayerActionsWidget extends StatefulWidget {
       this.onRetryInit,
       this.showSourceSwitch,
       this.onToggleDiag,
-      this.sourceLink})
+      this.sourceLink,
+      this.hasQualityOptions = false,
+      this.showQualitySelect})
       : super(key: key);
 
   @override
@@ -273,6 +278,18 @@ class _PlayerActionsWidgetState extends State<PlayerActionsWidget>
         },
       ),
       const SizedBox(width: 8),
+      // 画质选择:仅当流含多档码率时出现
+      if (widget.hasQualityOptions) ...[
+        XIconButton(
+          icon: Icons.high_quality,
+          onPressed: () {
+            if (widget.showQualitySelect != null) {
+              widget.showQualitySelect!();
+            }
+          },
+        ),
+        const SizedBox(width: 8),
+      ],
       XIconButton(
         icon: Icons.info_outline,
         onPressed: () {

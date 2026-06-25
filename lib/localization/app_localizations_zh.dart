@@ -509,6 +509,12 @@ class AppLocalizationsZh extends AppLocalizations {
   String get secVariants => '码流变体';
 
   @override
+  String get quality => '画质';
+
+  @override
+  String get qualityAuto => '自动';
+
+  @override
   String get infoActiveDecoder => '活动解码器';
 
   @override

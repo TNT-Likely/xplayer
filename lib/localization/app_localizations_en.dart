@@ -516,6 +516,12 @@ class AppLocalizationsEn extends AppLocalizations {
   String get secVariants => 'Bitrate Variants';
 
   @override
+  String get quality => 'Quality';
+
+  @override
+  String get qualityAuto => 'Auto';
+
+  @override
   String get infoActiveDecoder => 'Active Decoder';
 
   @override

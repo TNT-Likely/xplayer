@@ -1052,6 +1052,18 @@ abstract class AppLocalizations {
   /// **'Bitrate Variants'**
   String get secVariants;
 
+  /// No description provided for @quality.
+  ///
+  /// In en, this message translates to:
+  /// **'Quality'**
+  String get quality;
+
+  /// No description provided for @qualityAuto.
+  ///
+  /// In en, this message translates to:
+  /// **'Auto'**
+  String get qualityAuto;
+
   /// No description provided for @infoActiveDecoder.
   ///
   /// In en, this message translates to:
