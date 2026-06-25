@@ -25,15 +25,8 @@ class IptvPreset {
 
 const String _base = 'https://iptv-org.github.io/iptv';
 
-// TODO(test): 临时默认源为开发者测试地址,方便重装免输入。合并/发版前必须还原为 iptv-org 中国!
+/// 默认预置源：iptv-org 中国（首启自动加载）。
 const IptvPreset kDefaultPreset = IptvPreset(
-  nameKey: 'presetChina',
-  fallbackName: '测试源 Test',
-  url: 'http://nas.youths.cc:8872/m3u',
-);
-
-/// 发版用的真实默认源:iptv-org 中国(还原时用这个替换上面的 kDefaultPreset)。
-const IptvPreset kDefaultPresetRelease = IptvPreset(
   nameKey: 'presetChina',
   fallbackName: '中国 China',
   url: '$_base/countries/cn.m3u',
