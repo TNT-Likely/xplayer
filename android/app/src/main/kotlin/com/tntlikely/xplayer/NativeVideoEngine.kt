@@ -55,9 +55,11 @@ class NativeVideoEngine(
                 val profile = call.argument<String>("profile") ?: "live"
                 load(url, profile); result.success(null)
             }
-            "play" -> { player?.play(); result.success(null) }
-            "pause" -> { player?.pause(); result.success(null) }
-            "seekTo" -> { player?.seekTo((call.argument<Int>("ms") ?: 0).toLong()); result.success(null) }
+            // 注意:必须 main.post,与 load 同队列;否则切源时 play 可能在 load(重建+prepare)之前
+            // 执行,对着尚未就绪/已释放的 player 调用 → 不自动播放。
+            "play" -> { main.post { player?.play() }; result.success(null) }
+            "pause" -> { main.post { player?.pause() }; result.success(null) }
+            "seekTo" -> { val ms = (call.argument<Int>("ms") ?: 0).toLong(); main.post { player?.seekTo(ms) }; result.success(null) }
             "release" -> { release(); result.success(null) }
             else -> result.notImplemented()
         }

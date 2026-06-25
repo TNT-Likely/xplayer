@@ -317,10 +317,13 @@ class _PlayerScreenState extends State<PlayerScreen>
           }
           _isHandlingBuffering = false;
         });
-        setState(() {
-          // 开始缓冲更新状态为 buffering
-          _playState = PlayState.buffering;
-        });
+        // 仅在已初始化(真正播放中再缓冲)时切 buffering 态;初始加载阶段保持 loading,
+        // 否则「加载中」(未初始化的兜底 loading 视图)与「缓存中」浮层会同时出现,冲突。
+        if (value.isInitialized) {
+          setState(() {
+            _playState = PlayState.buffering;
+          });
+        }
       }
     } else {
       _bufferingTimer?.cancel();
