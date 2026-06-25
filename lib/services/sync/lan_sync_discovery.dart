@@ -1,6 +1,8 @@
 import 'dart:async';
+import 'dart:io' show Platform;
 import 'package:bonsoir/bonsoir.dart';
 import 'package:flutter/foundation.dart';
+import 'package:permission_handler/permission_handler.dart';
 import 'package:xplayer/services/sync/lan_sync_server.dart';
 
 class SyncPeer {
@@ -18,6 +20,15 @@ class LanSyncDiscovery {
   final ValueNotifier<List<SyncPeer>> peers = ValueNotifier([]);
 
   Future<void> start() async {
+    // Android NSD/mDNS 发现需要这些权限(否则搜不到设备),与遥控发现一致。
+    if (Platform.isAndroid) {
+      try {
+        await [
+          Permission.nearbyWifiDevices,
+          Permission.locationWhenInUse,
+        ].request();
+      } catch (_) {}
+    }
     _discovery = BonsoirDiscovery(type: LanSyncServer.serviceType);
     await _discovery!.ready;
     _sub = _discovery!.eventStream!.listen((event) async {
