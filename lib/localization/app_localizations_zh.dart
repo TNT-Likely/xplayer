@@ -455,6 +455,9 @@ class AppLocalizationsZh extends AppLocalizations {
   String get diagLog => '日志中心';
 
   @override
+  String get openSourceLicenses => '开源许可';
+
+  @override
   String get logLevelDebug => '调试';
 
   @override

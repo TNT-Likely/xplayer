@@ -73,4 +73,7 @@ abstract class XPlayerBackend {
   /// - VideoPlayerBackend → VideoPlayer(controller)
   /// - NativePlayerBackend → 透明占位(露出底层 SurfaceView)
   Widget buildView();
+
+  /// 运行时诊断信息(如真实音频解码器名);仅原生后端提供,默认无。
+  ValueListenable<Map<String, dynamic>>? get diagnostics => null;
 }

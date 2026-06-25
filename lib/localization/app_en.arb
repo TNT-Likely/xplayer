@@ -141,6 +141,7 @@
   "autoRefreshOnLaunch": "Auto-update on launch",
   "nowPlaying": "Now: {title}",
   "diagLog": "Log Center",
+  "openSourceLicenses": "Open-source Licenses",
   "logLevelDebug": "Debug",
   "logLevelInfo": "Info",
   "logLevelWarning": "Warning",

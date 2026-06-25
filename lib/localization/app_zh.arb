@@ -141,6 +141,7 @@
     "autoRefreshOnLaunch": "启动时自动更新",
     "nowPlaying": "正在:{title}",
     "diagLog": "日志中心",
+    "openSourceLicenses": "开源许可",
     "logLevelDebug": "调试",
     "logLevelInfo": "信息",
     "logLevelWarning": "警告",

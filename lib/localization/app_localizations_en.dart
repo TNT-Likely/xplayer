@@ -461,6 +461,9 @@ class AppLocalizationsEn extends AppLocalizations {
   String get diagLog => 'Log Center';
 
   @override
+  String get openSourceLicenses => 'Open-source Licenses';
+
+  @override
   String get logLevelDebug => 'Debug';
 
   @override

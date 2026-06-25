@@ -147,6 +147,7 @@ class _PlayerScreenState extends State<PlayerScreen>
     _bufferingTimer?.cancel();
     autoCloseTimer?.cancel();
     _backend.notifier.removeListener(_listenToVideoController);
+    _backend.diagnostics?.removeListener(_onBackendDiag);
     useSurfaceView.removeListener(_onRenderModeChanged);
     useNativeEngine.removeListener(_onRenderModeChanged);
     WidgetsBinding.instance.removeObserver(this);
@@ -194,6 +195,7 @@ class _PlayerScreenState extends State<PlayerScreen>
     if (_hasBackend) {
       try {
         _backend.notifier.removeListener(_listenToVideoController);
+        _backend.diagnostics?.removeListener(_onBackendDiag);
         _backend.pause();
         await _backend.dispose();
       } catch (error) {}
@@ -231,6 +233,7 @@ class _PlayerScreenState extends State<PlayerScreen>
       _hasBackend = true;
 
       _backend.notifier.addListener(_listenToVideoController);
+      _backend.diagnostics?.addListener(_onBackendDiag);
 
       await _backend.initialize(_playUrl);
       if (token != _loadToken || !mounted) return; // 已被新加载取代,丢弃
@@ -287,6 +290,15 @@ class _PlayerScreenState extends State<PlayerScreen>
         _playState = PlayState.failed;
       });
     }
+  }
+
+  /// 原生后端运行时诊断(真实音频解码器名/是否 FFmpeg 软解)→ 合并进 _streamInfo 供信息面板展示。
+  void _onBackendDiag() {
+    final diag = _backend.diagnostics;
+    if (diag == null || !mounted) return;
+    setState(() {
+      _streamInfo = {..._streamInfo, ...diag.value};
+    });
   }
 
   void _listenToVideoController() {
@@ -803,7 +815,11 @@ class _PlayerScreenState extends State<PlayerScreen>
                 header(l.secAudio),
                 row(l.infoAudioCodec, audioCodec()),
                 row(l.infoAudioDecoder, fmt(i['audioDecoder'])),
-                row('FFmpeg', '—'),
+                row(
+                    'FFmpeg',
+                    i['ffmpeg'] == true
+                        ? '已启用(当前音轨软解)'
+                        : (_backend is NativePlayerBackend ? '已启用' : '—')),
                 // 码流变体(验证是否因 ABR 选了低清档)
                 header(l.secVariants),
                 ..._buildVariantRows(row),
