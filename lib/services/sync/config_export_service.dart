@@ -1,10 +1,10 @@
 import 'dart:convert';
-import 'dart:io';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:xplayer/data/repositories/playlist_repository.dart';
 import 'package:xplayer/data/repositories/favorites_repository.dart';
 import 'package:xplayer/services/update/update_proxy.dart';
 import 'package:xplayer/services/sync/config_bundle.dart';
+import 'package:xplayer/services/sync/sync_device.dart';
 
 /// 汇总本机配置为 ConfigBundle(供源端 /config 返回)。
 class ConfigExportService {
@@ -46,7 +46,7 @@ class ConfigExportService {
     }..removeWhere((_, v) => v == null);
 
     return ConfigBundle(
-      deviceName: Platform.localHostname,
+      deviceName: await syncDeviceName(),
       playlists: playlists,
       proxy: proxy,
       favorites: favorites,

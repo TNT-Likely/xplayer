@@ -4,6 +4,7 @@ import 'dart:io';
 import 'package:bonsoir/bonsoir.dart';
 import 'package:flutter/foundation.dart';
 import 'package:xplayer/services/sync/config_export_service.dart';
+import 'package:xplayer/services/sync/sync_device.dart';
 
 /// 源端「开放同步」:限时 HTTP 服务(/config、/ping)+ bonsoir 广播 _xplayersync._tcp。
 class LanSyncServer {
@@ -23,7 +24,7 @@ class LanSyncServer {
     _server!.listen(_handle);
 
     final service = BonsoirService(
-      name: 'XPlayer-${Platform.localHostname}',
+      name: await syncDeviceName(),
       type: serviceType,
       port: _port,
     );

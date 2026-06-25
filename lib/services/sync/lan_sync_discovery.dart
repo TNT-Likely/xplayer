@@ -58,18 +58,17 @@ class LanSyncDiscovery {
             (s.attributes['host'] as String).isNotEmpty) {
           host = s.attributes['host'] as String;
         }
-        if (host == null || host.isEmpty) return;
+        if (host == null || host.isEmpty || s.port <= 0) return;
+        // .local 主机名常带尾点,去掉以便 HttpClient 解析。
+        if (host.endsWith('.')) host = host.substring(0, host.length - 1);
         final peer = SyncPeer(name: s.name, host: host, port: s.port);
         final list = [...peers.value]
           ..removeWhere((p) => p.host == peer.host && p.port == peer.port);
         list.add(peer);
         peers.value = list;
-      } else if (event.type ==
-          BonsoirDiscoveryEventType.discoveryServiceLost) {
-        final s = event.service;
-        if (s == null) return;
-        peers.value = peers.value.where((p) => p.name != s.name).toList();
       }
+      // 不处理 LOST:同步会话很短,bonsoir 的 TXT 重试会产生 lost→found 抖动,
+      // 按名移除会把刚解析到的设备清掉;保留已发现项,失效项用户点了再报错即可。
     });
     await _discovery!.start();
   }
