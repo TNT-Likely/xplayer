@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/foundation.dart' show LicenseRegistry, LicenseEntryWithLineBreaks;
 import 'package:flutter/services.dart';
 import 'package:xplayer/presentation/screens/splash.dart';
 import 'package:xplayer/providers/global_provider.dart';
@@ -53,6 +54,21 @@ void main() {
     _winLog('binding initialized');
     loadRenderMode(); // 载入渲染模式偏好(SurfaceView/纹理)
     loadNativeEngineMode(); // 载入播放引擎偏好(原生/video_player)
+
+    // FFmpeg(media3-decoder-ffmpeg)LGPL 声明 —— Android 包内置 FFmpeg 音频软解(动态链接 .so)。
+    LicenseRegistry.addLicense(() async* {
+      yield const LicenseEntryWithLineBreaks(
+        <String>['FFmpeg (media3-decoder-ffmpeg)'],
+        'This application bundles FFmpeg for audio decoding (AC-3/E-AC-3/DTS/MP2/MP3/TrueHD) '
+        'on Android, dynamically linked via the AndroidX Media3 FFmpeg decoder extension '
+        '(media3-decoder-ffmpeg 1.9.2).\n\n'
+        'FFmpeg is licensed under the GNU Lesser General Public License version 2.1 (LGPL-2.1) '
+        'or later. FFmpeg source code is available at https://ffmpeg.org/ and '
+        'https://git.ffmpeg.org/ffmpeg.git . The bundled build enables the decoders: '
+        'ac3, eac3, dca, mp2, mp3, truehd.\n\n'
+        'Full LGPL-2.1 text: https://www.gnu.org/licenses/old-licenses/lgpl-2.1.html',
+      );
+    });
 
     FlutterError.onError = (FlutterErrorDetails details) {
       _winLog('FlutterError: ${details.exceptionAsString()}');

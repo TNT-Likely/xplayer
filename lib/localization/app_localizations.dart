@@ -944,6 +944,12 @@ abstract class AppLocalizations {
   /// **'Log Center'**
   String get diagLog;
 
+  /// No description provided for @openSourceLicenses.
+  ///
+  /// In en, this message translates to:
+  /// **'Open-source Licenses'**
+  String get openSourceLicenses;
+
   /// No description provided for @logLevelDebug.
   ///
   /// In en, this message translates to:

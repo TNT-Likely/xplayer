@@ -551,6 +551,25 @@ class _HomeScreenState extends State<HomeScreen> {
                     );
                   },
                 ),
+                XBaseButton(
+                  child: animeContainer(
+                    ListTile(
+                      leading: const Icon(Icons.description_outlined,
+                          color: Colors.white),
+                      title: Text(
+                          AppLocalizations.of(context)!.openSourceLicenses,
+                          style: const TextStyle(color: Colors.white)),
+                    ),
+                  ),
+                  onPressed: () {
+                    Navigator.of(context).pop();
+                    showLicensePage(
+                      context: context,
+                      applicationName: 'XPlayer',
+                      applicationVersion: _version,
+                    );
+                  },
+                ),
                 // 渲染模式开关:SurfaceView(platformView)/ 纹理。仅非 Android 显示 ——
                 // Android 的清晰度走「播放引擎=原生」(见下),且全局透明下 platformView 会卡;
                 // iOS/macOS(avfoundation 支持 platformView)保留此选项。
