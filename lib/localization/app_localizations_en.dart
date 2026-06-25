@@ -468,6 +468,12 @@ class AppLocalizationsEn extends AppLocalizations {
       'Open this URL in a browser on your phone or computer:';
 
   @override
+  String get recentlyPlayed => 'Recently Played';
+
+  @override
+  String get clearAll => 'Clear';
+
+  @override
   String get sleepTimer => 'Sleep Timer';
 
   @override

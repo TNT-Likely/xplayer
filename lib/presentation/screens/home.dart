@@ -7,6 +7,7 @@ import 'package:xplayer/data/models/playlist_model.dart';
 // 导入 FavoritesRepository
 import 'package:xplayer/presentation/screens/playlist.dart';
 import 'package:xplayer/presentation/screens/epg_screen.dart';
+import 'package:xplayer/presentation/widgets/recent_played_widget.dart';
 import 'package:xplayer/presentation/screens/log_center_screen.dart';
 import 'package:xplayer/utils/logger_util.dart';
 import 'package:xplayer/utils/player_settings.dart';
@@ -491,6 +492,19 @@ class _HomeScreenState extends State<HomeScreen> {
                     _showSizeDialog(context);
                   },
                 ),
+                // 首页「最近播放」模块显示开关
+                ValueListenableBuilder<bool>(
+                  valueListenable: showRecentModule,
+                  builder: (_, on, __) => ListTile(
+                    leading: const Icon(Icons.history, color: Colors.white),
+                    title: Text(localizations.recentlyPlayed,
+                        style: const TextStyle(color: Colors.white)),
+                    trailing: Switch(
+                      value: on,
+                      onChanged: (v) => setShowRecentModule(v),
+                    ),
+                  ),
+                ),
                 _drawerSectionHeader('源与节目单'),
                 Consumer<MediaProvider>(
                   builder: (BuildContext context2, mediaProvider, _) {
@@ -925,24 +939,33 @@ class _HomeScreenState extends State<HomeScreen> {
                       ),
                     );
                   }
-                  return ChannelListWidget(
-                    channels: filtered,
-                    favoriteChannels: mediaProvider.favoriteChannels,
-                    sizeLevel: mediaProvider.gridSizeLevel,
-                    onChannelUpdated: () async {
-                      try {
-                        final mp = Provider.of<MediaProvider>(
-                          context,
-                          listen: false,
-                        );
-                        await mp.refreshChannels();
-                        showToast(localizations.channelsUpdatedSuccessfully);
-                      } catch (e, s) {
-                        Logger.error('刷新频道失败: $e', e, s);
-                        showToast(
-                            localizations.channelsUpdateFailed(e.toString()));
-                      }
-                    },
+                  return Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      const RecentPlayedWidget(),
+                      Expanded(
+                        child: ChannelListWidget(
+                          channels: filtered,
+                          favoriteChannels: mediaProvider.favoriteChannels,
+                          sizeLevel: mediaProvider.gridSizeLevel,
+                          onChannelUpdated: () async {
+                            try {
+                              final mp = Provider.of<MediaProvider>(
+                                context,
+                                listen: false,
+                              );
+                              await mp.refreshChannels();
+                              showToast(
+                                  localizations.channelsUpdatedSuccessfully);
+                            } catch (e, s) {
+                              Logger.error('刷新频道失败: $e', e, s);
+                              showToast(localizations
+                                  .channelsUpdateFailed(e.toString()));
+                            }
+                          },
+                        ),
+                      ),
+                    ],
                   );
                 }
               },

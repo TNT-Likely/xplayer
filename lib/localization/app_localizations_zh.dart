@@ -461,6 +461,12 @@ class AppLocalizationsZh extends AppLocalizations {
   String get githubTvHint => '请在手机或电脑浏览器中访问该地址:';
 
   @override
+  String get recentlyPlayed => '最近播放';
+
+  @override
+  String get clearAll => '清除';
+
+  @override
   String get sleepTimer => '睡眠定时';
 
   @override
