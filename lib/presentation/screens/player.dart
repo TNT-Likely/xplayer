@@ -64,6 +64,14 @@ class _PlayerScreenState extends State<PlayerScreen>
   HlsProbeResult? _hlsProbe; // HLS 码率变体探测结果
   String? _hlsProbedLink; // 已探测过的地址(切源后重探)
   bool _hlsProbing = false;
+  String? _qualityOverrideUrl; // 用户选定的画质变体地址;null = 自动(播 master 走 ABR)
+
+  /// 实际播放地址:选定画质时播该变体,否则播原始源(master/直链)
+  String get _playUrl => _qualityOverrideUrl ?? _sourceLink;
+
+  /// 当前流是否有多档画质可选
+  bool get _hasQualityOptions =>
+      (_hlsProbe?.isMaster ?? false) && (_hlsProbe!.variants.length > 1);
 
   List<Programme> get programmes {
     final mediaProvider = Provider.of<MediaProvider>(context, listen: false);
@@ -179,9 +187,9 @@ class _PlayerScreenState extends State<PlayerScreen>
     // 打印本次播放地址:直接进控制台(flutter logs / adb logcat 立见),
     // 同时推到诊断中心「ExoPlayer 应用内日志」(电视也能看)。
     // 播放地址 + 设备端探流(各轨道真实编码)写入日志中心
-    LogStore.instance.i('player', '▶ 播放: $_sourceLink');
+    LogStore.instance.i('player', '▶ 播放: $_playUrl');
     const MethodChannel('diag/logcat')
-        .invokeMethod<Map>('probeStream', {'url': _sourceLink}).then((m) {
+        .invokeMethod<Map>('probeStream', {'url': _playUrl}).then((m) {
       if (m != null && mounted) {
         final info = Map<String, dynamic>.from(m);
         setState(() => _streamInfo = info);
@@ -189,10 +197,13 @@ class _PlayerScreenState extends State<PlayerScreen>
       }
     }).catchError((_) => null);
 
+    // 探测多码率变体(在原始 master 上探;同地址只探一次)→ 决定画质按钮是否出现
+    _maybeProbeHls();
+
     try {
       // 渲染模式:SurfaceView(platformView,吃硬件 VPP/电视更清晰)或 纹理(textureView)
       _controller = VideoPlayerController.networkUrl(
-        Uri.parse(_sourceLink),
+        Uri.parse(_playUrl),
         viewType: useSurfaceView.value
             ? VideoViewType.platformView
             : VideoViewType.textureView,
@@ -380,6 +391,9 @@ class _PlayerScreenState extends State<PlayerScreen>
         (link) async {
       setState(() {
         _sourceLink = link;
+        _qualityOverrideUrl = null; // 换源 → 画质回到自动
+        _hlsProbe = null; // 新源重新探测变体
+        _hlsProbedLink = null;
       });
       // 记住该频道的源选择,下次进入同一频道默认用它
       Provider.of<MediaProvider>(context, listen: false)
@@ -453,6 +467,10 @@ class _PlayerScreenState extends State<PlayerScreen>
               showSourceSwitch: () {
                 _showSourceSwitcher(context);
               },
+              hasQualityOptions: _hasQualityOptions,
+              showQualitySelect: () {
+                _showQualitySwitcher(context);
+              },
               onToggleDiag: () {
                 cancelAutoCloseTimer();
                 Navigator.of(context).pop(); // 关闭操作栏
@@ -493,6 +511,9 @@ class _PlayerScreenState extends State<PlayerScreen>
       _channel = newChannel;
       _sourceLink = _resolveSourceLink(newChannel);
       _currentIndex = newIndex;
+      _qualityOverrideUrl = null; // 切台 → 画质回到自动
+      _hlsProbe = null; // 新频道重新探测变体
+      _hlsProbedLink = null;
     });
 
     _initializePlayer();
@@ -553,20 +574,46 @@ class _PlayerScreenState extends State<PlayerScreen>
 
   /// 加载/重试中的展示:频道台标 + 名称 + 进度;重试时显示「第 N 次重新加载」。
   // 信息浮层:右侧滑出(和源选择一致),内容溢出内部滚动;含渲染面即时切换做 A/B。
-  /// 信息面板打开时按需探测 HLS 变体(同一地址只探一次;切源后重探)。
-  void _ensureHlsProbe(void Function(void Function()) setLocal) {
+  /// 按需探测 HLS 变体(同一地址只探一次;切源后重探)。
+  /// 播放开始时调用以决定画质按钮可见性;信息面板打开时也会调用(带 setLocal 刷新浮层)。
+  void _maybeProbeHls({void Function(void Function())? setLocal}) {
     if (_hlsProbing) return;
-    if (_hlsProbedLink == _sourceLink && _hlsProbe != null) return;
+    if (_hlsProbedLink == _sourceLink && _hlsProbe != null) {
+      if (setLocal != null) setLocal(() {});
+      return;
+    }
     _hlsProbing = true;
     final link = _sourceLink;
     probeHlsVariants(link).then((r) {
       _hlsProbe = r;
       _hlsProbedLink = link;
       _hlsProbing = false;
-      if (mounted) setLocal(() {});
+      if (!mounted) return;
+      if (setLocal != null) setLocal(() {});
+      setState(() {}); // 刷新动作栏画质按钮可见性
     }).catchError((_) {
       _hlsProbing = false;
     });
+  }
+
+  /// 画质(多码率)选择浮层
+  void _showQualitySwitcher(BuildContext context) {
+    if (_controlsVisible) {
+      Navigator.of(context).pop();
+    }
+    final variants = _hlsProbe?.variants ?? const [];
+    PlayerDialogs.showQualitySwitcher(
+      context,
+      variants,
+      _qualityOverrideUrl,
+      (variantUrl) async {
+        setState(() {
+          _qualityOverrideUrl = variantUrl;
+        });
+        _initializePlayer();
+        if (mounted) Navigator.of(context).pop();
+      },
+    );
   }
 
   void _showStreamInfoSheet(BuildContext context) {
@@ -586,7 +633,7 @@ class _PlayerScreenState extends State<PlayerScreen>
           child: SafeArea(
             child: StatefulBuilder(
               builder: (ctx, setLocal) {
-                _ensureHlsProbe(setLocal);
+                _maybeProbeHls(setLocal: setLocal);
                 return _buildStreamInfoContent();
               },
             ),

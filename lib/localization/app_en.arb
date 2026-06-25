@@ -159,6 +159,8 @@
   "secVideo": "Video",
   "secAudio": "Audio",
   "secVariants": "Bitrate Variants",
+  "quality": "Quality",
+  "qualityAuto": "Auto",
   "infoActiveDecoder": "Active Decoder",
   "infoVideoCodec": "Video Codec",
   "infoBitrate": "Bitrate",

@@ -5,6 +5,8 @@ import 'package:xplayer/data/models/channel_model.dart';
 import 'package:xplayer/data/models/programme_model.dart';
 import 'package:xplayer/presentation/widgets/channel_selector_widget.dart';
 import 'package:xplayer/presentation/widgets/channel_source_widget.dart';
+import 'package:xplayer/presentation/widgets/quality_selector_widget.dart';
+import 'package:xplayer/utils/hls_probe.dart';
 
 class PlayerDialogs {
   static void showChannelSelectWidget(
@@ -77,6 +79,48 @@ class PlayerDialogs {
               channel: channel,
               link: link,
               onSourceSwitch: onSourceSwitch,
+            ),
+          ),
+        );
+      },
+      transitionBuilder: (_, anim, __, child) {
+        return SlideTransition(
+          position:
+              Tween(begin: const Offset(1.0, 0.0), end: const Offset(0.0, 0.0))
+                  .animate(anim),
+          child: child,
+        );
+      },
+    );
+  }
+
+  /// 画质(多码率)选择浮层 —— 侧边浮层,与切源一致
+  static void showQualitySwitcher(
+    BuildContext context,
+    List<HlsVariant> variants,
+    String? currentUrl,
+    OnQualitySelectCallback onSelect,
+  ) {
+    showGeneralDialog(
+      context: context,
+      barrierLabel: "Barrier",
+      barrierDismissible: true,
+      barrierColor: Colors.transparent,
+      transitionDuration: const Duration(milliseconds: 200),
+      pageBuilder: (_, __, ___) {
+        return Align(
+          alignment: Alignment.centerRight,
+          child: Container(
+            width: max(220, MediaQuery.of(context).size.width * 0.3),
+            height: MediaQuery.of(context).size.height * 1.0,
+            decoration: BoxDecoration(
+              color: const Color.fromRGBO(0, 0, 0, 0.3),
+              borderRadius: BorderRadius.circular(16.0),
+            ),
+            child: QualitySelectorWidget(
+              variants: variants,
+              currentUrl: currentUrl,
+              onSelect: onSelect,
             ),
           ),
         );
