@@ -1216,27 +1216,6 @@ class _PlayerScreenState extends State<PlayerScreen>
                   ],
                 ),
               ),
-              // 返回按钮:iOS/桌面无硬件返回键(且 PopScope 拦掉了 iOS 左缘返回),
-              // 给一个常驻的返回入口(走 _handleBack → 满足条件则小窗续播)。
-              if (Platform.isIOS ||
-                  Platform.isMacOS ||
-                  Platform.isWindows ||
-                  Platform.isLinux)
-                Positioned(
-                  top: 0,
-                  left: 0,
-                  child: SafeArea(
-                    child: Material(
-                      color: Colors.black38,
-                      shape: const CircleBorder(),
-                      clipBehavior: Clip.antiAlias,
-                      child: IconButton(
-                        icon: const Icon(Icons.arrow_back, color: Colors.white),
-                        onPressed: _handleBack,
-                      ),
-                    ),
-                  ),
-                ),
             ],
           ),
         ),
