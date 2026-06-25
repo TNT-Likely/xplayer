@@ -470,6 +470,46 @@ class AppLocalizationsZh extends AppLocalizations {
   String get showFavoritesOnHome => '首页收藏';
 
   @override
+  String get lanSync => '局域网同步';
+
+  @override
+  String get lanSyncOpen => '开放同步';
+
+  @override
+  String get lanSyncOpenHint => '开启期间,局域网内其它设备可拉取本机配置。';
+
+  @override
+  String get lanSyncStop => '关闭';
+
+  @override
+  String get lanSyncSearching => '正在搜索设备…';
+
+  @override
+  String lanSyncRemaining(int s) {
+    return '$s 秒后自动关闭';
+  }
+
+  @override
+  String get syncApply => '应用';
+
+  @override
+  String get syncPreviewTitle => '预览同步';
+
+  @override
+  String get syncSecPlaylists => '播放列表';
+
+  @override
+  String get syncSecSettings => '应用设置';
+
+  @override
+  String get syncFailed => '拉取配置失败';
+
+  @override
+  String syncResult(int pl, int fav, int st) {
+    return '已应用:播放列表 $pl、收藏 $fav、设置 $st';
+  }
+
+  @override
   String get allChannels => '全部频道';
 
   @override

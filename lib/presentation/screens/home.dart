@@ -7,6 +7,8 @@ import 'package:xplayer/data/models/playlist_model.dart';
 // 导入 FavoritesRepository
 import 'package:xplayer/presentation/screens/playlist.dart';
 import 'package:xplayer/presentation/screens/epg_screen.dart';
+import 'package:xplayer/presentation/screens/lan_sync_open_screen.dart';
+import 'package:xplayer/presentation/screens/lan_sync_screen.dart';
 import 'package:xplayer/presentation/widgets/recent_played_widget.dart';
 import 'package:xplayer/presentation/screens/log_center_screen.dart';
 import 'package:xplayer/utils/logger_util.dart';
@@ -747,6 +749,40 @@ class _HomeScreenState extends State<HomeScreen> {
                     Navigator.of(context).pop();
                     Navigator.of(context).push(
                       MaterialPageRoute(builder: (_) => const LogCenterScreen()),
+                    );
+                  },
+                ),
+                // 局域网同步:接收端(发现并拉取对端配置)
+                XBaseButton(
+                  child: animeContainer(
+                    ListTile(
+                      leading: const Icon(Icons.devices, color: Colors.white),
+                      title: Text(AppLocalizations.of(context)!.lanSync,
+                          style: const TextStyle(color: Colors.white)),
+                    ),
+                  ),
+                  onPressed: () {
+                    Navigator.of(context).pop();
+                    Navigator.of(context).push(
+                      MaterialPageRoute(builder: (_) => const LanSyncScreen()),
+                    );
+                  },
+                ),
+                // 局域网同步:源端(开放本机供拉取)
+                XBaseButton(
+                  child: animeContainer(
+                    ListTile(
+                      leading: const Icon(Icons.wifi_tethering,
+                          color: Colors.white),
+                      title: Text(AppLocalizations.of(context)!.lanSyncOpen,
+                          style: const TextStyle(color: Colors.white)),
+                    ),
+                  ),
+                  onPressed: () {
+                    Navigator.of(context).pop();
+                    Navigator.of(context).push(
+                      MaterialPageRoute(
+                          builder: (_) => const LanSyncOpenScreen()),
                     );
                   },
                 ),

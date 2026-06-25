@@ -477,6 +477,47 @@ class AppLocalizationsEn extends AppLocalizations {
   String get showFavoritesOnHome => 'Show Favorites on Home';
 
   @override
+  String get lanSync => 'LAN Sync';
+
+  @override
+  String get lanSyncOpen => 'Allow Sync';
+
+  @override
+  String get lanSyncOpenHint =>
+      'While open, other devices on the LAN can pull this device\'s config.';
+
+  @override
+  String get lanSyncStop => 'Stop';
+
+  @override
+  String get lanSyncSearching => 'Searching for devices…';
+
+  @override
+  String lanSyncRemaining(int s) {
+    return 'Auto-closes in ${s}s';
+  }
+
+  @override
+  String get syncApply => 'Apply';
+
+  @override
+  String get syncPreviewTitle => 'Preview Sync';
+
+  @override
+  String get syncSecPlaylists => 'Playlists';
+
+  @override
+  String get syncSecSettings => 'App Settings';
+
+  @override
+  String get syncFailed => 'Failed to fetch config';
+
+  @override
+  String syncResult(int pl, int fav, int st) {
+    return 'Applied: $pl playlists, $fav favorites, $st settings';
+  }
+
+  @override
   String get allChannels => 'All Channels';
 
   @override
