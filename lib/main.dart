@@ -52,6 +52,7 @@ void main() {
     WidgetsFlutterBinding.ensureInitialized();
     _winLog('binding initialized');
     loadRenderMode(); // 载入渲染模式偏好(SurfaceView/纹理)
+    loadNativeEngineMode(); // 载入播放引擎偏好(原生/video_player)
 
     FlutterError.onError = (FlutterErrorDetails details) {
       _winLog('FlutterError: ${details.exceptionAsString()}');

@@ -551,26 +551,52 @@ class _HomeScreenState extends State<HomeScreen> {
                     );
                   },
                 ),
-                // 渲染模式开关:SurfaceView(电视更清晰)/ 纹理。切换后播放器按新模式重建。
-                ValueListenableBuilder<bool>(
-                  valueListenable: useSurfaceView,
-                  builder: (_, surface, __) => ListTile(
-                    leading: const Icon(Icons.hd, color: Colors.white),
-                    title: Text(
-                      '${localizations.renderMode}: ${surface ? "SurfaceView" : "Texture"}',
-                      style: const TextStyle(color: Colors.white),
-                    ),
-                    subtitle: Text(
-                      localizations.renderModeHint,
-                      style:
-                          const TextStyle(color: Colors.white54, fontSize: 11),
-                    ),
-                    trailing: Switch(
-                      value: surface,
-                      onChanged: (v) => setUseSurfaceView(v),
+                // 渲染模式开关:SurfaceView(platformView)/ 纹理。仅非 Android 显示 ——
+                // Android 的清晰度走「播放引擎=原生」(见下),且全局透明下 platformView 会卡;
+                // iOS/macOS(avfoundation 支持 platformView)保留此选项。
+                if (!Platform.isAndroid)
+                  ValueListenableBuilder<bool>(
+                    valueListenable: useSurfaceView,
+                    builder: (_, surface, __) => ListTile(
+                      leading: const Icon(Icons.hd, color: Colors.white),
+                      title: Text(
+                        '${localizations.renderMode}: ${surface ? "SurfaceView" : "Texture"}',
+                        style: const TextStyle(color: Colors.white),
+                      ),
+                      subtitle: Text(
+                        localizations.renderModeHint,
+                        style: const TextStyle(
+                            color: Colors.white54, fontSize: 11),
+                      ),
+                      trailing: Switch(
+                        value: surface,
+                        onChanged: (v) => setUseSurfaceView(v),
+                      ),
                     ),
                   ),
-                ),
+                // 播放引擎开关:原生(SurfaceView,硬件 VPP)/ video_player。仅 Android。
+                if (Platform.isAndroid)
+                  ValueListenableBuilder<bool>(
+                    valueListenable: useNativeEngine,
+                    builder: (_, on, __) => ListTile(
+                      leading: const Icon(Icons.memory, color: Colors.white),
+                      title: Text(
+                        localizations.playerEngine,
+                        style: const TextStyle(color: Colors.white),
+                      ),
+                      subtitle: Text(
+                        on
+                            ? localizations.playerEngineNative
+                            : localizations.playerEngineVideoPlayer,
+                        style: const TextStyle(
+                            color: Colors.white54, fontSize: 11),
+                      ),
+                      trailing: Switch(
+                        value: on,
+                        onChanged: (v) => setUseNativeEngine(v),
+                      ),
+                    ),
+                  ),
                 XBaseButton(
                   child: animeContainer(
                     ListTile(

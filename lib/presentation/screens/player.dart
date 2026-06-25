@@ -1,7 +1,6 @@
 import 'dart:io';
 
 import 'package:flutter/material.dart';
-import 'package:video_player/video_player.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:xplayer/presentation/widgets/bg_wrapper.dart';
 import 'package:flutter/services.dart';
@@ -18,6 +17,10 @@ import 'package:xplayer/utils/hls_probe.dart';
 import 'package:xplayer/utils/playlist_util.dart';
 import 'package:xplayer/utils/toast.dart';
 import 'package:xplayer/services/log_store.dart';
+import 'package:xplayer/services/player/x_player_backend.dart';
+import 'package:xplayer/services/player/video_player_backend.dart';
+import 'package:xplayer/services/player/native_player_backend.dart';
+import 'package:xplayer/services/player/player_backend_selector.dart';
 import 'package:xplayer/utils/player_settings.dart';
 import 'package:provider/provider.dart';
 import 'dart:async';
@@ -39,7 +42,8 @@ class PlayerScreen extends StatefulWidget {
 
 class _PlayerScreenState extends State<PlayerScreen>
     with WidgetsBindingObserver {
-  late VideoPlayerController _controller;
+  late XPlayerBackend _backend;
+  bool _hasBackend = false; // _backend 是否已赋值(首次加载前为 false,避免对 late 字段读前初始化)
   bool _controlsVisible = false;
   final FocusNode _focusNode = FocusNode();
   late Channel _channel;
@@ -54,6 +58,7 @@ class _PlayerScreenState extends State<PlayerScreen>
   int _loadToken = 0; // 每次加载的代号:被新加载取代后,旧加载的异步回调据此丢弃
   bool _isHandlingBuffering = false;
   bool _isHandlingError = false;
+  bool _forcedFallback = false; // 原生引擎初始化失败后强制降级 video_player(切换设置时复位)
 
   PlayState _playState = PlayState.idle;
 
@@ -111,6 +116,8 @@ class _PlayerScreenState extends State<PlayerScreen>
 
     // 渲染模式改变(侧边栏或诊断面板切换)→ 按新模式重建播放器,支持实时 A/B
     useSurfaceView.addListener(_onRenderModeChanged);
+    // 播放引擎开关改变 → 同样按新设置重建(并复位强制降级,见 _onRenderModeChanged)
+    useNativeEngine.addListener(_onRenderModeChanged);
 
     // 首次进入播放页弹一次操作引导(看过后不再弹,可从控制条「帮助」再看)
     WidgetsBinding.instance
@@ -139,19 +146,33 @@ class _PlayerScreenState extends State<PlayerScreen>
     _retryTimer?.cancel();
     _bufferingTimer?.cancel();
     autoCloseTimer?.cancel();
-    _controller.removeListener(_listenToVideoController);
+    _backend.notifier.removeListener(_listenToVideoController);
     useSurfaceView.removeListener(_onRenderModeChanged);
+    useNativeEngine.removeListener(_onRenderModeChanged);
     WidgetsBinding.instance.removeObserver(this);
     _focusNode.dispose();
-    _controller.pause();
-    _controller.dispose();
+    _backend.pause();
+    _backend.dispose();
     // 离开播放页恢复自动旋转,避免播放页设的朝向锁定带到其它页面
     SystemChrome.setPreferredOrientations(const []);
     super.dispose();
   }
 
   void _onRenderModeChanged() {
+    // 切换渲染模式/播放引擎设置时,给所选引擎一次重新尝试的机会(清掉上次的强制降级)
+    _forcedFallback = false;
     if (mounted) _initializePlayer();
+  }
+
+  /// 按设置(平台 + 引擎开关 + 是否已强制降级)选择后端实例。
+  XPlayerBackend _createBackend() {
+    final kind = selectBackendKind(
+      isAndroid: Platform.isAndroid,
+      nativeEnabled: useNativeEngine.value && !_forcedFallback,
+    );
+    return kind == PlayerBackendKind.native
+        ? NativePlayerBackend()
+        : VideoPlayerBackend();
   }
 
   Future<void> _initializePlayer({bool fresh = true}) async {
@@ -170,11 +191,13 @@ class _PlayerScreenState extends State<PlayerScreen>
     }
     _isHandlingError = false; // 新一轮加载,允许下次错误被处理
 
-    try {
-      _controller.removeListener(_listenToVideoController);
-      _controller.pause();
-      await _controller.dispose();
-    } catch (error) {}
+    if (_hasBackend) {
+      try {
+        _backend.notifier.removeListener(_listenToVideoController);
+        _backend.pause();
+        await _backend.dispose();
+      } catch (error) {}
+    }
 
     // dispose 是异步的,其间若又触发了新加载或页面已卸载,则放弃本次
     if (token != _loadToken || !mounted) return;
@@ -201,39 +224,41 @@ class _PlayerScreenState extends State<PlayerScreen>
     _maybeProbeHls();
 
     try {
-      // 渲染模式:SurfaceView(platformView,吃硬件 VPP/电视更清晰)或 纹理(textureView)
-      _controller = VideoPlayerController.networkUrl(
-        Uri.parse(_playUrl),
-        viewType: useSurfaceView.value
-            ? VideoViewType.platformView
-            : VideoViewType.textureView,
-        videoPlayerOptions: VideoPlayerOptions(mixWithOthers: true),
-      );
+      // 后端选择:Android 且原生引擎开关开(且未被强制降级)→ 原生引擎(SurfaceView/硬件 VPP),
+      // 其余一律 video_player。渲染模式(SurfaceView/纹理)由 VideoPlayerBackend.initialize 内部读
+      // useSurfaceView.value 决定 viewType。
+      _backend = _createBackend();
+      _hasBackend = true;
 
-      _controller.addListener(_listenToVideoController);
+      _backend.notifier.addListener(_listenToVideoController);
 
-      await _controller.initialize().then((_) {
-        if (token != _loadToken || !mounted) return; // 已被新加载取代,丢弃
-        _controller.play();
-        setState(() {
-          // 初始化成功后更新状态为 playing
-          _playState = PlayState.playing;
-          _ttffMs = _loadStartedAt != null
-              ? DateTime.now().difference(_loadStartedAt!).inMilliseconds
-              : null;
-        });
-      }).catchError((error) {
-        if (token != _loadToken || !mounted) return; // 已被新加载取代,丢弃
-        // 初始化失败:计入重试,超上限才 failed(统一走 _handleLoadError)
-        Logger.warning('播放器初始化失败(将重试): $error');
-        if (!_isHandlingError) {
-          _isHandlingError = true;
-          _handleLoadError();
-        }
+      await _backend.initialize(_playUrl);
+      if (token != _loadToken || !mounted) return; // 已被新加载取代,丢弃
+      _backend.play();
+      setState(() {
+        // 初始化成功后更新状态为 playing
+        _playState = PlayState.playing;
+        _ttffMs = _loadStartedAt != null
+            ? DateTime.now().difference(_loadStartedAt!).inMilliseconds
+            : null;
       });
     } catch (e) {
-      if (token != _loadToken || !mounted) return;
-      Logger.error('创建新播放器控制器失败: $e');
+      if (token != _loadToken || !mounted) return; // 已被新加载取代,丢弃
+      // 原生引擎初始化失败 → 强制降级 video_player,重跑一次本方法(届时 _createBackend 选 video_player)。
+      // 放在重试逻辑之前:否则会用同一个原生后端反复重试,降级不会发生。
+      if (_backend is NativePlayerBackend && !_forcedFallback) {
+        Logger.warning('原生引擎初始化失败,降级 video_player: $e');
+        LogStore.instance.w('player', '原生引擎失败→降级 video_player: $e');
+        _forcedFallback = true;
+        try {
+          _backend.notifier.removeListener(_listenToVideoController);
+          await _backend.dispose();
+        } catch (_) {}
+        if (token != _loadToken || !mounted) return; // dispose 期间被新加载取代
+        return _initializePlayer(fresh: false);
+      }
+      // video_player(或已降级后)失败:计入重试,超上限才 failed(统一走 _handleLoadError)
+      Logger.warning('播放器初始化失败(将重试): $e');
       if (!_isHandlingError) {
         _isHandlingError = true;
         _handleLoadError();
@@ -265,7 +290,7 @@ class _PlayerScreenState extends State<PlayerScreen>
   }
 
   void _listenToVideoController() {
-    final value = _controller.value;
+    final value = _backend.notifier.value;
 
     if (value.isBuffering) {
       Logger.debug('视频正在缓冲...');
@@ -273,13 +298,13 @@ class _PlayerScreenState extends State<PlayerScreen>
         _isHandlingBuffering = true;
         _bufferingTimer?.cancel();
         _bufferingTimer = Timer(const Duration(seconds: 5), () {
-          if (_controller.value.isBuffering) {
+          if (_backend.notifier.value.isBuffering) {
             if (_bufferingRetryTimes < 3) {
               _bufferingRetryTimes += 1;
               Logger.debug('长时间缓冲，尝试重新加载...($_bufferingRetryTimes/3)');
-              _controller.pause();
-              _controller.seekTo(Duration.zero);
-              _controller.play();
+              _backend.pause();
+              _backend.seekTo(Duration.zero);
+              _backend.play();
               // 缓冲重试时保持视频画面 + 缓冲指示,不切到整页加载页,
               // 否则断断续续的流会在「视频」与「加载页」间反复闪烁
             } else {
@@ -292,10 +317,13 @@ class _PlayerScreenState extends State<PlayerScreen>
           }
           _isHandlingBuffering = false;
         });
-        setState(() {
-          // 开始缓冲更新状态为 buffering
-          _playState = PlayState.buffering;
-        });
+        // 仅在已初始化(真正播放中再缓冲)时切 buffering 态;初始加载阶段保持 loading,
+        // 否则「加载中」(未初始化的兜底 loading 视图)与「缓存中」浮层会同时出现,冲突。
+        if (value.isInitialized) {
+          setState(() {
+            _playState = PlayState.buffering;
+          });
+        }
       }
     } else {
       _bufferingTimer?.cancel();
@@ -454,7 +482,7 @@ class _PlayerScreenState extends State<PlayerScreen>
                   });
                 }
               },
-              controller: _controller,
+              backend: _backend,
               favoriteChannels: widget.favoriteChannels,
               channel: _channel,
               sourceLink: _sourceLink,
@@ -676,8 +704,8 @@ class _PlayerScreenState extends State<PlayerScreen>
 
   Widget _buildStreamInfoContent() {
     final l = AppLocalizations.of(context)!;
-    final size = _controller.value.isInitialized
-        ? _controller.value.size
+    final size = _backend.notifier.value.isInitialized
+        ? _backend.notifier.value.size
         : Size.zero;
     final res = size.width > 0
         ? '${size.width.toInt()}x${size.height.toInt()}'
@@ -758,8 +786,11 @@ class _PlayerScreenState extends State<PlayerScreen>
                 const Divider(color: Colors.white24, height: 12),
                 // 基本
                 row(l.infoSource, _sourceLink),
-                row(l.infoRenderSurface,
-                    surface ? 'SurfaceView (HW VPP)' : 'Texture'),
+                row(
+                    l.infoRenderSurface,
+                    _backend is NativePlayerBackend
+                        ? 'SurfaceView (native)'
+                        : (surface ? 'SurfaceView (HW VPP)' : 'Texture')),
                 row(l.infoActiveDecoder, fmt(i['videoDecoder'])),
                 row(l.infoPlayState, _playState.name),
                 // 视频
@@ -781,13 +812,16 @@ class _PlayerScreenState extends State<PlayerScreen>
                     style: const TextStyle(
                         color: Colors.white38, fontSize: 10)),
                 const SizedBox(height: 8),
-                ElevatedButton.icon(
-                  onPressed: () => setUseSurfaceView(!surface),
-                  icon: const Icon(Icons.hd, size: 18),
-                  label: Text(surface
-                      ? '${l.infoSwitchRender} → Texture'
-                      : '${l.infoSwitchRender} → SurfaceView'),
-                ),
+                // 渲染面切换仅对非 Android 的 video_player platformView 有意义;
+                // Android 走原生引擎,这里不显示(避免无效操作)。
+                if (!Platform.isAndroid)
+                  ElevatedButton.icon(
+                    onPressed: () => setUseSurfaceView(!surface),
+                    icon: const Icon(Icons.hd, size: 18),
+                    label: Text(surface
+                        ? '${l.infoSwitchRender} → Texture'
+                        : '${l.infoSwitchRender} → SurfaceView'),
+                  ),
               ],
             ),
           ),
@@ -866,7 +900,11 @@ class _PlayerScreenState extends State<PlayerScreen>
           _toggleControlsVisibility();
         },
         child: Scaffold(
-          backgroundColor: Colors.black,
+          // 原生引擎:视频在 Flutter 之下的 SurfaceView 上,播放页必须透明才能露出来;
+          // video_player:维持黑底。(其它页靠主题全局黑底防透黑)
+          backgroundColor: (_hasBackend && _backend is NativePlayerBackend)
+              ? Colors.transparent
+              : Colors.black,
           body: Stack(
             fit: StackFit.expand,
             children: [
@@ -874,8 +912,8 @@ class _PlayerScreenState extends State<PlayerScreen>
               if (_playState == PlayState.failed ||
                   _playState == PlayState.loading ||
                   _playState == PlayState.retrying ||
-                  !(_controller.value.isInitialized &&
-                      _controller.value.aspectRatio > 0))
+                  !(_backend.notifier.value.isInitialized &&
+                      _backend.notifier.value.aspectRatio > 0))
                 Positioned.fill(
                   child: BgWrapper(child: const SizedBox.shrink()),
                 ),
@@ -923,12 +961,9 @@ class _PlayerScreenState extends State<PlayerScreen>
                     else if (_playState == PlayState.loading ||
                         _playState == PlayState.retrying)
                       _buildLoadingView()
-                    else if (_controller.value.isInitialized &&
-                        _controller.value.aspectRatio > 0)
-                      AspectRatio(
-                        aspectRatio: _controller.value.aspectRatio,
-                        child: VideoPlayer(_controller),
-                      )
+                    else if (_backend.notifier.value.isInitialized &&
+                        _backend.notifier.value.aspectRatio > 0)
+                      _backend.buildView()
                     else
                       // 控制器尚未就绪时显示加载,避免渲染未初始化播放器导致黑屏空白
                       _buildLoadingView(),

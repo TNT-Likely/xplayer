@@ -980,6 +980,24 @@ abstract class AppLocalizations {
   /// **'On = SurfaceView (sharper on TV); Off = Texture (most compatible)'**
   String get renderModeHint;
 
+  /// No description provided for @playerEngine.
+  ///
+  /// In en, this message translates to:
+  /// **'Player Engine'**
+  String get playerEngine;
+
+  /// No description provided for @playerEngineNative.
+  ///
+  /// In en, this message translates to:
+  /// **'Native (SurfaceView)'**
+  String get playerEngineNative;
+
+  /// No description provided for @playerEngineVideoPlayer.
+  ///
+  /// In en, this message translates to:
+  /// **'video_player'**
+  String get playerEngineVideoPlayer;
+
   /// No description provided for @streamInfo.
   ///
   /// In en, this message translates to:

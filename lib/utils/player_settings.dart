@@ -26,3 +26,24 @@ Future<void> setUseSurfaceView(bool v) async {
     await prefs.setBool(_kRenderKey, v);
   } catch (_) {}
 }
+
+/// 播放引擎:true = 原生 Android 引擎(SurfaceView,吃硬件 VPP);false = video_player。
+/// Android 默认 true;出错运行时自动降级到 video_player(见 player.dart)。
+final ValueNotifier<bool> useNativeEngine = ValueNotifier<bool>(true);
+
+const String _kNativeEngineKey = 'player_use_native_engine';
+
+Future<void> loadNativeEngineMode() async {
+  try {
+    final prefs = await SharedPreferences.getInstance();
+    useNativeEngine.value = prefs.getBool(_kNativeEngineKey) ?? true;
+  } catch (_) {}
+}
+
+Future<void> setUseNativeEngine(bool v) async {
+  useNativeEngine.value = v;
+  try {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setBool(_kNativeEngineKey, v);
+  } catch (_) {}
+}
