@@ -47,10 +47,18 @@ class LanSyncDiscovery {
           final addrs = (json['addresses'] as List).cast<String>();
           host = addrs.firstWhere((a) => a.contains('.'),
               orElse: () => addrs.first);
-        } else if (json['address'] is String) {
+        } else if (json['address'] is String &&
+            (json['address'] as String).isNotEmpty) {
           host = json['address'] as String?;
+        } else if (json['host'] is String &&
+            (json['host'] as String).isNotEmpty) {
+          // 本机 bonsoir 版本把已解析地址放在顶层 host 字段
+          host = json['host'] as String?;
+        } else if (s.attributes['host'] is String &&
+            (s.attributes['host'] as String).isNotEmpty) {
+          host = s.attributes['host'] as String;
         }
-        if (host == null) return;
+        if (host == null || host.isEmpty) return;
         final peer = SyncPeer(name: s.name, host: host, port: s.port);
         final list = [...peers.value]
           ..removeWhere((p) => p.host == peer.host && p.port == peer.port);
