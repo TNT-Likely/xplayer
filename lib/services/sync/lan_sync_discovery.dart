@@ -41,25 +41,27 @@ class LanSyncDiscovery {
         final s = event.service;
         if (s == null) return;
         final json = s.toJson();
-        String? host;
-        if (json['addresses'] is List &&
-            (json['addresses'] as List).isNotEmpty) {
-          final addrs = (json['addresses'] as List).cast<String>();
-          host = addrs.firstWhere((a) => a.contains('.'),
-              orElse: () => addrs.first);
-        } else if (json['address'] is String &&
-            (json['address'] as String).isNotEmpty) {
-          host = json['address'] as String?;
-        } else if (json['host'] is String &&
-            (json['host'] as String).isNotEmpty) {
-          // 本机 bonsoir 版本把已解析地址放在顶层 host 字段
-          host = json['host'] as String?;
-        } else if (s.attributes['host'] is String &&
-            (s.attributes['host'] as String).isNotEmpty) {
-          host = s.attributes['host'] as String;
+        // bonsoir 不同平台键名不一致:Android 用 'host'/'port',iOS 用 'service.host'/'service.port'。
+        String? str(String k) {
+          final v = json[k] ?? json['service.$k'];
+          return v is String && v.isNotEmpty ? v : null;
         }
-        // 端口优先取 json['port'](该 bonsoir 版本 resolved 端口在此;s.port 可能为 0)。
-        final port = (json['port'] as num?)?.toInt() ?? s.port;
+        String? host;
+        final addrs = (json['addresses'] ?? json['service.addresses']);
+        if (addrs is List && addrs.isNotEmpty) {
+          final list = addrs.cast<String>();
+          host = list.firstWhere((a) => a.contains('.'), orElse: () => list.first);
+        } else {
+          host = str('address') ??
+              str('host') ??
+              (s.attributes['host'] is String &&
+                      (s.attributes['host'] as String).isNotEmpty
+                  ? s.attributes['host'] as String
+                  : null);
+        }
+        final port = (json['port'] as num?)?.toInt() ??
+            (json['service.port'] as num?)?.toInt() ??
+            s.port;
         if (host == null || host.isEmpty || port <= 0) {
           debugPrint('[lansync] resolved but skipped: host=$host port=$port json=$json');
           return;
