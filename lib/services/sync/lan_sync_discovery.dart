@@ -4,6 +4,7 @@ import 'package:bonsoir/bonsoir.dart';
 import 'package:flutter/foundation.dart';
 import 'package:permission_handler/permission_handler.dart';
 import 'package:xplayer/services/sync/lan_sync_server.dart';
+import 'package:xplayer/services/sync/sync_device.dart';
 
 class SyncPeer {
   final String name;
@@ -17,9 +18,11 @@ class SyncPeer {
 class LanSyncDiscovery {
   BonsoirDiscovery? _discovery;
   StreamSubscription? _sub;
+  String _ownName = ''; // 本机服务名,用于过滤掉自己
   final ValueNotifier<List<SyncPeer>> peers = ValueNotifier([]);
 
   Future<void> start() async {
+    _ownName = await syncDeviceName();
     // Android NSD/mDNS 发现需要这些权限(否则搜不到设备),与遥控发现一致。
     if (Platform.isAndroid) {
       try {
@@ -33,13 +36,22 @@ class LanSyncDiscovery {
     await _discovery!.ready;
     _sub = _discovery!.eventStream!.listen((event) async {
       if (event.type == BonsoirDiscoveryEventType.discoveryServiceFound) {
+        final f = event.service;
+        // 只解析同步服务,且跳过本机自己
+        if (f == null ||
+            f.type != LanSyncServer.serviceType ||
+            f.name == _ownName) {
+          return;
+        }
         try {
-          await event.service?.resolve(_discovery!.serviceResolver);
+          await f.resolve(_discovery!.serviceResolver);
         } catch (_) {}
       } else if (event.type ==
           BonsoirDiscoveryEventType.discoveryServiceResolved) {
         final s = event.service;
         if (s == null) return;
+        // 过滤非同步服务 + 本机自己
+        if (s.type != LanSyncServer.serviceType || s.name == _ownName) return;
         final json = s.toJson();
         // bonsoir 不同平台键名不一致:Android 用 'host'/'port',iOS 用 'service.host'/'service.port'。
         String? str(String k) {
