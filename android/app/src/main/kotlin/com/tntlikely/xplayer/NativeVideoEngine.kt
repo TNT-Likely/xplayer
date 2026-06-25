@@ -178,6 +178,19 @@ class NativeVideoEngine(
                 val isFfmpeg = decoderName.contains("ffmpeg", ignoreCase = true)
                 emit(mapOf("event" to "audioDecoder", "name" to decoderName, "ffmpeg" to isFfmpeg))
             }
+            override fun onVideoDecoderInitialized(
+                eventTime: AnalyticsListener.EventTime,
+                decoderName: String,
+                initializedTimestampMs: Long,
+                initializationDurationMs: Long
+            ) {
+                // 软解线索:ffmpeg/c2.android.*(Google 软件 codec);其余视为硬件解码。
+                val sw = decoderName.contains("ffmpeg", ignoreCase = true) ||
+                    decoderName.startsWith("c2.android.") ||
+                    decoderName.startsWith("OMX.google.")
+                emit(mapOf("event" to "stats", "videoDecoder" to decoderName,
+                    "videoHardware" to !sw))
+            }
             override fun onDroppedVideoFrames(
                 eventTime: AnalyticsListener.EventTime, dropped: Int, elapsedMs: Long
             ) {
@@ -232,12 +245,44 @@ class NativeVideoEngine(
                     emit(mapOf("event" to "position", "ms" to p.currentPosition,
                         "duration" to (if (p.duration == C.TIME_UNSET) 0L else p.duration),
                         "bufferedMs" to (p.bufferedPosition - p.currentPosition).coerceAtLeast(0L)))
+                    // 直接从 player 读当前格式(比 AnalyticsListener 更可靠,HLS 也准)。
+                    emit(buildFormatStats(p))
                     main.postDelayed(this, 500)
                 }
             }
         }
         positionPoller = r
         main.postDelayed(r, 500)
+    }
+
+    private fun fmtBitrate(f: Format): Int? {
+        val b = if (f.bitrate != Format.NO_VALUE) f.bitrate
+            else if (f.averageBitrate != Format.NO_VALUE) f.averageBitrate else -1
+        return if (b > 0) b else null
+    }
+
+    /** 直接读 player.videoFormat / audioFormat,作为格式信息的可靠来源(每 500ms)。 */
+    private fun buildFormatStats(p: ExoPlayer): Map<String, Any?> {
+        val m = HashMap<String, Any?>()
+        m["event"] = "stats"
+        val vf = p.videoFormat
+        if (vf != null) {
+            m["videoMime"] = vf.sampleMimeType ?: vf.codecs
+            if (vf.width != Format.NO_VALUE) m["videoWidth"] = vf.width
+            if (vf.height != Format.NO_VALUE) m["videoHeight"] = vf.height
+            m["videoBitrate"] = fmtBitrate(vf)
+            if (vf.frameRate > 0) m["frameRate"] = vf.frameRate
+            val ct = vf.colorInfo?.colorTransfer
+            m["isHdr"] = ct == C.COLOR_TRANSFER_HLG || ct == C.COLOR_TRANSFER_ST2084
+        }
+        val af = p.audioFormat
+        if (af != null) {
+            m["audioMime"] = af.sampleMimeType ?: af.codecs
+            if (af.sampleRate != Format.NO_VALUE) m["audioSampleRate"] = af.sampleRate
+            if (af.channelCount != Format.NO_VALUE) m["audioChannels"] = af.channelCount
+            m["audioBitrate"] = fmtBitrate(af)
+        }
+        return m
     }
 
     private fun getAudioTracks(): List<Map<String, Any?>> {

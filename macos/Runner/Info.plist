@@ -27,6 +27,7 @@
 	<key>NSBonjourServices</key>
 	<array>
 		<string>_xplayer._tcp</string>
+		<string>_xplayersync._tcp</string>
 	</array>
 	<key>NSHumanReadableCopyright</key>
 	<string>$(PRODUCT_COPYRIGHT)</string>

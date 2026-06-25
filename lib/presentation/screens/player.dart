@@ -724,7 +724,15 @@ class _PlayerScreenState extends State<PlayerScreen>
             child: StatefulBuilder(
               builder: (ctx, setLocal) {
                 _maybeProbeHls(setLocal: setLocal);
-                return _buildStreamInfoContent();
+                // 面板是独立路由,播放页 setState 刷不到它;监听 diagnostics +
+                // 后端状态,数据晚到时也能实时刷新(编码/码率/解码器等)。
+                return ListenableBuilder(
+                  listenable: Listenable.merge([
+                    if (_backend.diagnostics != null) _backend.diagnostics!,
+                    _backend.notifier,
+                  ]),
+                  builder: (_, __) => _buildStreamInfoContent(),
+                );
               },
             ),
           ),
@@ -773,7 +781,8 @@ class _PlayerScreenState extends State<PlayerScreen>
         ? '${size.width.toInt()}x${size.height.toInt()}'
         : '—';
 
-    final i = _streamInfo;
+    // 合并最新运行时诊断(原生引擎的编码/码率/帧率/解码器等),不依赖 setState 时序。
+    final i = {..._streamInfo, ...?_backend.diagnostics?.value};
     String fmt(dynamic v) =>
         (v == null || v == -1 || v == '') ? '—' : v.toString();
     final theme = Theme.of(context).primaryColor;
@@ -853,7 +862,14 @@ class _PlayerScreenState extends State<PlayerScreen>
                     _backend is NativePlayerBackend
                         ? 'SurfaceView (native)'
                         : (surface ? 'SurfaceView (HW VPP)' : 'Texture')),
-                row(l.infoActiveDecoder, fmt(i['videoDecoder'])),
+                row(l.infoActiveDecoder, () {
+                  final d = i['videoDecoder'];
+                  if (d == null || d == '' || d == -1) return '—';
+                  final hw = i['videoHardware'];
+                  return hw == true
+                      ? '$d (硬解)'
+                      : (hw == false ? '$d (软解)' : '$d');
+                }()),
                 row(l.infoPlayState, _playState.name),
                 // 视频
                 header(l.secVideo),

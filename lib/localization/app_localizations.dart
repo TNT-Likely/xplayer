@@ -974,6 +974,78 @@ abstract class AppLocalizations {
   /// **'Show Favorites on Home'**
   String get showFavoritesOnHome;
 
+  /// No description provided for @lanSync.
+  ///
+  /// In en, this message translates to:
+  /// **'LAN Sync'**
+  String get lanSync;
+
+  /// No description provided for @lanSyncOpen.
+  ///
+  /// In en, this message translates to:
+  /// **'Allow Sync'**
+  String get lanSyncOpen;
+
+  /// No description provided for @lanSyncOpenHint.
+  ///
+  /// In en, this message translates to:
+  /// **'While open, other devices on the LAN can pull this device\'s config.'**
+  String get lanSyncOpenHint;
+
+  /// No description provided for @lanSyncStop.
+  ///
+  /// In en, this message translates to:
+  /// **'Stop'**
+  String get lanSyncStop;
+
+  /// No description provided for @lanSyncSearching.
+  ///
+  /// In en, this message translates to:
+  /// **'Searching for devices…'**
+  String get lanSyncSearching;
+
+  /// No description provided for @lanSyncRemaining.
+  ///
+  /// In en, this message translates to:
+  /// **'Auto-closes in {s}s'**
+  String lanSyncRemaining(int s);
+
+  /// No description provided for @syncApply.
+  ///
+  /// In en, this message translates to:
+  /// **'Apply'**
+  String get syncApply;
+
+  /// No description provided for @syncPreviewTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Preview Sync'**
+  String get syncPreviewTitle;
+
+  /// No description provided for @syncSecPlaylists.
+  ///
+  /// In en, this message translates to:
+  /// **'Playlists'**
+  String get syncSecPlaylists;
+
+  /// No description provided for @syncSecSettings.
+  ///
+  /// In en, this message translates to:
+  /// **'App Settings'**
+  String get syncSecSettings;
+
+  /// No description provided for @syncFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'Failed to fetch config'**
+  String get syncFailed;
+
+  /// No description provided for @syncResult.
+  ///
+  /// In en, this message translates to:
+  /// **'Applied: {pl} playlists, {fav} favorites, {st} settings'**
+  String syncResult(int pl, int fav, int st);
+
   /// No description provided for @allChannels.
   ///
   /// In en, this message translates to:
