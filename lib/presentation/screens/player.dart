@@ -15,6 +15,7 @@ import 'package:xplayer/providers/media_provider.dart';
 import 'package:xplayer/utils/logger_util.dart';
 import 'package:xplayer/utils/hls_probe.dart';
 import 'package:xplayer/services/sleep_timer.dart';
+import 'package:xplayer/providers/mini_player_controller.dart';
 import 'package:xplayer/utils/playlist_util.dart';
 import 'package:xplayer/utils/toast.dart';
 import 'package:xplayer/services/log_store.dart';
@@ -60,6 +61,7 @@ class _PlayerScreenState extends State<PlayerScreen>
   bool _isHandlingBuffering = false;
   bool _isHandlingError = false;
   bool _forcedFallback = false; // 原生引擎初始化失败后强制降级 video_player(切换设置时复位)
+  bool _handedOff = false; // 已把 backend 交接给小窗(dispose 时不销毁)
 
   PlayState _playState = PlayState.idle;
 
@@ -110,7 +112,18 @@ class _PlayerScreenState extends State<PlayerScreen>
     _currentIndex = mediaProvider.channels.indexOf(_channel);
     _channels = mediaProvider.channels;
 
-    _initializePlayer();
+    final mini = Provider.of<MiniPlayerController>(context, listen: false);
+    if (mini.backend != null && mini.channel?.id == _channel.id) {
+      // 从小窗展开:取回正在播的 backend,不重连
+      _backend = mini.take()!;
+      _hasBackend = true;
+      _backend.notifier.addListener(_listenToVideoController);
+      _backend.diagnostics?.addListener(_onBackendDiag);
+      _playState = PlayState.playing;
+      WidgetsBinding.instance.addPostFrameCallback((_) => _setSurfaceFullscreen());
+    } else {
+      _initializePlayer();
+    }
     _focusNode.requestFocus();
 
     // 手机随设备方向自动旋转(交还系统,跟随传感器),无需手动按钮。
@@ -154,8 +167,11 @@ class _PlayerScreenState extends State<PlayerScreen>
     useNativeEngine.removeListener(_onRenderModeChanged);
     WidgetsBinding.instance.removeObserver(this);
     _focusNode.dispose();
-    _backend.pause();
-    _backend.dispose();
+    if (!_handedOff) {
+      // 未交接给小窗 → 正常销毁;已交接则由 MiniPlayerController 持有,不销毁
+      _backend.pause();
+      _backend.dispose();
+    }
     // 离开播放页恢复自动旋转,避免播放页设的朝向锁定带到其它页面
     SystemChrome.setPreferredOrientations(const []);
     super.dispose();
@@ -235,6 +251,9 @@ class _PlayerScreenState extends State<PlayerScreen>
       // useSurfaceView.value 决定 viewType。
       _backend = _createBackend();
       _hasBackend = true;
+      // 登记到小窗控制器(全屏态),供返回时交接续播
+      Provider.of<MiniPlayerController>(context, listen: false)
+          .attachFullscreen(_backend, _channel, widget.favoriteChannels);
 
       _backend.notifier.addListener(_listenToVideoController);
       _backend.diagnostics?.addListener(_onBackendDiag);
@@ -1001,9 +1020,47 @@ class _PlayerScreenState extends State<PlayerScreen>
   }
 
   @override
+  void _setSurfaceFullscreen() {
+    if (!mounted) return;
+    _backend.setSurfaceBounds(null, MediaQuery.of(context).devicePixelRatio);
+  }
+
+  void _setSurfaceMini() {
+    final media = MediaQuery.of(context);
+    final w = (media.size.width * 0.4).clamp(160.0, 240.0);
+    final h = w * 9 / 16;
+    final rect = Rect.fromLTWH(
+      media.size.width - w - 12 - media.padding.right,
+      media.size.height - h - 12 - media.padding.bottom,
+      w,
+      h,
+    );
+    _backend.setSurfaceBounds(rect, media.devicePixelRatio);
+  }
+
+  /// 返回:小窗开 && 在播 → 交接小窗续播(不销毁);否则正常关闭。
+  void _handleBack() {
+    final v = _backend.notifier.value;
+    final mini = Provider.of<MiniPlayerController>(context, listen: false);
+    if (miniPlayerOnExit.value && _hasBackend && v.isPlaying && !v.hasError) {
+      _handedOff = true;
+      _setSurfaceMini();
+      mini.enterMini(_backend, _channel, widget.favoriteChannels);
+    } else {
+      mini.clearReference();
+    }
+    Navigator.of(context).pop();
+  }
+
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    return RawKeyboardListener(
+    return PopScope(
+      canPop: false,
+      onPopInvokedWithResult: (didPop, _) {
+        if (didPop) return;
+        _handleBack();
+      },
+      child: RawKeyboardListener(
       focusNode: _focusNode,
       onKey: _handleKeyPress,
       child: GestureDetector(
@@ -1104,6 +1161,7 @@ class _PlayerScreenState extends State<PlayerScreen>
           ),
         ),
       ),
+    ),
     );
   }
 }

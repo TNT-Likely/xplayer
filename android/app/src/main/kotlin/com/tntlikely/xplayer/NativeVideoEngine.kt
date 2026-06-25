@@ -70,6 +70,7 @@ class NativeVideoEngine(
             "seekTo" -> { val ms = (call.argument<Int>("ms") ?: 0).toLong(); main.post { player?.seekTo(ms) }; result.success(null) }
             "getAudioTracks" -> result.success(getAudioTracks())
             "selectAudioTrack" -> { selectAudioTrack(call.argument<String>("id")!!); result.success(null) }
+            "setSurfaceBounds" -> { setSurfaceBounds(call); result.success(null) }
             "release" -> { release(); result.success(null) }
             else -> result.notImplemented()
         }
@@ -283,6 +284,29 @@ class NativeVideoEngine(
             m["audioBitrate"] = fmtBitrate(af)
         }
         return m
+    }
+
+    /** 设置 SurfaceView 渲染矩形(小窗续播);fullscreen=true 时铺满。 */
+    private fun setSurfaceBounds(call: io.flutter.plugin.common.MethodCall) {
+        main.post {
+            val frame = aspectFrame ?: return@post
+            if (call.argument<Boolean>("fullscreen") == true) {
+                frame.layoutParams = FrameLayout.LayoutParams(
+                    FrameLayout.LayoutParams.MATCH_PARENT,
+                    FrameLayout.LayoutParams.MATCH_PARENT,
+                    android.view.Gravity.CENTER)
+            } else {
+                val x = call.argument<Int>("x") ?: 0
+                val y = call.argument<Int>("y") ?: 0
+                val w = call.argument<Int>("w") ?: 0
+                val h = call.argument<Int>("h") ?: 0
+                val lp = FrameLayout.LayoutParams(w, h)
+                lp.leftMargin = x
+                lp.topMargin = y
+                frame.layoutParams = lp
+            }
+            frame.requestLayout()
+        }
     }
 
     private fun getAudioTracks(): List<Map<String, Any?>> {
