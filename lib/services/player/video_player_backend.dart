@@ -1,3 +1,4 @@
+import 'dart:io';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:video_player/video_player.dart';
@@ -16,9 +17,14 @@ class VideoPlayerBackend implements XPlayerBackend {
   @override
   Future<void> initialize(String url) async {
     await _controller?.dispose();
+    // Android:强制 textureView。原因有二:① 清晰度走原生引擎(NativePlayerBackend),
+    // video_player 仅作降级,纹理最稳;② 全局透明(原生 hole-punch 所需)下,
+    // platformView(Hybrid Composition)会与透明 FlutterView 冲突卡死。
+    // 其它平台(iOS/macOS,avfoundation 支持 platformView)保留 useSurfaceView 选项。
+    final usePlatformView = !Platform.isAndroid && useSurfaceView.value;
     final c = VideoPlayerController.networkUrl(
       Uri.parse(url),
-      viewType: useSurfaceView.value
+      viewType: usePlatformView
           ? VideoViewType.platformView
           : VideoViewType.textureView,
       videoPlayerOptions: VideoPlayerOptions(mixWithOthers: true),

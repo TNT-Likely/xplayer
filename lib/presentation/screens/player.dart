@@ -812,13 +812,16 @@ class _PlayerScreenState extends State<PlayerScreen>
                     style: const TextStyle(
                         color: Colors.white38, fontSize: 10)),
                 const SizedBox(height: 8),
-                ElevatedButton.icon(
-                  onPressed: () => setUseSurfaceView(!surface),
-                  icon: const Icon(Icons.hd, size: 18),
-                  label: Text(surface
-                      ? '${l.infoSwitchRender} → Texture'
-                      : '${l.infoSwitchRender} → SurfaceView'),
-                ),
+                // 渲染面切换仅对非 Android 的 video_player platformView 有意义;
+                // Android 走原生引擎,这里不显示(避免无效操作)。
+                if (!Platform.isAndroid)
+                  ElevatedButton.icon(
+                    onPressed: () => setUseSurfaceView(!surface),
+                    icon: const Icon(Icons.hd, size: 18),
+                    label: Text(surface
+                        ? '${l.infoSwitchRender} → Texture'
+                        : '${l.infoSwitchRender} → SurfaceView'),
+                  ),
               ],
             ),
           ),
