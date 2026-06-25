@@ -99,7 +99,7 @@ SPEC CHECKSUMS:
   bonsoir_darwin: e3b8526c42ca46a885142df84229131dfabea842
   device_info_plus: 1b14eed9bf95428983aed283a8d51cce3d8c4215
   file_picker: e716a70a9fe5fd9e09ebc922d7541464289443af
-  FlutterMacOS: 8f6f14fa908a6fb3fba0cd85dbd81ec4b251fb24
+  FlutterMacOS: d0db08ddef1a9af05a5ec4b724367152bb0500b1
   package_info_plus: 12f1c5c2cfe8727ca46cbd0b26677728972d9a5b
   path_provider_foundation: 2b6b4c569c0fb62ec74538f866245ac84301af46
   shared_preferences_foundation: fcdcbc04712aee1108ac7fda236f363274528f78
@@ -107,7 +107,7 @@ SPEC CHECKSUMS:
   sqlite3: a51c07cf16e023d6c48abd5e5791a61a47354921
   sqlite3_flutter_libs: f9114e4bbe1f2e03dd543373c53d23245982ca13
   url_launcher_macos: c82c93949963e55b228a30115bd219499a6fe404
-  video_player_avfoundation: 7c6c11d8470e1675df7397027218274b6d2360b3
+  video_player_avfoundation: e54d03b3b19f64f2c557354f72ce538387541ba6
   wakelock_plus: 4783562c9a43d209c458cb9b30692134af456269
 
 PODFILE CHECKSUM: aa790ec80df8f5bd50cbf3e41a17124beba890df
