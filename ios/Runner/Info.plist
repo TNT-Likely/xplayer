@@ -34,6 +34,7 @@
 	<key>NSBonjourServices</key>
 	<array>
 		<string>_xplayer._tcp</string>
+		<string>_xplayersync._tcp</string>
 	</array>
 	<key>NSLocalNetworkUsageDescription</key>
 	<string>用于在同一网络内发现和连接 TV 设备以进行远程输入</string>
