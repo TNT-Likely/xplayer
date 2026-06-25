@@ -62,6 +62,8 @@ class _PlayerScreenState extends State<PlayerScreen>
   bool _isHandlingError = false;
   bool _forcedFallback = false; // 原生引擎初始化失败后强制降级 video_player(切换设置时复位)
   bool _handedOff = false; // 已把 backend 交接给小窗(dispose 时不销毁)
+  bool _inPip = false; // 当前处于系统画中画(Android)
+  static const _pipChannel = MethodChannel('native_pip');
 
   PlayState _playState = PlayState.idle;
 
@@ -126,6 +128,19 @@ class _PlayerScreenState extends State<PlayerScreen>
     }
     _focusNode.requestFocus();
 
+    // Android 系统画中画:监听原生 PiP 模式变化 → 进 PiP 时收起操作栏。
+    if (Platform.isAndroid) {
+      _pipChannel.setMethodCallHandler((call) async {
+        if (call.method == 'pipModeChanged') {
+          _inPip = call.arguments == true;
+          if (_inPip && _controlsVisible && mounted) {
+            Navigator.of(context).pop(); // 收起 showGeneralDialog 的操作栏
+          }
+        }
+        return null;
+      });
+    }
+
     // 手机随设备方向自动旋转(交还系统,跟随传感器),无需手动按钮。
     SystemChrome.setPreferredOrientations(const []);
 
@@ -167,6 +182,10 @@ class _PlayerScreenState extends State<PlayerScreen>
     useNativeEngine.removeListener(_onRenderModeChanged);
     WidgetsBinding.instance.removeObserver(this);
     _focusNode.dispose();
+    if (Platform.isAndroid) {
+      _setPipEligible(false); // 离开播放页 → 不再允许进 PiP
+      _pipChannel.setMethodCallHandler(null);
+    }
     if (!_handedOff) {
       // 未交接给小窗 → 正常销毁;已交接则由 MiniPlayerController 持有,不销毁
       _backend.pause();
@@ -268,6 +287,7 @@ class _PlayerScreenState extends State<PlayerScreen>
             ? DateTime.now().difference(_loadStartedAt!).inMilliseconds
             : null;
       });
+      _setPipEligible(true); // 播放中 → 允许回桌面进 PiP(Android+开关)
       // 记录最近播放(失败不记录)
       if (mounted) {
         Provider.of<MediaProvider>(context, listen: false).addRecent(_channel);
@@ -406,6 +426,7 @@ class _PlayerScreenState extends State<PlayerScreen>
   }
 
   void _toggleControlsVisibility() {
+    if (_inPip) return; // PiP 小窗里不弹操作栏
     if (_controlsVisible) {
       cancelAutoCloseTimer();
       Navigator.of(context).pop();
@@ -1019,10 +1040,16 @@ class _PlayerScreenState extends State<PlayerScreen>
     );
   }
 
-  @override
   void _setSurfaceFullscreen() {
     if (!mounted) return;
     _backend.setSurfaceBounds(null, MediaQuery.of(context).devicePixelRatio);
+  }
+
+  /// 声明"当前可进系统画中画":仅 Android 且开关打开、且正在播放时为 true。
+  /// 实际进入 PiP 由 MainActivity.onUserLeaveHint(回桌面)按此触发。
+  void _setPipEligible(bool eligible) {
+    if (!Platform.isAndroid) return;
+    _pipChannel.invokeMethod('setEligible', eligible && pipOnLeave.value);
   }
 
   void _setSurfaceMini() {
@@ -1052,8 +1079,8 @@ class _PlayerScreenState extends State<PlayerScreen>
     Navigator.of(context).pop();
   }
 
+  @override
   Widget build(BuildContext context) {
-    final theme = Theme.of(context);
     return PopScope(
       canPop: false,
       onPopInvokedWithResult: (didPop, _) {
