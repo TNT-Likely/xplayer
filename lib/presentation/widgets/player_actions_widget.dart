@@ -360,15 +360,18 @@ class _PlayerActionsWidgetState extends State<PlayerActionsWidget>
                   Row(mainAxisSize: MainAxisSize.min, children: actionButtons),
                 ],
               )
-            // 窄屏:信息在上、按钮在下并左对齐
+            // 窄屏:信息在上、按钮在下;按钮可能多于一屏宽 → 横向可滚动,避免溢出
             : Column(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
                   infoRow,
                   const SizedBox(height: 8),
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.start,
-                    children: actionButtons,
+                  SingleChildScrollView(
+                    scrollDirection: Axis.horizontal,
+                    child: Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: actionButtons,
+                    ),
                   ),
                   const SizedBox(height: 8),
                 ],

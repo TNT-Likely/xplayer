@@ -146,6 +146,7 @@
   "recentlyPlayed": "Recently Played",
   "showRecentOnHome": "Show Recently Played on Home",
   "showFavoritesOnHome": "Show Favorites on Home",
+  "playlistNameExists": "A playlist with this name already exists",
   "miniPlayerOnExit": "Mini player on home",
   "miniPlayerOnExitHint": "Keep playing in a corner window when returning home",
   "pipOnLeave": "Picture-in-picture",
