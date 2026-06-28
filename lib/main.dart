@@ -16,6 +16,7 @@ import 'package:xplayer/providers/remote_provider.dart';
 import 'package:xplayer/presentation/screens/remote_input.dart';
 import 'package:xplayer/shared/navigation.dart';
 import 'package:xplayer/providers/mini_player_controller.dart';
+import 'package:xplayer/providers/cast_provider.dart';
 import 'package:xplayer/presentation/widgets/mini_player_overlay.dart';
 import 'package:xplayer/shared/theme/app_theme.dart';
 import 'package:xplayer/services/log_store.dart';
@@ -85,6 +86,7 @@ void main() {
       ChangeNotifierProvider(create: (_) => GlobalProvider()..loadDeviceInfo()),
       ChangeNotifierProvider(create: (_) => RemoteProvider()),
       ChangeNotifierProvider(create: (_) => MiniPlayerController()),
+      ChangeNotifierProvider(create: (_) => CastProvider()),
     ], child: const MyApp()));
     _winLog('runApp returned');
   }, (Object error, StackTrace stack) {
