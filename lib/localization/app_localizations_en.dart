@@ -477,6 +477,9 @@ class AppLocalizationsEn extends AppLocalizations {
   String get showFavoritesOnHome => 'Show Favorites on Home';
 
   @override
+  String get playlistNameExists => 'A playlist with this name already exists';
+
+  @override
   String get miniPlayerOnExit => 'Mini player on home';
 
   @override

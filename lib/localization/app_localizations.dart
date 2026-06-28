@@ -974,6 +974,12 @@ abstract class AppLocalizations {
   /// **'Show Favorites on Home'**
   String get showFavoritesOnHome;
 
+  /// No description provided for @playlistNameExists.
+  ///
+  /// In en, this message translates to:
+  /// **'A playlist with this name already exists'**
+  String get playlistNameExists;
+
   /// No description provided for @miniPlayerOnExit.
   ///
   /// In en, this message translates to:

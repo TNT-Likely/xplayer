@@ -146,6 +146,7 @@
     "recentlyPlayed": "最近播放",
     "showRecentOnHome": "首页最近播放",
     "showFavoritesOnHome": "首页收藏",
+    "playlistNameExists": "已存在同名播放列表",
     "miniPlayerOnExit": "返回小窗续播",
     "miniPlayerOnExitHint": "从播放页返回首页时,在右下角小窗继续播放",
     "pipOnLeave": "回桌面画中画",
