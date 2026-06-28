@@ -848,8 +848,9 @@ class _HomeScreenState extends State<HomeScreen> {
                     );
                   },
                 ),
-                // iOS/iPadOS:App Store 不允许应用自更新,隐藏检查更新入口
-                if (!Platform.isIOS)
+                // 应用商店包(App Store / Mac App Store / Play)不允许应用自更新,
+                // 隐藏「检查更新」入口(Guideline 2.4.5)。侧载包(GitHub)保留。
+                if (!kStoreBuild)
                   XBaseButton(
                     child: animeContainer(
                       ListTile(
