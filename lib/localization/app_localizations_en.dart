@@ -480,6 +480,43 @@ class AppLocalizationsEn extends AppLocalizations {
   String get playlistNameExists => 'A playlist with this name already exists';
 
   @override
+  String get epgNext => 'Next';
+
+  @override
+  String epgRemaining(Object min) {
+    return '$min min left';
+  }
+
+  @override
+  String get castToTv => 'Cast to TV';
+
+  @override
+  String castingTo(Object name) {
+    return 'Casting to $name';
+  }
+
+  @override
+  String get stopCast => 'Stop casting';
+
+  @override
+  String get castSearching => 'Searching for devices…';
+
+  @override
+  String get castNoDevice => 'No devices found';
+
+  @override
+  String get castNoDeviceHint =>
+      'Make sure the TV and phone are on the same Wi-Fi and DLNA/casting is enabled on the TV';
+
+  @override
+  String castStarted(Object name) {
+    return 'Casting to $name';
+  }
+
+  @override
+  String get castFailed => 'Cast failed — this device may not support this source';
+
+  @override
   String get miniPlayerOnExit => 'Mini player on home';
 
   @override

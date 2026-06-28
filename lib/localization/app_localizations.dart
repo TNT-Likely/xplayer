@@ -980,6 +980,36 @@ abstract class AppLocalizations {
   /// **'A playlist with this name already exists'**
   String get playlistNameExists;
 
+  /// EPG 「下一个」前缀
+  String get epgNext;
+
+  /// EPG 剩余时间(分钟)
+  String epgRemaining(Object min);
+
+  /// 投屏面板标题
+  String get castToTv;
+
+  /// 正在投到某设备
+  String castingTo(Object name);
+
+  /// 停止投屏
+  String get stopCast;
+
+  /// 搜索设备中
+  String get castSearching;
+
+  /// 未发现可投设备
+  String get castNoDevice;
+
+  /// 未发现设备提示
+  String get castNoDeviceHint;
+
+  /// 已投到某设备
+  String castStarted(Object name);
+
+  /// 投屏失败
+  String get castFailed;
+
   /// No description provided for @miniPlayerOnExit.
   ///
   /// In en, this message translates to:

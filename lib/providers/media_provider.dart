@@ -509,7 +509,15 @@ class MediaProvider with ChangeNotifier {
   }
 
   Future<void> refreshProgrammes() async {
-    _programmes = await _playlistRepository.fetchAllPlaylistsProgrammes();
+    final all = await _playlistRepository.fetchAllPlaylistsProgrammes();
+    // 去重:多个播放列表共用同一 EPG、或 EPG 内重复条目,会让同一节目出现多次
+    // (频道列表弹窗/节目单里看到内容重复两遍)。按 频道+起止+标题 去重。
+    final seen = <String>{};
+    _programmes = all.where((p) {
+      final key = '${p.channel}|${p.start.millisecondsSinceEpoch}'
+          '|${p.stop.millisecondsSinceEpoch}|${p.title}';
+      return seen.add(key);
+    }).toList();
     notifyListeners();
   }
 

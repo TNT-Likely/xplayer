@@ -473,6 +473,42 @@ class AppLocalizationsZh extends AppLocalizations {
   String get playlistNameExists => '已存在同名播放列表';
 
   @override
+  String get epgNext => '下一个';
+
+  @override
+  String epgRemaining(Object min) {
+    return '剩 $min 分钟';
+  }
+
+  @override
+  String get castToTv => '投屏到电视';
+
+  @override
+  String castingTo(Object name) {
+    return '正在投到:$name';
+  }
+
+  @override
+  String get stopCast => '停止投屏';
+
+  @override
+  String get castSearching => '正在搜索设备…';
+
+  @override
+  String get castNoDevice => '未发现可投设备';
+
+  @override
+  String get castNoDeviceHint => '请确认电视与手机在同一 Wi-Fi,且电视已开启投屏/DLNA';
+
+  @override
+  String castStarted(Object name) {
+    return '已投到 $name';
+  }
+
+  @override
+  String get castFailed => '投屏失败,该设备可能不支持此源';
+
+  @override
   String get miniPlayerOnExit => '返回小窗续播';
 
   @override
