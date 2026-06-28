@@ -43,6 +43,7 @@ class PlayerActionsWidget extends StatefulWidget {
   /// 是否有多音轨(决定音轨按钮是否显示)
   final bool hasAudioTracks;
   final VoidCallback? showAudioTrackSelect;
+  final VoidCallback? onCast;
 
   const PlayerActionsWidget(
       {Key? key,
@@ -61,7 +62,8 @@ class PlayerActionsWidget extends StatefulWidget {
       this.showQualitySelect,
       this.showSleepTimer,
       this.hasAudioTracks = false,
-      this.showAudioTrackSelect})
+      this.showAudioTrackSelect,
+      this.onCast})
       : super(key: key);
 
   @override
@@ -306,6 +308,14 @@ class _PlayerActionsWidgetState extends State<PlayerActionsWidget>
               widget.showAudioTrackSelect!();
             }
           },
+        ),
+        const SizedBox(width: 8),
+      ],
+      // 投屏(DLNA):始终显示
+      if (widget.onCast != null) ...[
+        XIconButton(
+          icon: Icons.live_tv,
+          onPressed: () => widget.onCast!(),
         ),
         const SizedBox(width: 8),
       ],

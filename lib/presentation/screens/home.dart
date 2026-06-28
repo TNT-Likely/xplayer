@@ -34,6 +34,7 @@ import 'package:xplayer/providers/media_provider.dart';
 import 'package:provider/provider.dart';
 import 'package:xplayer/localization/app_localizations.dart';
 import 'package:url_launcher/url_launcher.dart';
+import 'package:qr_flutter/qr_flutter.dart';
 import 'package:xplayer/providers/remote_provider.dart';
 import 'package:xplayer/providers/global_provider.dart';
 import 'package:xplayer/providers/mini_player_controller.dart';
@@ -926,23 +927,46 @@ class _HomeScreenState extends State<HomeScreen> {
                       showDialog(
                         context: context,
                         builder: (_) => AlertDialog(
-                          title: const Text('Github'),
+                          backgroundColor: AppTokens.surfacePanel,
+                          title: const Text('Github',
+                              style: TextStyle(color: AppTokens.textPrimary)),
                           content: Column(
                             mainAxisSize: MainAxisSize.min,
-                            crossAxisAlignment: CrossAxisAlignment.start,
+                            crossAxisAlignment: CrossAxisAlignment.center,
                             children: [
-                              Text(localizations.githubTvHint),
-                              const SizedBox(height: 8),
+                              Text(
+                                localizations.githubTvHint,
+                                style: const TextStyle(
+                                    color: AppTokens.textSecondary),
+                              ),
+                              const SizedBox(height: 16),
+                              // 二维码:手机扫码直达;白底保证暗色弹窗下可识别
+                              Container(
+                                padding: const EdgeInsets.all(12),
+                                decoration: BoxDecoration(
+                                  color: Colors.white,
+                                  borderRadius: BorderRadius.circular(8),
+                                ),
+                                child: QrImageView(
+                                  data: url,
+                                  version: QrVersions.auto,
+                                  size: 200,
+                                  backgroundColor: Colors.white,
+                                ),
+                              ),
+                              const SizedBox(height: 12),
                               const SelectableText(
                                 url,
-                                style: TextStyle(fontWeight: FontWeight.w600),
+                                style: TextStyle(
+                                    color: AppTokens.textPrimary,
+                                    fontWeight: FontWeight.w600),
                               ),
                             ],
                           ),
                           actions: [
-                            TextButton(
+                            XTextButton(
+                              text: localizations.cancel,
                               onPressed: () => Navigator.of(context).pop(),
-                              child: Text(localizations.cancel),
                             ),
                           ],
                         ),

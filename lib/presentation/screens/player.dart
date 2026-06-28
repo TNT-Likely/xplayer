@@ -17,6 +17,7 @@ import 'package:xplayer/utils/logger_util.dart';
 import 'package:xplayer/utils/hls_probe.dart';
 import 'package:xplayer/services/sleep_timer.dart';
 import 'package:xplayer/providers/mini_player_controller.dart';
+import 'package:xplayer/presentation/widgets/cast_device_sheet.dart';
 import 'package:xplayer/utils/playlist_util.dart';
 import 'package:xplayer/utils/toast.dart';
 import 'package:xplayer/services/log_store.dart';
@@ -586,6 +587,8 @@ class _PlayerScreenState extends State<PlayerScreen>
                 Navigator.of(context).pop(); // 关闭操作栏
                 _showStreamInfoSheet(context);
               },
+              // 投屏(DLNA):仅非 TV 显示(TV 自己就是大屏)
+              onCast: _isTv ? null : () => _showCastSheet(context),
             ),
           ),
         );
@@ -724,6 +727,17 @@ class _PlayerScreenState extends State<PlayerScreen>
         _initializePlayer();
         if (mounted) Navigator.of(context).pop();
       },
+    );
+  }
+
+  /// 投屏面板:把当前播放地址投到局域网 DLNA 设备;投出成功暂停本地播放。
+  void _showCastSheet(BuildContext context) {
+    if (_controlsVisible) Navigator.of(context).pop(); // 先关操作栏
+    CastDeviceSheet.show(
+      context,
+      url: _playUrl,
+      title: _channel.name,
+      onCasted: () => _backend.pause(),
     );
   }
 
