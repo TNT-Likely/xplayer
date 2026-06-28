@@ -36,6 +36,8 @@ import 'package:xplayer/localization/app_localizations.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'package:xplayer/providers/remote_provider.dart';
 import 'package:xplayer/providers/global_provider.dart';
+import 'package:xplayer/providers/mini_player_controller.dart';
+import 'package:xplayer/presentation/screens/player.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -278,6 +280,22 @@ class _HomeScreenState extends State<HomeScreen> {
         if (scaffold != null && scaffold.isDrawerOpen) {
           scaffold.closeDrawer();
           return;
+        }
+        // TV:遥控器够不到悬浮小窗(浮层在路由焦点域之外),用返回键回到在播频道。
+        // 手机靠点击小窗,这里不拦截(仍走退出确认)。
+        final isTv = Provider.of<GlobalProvider>(context, listen: false).isTV;
+        final mini = Provider.of<MiniPlayerController>(context, listen: false);
+        if (isTv && mini.hasMini) {
+          final ch = mini.channel;
+          final favs = mini.favorites;
+          if (ch != null) {
+            mini.take(); // 切回全屏(浮层隐藏),复用在播 backend
+            Navigator.of(context).push(MaterialPageRoute(
+              builder: (_) =>
+                  PlayerScreen(channel: ch, favoriteChannels: favs),
+            ));
+            return;
+          }
         }
         if (await _confirmExit(context)) {
           await SystemNavigator.pop();
@@ -830,8 +848,9 @@ class _HomeScreenState extends State<HomeScreen> {
                     );
                   },
                 ),
-                // iOS/iPadOS:App Store 不允许应用自更新,隐藏检查更新入口
-                if (!Platform.isIOS)
+                // 应用商店包(App Store / Mac App Store / Play)不允许应用自更新,
+                // 隐藏「检查更新」入口(Guideline 2.4.5)。侧载包(GitHub)保留。
+                if (!kStoreBuild)
                   XBaseButton(
                     child: animeContainer(
                       ListTile(

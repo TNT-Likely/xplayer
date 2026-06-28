@@ -139,6 +139,17 @@ class _PlaylistDialogState extends State<PlaylistDialog> {
       return;
     }
 
+    // 重名校验:不允许与已有播放列表同名(编辑时排除自己)
+    final existing = await _repository.getAllPlaylists();
+    final dup = existing.any((p) =>
+        p.name.trim() == newPlaylist.name &&
+        p.id != widget.initialPlaylist?.id);
+    if (dup) {
+      if (!mounted) return;
+      showToast(AppLocalizations.of(context)!.playlistNameExists);
+      return;
+    }
+
     try {
       Playlist playlist;
       if (widget.isNew) {

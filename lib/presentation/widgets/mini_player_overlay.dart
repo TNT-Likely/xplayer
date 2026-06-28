@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:xplayer/providers/mini_player_controller.dart';
+import 'package:xplayer/providers/global_provider.dart';
 import 'package:xplayer/presentation/screens/player.dart';
 import 'package:xplayer/shared/navigation.dart';
 
@@ -15,6 +16,7 @@ class MiniPlayerOverlay extends StatelessWidget {
         if (!c.hasMini) return const SizedBox.shrink();
         final media = MediaQuery.of(context);
         final card = miniCardRect(media.size, media.padding);
+        final isTv = Provider.of<GlobalProvider>(context, listen: false).isTV;
         void expand() {
           final ch = c.channel;
           if (ch == null) return;
@@ -49,21 +51,31 @@ class MiniPlayerOverlay extends StatelessWidget {
                         child: GestureDetector(
                           behavior: HitTestBehavior.opaque,
                           onTap: expand,
-                          child: const Align(
-                            alignment: Alignment.centerLeft,
-                            child: Icon(Icons.open_in_full,
-                                color: Colors.white70, size: 14),
+                          child: isTv
+                              // TV 遥控器够不到浮层,提示用返回键回到在播频道
+                              ? const Align(
+                                  alignment: Alignment.centerLeft,
+                                  child: Text('按 返回键 继续观看',
+                                      style: TextStyle(
+                                          color: Colors.white70, fontSize: 11)),
+                                )
+                              : const Align(
+                                  alignment: Alignment.centerLeft,
+                                  child: Icon(Icons.open_in_full,
+                                      color: Colors.white70, size: 14),
+                                ),
+                        ),
+                      ),
+                      // TV 上 X 同样够不到(用返回键展开、换台自动关),手机保留点击关闭
+                      if (!isTv)
+                        InkWell(
+                          onTap: () => c.close(),
+                          child: const Padding(
+                            padding: EdgeInsets.symmetric(horizontal: 6),
+                            child: Icon(Icons.close,
+                                color: Colors.white, size: 18),
                           ),
                         ),
-                      ),
-                      InkWell(
-                        onTap: () => c.close(),
-                        child: const Padding(
-                          padding: EdgeInsets.symmetric(horizontal: 6),
-                          child: Icon(Icons.close,
-                              color: Colors.white, size: 18),
-                        ),
-                      ),
                     ],
                   ),
                 ),

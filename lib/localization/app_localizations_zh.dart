@@ -470,6 +470,9 @@ class AppLocalizationsZh extends AppLocalizations {
   String get showFavoritesOnHome => '首页收藏';
 
   @override
+  String get playlistNameExists => '已存在同名播放列表';
+
+  @override
   String get miniPlayerOnExit => '返回小窗续播';
 
   @override
