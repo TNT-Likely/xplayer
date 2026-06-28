@@ -314,7 +314,7 @@ class _PlayerActionsWidgetState extends State<PlayerActionsWidget>
       // 投屏(DLNA):始终显示
       if (widget.onCast != null) ...[
         XIconButton(
-          icon: Icons.cast,
+          icon: Icons.live_tv,
           onPressed: () => widget.onCast!(),
         ),
         const SizedBox(width: 8),

@@ -60,7 +60,7 @@ class _CastDeviceSheetState extends State<CastDeviceSheet> {
               children: [
                 Row(
                   children: [
-                    const Icon(Icons.cast, color: Colors.white),
+                    const Icon(Icons.live_tv, color: Colors.white),
                     const SizedBox(width: 8),
                     const Expanded(
                       child: Text('投屏到电视',
