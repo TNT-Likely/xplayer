@@ -15,6 +15,7 @@ import 'package:xplayer/providers/media_provider.dart';
 import 'package:xplayer/services/player/x_player_backend.dart';
 import 'package:xplayer/utils/playlist_util.dart';
 import 'package:xplayer/utils/url_utils.dart';
+import 'package:xplayer/localization/app_localizations.dart';
 
 // 定义回调函数类型
 typedef PlayPauseCallback = void Function(bool isPlaying);
@@ -191,6 +192,21 @@ class _PlayerActionsWidgetState extends State<PlayerActionsWidget>
     // 窄屏(手机竖屏):按钮另起一行左对齐。
     final wide = MediaQuery.of(context).size.width >= 600;
 
+    // 当前节目 + 进度/剩余时间 + 下一个节目
+    final l = AppLocalizations.of(context)!;
+    final nowTs = DateTime.now();
+    final curProg = programmeInfo.$2; // 当前节目
+    final nextProg = programmeInfo.$3; // 下一个节目
+    double? curProgress;
+    String? curRemaining;
+    if (curProg != null) {
+      final totalSec = curProg.stop.difference(curProg.start).inSeconds;
+      final elapsedSec = nowTs.difference(curProg.start).inSeconds;
+      if (totalSec > 0) curProgress = (elapsedSec / totalSec).clamp(0.0, 1.0);
+      final remMin = curProg.stop.difference(nowTs).inMinutes;
+      if (remMin > 0) curRemaining = l.epgRemaining(remMin);
+    }
+
     // 频道信息:台标 + 当前/下一节目(无节目单时显示频道名)
     final infoRow = Row(
       crossAxisAlignment: CrossAxisAlignment.center,
@@ -210,12 +226,13 @@ class _PlayerActionsWidgetState extends State<PlayerActionsWidget>
             mainAxisSize: MainAxisSize.min,
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
+              // 行1:当前节目标题(无节目单回退频道名)+ 信息chip + IPv6
               Row(
                 children: [
                   Flexible(
                     child: Text(
-                      programmeInfo.$2 != null
-                          ? programmeInfo.$2!.title
+                      curProg != null
+                          ? curProg.title
                           : (widget.channel.name.isNotEmpty
                               ? widget.channel.name
                               : widget.channel.id),
@@ -235,16 +252,57 @@ class _PlayerActionsWidgetState extends State<PlayerActionsWidget>
                   ],
                 ],
               ),
-              if (programmeInfo.$3 != null)
+              // 行2:当前节目时段 + 剩余时间 + 进度条
+              if (curProg != null) ...[
+                const SizedBox(height: 2),
+                Row(
+                  children: [
+                    Text(
+                      "${formatTime(curProg.start)}-${formatTime(curProg.stop)}",
+                      style: const TextStyle(
+                          color: Colors.white70,
+                          decoration: TextDecoration.none,
+                          fontSize: 12),
+                    ),
+                    if (curRemaining != null) ...[
+                      const SizedBox(width: 8),
+                      Text(
+                        curRemaining,
+                        style: const TextStyle(
+                            color: Colors.white54,
+                            decoration: TextDecoration.none,
+                            fontSize: 12),
+                      ),
+                    ],
+                  ],
+                ),
+                if (curProgress != null) ...[
+                  const SizedBox(height: 4),
+                  ClipRRect(
+                    borderRadius: BorderRadius.circular(2),
+                    child: LinearProgressIndicator(
+                      value: curProgress,
+                      minHeight: 3,
+                      backgroundColor: Colors.white24,
+                      valueColor:
+                          const AlwaysStoppedAnimation<Color>(Colors.redAccent),
+                    ),
+                  ),
+                ],
+              ],
+              // 行3:下一个节目
+              if (nextProg != null) ...[
+                const SizedBox(height: 4),
                 Text(
-                  "${formatTime(programmeInfo.$3!.start)}-${formatTime(programmeInfo.$3!.stop)}  ${programmeInfo.$3!.title}",
+                  "${l.epgNext} ${formatTime(nextProg.start)}  ${nextProg.title}",
                   style: const TextStyle(
-                      color: Colors.white,
+                      color: Colors.white54,
                       decoration: TextDecoration.none,
                       fontSize: 12),
                   overflow: TextOverflow.ellipsis,
                   maxLines: 1,
                 ),
+              ],
             ],
           ),
         ),

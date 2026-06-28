@@ -980,6 +980,66 @@ abstract class AppLocalizations {
   /// **'A playlist with this name already exists'**
   String get playlistNameExists;
 
+  /// No description provided for @epgNext.
+  ///
+  /// In en, this message translates to:
+  /// **'Next'**
+  String get epgNext;
+
+  /// No description provided for @epgRemaining.
+  ///
+  /// In en, this message translates to:
+  /// **'{min} min left'**
+  String epgRemaining(Object min);
+
+  /// No description provided for @castToTv.
+  ///
+  /// In en, this message translates to:
+  /// **'Cast to TV'**
+  String get castToTv;
+
+  /// No description provided for @castingTo.
+  ///
+  /// In en, this message translates to:
+  /// **'Casting to {name}'**
+  String castingTo(Object name);
+
+  /// No description provided for @stopCast.
+  ///
+  /// In en, this message translates to:
+  /// **'Stop casting'**
+  String get stopCast;
+
+  /// No description provided for @castSearching.
+  ///
+  /// In en, this message translates to:
+  /// **'Searching for devices…'**
+  String get castSearching;
+
+  /// No description provided for @castNoDevice.
+  ///
+  /// In en, this message translates to:
+  /// **'No devices found'**
+  String get castNoDevice;
+
+  /// No description provided for @castNoDeviceHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Make sure the TV and phone are on the same Wi-Fi and DLNA/casting is enabled on the TV'**
+  String get castNoDeviceHint;
+
+  /// No description provided for @castStarted.
+  ///
+  /// In en, this message translates to:
+  /// **'Casting to {name}'**
+  String castStarted(Object name);
+
+  /// No description provided for @castFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'Cast failed — this device may not support this source'**
+  String get castFailed;
+
   /// No description provided for @miniPlayerOnExit.
   ///
   /// In en, this message translates to:

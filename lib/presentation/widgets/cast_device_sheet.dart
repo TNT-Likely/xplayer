@@ -3,6 +3,7 @@ import 'package:provider/provider.dart';
 
 import 'package:xplayer/providers/cast_provider.dart';
 import 'package:xplayer/shared/theme/app_tokens.dart';
+import 'package:xplayer/localization/app_localizations.dart';
 
 /// 投屏设备选择面板(DLNA)。打开即扫描;选中设备把 [url] 投出去。
 /// 已在投屏中则显示当前设备与控制(暂停/播放/停止)。
@@ -49,6 +50,7 @@ class _CastDeviceSheetState extends State<CastDeviceSheet> {
 
   @override
   Widget build(BuildContext context) {
+    final l = AppLocalizations.of(context)!;
     return Consumer<CastProvider>(
       builder: (context, cast, _) {
         return SafeArea(
@@ -62,9 +64,9 @@ class _CastDeviceSheetState extends State<CastDeviceSheet> {
                   children: [
                     const Icon(Icons.live_tv, color: Colors.white),
                     const SizedBox(width: 8),
-                    const Expanded(
-                      child: Text('投屏到电视',
-                          style: TextStyle(
+                    Expanded(
+                      child: Text(l.castToTv,
+                          style: const TextStyle(
                               color: Colors.white,
                               fontSize: 16,
                               fontWeight: FontWeight.bold)),
@@ -92,24 +94,25 @@ class _CastDeviceSheetState extends State<CastDeviceSheet> {
   }
 
   Widget _castingView(CastProvider cast) {
+    final l = AppLocalizations.of(context)!;
     final playing = cast.transport == 'PLAYING';
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text('正在投到:${cast.current?.friendlyName ?? ''}',
+        Text(l.castingTo(cast.current?.friendlyName ?? ''),
             style: const TextStyle(color: Colors.white70)),
         const SizedBox(height: 12),
         Row(
           children: [
             XActionChip(
               icon: playing ? Icons.pause : Icons.play_arrow,
-              label: playing ? '暂停' : '播放',
+              label: playing ? l.pause : l.play,
               onTap: () => playing ? cast.pause() : cast.play(),
             ),
             const SizedBox(width: 12),
             XActionChip(
               icon: Icons.stop,
-              label: '停止投屏',
+              label: l.stopCast,
               onTap: () async {
                 await cast.stopCast();
                 if (mounted) Navigator.of(context).maybePop();
@@ -122,12 +125,13 @@ class _CastDeviceSheetState extends State<CastDeviceSheet> {
   }
 
   Widget _deviceList(CastProvider cast) {
+    final l = AppLocalizations.of(context)!;
     if (cast.state == CastState.discovering && cast.devices.isEmpty) {
-      return const Padding(
-        padding: EdgeInsets.symmetric(vertical: 24),
+      return Padding(
+        padding: const EdgeInsets.symmetric(vertical: 24),
         child: Center(
-            child: Text('正在搜索设备…',
-                style: TextStyle(color: Colors.white54))),
+            child: Text(l.castSearching,
+                style: const TextStyle(color: Colors.white54))),
       );
     }
     if (cast.devices.isEmpty) {
@@ -135,18 +139,12 @@ class _CastDeviceSheetState extends State<CastDeviceSheet> {
         padding: const EdgeInsets.symmetric(vertical: 20),
         child: Column(
           children: [
-            const Text('未发现可投设备',
-                style: TextStyle(color: Colors.white70)),
+            Text(l.castNoDevice,
+                style: const TextStyle(color: Colors.white70)),
             const SizedBox(height: 4),
-            const Text('请确认电视与手机在同一 Wi-Fi,且电视已开启投屏/DLNA',
+            Text(l.castNoDeviceHint,
                 textAlign: TextAlign.center,
-                style: TextStyle(color: Colors.white38, fontSize: 12)),
-            if (cast.error != null) ...[
-              const SizedBox(height: 6),
-              Text(cast.error!,
-                  textAlign: TextAlign.center,
-                  style: const TextStyle(color: Colors.orange, fontSize: 12)),
-            ],
+                style: const TextStyle(color: Colors.white38, fontSize: 12)),
           ],
         ),
       );
@@ -171,11 +169,10 @@ class _CastDeviceSheetState extends State<CastDeviceSheet> {
               if (ok) {
                 widget.onCasted?.call();
                 ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-                    content: Text('已投到 ${d.friendlyName}')));
+                    content: Text(l.castStarted(d.friendlyName))));
               } else {
-                ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-                    content:
-                        Text(cast.error ?? '投屏失败,该设备可能不支持此源')));
+                ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(content: Text(l.castFailed)));
               }
             },
           );
