@@ -361,17 +361,18 @@ class MediaProvider with ChangeNotifier {
   }
 
   /// 启动后台静默刷新:按各自开关执行;失败不打扰(已有本地缓存兜底)。
+  /// 频道与节目单**并行**刷新——否则节目单会被("强制重下整个 m3u"的)频道刷新
+  /// 串行拖住甚至卡死,导致启动后迟迟没有节目单(用户得手动再刷一次)。
   Future<void> _refreshOnLaunchInBackground() async {
+    final tasks = <Future<void>>[];
     if (_autoRefreshChannels) {
-      try {
-        await fetchChannels(forceRefresh: true, silent: true);
-      } catch (_) {}
+      tasks.add(fetchChannels(forceRefresh: true, silent: true)
+          .catchError((_) {}));
     }
     if (_autoRefreshProgrammes) {
-      try {
-        await refreshProgrammes();
-      } catch (_) {}
+      tasks.add(refreshProgrammes().catchError((_) {}));
     }
+    await Future.wait(tasks);
   }
 
   /// 首启无源时,自动添加并选中默认预置源(运行时拉取,不打包快照)。
