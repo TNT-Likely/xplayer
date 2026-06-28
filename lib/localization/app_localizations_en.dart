@@ -514,7 +514,8 @@ class AppLocalizationsEn extends AppLocalizations {
   }
 
   @override
-  String get castFailed => 'Cast failed — this device may not support this source';
+  String get castFailed =>
+      'Cast failed — this device may not support this source';
 
   @override
   String get miniPlayerOnExit => 'Mini player on home';

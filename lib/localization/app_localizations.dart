@@ -980,34 +980,64 @@ abstract class AppLocalizations {
   /// **'A playlist with this name already exists'**
   String get playlistNameExists;
 
-  /// EPG 「下一个」前缀
+  /// No description provided for @epgNext.
+  ///
+  /// In en, this message translates to:
+  /// **'Next'**
   String get epgNext;
 
-  /// EPG 剩余时间(分钟)
+  /// No description provided for @epgRemaining.
+  ///
+  /// In en, this message translates to:
+  /// **'{min} min left'**
   String epgRemaining(Object min);
 
-  /// 投屏面板标题
+  /// No description provided for @castToTv.
+  ///
+  /// In en, this message translates to:
+  /// **'Cast to TV'**
   String get castToTv;
 
-  /// 正在投到某设备
+  /// No description provided for @castingTo.
+  ///
+  /// In en, this message translates to:
+  /// **'Casting to {name}'**
   String castingTo(Object name);
 
-  /// 停止投屏
+  /// No description provided for @stopCast.
+  ///
+  /// In en, this message translates to:
+  /// **'Stop casting'**
   String get stopCast;
 
-  /// 搜索设备中
+  /// No description provided for @castSearching.
+  ///
+  /// In en, this message translates to:
+  /// **'Searching for devices…'**
   String get castSearching;
 
-  /// 未发现可投设备
+  /// No description provided for @castNoDevice.
+  ///
+  /// In en, this message translates to:
+  /// **'No devices found'**
   String get castNoDevice;
 
-  /// 未发现设备提示
+  /// No description provided for @castNoDeviceHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Make sure the TV and phone are on the same Wi-Fi and DLNA/casting is enabled on the TV'**
   String get castNoDeviceHint;
 
-  /// 已投到某设备
+  /// No description provided for @castStarted.
+  ///
+  /// In en, this message translates to:
+  /// **'Casting to {name}'**
   String castStarted(Object name);
 
-  /// 投屏失败
+  /// No description provided for @castFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'Cast failed — this device may not support this source'**
   String get castFailed;
 
   /// No description provided for @miniPlayerOnExit.
