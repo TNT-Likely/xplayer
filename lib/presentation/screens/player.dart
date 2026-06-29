@@ -26,6 +26,7 @@ import 'package:xplayer/services/player/video_player_backend.dart';
 import 'package:xplayer/services/player/native_player_backend.dart';
 import 'package:xplayer/services/player/player_backend_selector.dart';
 import 'package:xplayer/utils/player_settings.dart';
+import 'package:wakelock_plus/wakelock_plus.dart';
 import 'package:provider/provider.dart';
 import 'dart:async';
 import 'package:xplayer/localization/app_localizations.dart';
@@ -66,6 +67,7 @@ class _PlayerScreenState extends State<PlayerScreen>
   bool _handedOff = false; // 已把 backend 交接给小窗(dispose 时不销毁)
   bool _inPip = false; // 当前处于系统画中画(Android)
   bool _isTv = false; // TV 不启用系统画中画(系统无 PiP,且用遥控器)
+  bool _wakelockOn = false; // 播放中保持屏幕常亮(防 TV 屏保/息屏)
   static const _pipChannel = MethodChannel('native_pip');
   // 信息面板:TV 遥控器上下键滚动(SingleChildScrollView 默认不响应方向键)
   final ScrollController _infoScroll = ScrollController();
@@ -129,6 +131,7 @@ class _PlayerScreenState extends State<PlayerScreen>
       _backend.notifier.addListener(_listenToVideoController);
       _backend.diagnostics?.addListener(_onBackendDiag);
       _playState = PlayState.playing;
+      _updateWakelock(true); // 从小窗取回已在播 → 直接保持常亮(监听器不会补发)
       WidgetsBinding.instance.addPostFrameCallback((_) => _setSurfaceFullscreen());
     } else {
       // 已有小窗但要播放别的频道 → 先关掉旧小窗(否则与新后端争抢同一原生引擎 → 黑屏)
@@ -193,6 +196,8 @@ class _PlayerScreenState extends State<PlayerScreen>
     _focusNode.dispose();
     _infoScroll.dispose();
     _infoFocus.dispose();
+    if (_wakelockOn) WakelockPlus.disable(); // 离开播放页 → 解除常亮
+    _wakelockOn = false;
     if (Platform.isAndroid) {
       _setPipEligible(false); // 离开播放页 → 不再允许进 PiP
       _pipChannel.setMethodCallHandler(null);
@@ -363,8 +368,17 @@ class _PlayerScreenState extends State<PlayerScreen>
     });
   }
 
+  /// 播放中保持屏幕常亮:给 Activity 窗口挂 keep-screen-on,防 TV 屏保/息屏。
+  /// 仅在状态变化时切换,避免每次 notify 都过平台通道。
+  void _updateWakelock(bool on) {
+    if (on == _wakelockOn) return;
+    _wakelockOn = on;
+    WakelockPlus.toggle(enable: on);
+  }
+
   void _listenToVideoController() {
     final value = _backend.notifier.value;
+    _updateWakelock(value.isPlaying && !value.hasError);
 
     if (value.isBuffering) {
       Logger.debug('视频正在缓冲...');
