@@ -1040,6 +1040,9 @@ abstract class AppLocalizations {
   /// **'Cast failed — this device may not support this source'**
   String get castFailed;
 
+  /// TV 小窗提示:按菜单键回到在播
+  String get tvResumeHint;
+
   /// No description provided for @miniPlayerOnExit.
   ///
   /// In en, this message translates to:

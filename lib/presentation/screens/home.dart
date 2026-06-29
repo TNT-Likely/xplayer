@@ -270,39 +270,45 @@ class _HomeScreenState extends State<HomeScreen> {
         ),
       );
 
+  /// 菜单键:若有小窗续播,回到该频道全屏(复用小窗后端,不重连)。
+  /// TV 遥控器够不到悬浮小窗(浮层在路由焦点域之外),用菜单键作为"回到在播"入口;
+  /// 返回键则回归本职(退出),不再被拦截。
+  void _resumeMini(BuildContext context) {
+    final mini = Provider.of<MiniPlayerController>(context, listen: false);
+    if (!mini.hasMini) return;
+    final ch = mini.channel;
+    final favs = mini.favorites;
+    if (ch == null) return;
+    mini.take();
+    Navigator.of(context).push(MaterialPageRoute(
+      builder: (_) => PlayerScreen(channel: ch, favoriteChannels: favs),
+    ));
+  }
+
   @override
   Widget build(BuildContext context) {
-    return PopScope(
-      canPop: false,
-      onPopInvokedWithResult: (didPop, result) async {
-        if (didPop) return;
-        // 抽屉开着先关抽屉
-        final scaffold = _scaffoldKey.currentState;
-        if (scaffold != null && scaffold.isDrawerOpen) {
-          scaffold.closeDrawer();
-          return;
-        }
-        // TV:遥控器够不到悬浮小窗(浮层在路由焦点域之外),用返回键回到在播频道。
-        // 手机靠点击小窗,这里不拦截(仍走退出确认)。
-        final isTv = Provider.of<GlobalProvider>(context, listen: false).isTV;
-        final mini = Provider.of<MiniPlayerController>(context, listen: false);
-        if (isTv && mini.hasMini) {
-          final ch = mini.channel;
-          final favs = mini.favorites;
-          if (ch != null) {
-            mini.take(); // 切回全屏(浮层隐藏),复用在播 backend
-            Navigator.of(context).push(MaterialPageRoute(
-              builder: (_) =>
-                  PlayerScreen(channel: ch, favoriteChannels: favs),
-            ));
+    return CallbackShortcuts(
+      bindings: {
+        // 菜单键 → 回到正在小窗续播的频道(不占用返回键)
+        const SingleActivator(LogicalKeyboardKey.contextMenu): () =>
+            _resumeMini(context),
+      },
+      child: PopScope(
+        canPop: false,
+        onPopInvokedWithResult: (didPop, result) async {
+          if (didPop) return;
+          // 抽屉开着先关抽屉
+          final scaffold = _scaffoldKey.currentState;
+          if (scaffold != null && scaffold.isDrawerOpen) {
+            scaffold.closeDrawer();
             return;
           }
-        }
-        if (await _confirmExit(context)) {
-          await SystemNavigator.pop();
-        }
-      },
-      child: _buildHome(context),
+          if (await _confirmExit(context)) {
+            await SystemNavigator.pop();
+          }
+        },
+        child: _buildHome(context),
+      ),
     );
   }
 

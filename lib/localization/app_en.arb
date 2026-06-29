@@ -160,6 +160,7 @@
   "castStarted": "Casting to {name}",
   "@castStarted": { "placeholders": { "name": { "type": "Object" } } },
   "castFailed": "Cast failed — this device may not support this source",
+  "tvResumeHint": "Press MENU to resume",
   "miniPlayerOnExit": "Mini player on home",
   "miniPlayerOnExitHint": "Keep playing in a corner window when returning home",
   "pipOnLeave": "Picture-in-picture",

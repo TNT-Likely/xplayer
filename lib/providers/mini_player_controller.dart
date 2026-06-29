@@ -1,6 +1,7 @@
 import 'package:flutter/foundation.dart';
 import 'package:flutter/painting.dart' show Rect, Size, EdgeInsets;
 import 'package:flutter/scheduler.dart';
+import 'package:flutter/widgets.dart' show WidgetsBinding, WidgetsBindingObserver, AppLifecycleState;
 import 'package:xplayer/data/models/channel_model.dart';
 import 'package:xplayer/services/player/x_player_backend.dart';
 
@@ -31,11 +32,31 @@ Rect miniVideoRect(Size screen, EdgeInsets padding) {
 /// 跨路由持有播放器 backend,实现返回首页后的小窗续播。
 /// 「交接」模型:PlayerScreen 全屏时驱动 backend;返回时 enterMini 把 backend 交给本控制器
 /// (不销毁);重开时 take() 取回。
-class MiniPlayerController extends ChangeNotifier {
+class MiniPlayerController extends ChangeNotifier with WidgetsBindingObserver {
+  MiniPlayerController() {
+    WidgetsBinding.instance.addObserver(this);
+  }
+
   XPlayerBackend? _backend;
   Channel? _channel;
   List<Channel> _favorites = const [];
   PlayerMode _mode = PlayerMode.none;
+
+  /// 切后台(如按 HOME 退到电视桌面)时,暂停小窗续播,避免后台还在出声。
+  /// 全屏播放页的暂停由 PlayerScreen 自己处理,这里只管小窗态。
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    if (state == AppLifecycleState.paused ||
+        state == AppLifecycleState.hidden) {
+      if (hasMini) _backend?.pause();
+    }
+  }
+
+  @override
+  void dispose() {
+    WidgetsBinding.instance.removeObserver(this);
+    super.dispose();
+  }
 
   XPlayerBackend? get backend => _backend;
   Channel? get channel => _channel;
