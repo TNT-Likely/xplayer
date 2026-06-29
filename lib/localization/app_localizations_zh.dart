@@ -509,6 +509,9 @@ class AppLocalizationsZh extends AppLocalizations {
   String get castFailed => '投屏失败,该设备可能不支持此源';
 
   @override
+  String get tvResumeHint => '按 菜单键 继续观看';
+
+  @override
   String get miniPlayerOnExit => '返回小窗续播';
 
   @override

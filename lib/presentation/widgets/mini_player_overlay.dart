@@ -4,6 +4,7 @@ import 'package:xplayer/providers/mini_player_controller.dart';
 import 'package:xplayer/providers/global_provider.dart';
 import 'package:xplayer/presentation/screens/player.dart';
 import 'package:xplayer/shared/navigation.dart';
+import 'package:xplayer/localization/app_localizations.dart';
 
 /// 全局右下角小窗。mode==mini 时显示;点击展开回全屏,X 关闭。
 class MiniPlayerOverlay extends StatelessWidget {
@@ -17,6 +18,7 @@ class MiniPlayerOverlay extends StatelessWidget {
         final media = MediaQuery.of(context);
         final card = miniCardRect(media.size, media.padding);
         final isTv = Provider.of<GlobalProvider>(context, listen: false).isTV;
+        final l = AppLocalizations.of(context)!;
         void expand() {
           final ch = c.channel;
           if (ch == null) return;
@@ -53,10 +55,10 @@ class MiniPlayerOverlay extends StatelessWidget {
                           onTap: expand,
                           child: isTv
                               // TV 遥控器够不到浮层,提示用返回键回到在播频道
-                              ? const Align(
+                              ? Align(
                                   alignment: Alignment.centerLeft,
-                                  child: Text('按 返回键 继续观看',
-                                      style: TextStyle(
+                                  child: Text(l.tvResumeHint,
+                                      style: const TextStyle(
                                           color: Colors.white70, fontSize: 11)),
                                 )
                               : const Align(

@@ -518,6 +518,9 @@ class AppLocalizationsEn extends AppLocalizations {
       'Cast failed — this device may not support this source';
 
   @override
+  String get tvResumeHint => 'Press MENU to resume';
+
+  @override
   String get miniPlayerOnExit => 'Mini player on home';
 
   @override

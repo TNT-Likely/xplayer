@@ -68,6 +68,7 @@ class _PlayerScreenState extends State<PlayerScreen>
   bool _inPip = false; // 当前处于系统画中画(Android)
   bool _isTv = false; // TV 不启用系统画中画(系统无 PiP,且用遥控器)
   bool _wakelockOn = false; // 播放中保持屏幕常亮(防 TV 屏保/息屏)
+  bool _resumeAfterBg = false; // 切后台前在播 → 回前台自动恢复
   static const _pipChannel = MethodChannel('native_pip');
   // 信息面板:TV 遥控器上下键滚动(SingleChildScrollView 默认不响应方向键)
   final ScrollController _infoScroll = ScrollController();
@@ -131,6 +132,7 @@ class _PlayerScreenState extends State<PlayerScreen>
       _backend.notifier.addListener(_listenToVideoController);
       _backend.diagnostics?.addListener(_onBackendDiag);
       _playState = PlayState.playing;
+      _backend.play(); // 取回时确保在播(小窗可能因切后台被暂停过)
       _updateWakelock(true); // 从小窗取回已在播 → 直接保持常亮(监听器不会补发)
       WidgetsBinding.instance.addPostFrameCallback((_) => _setSurfaceFullscreen());
     } else {
@@ -180,6 +182,25 @@ class _PlayerScreenState extends State<PlayerScreen>
     super.didUpdateWidget(oldWidget);
     if (widget.channel.id != oldWidget.channel.id) {
       _initializePlayer();
+    }
+  }
+
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    super.didChangeAppLifecycleState(state);
+    if (!_hasBackend || _handedOff) return;
+    if (state == AppLifecycleState.resumed) {
+      if (_resumeAfterBg) {
+        _resumeAfterBg = false;
+        _backend.play();
+      }
+    } else if (state == AppLifecycleState.paused ||
+        state == AppLifecycleState.hidden) {
+      // 切后台(如 TV 按 HOME 退桌面)→ 暂停,避免退到后台还在出声;回前台再恢复。
+      if (_backend.notifier.value.isPlaying) {
+        _resumeAfterBg = true;
+        _backend.pause();
+      }
     }
   }
 

@@ -160,6 +160,7 @@
     "castStarted": "已投到 {name}",
     "@castStarted": { "placeholders": { "name": { "type": "Object" } } },
     "castFailed": "投屏失败,该设备可能不支持此源",
+    "tvResumeHint": "按 菜单键 继续观看",
     "miniPlayerOnExit": "返回小窗续播",
     "miniPlayerOnExitHint": "从播放页返回首页时,在右下角小窗继续播放",
     "pipOnLeave": "回桌面画中画",
