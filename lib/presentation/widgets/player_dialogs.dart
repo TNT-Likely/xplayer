@@ -2,7 +2,6 @@ import 'dart:async';
 import 'dart:math';
 import 'package:flutter/material.dart';
 import 'package:xplayer/data/models/channel_model.dart';
-import 'package:xplayer/data/models/programme_model.dart';
 import 'package:xplayer/presentation/widgets/channel_selector_widget.dart';
 import 'package:xplayer/presentation/widgets/channel_source_widget.dart';
 import 'package:xplayer/presentation/widgets/quality_selector_widget.dart';
@@ -77,7 +76,7 @@ class PlayerDialogs {
             width: max(200, MediaQuery.of(context).size.width * 0.3),
             height: MediaQuery.of(context).size.height * 1.0,
             decoration: BoxDecoration(
-              color: const Color.fromRGBO(0, 0, 0, 0.3),
+              color: const Color.fromRGBO(20, 20, 20, 0.92),
               borderRadius: BorderRadius.circular(16.0),
             ),
             child: ChannelSourceWidget(
@@ -119,7 +118,7 @@ class PlayerDialogs {
             width: max(220, MediaQuery.of(context).size.width * 0.3),
             height: MediaQuery.of(context).size.height * 1.0,
             decoration: BoxDecoration(
-              color: const Color.fromRGBO(0, 0, 0, 0.3),
+              color: const Color.fromRGBO(20, 20, 20, 0.92),
               borderRadius: BorderRadius.circular(16.0),
             ),
             child: QualitySelectorWidget(
@@ -155,7 +154,7 @@ class PlayerDialogs {
           width: max(220, MediaQuery.of(context).size.width * 0.3),
           height: MediaQuery.of(context).size.height,
           decoration: BoxDecoration(
-            color: const Color.fromRGBO(0, 0, 0, 0.3),
+            color: const Color.fromRGBO(20, 20, 20, 0.92),
             borderRadius: BorderRadius.circular(16.0),
           ),
           child: child,

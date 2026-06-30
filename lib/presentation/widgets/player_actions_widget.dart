@@ -419,8 +419,8 @@ class _PlayerActionsWidgetState extends State<PlayerActionsWidget>
       child: Container(
         width: double.infinity,
         height: min(MediaQuery.of(context).size.height, 130),
-        // 通栏淡灰底:无圆角、无边框,与视频画面区分但不抢眼
-        color: const Color.fromRGBO(48, 48, 48, 0.55),
+        // 通栏底:加深、提高不透明度,叠在视频上也清晰可辨
+        color: const Color.fromRGBO(20, 20, 20, 0.92),
         padding: const EdgeInsets.symmetric(horizontal: 16.0),
         child: wide
             // 宽屏:频道信息占左侧,按钮组靠右,填满右侧空白
