@@ -683,6 +683,18 @@ class AppLocalizationsZh extends AppLocalizations {
   String get quality => '画质';
 
   @override
+  String get actionCast => '投屏';
+
+  @override
+  String get actionSleep => '睡眠';
+
+  @override
+  String get actionRotate => '旋转';
+
+  @override
+  String get actionDiag => '诊断';
+
+  @override
   String get qualityAuto => '自动';
 
   @override

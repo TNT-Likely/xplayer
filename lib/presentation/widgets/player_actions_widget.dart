@@ -1,5 +1,3 @@
-import 'dart:math';
-
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
@@ -315,6 +313,7 @@ class _PlayerActionsWidgetState extends State<PlayerActionsWidget>
       if (hasError) ...[
         XIconButton(
           icon: Icons.refresh,
+          label: l.retry,
           autofocus: true, // 出错时操作栏打开默认聚焦"重试"
           onPressed: () {
             if (widget.onRetryInit != null) {
@@ -328,6 +327,7 @@ class _PlayerActionsWidgetState extends State<PlayerActionsWidget>
         onPressed: _handlePlayPause,
         autofocus: !hasError, // 正常时操作栏打开默认聚焦"播放/暂停"
         icon: _isPlaying ? Icons.pause : Icons.play_arrow,
+        label: _isPlaying ? l.pause : l.play,
       ),
       const SizedBox(width: 8),
       // 收藏:常用,排前
@@ -338,10 +338,12 @@ class _PlayerActionsWidgetState extends State<PlayerActionsWidget>
         },
         iconColor: _isFavorite ? Colors.red : Colors.white,
         icon: _isFavorite ? Icons.favorite : Icons.favorite_outline,
+        label: _isFavorite ? l.favorited : l.favorite,
       ),
       const SizedBox(width: 8),
       XIconButton(
         icon: Icons.list,
+        label: l.channelList,
         onPressed: () {
           if (widget.showChannelSelect != null) {
             widget.showChannelSelect!();
@@ -351,6 +353,7 @@ class _PlayerActionsWidgetState extends State<PlayerActionsWidget>
       const SizedBox(width: 8),
       XIconButton(
         icon: Icons.swap_horiz,
+        label: l.sourceSwitch,
         onPressed: () {
           if (widget.showSourceSwitch != null) {
             widget.showSourceSwitch!();
@@ -362,6 +365,7 @@ class _PlayerActionsWidgetState extends State<PlayerActionsWidget>
       if (widget.hasQualityOptions) ...[
         XIconButton(
           icon: Icons.high_quality,
+          label: l.quality,
           onPressed: () {
             if (widget.showQualitySelect != null) {
               widget.showQualitySelect!();
@@ -374,6 +378,7 @@ class _PlayerActionsWidgetState extends State<PlayerActionsWidget>
       if (widget.hasAudioTracks) ...[
         XIconButton(
           icon: Icons.audiotrack,
+          label: l.audioTrack,
           onPressed: () {
             if (widget.showAudioTrackSelect != null) {
               widget.showAudioTrackSelect!();
@@ -386,6 +391,7 @@ class _PlayerActionsWidgetState extends State<PlayerActionsWidget>
       if (widget.onCast != null) ...[
         XIconButton(
           icon: Icons.live_tv,
+          label: l.actionCast,
           onPressed: () => widget.onCast!(),
         ),
         const SizedBox(width: 8),
@@ -393,6 +399,7 @@ class _PlayerActionsWidgetState extends State<PlayerActionsWidget>
       // 睡眠定时:始终显示
       XIconButton(
         icon: Icons.bedtime,
+        label: l.actionSleep,
         onPressed: () {
           if (widget.showSleepTimer != null) widget.showSleepTimer!();
         },
@@ -400,6 +407,7 @@ class _PlayerActionsWidgetState extends State<PlayerActionsWidget>
       const SizedBox(width: 8),
       XIconButton(
         icon: Icons.info_outline,
+        label: l.actionDiag,
         onPressed: () {
           if (widget.onToggleDiag != null) {
             widget.onToggleDiag!();
@@ -410,6 +418,7 @@ class _PlayerActionsWidgetState extends State<PlayerActionsWidget>
       if (isMobile)
         XIconButton(
           icon: _orientIcon,
+          label: l.actionRotate,
           onPressed: _cycleOrientation,
         ),
     ];
@@ -418,10 +427,14 @@ class _PlayerActionsWidgetState extends State<PlayerActionsWidget>
       alignment: Alignment.bottomCenter,
       child: Container(
         width: double.infinity,
-        height: min(MediaQuery.of(context).size.height, 130),
+        // 高度自适应内容(图标下加了文字标签后更高),并限制不超过屏幕
+        constraints: BoxConstraints(
+          minHeight: 96,
+          maxHeight: MediaQuery.of(context).size.height,
+        ),
         // 通栏底:中性灰、较高不透明度,叠在视频上清晰但不过暗
         color: const Color.fromRGBO(48, 48, 48, 0.86),
-        padding: const EdgeInsets.symmetric(horizontal: 16.0),
+        padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
         child: wide
             // 宽屏:频道信息占左侧,按钮组靠右,填满右侧空白
             ? Row(

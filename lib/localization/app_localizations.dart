@@ -1040,7 +1040,10 @@ abstract class AppLocalizations {
   /// **'Cast failed — this device may not support this source'**
   String get castFailed;
 
-  /// TV 小窗提示:按菜单键回到在播
+  /// No description provided for @tvResumeHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Press MENU to resume'**
   String get tvResumeHint;
 
   /// No description provided for @miniPlayerOnExit.
@@ -1372,6 +1375,30 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Quality'**
   String get quality;
+
+  /// No description provided for @actionCast.
+  ///
+  /// In en, this message translates to:
+  /// **'Cast'**
+  String get actionCast;
+
+  /// No description provided for @actionSleep.
+  ///
+  /// In en, this message translates to:
+  /// **'Sleep'**
+  String get actionSleep;
+
+  /// No description provided for @actionRotate.
+  ///
+  /// In en, this message translates to:
+  /// **'Rotate'**
+  String get actionRotate;
+
+  /// No description provided for @actionDiag.
+  ///
+  /// In en, this message translates to:
+  /// **'Diagnostics'**
+  String get actionDiag;
 
   /// No description provided for @qualityAuto.
   ///

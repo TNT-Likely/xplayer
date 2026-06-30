@@ -696,6 +696,18 @@ class AppLocalizationsEn extends AppLocalizations {
   String get quality => 'Quality';
 
   @override
+  String get actionCast => 'Cast';
+
+  @override
+  String get actionSleep => 'Sleep';
+
+  @override
+  String get actionRotate => 'Rotate';
+
+  @override
+  String get actionDiag => 'Diagnostics';
+
+  @override
   String get qualityAuto => 'Auto';
 
   @override
