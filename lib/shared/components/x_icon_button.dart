@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:xplayer/shared/components/x_base_button.dart';
+import 'package:xplayer/shared/theme/app_tokens.dart';
 
 enum XIconButtonType { defaultType, primary, danger }
 
@@ -44,9 +45,7 @@ class XIconButton extends StatelessWidget {
         return isFocus ? Colors.red.withOpacity(0.75) : Colors.red;
       case XIconButtonType.defaultType:
       default:
-        return isFocus
-            ? Colors.white.withOpacity(0.25)
-            : Colors.white.withOpacity(0.15);
+        return isFocus ? AppTokens.focusFillDefault : AppTokens.fillDefault;
     }
   }
 
@@ -77,6 +76,10 @@ class XIconButton extends StatelessWidget {
           decoration: BoxDecoration(
             color: _getBackgroundColor(context, isFocus),
             borderRadius: BorderRadius.circular(24.0),
+            // 焦点态加品牌绿描边,TV 上一眼看出选中的是哪个
+            border: isFocus
+                ? Border.all(color: AppTokens.focusRing, width: 2)
+                : null,
           ),
           alignment: Alignment.center,
           child: Icon(

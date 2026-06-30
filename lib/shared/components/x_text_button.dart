@@ -131,6 +131,10 @@ class XTextButton extends StatelessWidget {
           decoration: BoxDecoration(
             color: _getBackgroundColor(context, isFocus),
             borderRadius: BorderRadius.circular(24.0),
+            // 焦点态品牌绿描边,选中项一眼可辨
+            border: isFocus
+                ? Border.all(color: AppTokens.focusRing, width: 2)
+                : null,
             boxShadow: isFocus
                 ? [
                     BoxShadow(
