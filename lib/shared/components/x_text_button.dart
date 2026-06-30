@@ -119,41 +119,27 @@ class XTextButton extends StatelessWidget {
       onArrowLeft: onArrowLeft,
       onArrowRight: onArrowRight,
       child: (bool isFocus) {
-        return AnimatedScale(
-          scale: isFocus ? 1.08 : 1.0,
-          duration: const Duration(milliseconds: 150),
-          curve: Curves.easeOut,
-          child: Container(
-            width: _getWidth(),
-            // 用 minHeight 而非固定 height:文字一行放不下换行时容器可增高,不裁切
-            constraints: BoxConstraints(minHeight: _getHeight()),
-            padding: padding ??
-                EdgeInsets.symmetric(
-                  horizontal: (size == XTextButtonSize.defaultSize ||
-                               size == XTextButtonSize.flexible) ? 16.0 : 32.0,
-                ),
-            // 焦点态:轻微放大 + 品牌色柔光,去掉生硬描边
-            decoration: BoxDecoration(
-              color: _getBackgroundColor(context, isFocus),
-              borderRadius: BorderRadius.circular(24.0),
-              boxShadow: isFocus
-                  ? [
-                      BoxShadow(
-                        color: AppTokens.focusRing.withOpacity(0.45),
-                        blurRadius: 16,
-                        spreadRadius: 1,
-                      ),
-                    ]
-                  : null,
-            ),
-            alignment: Alignment.center,
-            child: Text(
-              text,
-              style: _getTextStyle(context),
-              textAlign: TextAlign.center,
-              maxLines: 2,
-              overflow: TextOverflow.ellipsis,
-            ),
+        // 焦点态仅用背景色区分(不放大/不发光,避免被裁剪)
+        return Container(
+          width: _getWidth(),
+          // 用 minHeight 而非固定 height:文字一行放不下换行时容器可增高,不裁切
+          constraints: BoxConstraints(minHeight: _getHeight()),
+          padding: padding ??
+              EdgeInsets.symmetric(
+                horizontal: (size == XTextButtonSize.defaultSize ||
+                             size == XTextButtonSize.flexible) ? 16.0 : 32.0,
+              ),
+          decoration: BoxDecoration(
+            color: _getBackgroundColor(context, isFocus),
+            borderRadius: BorderRadius.circular(24.0),
+          ),
+          alignment: Alignment.center,
+          child: Text(
+            text,
+            style: _getTextStyle(context),
+            textAlign: TextAlign.center,
+            maxLines: 2,
+            overflow: TextOverflow.ellipsis,
           ),
         );
       },

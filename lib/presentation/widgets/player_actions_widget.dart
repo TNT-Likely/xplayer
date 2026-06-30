@@ -446,7 +446,10 @@ class _PlayerActionsWidgetState extends State<PlayerActionsWidget>
                 ],
               )
             // 窄屏:信息在上、按钮在下;按钮可能多于一屏宽 → 横向可滚动,避免溢出
+            // mainAxisSize.min:否则 Column 撑满全屏高度,会让操作栏内容居中、
+            // 外层 Align(bottomCenter) 失效(竖屏时操作栏跑到屏幕中间)。
             : Column(
+                mainAxisSize: MainAxisSize.min,
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
                   infoRow,
