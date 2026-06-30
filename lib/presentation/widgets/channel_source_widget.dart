@@ -56,9 +56,10 @@ class _ChannelSourceWidgetState extends State<ChannelSourceWidget> {
 
   @override
   Widget build(BuildContext context) {
-    return Center(
+    // 源较多时可纵向滚动,避免超出浮层被裁切
+    return SingleChildScrollView(
+        padding: const EdgeInsets.symmetric(vertical: 16),
         child: Column(
-      mainAxisAlignment: MainAxisAlignment.center,
       children: sources.map((e) {
         final isSelected = widget.link == e.link;
 

@@ -82,15 +82,6 @@ class XIconButton extends StatelessWidget {
           decoration: BoxDecoration(
             color: _getBackgroundColor(context, isFocus),
             borderRadius: BorderRadius.circular(24.0),
-            boxShadow: isFocus
-                ? [
-                    BoxShadow(
-                      color: AppTokens.focusRing.withOpacity(0.45),
-                      blurRadius: 16,
-                      spreadRadius: 1,
-                    ),
-                  ]
-                : null,
           ),
           alignment: Alignment.center,
           child: Icon(
@@ -126,13 +117,8 @@ class XIconButton extends StatelessWidget {
                 ],
               );
 
-        // 焦点态轻微放大,包裹整体(图标+文字一起放大)
-        return AnimatedScale(
-          scale: isFocus ? 1.08 : 1.0,
-          duration: const Duration(milliseconds: 150),
-          curve: Curves.easeOut,
-          child: content,
-        );
+        // 焦点态仅用背景色区分(不放大/不发光,避免在受限容器内被裁剪)
+        return content;
       },
     );
   }

@@ -78,10 +78,13 @@ class PlayerDialogs {
             decoration: const BoxDecoration(
               color: Color.fromRGBO(48, 48, 48, 0.86),
             ),
-            child: ChannelSourceWidget(
-              channel: channel,
-              link: link,
-              onSourceSwitch: onSourceSwitch,
+            // SafeArea:竖屏时不被状态栏/刘海遮挡
+            child: SafeArea(
+              child: ChannelSourceWidget(
+                channel: channel,
+                link: link,
+                onSourceSwitch: onSourceSwitch,
+              ),
             ),
           ),
         );
