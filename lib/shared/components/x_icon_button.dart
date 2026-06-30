@@ -67,28 +67,36 @@ class XIconButton extends StatelessWidget {
       tooltipMessage: tooltipMessage,
       onPressed: onPressed,
       child: (bool isFocus) {
-        return Container(
-          width: _getIconSize() + (padding?.horizontal ?? 16.0), // 根据内边距调整宽度
-          height: _getIconSize() + (padding?.vertical ?? 16.0), // 根据内边距调整高度
-          padding: padding ??
-              EdgeInsets.all(
-                  buttonSize == XIconButtonSize.defaultSize ? 8.0 : 12.0),
-          decoration: BoxDecoration(
-            color: _getBackgroundColor(context, isFocus),
-            borderRadius: BorderRadius.circular(24.0),
-          ),
-          // 焦点描边放前景层:画在内容之上、不挤压布局,图标不会偏移
-          foregroundDecoration: isFocus
-              ? BoxDecoration(
-                  borderRadius: BorderRadius.circular(24.0),
-                  border: Border.all(color: AppTokens.focusRing, width: 2),
-                )
-              : null,
-          alignment: Alignment.center,
-          child: Icon(
-            icon,
-            size: _getIconSize(),
-            color: iconColor ?? Colors.white,
+        return AnimatedScale(
+          scale: isFocus ? 1.08 : 1.0,
+          duration: const Duration(milliseconds: 150),
+          curve: Curves.easeOut,
+          child: Container(
+            width: _getIconSize() + (padding?.horizontal ?? 16.0), // 根据内边距调整宽度
+            height: _getIconSize() + (padding?.vertical ?? 16.0), // 根据内边距调整高度
+            padding: padding ??
+                EdgeInsets.all(
+                    buttonSize == XIconButtonSize.defaultSize ? 8.0 : 12.0),
+            // 焦点态:轻微放大 + 品牌色柔光,去掉生硬描边
+            decoration: BoxDecoration(
+              color: _getBackgroundColor(context, isFocus),
+              borderRadius: BorderRadius.circular(24.0),
+              boxShadow: isFocus
+                  ? [
+                      BoxShadow(
+                        color: AppTokens.focusRing.withOpacity(0.45),
+                        blurRadius: 16,
+                        spreadRadius: 1,
+                      ),
+                    ]
+                  : null,
+            ),
+            alignment: Alignment.center,
+            child: Icon(
+              icon,
+              size: _getIconSize(),
+              color: iconColor ?? Colors.white,
+            ),
           ),
         );
       },
