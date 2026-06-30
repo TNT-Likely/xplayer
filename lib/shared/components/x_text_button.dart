@@ -22,6 +22,7 @@ class XTextButton extends StatelessWidget {
   final VoidCallback? onArrowDown;
   final VoidCallback? onArrowLeft;
   final VoidCallback? onArrowRight;
+  final bool autofocus;
 
   const XTextButton(
       {Key? key,
@@ -39,7 +40,8 @@ class XTextButton extends StatelessWidget {
       this.onArrowUp,
       this.onArrowDown,
       this.onArrowLeft,
-      this.onArrowRight})
+      this.onArrowRight,
+      this.autofocus = false})
       : super(key: key);
 
   Color _getBackgroundColor(BuildContext context, bool isFocus) {
@@ -109,6 +111,7 @@ class XTextButton extends StatelessWidget {
     return XBaseButton(
       tooltipMessage: tooltipMessage,
       focusNode: focusNode,
+      autofocus: autofocus,
       onPressed: onPressed,
       onMore: onMore,
       onArrowUp: onArrowUp,

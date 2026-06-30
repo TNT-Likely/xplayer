@@ -40,6 +40,7 @@ class QualitySelectorWidget extends StatelessWidget {
           text: text,
           size: XTextButtonSize.large,
           width: 180,
+          autofocus: selected, // 打开即聚焦当前画质
           // 字号调小,避免「1080P · 4.9 Mbps」溢出换行
           textStyle: const TextStyle(fontSize: 13),
           onPressed: () {

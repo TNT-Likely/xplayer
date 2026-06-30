@@ -31,6 +31,7 @@ class AudioTrackSelectorWidget extends StatelessWidget {
                 text: label,
                 size: XTextButtonSize.large,
                 width: 200,
+                autofocus: t.isSelected, // 打开即聚焦当前音轨
                 textStyle: const TextStyle(fontSize: 13),
                 type: t.isSelected
                     ? XTextButtonType.primary

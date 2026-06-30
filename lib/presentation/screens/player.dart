@@ -69,6 +69,11 @@ class _PlayerScreenState extends State<PlayerScreen>
   bool _isTv = false; // TV 不启用系统画中画(系统无 PiP,且用遥控器)
   bool _wakelockOn = false; // 播放中保持屏幕常亮(防 TV 屏保/息屏)
   bool _resumeAfterBg = false; // 切后台前在播 → 回前台自动恢复
+  // 切台信息浮层(OSD)+ 数字键选台
+  bool _zapOsdVisible = false;
+  Timer? _zapOsdTimer;
+  String _numberInput = '';
+  Timer? _numberTimer;
   static const _pipChannel = MethodChannel('native_pip');
   // 信息面板:TV 遥控器上下键滚动(SingleChildScrollView 默认不响应方向键)
   final ScrollController _infoScroll = ScrollController();
@@ -209,6 +214,8 @@ class _PlayerScreenState extends State<PlayerScreen>
     _retryTimer?.cancel();
     _bufferingTimer?.cancel();
     autoCloseTimer?.cancel();
+    _zapOsdTimer?.cancel();
+    _numberTimer?.cancel();
     _backend.notifier.removeListener(_listenToVideoController);
     _backend.diagnostics?.removeListener(_onBackendDiag);
     useSurfaceView.removeListener(_onRenderModeChanged);
@@ -676,10 +683,52 @@ class _PlayerScreenState extends State<PlayerScreen>
       _audioTracks = [];
     });
 
+    _flashZapOsd(); // 切台信息浮层
     _initializePlayer();
   }
 
+  /// 切台信息浮层(OSD):台标 + 频道名 + 当前/下一节目,显示 ~2.5s。
+  void _flashZapOsd() {
+    if (!mounted) return;
+    setState(() => _zapOsdVisible = true);
+    _zapOsdTimer?.cancel();
+    _zapOsdTimer = Timer(const Duration(milliseconds: 2500), () {
+      if (mounted) setState(() => _zapOsdVisible = false);
+    });
+  }
+
+  /// 数字键输入(选台):累积数字,1.8s 后跳到对应频道号。
+  void _onChannelDigit(int d) {
+    _numberInput = '$_numberInput$d';
+    if (_numberInput.length > 4) {
+      _numberInput = _numberInput.substring(_numberInput.length - 4);
+    }
+    setState(() {});
+    _numberTimer?.cancel();
+    _numberTimer = Timer(const Duration(milliseconds: 1800), _commitChannelNumber);
+  }
+
+  void _commitChannelNumber() {
+    final n = int.tryParse(_numberInput);
+    _numberInput = '';
+    if (mounted) setState(() {});
+    if (n == null || _channels.isEmpty) return;
+    final idx = (n - 1).clamp(0, _channels.length - 1); // 频道号 1-based
+    if (idx != _currentIndex) _switchChannel(idx - _currentIndex);
+  }
+
   void _handleKeyPress(RawKeyEvent event) {
+    // 数字键选台:遥控器数字键累积输入频道号
+    if (event is RawKeyDownEvent) {
+      final lbl = event.logicalKey.keyLabel;
+      if (lbl.length == 1) {
+        final c = lbl.codeUnitAt(0);
+        if (c >= 0x30 && c <= 0x39) {
+          _onChannelDigit(c - 0x30);
+          return;
+        }
+      }
+    }
     if (event is RawKeyUpEvent &&
         (event.logicalKey == LogicalKeyboardKey.select ||
             event.logicalKey == LogicalKeyboardKey.contextMenu)) {
@@ -1286,11 +1335,112 @@ class _PlayerScreenState extends State<PlayerScreen>
                   ],
                 ),
               ),
+              // 切台信息浮层(OSD):台标 + 频道名 + 当前/下一节目
+              if (_zapOsdVisible)
+                Positioned(
+                  left: 24,
+                  top: 24,
+                  child: IgnorePointer(child: _buildZapOsd()),
+                ),
+              // 数字键选台:输入中的频道号
+              if (_numberInput.isNotEmpty)
+                Positioned(
+                  right: 24,
+                  top: 24,
+                  child: IgnorePointer(
+                    child: Container(
+                      padding: const EdgeInsets.symmetric(
+                          horizontal: 20, vertical: 10),
+                      decoration: BoxDecoration(
+                        color: Colors.black.withOpacity(0.7),
+                        borderRadius: BorderRadius.circular(8),
+                      ),
+                      child: Text(
+                        _numberInput,
+                        style: const TextStyle(
+                            color: Colors.white,
+                            fontSize: 40,
+                            fontWeight: FontWeight.bold,
+                            decoration: TextDecoration.none),
+                      ),
+                    ),
+                  ),
+                ),
             ],
           ),
         ),
       ),
     ),
+    );
+  }
+
+  /// 切台信息浮层内容:台标 + 序号·频道名 + 当前/下一节目。
+  Widget _buildZapOsd() {
+    final info = programmeInfo;
+    final cur = info.$2;
+    final next = info.$3;
+    return Material(
+      color: Colors.transparent,
+      child: Container(
+        constraints: const BoxConstraints(maxWidth: 440),
+        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+        decoration: BoxDecoration(
+          color: Colors.black.withOpacity(0.72),
+          borderRadius: BorderRadius.circular(10),
+        ),
+        child: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            if (_channel.logo != null && _channel.logo!.isNotEmpty) ...[
+              CachedNetworkImage(
+                imageUrl: _channel.logo!,
+                height: 44,
+                fit: BoxFit.contain,
+                errorWidget: (_, __, ___) => const SizedBox(width: 0),
+              ),
+              const SizedBox(width: 12),
+            ],
+            Flexible(
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    '${_currentIndex + 1}. ${_channel.name.isNotEmpty ? _channel.name : _channel.id}',
+                    style: const TextStyle(
+                        color: Colors.white,
+                        fontSize: 18,
+                        fontWeight: FontWeight.bold,
+                        decoration: TextDecoration.none),
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                  if (cur != null)
+                    Text(
+                      cur.title,
+                      style: const TextStyle(
+                          color: Colors.white70,
+                          fontSize: 13,
+                          decoration: TextDecoration.none),
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                  if (next != null)
+                    Text(
+                      '${AppLocalizations.of(context)!.epgNext} ${next.title}',
+                      style: const TextStyle(
+                          color: Colors.white38,
+                          fontSize: 12,
+                          decoration: TextDecoration.none),
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                ],
+              ),
+            ),
+          ],
+        ),
+      ),
     );
   }
 }

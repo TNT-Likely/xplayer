@@ -71,6 +71,7 @@ class _ChannelSourceWidgetState extends State<ChannelSourceWidget> {
                   text: getName(e.title),
                   size: XTextButtonSize.large,
                   width: 160,
+                  autofocus: isSelected, // 打开即聚焦当前源
                   onPressed: () {
                     if (!isSelected && widget.onSourceSwitch != null) {
                       widget.onSourceSwitch!(e.link);

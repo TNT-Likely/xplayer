@@ -202,6 +202,7 @@ class PlayerDialogs {
                   text: o.$1,
                   size: XTextButtonSize.large,
                   width: 180,
+                  autofocus: selected, // 打开即聚焦当前项
                   textStyle: const TextStyle(fontSize: 13),
                   type: selected
                       ? XTextButtonType.primary
