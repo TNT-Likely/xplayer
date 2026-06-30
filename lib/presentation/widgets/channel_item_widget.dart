@@ -62,6 +62,8 @@ class _ChannelItemWidgetState extends State<ChannelItemWidget> {
         },
         onMore: () =>
             ChannelActions.handleMoreAction(context, widget.channel, () {}),
+        // 菜单键留给首页"回到在播小窗";频道"更多操作"仍可长按 OK 触发,避免与之冲突
+        menuKeyAsMore: false,
         child: (isFocused) => SizedBox(
             width: widget.width,
             child: Stack(children: [

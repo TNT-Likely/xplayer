@@ -217,6 +217,7 @@ class _PlayerScreenState extends State<PlayerScreen>
     _focusNode.dispose();
     _infoScroll.dispose();
     _infoFocus.dispose();
+    FocusManager.instance.removeListener(_resetAutoCloseOnFocus);
     if (_wakelockOn) WakelockPlus.disable(); // 离开播放页 → 解除常亮
     _wakelockOn = false;
     if (Platform.isAndroid) {
@@ -551,6 +552,10 @@ class _PlayerScreenState extends State<PlayerScreen>
     // 仅逻辑标记,build() 不读它 —— 不用 setState,避免控制条弹出时整页重建/视频闪一下
     _controlsVisible = true;
 
+    // 操作栏开启期间监听焦点变化:切换按钮(遥控器移动焦点)即重置 5s 自动收起,
+    // 避免正在浏览按钮时操作栏被收掉。
+    FocusManager.instance.addListener(_resetAutoCloseOnFocus);
+
     showGeneralDialog(
       context: context,
       barrierDismissible: true,
@@ -630,9 +635,15 @@ class _PlayerScreenState extends State<PlayerScreen>
       },
     ).then((value) {
       cancelAutoCloseTimer();
+      FocusManager.instance.removeListener(_resetAutoCloseOnFocus);
       // 同上:不 setState,关闭控制条时不触发整页重建
       _controlsVisible = false;
     });
+  }
+
+  /// 操作栏开启期间,焦点变化(切换按钮)即重置自动收起倒计时。
+  void _resetAutoCloseOnFocus() {
+    if (_controlsVisible) _startAutoCloseTimer();
   }
 
   /// 解析某频道应播放的源:优先用户记住的源(仍在列表中时),否则第一个。
@@ -1165,6 +1176,15 @@ class _PlayerScreenState extends State<PlayerScreen>
       canPop: false,
       onPopInvokedWithResult: (didPop, _) {
         if (didPop) return;
+        // 操作栏开着时,返回键应先关操作栏,而不是直接退到首页。
+        // (操作栏是顶层对话框路由会自行关闭;但切台等场景会留下 _controlsVisible
+        //  残留为 true,此时返回落到播放页 → 先吞掉并复位,不退出。)
+        if (_controlsVisible) {
+          cancelAutoCloseTimer();
+          _controlsVisible = false;
+          if (mounted) setState(() {});
+          return;
+        }
         _handleBack();
       },
       child: RawKeyboardListener(
