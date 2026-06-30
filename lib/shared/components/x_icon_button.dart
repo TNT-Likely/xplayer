@@ -19,6 +19,10 @@ class XIconButton extends StatelessWidget {
   final FocusNode? focusNode;
   final bool autofocus;
 
+  /// 图标下方的文字标签(可选)。传入后纵向排布:图标在上、文字在下。
+  /// 不传则维持纯图标按钮,现有调用零影响。
+  final String? label;
+
   const XIconButton(
       {Key? key,
       required this.icon,
@@ -31,7 +35,8 @@ class XIconButton extends StatelessWidget {
       this.hoverBgOnly = false,
       this.tooltipMessage,
       this.focusNode,
-      this.autofocus = false})
+      this.autofocus = false,
+      this.label})
       : super(key: key);
 
   Color _getBackgroundColor(BuildContext context, bool isFocus) {
@@ -67,7 +72,8 @@ class XIconButton extends StatelessWidget {
       tooltipMessage: tooltipMessage,
       onPressed: onPressed,
       child: (bool isFocus) {
-        return Container(
+        // 圆形图标容器(焦点态:品牌色柔光,去掉生硬描边)
+        final Widget iconBox = Container(
           width: _getIconSize() + (padding?.horizontal ?? 16.0), // 根据内边距调整宽度
           height: _getIconSize() + (padding?.vertical ?? 16.0), // 根据内边距调整高度
           padding: padding ??
@@ -76,9 +82,14 @@ class XIconButton extends StatelessWidget {
           decoration: BoxDecoration(
             color: _getBackgroundColor(context, isFocus),
             borderRadius: BorderRadius.circular(24.0),
-            // 焦点态加品牌绿描边,TV 上一眼看出选中的是哪个
-            border: isFocus
-                ? Border.all(color: AppTokens.focusRing, width: 2)
+            boxShadow: isFocus
+                ? [
+                    BoxShadow(
+                      color: AppTokens.focusRing.withOpacity(0.45),
+                      blurRadius: 16,
+                      spreadRadius: 1,
+                    ),
+                  ]
                 : null,
           ),
           alignment: Alignment.center,
@@ -87,6 +98,40 @@ class XIconButton extends StatelessWidget {
             size: _getIconSize(),
             color: iconColor ?? Colors.white,
           ),
+        );
+
+        // 有标签:图标在上、文字在下;焦点时文字提亮
+        final Widget content = label == null
+            ? iconBox
+            : Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  iconBox,
+                  const SizedBox(height: 3),
+                  Text(
+                    label!,
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                    style: TextStyle(
+                      fontSize: 11,
+                      height: 1.0,
+                      decoration: TextDecoration.none,
+                      fontWeight:
+                          isFocus ? FontWeight.w600 : FontWeight.normal,
+                      color: isFocus
+                          ? Colors.white
+                          : Colors.white.withOpacity(0.7),
+                    ),
+                  ),
+                ],
+              );
+
+        // 焦点态轻微放大,包裹整体(图标+文字一起放大)
+        return AnimatedScale(
+          scale: isFocus ? 1.08 : 1.0,
+          duration: const Duration(milliseconds: 150),
+          curve: Curves.easeOut,
+          child: content,
         );
       },
     );

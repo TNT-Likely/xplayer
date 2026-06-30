@@ -75,9 +75,8 @@ class PlayerDialogs {
           child: Container(
             width: max(200, MediaQuery.of(context).size.width * 0.3),
             height: MediaQuery.of(context).size.height * 1.0,
-            decoration: BoxDecoration(
-              color: const Color.fromRGBO(20, 20, 20, 0.92),
-              borderRadius: BorderRadius.circular(16.0),
+            decoration: const BoxDecoration(
+              color: Color.fromRGBO(48, 48, 48, 0.86),
             ),
             child: ChannelSourceWidget(
               channel: channel,
@@ -117,9 +116,8 @@ class PlayerDialogs {
           child: Container(
             width: max(220, MediaQuery.of(context).size.width * 0.3),
             height: MediaQuery.of(context).size.height * 1.0,
-            decoration: BoxDecoration(
-              color: const Color.fromRGBO(20, 20, 20, 0.92),
-              borderRadius: BorderRadius.circular(16.0),
+            decoration: const BoxDecoration(
+              color: Color.fromRGBO(48, 48, 48, 0.86),
             ),
             child: QualitySelectorWidget(
               variants: variants,
@@ -153,9 +151,8 @@ class PlayerDialogs {
         child: Container(
           width: max(220, MediaQuery.of(context).size.width * 0.3),
           height: MediaQuery.of(context).size.height,
-          decoration: BoxDecoration(
-            color: const Color.fromRGBO(20, 20, 20, 0.92),
-            borderRadius: BorderRadius.circular(16.0),
+          decoration: const BoxDecoration(
+            color: Color.fromRGBO(48, 48, 48, 0.86),
           ),
           child: child,
         ),
