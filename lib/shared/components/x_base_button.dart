@@ -24,6 +24,8 @@ class XBaseButton extends StatefulWidget {
   /// 设 false 时菜单键不被本按钮消费(可让上层用菜单键做别的,如"回到在播小窗"),
   /// onMore 仍可通过长按 OK 触发。
   final bool menuKeyAsMore;
+  /// 挂载时自动获取焦点(TV:弹窗打开后焦点落到当前项/默认按钮)
+  final bool autofocus;
 
   const XBaseButton({
     Key? key,
@@ -38,6 +40,7 @@ class XBaseButton extends StatefulWidget {
     this.onArrowLeft,
     this.onArrowRight,
     this.menuKeyAsMore = true,
+    this.autofocus = false,
   }) : super(key: key);
 
   @override
@@ -245,6 +248,7 @@ class _XBaseButtonState extends State<XBaseButton> with WidgetsBindingObserver {
       onLongPress: _handleLongPress, // 触控屏长按
       child: RawKeyboardListener(
         focusNode: _focusNode,
+        autofocus: widget.autofocus,
         onKey: _handleKeyPress,
         child: Listener(
           onPointerDown: _handleRightClick,

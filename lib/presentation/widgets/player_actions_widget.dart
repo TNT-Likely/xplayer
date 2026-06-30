@@ -310,10 +310,12 @@ class _PlayerActionsWidgetState extends State<PlayerActionsWidget>
     );
 
     // 操作按钮组(两种布局共用同一组按钮)
+    final hasError = widget.backend.notifier.value.hasError;
     final actionButtons = <Widget>[
-      if (widget.backend.notifier.value.hasError) ...[
+      if (hasError) ...[
         XIconButton(
           icon: Icons.refresh,
+          autofocus: true, // 出错时操作栏打开默认聚焦"重试"
           onPressed: () {
             if (widget.onRetryInit != null) {
               widget.onRetryInit!();
@@ -324,7 +326,18 @@ class _PlayerActionsWidgetState extends State<PlayerActionsWidget>
       ],
       XIconButton(
         onPressed: _handlePlayPause,
+        autofocus: !hasError, // 正常时操作栏打开默认聚焦"播放/暂停"
         icon: _isPlaying ? Icons.pause : Icons.play_arrow,
+      ),
+      const SizedBox(width: 8),
+      // 收藏:常用,排前
+      XIconButton(
+        onPressed: () async {
+          await widget.onFavorite();
+          _updateIsFavorite();
+        },
+        iconColor: _isFavorite ? Colors.red : Colors.white,
+        icon: _isFavorite ? Icons.favorite : Icons.favorite_outline,
       ),
       const SizedBox(width: 8),
       XIconButton(
@@ -392,15 +405,6 @@ class _PlayerActionsWidgetState extends State<PlayerActionsWidget>
             widget.onToggleDiag!();
           }
         },
-      ),
-      const SizedBox(width: 8),
-      XIconButton(
-        onPressed: () async {
-          await widget.onFavorite();
-          _updateIsFavorite();
-        },
-        iconColor: _isFavorite ? Colors.red : Colors.white,
-        icon: _isFavorite ? Icons.favorite : Icons.favorite_outline,
       ),
       if (isMobile) const SizedBox(width: 8),
       if (isMobile)
