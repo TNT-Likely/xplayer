@@ -76,11 +76,14 @@ class XIconButton extends StatelessWidget {
           decoration: BoxDecoration(
             color: _getBackgroundColor(context, isFocus),
             borderRadius: BorderRadius.circular(24.0),
-            // 焦点态加品牌绿描边,TV 上一眼看出选中的是哪个
-            border: isFocus
-                ? Border.all(color: AppTokens.focusRing, width: 2)
-                : null,
           ),
+          // 焦点描边放前景层:画在内容之上、不挤压布局,图标不会偏移
+          foregroundDecoration: isFocus
+              ? BoxDecoration(
+                  borderRadius: BorderRadius.circular(24.0),
+                  border: Border.all(color: AppTokens.focusRing, width: 2),
+                )
+              : null,
           alignment: Alignment.center,
           child: Icon(
             icon,
