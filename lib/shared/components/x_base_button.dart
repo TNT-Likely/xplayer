@@ -20,6 +20,10 @@ class XBaseButton extends StatefulWidget {
   final VoidCallback? onArrowDown;
   final VoidCallback? onArrowLeft;
   final VoidCallback? onArrowRight;
+  /// 菜单键(MENU/contextMenu)是否触发 onMore。默认 true;
+  /// 设 false 时菜单键不被本按钮消费(可让上层用菜单键做别的,如"回到在播小窗"),
+  /// onMore 仍可通过长按 OK 触发。
+  final bool menuKeyAsMore;
 
   const XBaseButton({
     Key? key,
@@ -33,6 +37,7 @@ class XBaseButton extends StatefulWidget {
     this.onArrowDown,
     this.onArrowLeft,
     this.onArrowRight,
+    this.menuKeyAsMore = true,
   }) : super(key: key);
 
   @override
@@ -136,8 +141,9 @@ class _XBaseButtonState extends State<XBaseButton> with WidgetsBindingObserver {
         updateStart(DateTime.now());
       }
     }
-    // TV端菜单事件
+    // TV端菜单事件(menuKeyAsMore=false 时不消费菜单键,留给上层做"回到在播"等)
     if (widget.onMore != null &&
+        widget.menuKeyAsMore &&
         (event.logicalKey == LogicalKeyboardKey.contextMenu)) {
       widget.onMore!();
     }
