@@ -5,3 +5,7 @@ https://test-streams.mux.dev/x36xhzz/x36xhzz.m3u8
 https://test-streams.mux.dev/tos_ismc/main.m3u8
 #EXTINF:-1 tvg-name="Apple BipBop" group-title="Apple",Apple BipBop (HLS)
 https://devstreaming-cdn.apple.com/videos/streaming/examples/img_bipbop_adv_example_ts/master.m3u8
+#EXTINF:-1 tvg-name="CCTV1" group-title="IPv6 测试",CCTV-1 综合 (IPv6)
+http://[2409:8087:8:21::18]:6610/otttv.bj.chinamobile.com/PLTV/88888888/224/3221226895/1.m3u8
+#EXTINF:-1 tvg-name="CCTV5" group-title="IPv6 测试",CCTV-5 体育 (IPv6)
+http://[2409:8087:8:21::18]:6610/otttv.bj.chinamobile.com/PLTV/88888888/224/3221226469/1.m3u8
