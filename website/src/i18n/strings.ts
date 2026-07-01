@@ -83,8 +83,14 @@ const en = {
       { h: 'Report a bug / request a feature', p: 'Open an issue on GitHub using the bug / feature templates. Please include your platform, app version and steps to reproduce.' },
       { h: 'A channel won’t play', p: 'Single channels often fail because the upstream source is dead — not the app. Try the "test" button (top-right) to filter dead channels, or switch to another source. Add your own M3U if a built-in list is unreliable in your region.' },
       { h: 'Add your own source', p: 'Open the side drawer → Playlists → add a playlist, then paste any M3U / M3U8 URL or pick a local file.' },
-      { h: 'Contact', p: 'GitHub issues and discussions are the best channels. Links are in the footer.' },
     ],
+    contact: {
+      h: 'Contact us',
+      p: 'Have a question or need help? Email us directly — we usually reply within a day or two. You can also open a GitHub issue.',
+      email: 'sunxiaoyes@outlook.com',
+      github: 'https://github.com/TNT-Likely/xplayer/issues',
+      githubLabel: 'GitHub issues',
+    },
   },
   footer: {
     license: 'MIT Licensed',
@@ -173,8 +179,14 @@ const zh: typeof en = {
       { h: '反馈 Bug / 提功能建议', p: '在 GitHub 用 Bug / 功能模板提 issue,请附上平台、App 版本和复现步骤。' },
       { h: '某个频道打不开', p: '个别频道打不开多是上游源失效,不是 App 的问题。可用右上角「测速」筛掉死频道,或换一个源;若某内置源在你所在地区不稳定,建议导入你自己的 M3U。' },
       { h: '添加自己的源', p: '打开侧边栏 → 播放列表 → 添加,然后粘贴任意 M3U / M3U8 网址或选择本地文件。' },
-      { h: '联系', p: 'GitHub 的 issues 与 discussions 是最佳渠道,链接见页脚。' },
     ],
+    contact: {
+      h: '联系我们',
+      p: '有问题或需要帮助?可直接发邮件给我们,通常 1~2 天内回复;也可以在 GitHub 提 issue。',
+      email: 'sunxiaoyes@outlook.com',
+      github: 'https://github.com/TNT-Likely/xplayer/issues',
+      githubLabel: 'GitHub issues',
+    },
   },
   footer: {
     license: 'MIT 协议',

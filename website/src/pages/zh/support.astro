@@ -19,5 +19,13 @@ const p = tr.support;
     </>
   ))}
 
+  <h2>{p.contact.h}</h2>
+  <p class="note">
+    {p.contact.p}<br />
+    ✉️ <a href={`mailto:${p.contact.email}`}>{p.contact.email}</a>
+    {' · '}
+    <a href={p.contact.github}>{p.contact.githubLabel}</a>
+  </p>
+
   <p class="stamp">© {new Date().getFullYear()} {tr.site.brand}</p>
 </Layout>
