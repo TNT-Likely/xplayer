@@ -14,9 +14,12 @@ const x = tr.index;
     <p>{x.heroSubtitle}</p>
     <p class="platforms">{x.platforms}</p>
     <div class="cta">
-      <a class="btn primary" href={tr.site.releases}>{x.ctaDownload}</a>
+      <a class="btn primary" href={tr.site.appStore}>{x.ctaAppStore}</a>
+      <a class="btn ghost" href={tr.site.releases}>{x.ctaDownload}</a>
       <a class="btn ghost" href={tr.site.repo}>{x.ctaGithub}</a>
     </div>
+    <p class="appstore-note">{x.appStoreNote}</p>
+    <p class="avail-note">{x.availabilityNote} <a href={tr.site.donate}>{x.donateLabel}</a>{x.donateSuffix}</p>
   </section>
 
   <h2>{x.shotsTitle}</h2>

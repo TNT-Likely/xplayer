@@ -9,6 +9,7 @@
 <p align="center">
   <a href="https://github.com/TNT-Likely/xplayer/releases/latest"><img src="https://img.shields.io/github/v/release/TNT-Likely/xplayer?style=flat-square&color=brightgreen" alt="最新版本"></a>
   <a href="https://github.com/TNT-Likely/xplayer/releases"><img src="https://img.shields.io/github/downloads/TNT-Likely/xplayer/total?style=flat-square&color=blue" alt="下载量"></a>
+  <a href="https://apps.apple.com/app/id6783271337"><img src="https://img.shields.io/badge/App%20Store-下载-0D96F6?style=flat-square&logo=apple&logoColor=white" alt="App Store"></a>
   <a href="https://testflight.apple.com/join/BD5BMpqe"><img src="https://img.shields.io/badge/iOS-TestFlight%20公测-0D96F6?style=flat-square&logo=apple&logoColor=white" alt="iOS TestFlight 公测"></a>
   <a href="https://github.com/TNT-Likely/xplayer/stargazers"><img src="https://img.shields.io/github/stars/TNT-Likely/xplayer?style=flat-square" alt="Stars"></a>
   <a href="https://github.com/TNT-Likely/xplayer/actions/workflows/release.yml"><img src="https://img.shields.io/github/actions/workflow/status/TNT-Likely/xplayer/release.yml?style=flat-square&label=release" alt="构建状态"></a>
@@ -64,7 +65,7 @@
 <details>
 <summary><b>🚀 安装</b></summary>
 
-前往 [Releases](https://github.com/TNT-Likely/xplayer/releases) 下载：
+**iOS / iPad / macOS** 已上架 [App Store](https://apps.apple.com/app/id6783271337)（目前仅在中国大陆以外地区上架 —— 大陆区需 ICP 备案，备案名额已用完，可通过[捐赠](#-捐赠--donate)帮忙分担备案与服务器成本以支持大陆上架）。其余平台前往 [Releases](https://github.com/TNT-Likely/xplayer/releases) 下载：
 
 - **Android / Android TV / 平板**（已按 CPU 架构拆包，体积更小）：
   - `xplayer-<版本>-arm64-v8a.apk` —— 绝大多数手机 / 平板 / 电视盒子（**推荐**）
@@ -72,9 +73,9 @@
   - `xplayer-<版本>-x86_64.apk` —— 模拟器 / x86 设备
   - `xplayer-<版本>-universal.apk` —— 不确定架构时的通用兜底包
 - **Windows**：`xplayer-windows-x64.zip`
-- **macOS**：`xplayer-macos.dmg`（首次打开见常见问题）
+- **macOS**：[App Store 下载](https://apps.apple.com/app/id6783271337)（推荐）；或 `xplayer-macos.dmg`（首次打开见常见问题）
 - **Linux**：`xplayer-linux-x64.tar.gz`
-- **iOS / iPad**：[TestFlight 公测版](https://testflight.apple.com/join/BD5BMpqe)（推荐，免签名直接安装）；或 Releases 里的未签名 ipa 自行签名
+- **iOS / iPad**：[App Store 下载](https://apps.apple.com/app/id6783271337)（推荐）；或 [TestFlight 公测版](https://testflight.apple.com/join/BD5BMpqe)、Releases 里的未签名 ipa 自行签名
 
 </details>
 

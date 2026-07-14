@@ -3,7 +3,9 @@ export type Locale = 'en' | 'zh';
 
 const REPO = 'https://github.com/TNT-Likely/xplayer';
 const RELEASES = `${REPO}/releases/latest`;
-const LAST_UPDATED = '2026-06-23';
+const APPSTORE = 'https://apps.apple.com/app/id6783271337';
+const DONATE = `${REPO}#-捐赠--donate`;
+const LAST_UPDATED = '2026-07-14';
 
 const en = {
   site: {
@@ -11,6 +13,8 @@ const en = {
     tagline: 'A free, open-source IPTV / M3U player for all your screens.',
     repo: REPO,
     releases: RELEASES,
+    appStore: APPSTORE,
+    donate: DONATE,
     langSwitchHref: '/zh/',
     langSwitchLabel: '中文',
   },
@@ -19,9 +23,15 @@ const en = {
     heroTitle: 'Watch IPTV anywhere, on any screen.',
     heroSubtitle:
       'XPlayer is a free, open-source IPTV / M3U player. Bring your own playlists or start with built-in public lists — with channel grouping, search, EPG, favorites, and phone-to-TV remote input.',
-    ctaDownload: 'Download',
+    ctaAppStore: 'Download on the App Store',
+    ctaDownload: 'Other platforms',
     ctaGithub: 'GitHub',
     platforms: 'Android (phone / tablet / TV) · iOS / iPad · macOS · Windows · Linux',
+    appStoreNote: 'iOS, iPad and macOS: get it from the App Store. Android, Windows and Linux: download from GitHub Releases.',
+    availabilityNote:
+      'The App Store release is currently available outside mainland China only — a mainland China listing requires an ICP filing, and our filing quota is used up for now. Want it on the mainland China App Store? You can help cover the filing and server costs by',
+    donateLabel: 'donating',
+    donateSuffix: '.',
     featuresTitle: 'Features',
     features: [
       { h: '📺 Bring your own / built-in sources', p: 'Import any M3U / M3U8 (URL or local file), or one-tap add public lists from open-source projects like iptv-org.' },
@@ -106,6 +116,8 @@ const zh: typeof en = {
     tagline: '免费、开源的跨平台 IPTV / M3U 播放器。',
     repo: REPO,
     releases: RELEASES,
+    appStore: APPSTORE,
+    donate: DONATE,
     langSwitchHref: '/',
     langSwitchLabel: 'English',
   },
@@ -114,9 +126,15 @@ const zh: typeof en = {
     heroTitle: '随时随地,在任意设备上看 IPTV。',
     heroSubtitle:
       'XPlayer 是一个免费、开源的 IPTV / M3U 播放器。可导入你自己的播放列表,也可一键添加内置的公开直播源 —— 支持频道分组、搜索、EPG 节目单、收藏,以及手机遥控 TV 输入。',
-    ctaDownload: '下载',
+    ctaAppStore: 'App Store 下载',
+    ctaDownload: '其它平台',
     ctaGithub: 'GitHub',
     platforms: 'Android(手机 / 平板 / TV)· iOS / iPad · macOS · Windows · Linux',
+    appStoreNote: 'iOS、iPad 与 macOS:请从 App Store 获取。Android、Windows、Linux:从 GitHub Releases 下载。',
+    availabilityNote:
+      'App Store 版本目前仅在中国大陆以外地区上架 —— 在大陆区上架需要 ICP 备案,而备案名额暂时已用完。希望它也能上架大陆区?可以通过',
+    donateLabel: '捐赠',
+    donateSuffix: '帮忙分担备案与服务器成本。',
     featuresTitle: '特性',
     features: [
       { h: '📺 自带源 / 内置源', p: '导入任意 M3U / M3U8(网络 URL 或本地文件),或一键添加 iptv-org 等开源项目的公开直播源。' },
