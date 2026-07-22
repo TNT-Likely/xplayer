@@ -59,6 +59,7 @@ class _PlayerScreenState extends State<PlayerScreen>
   int _retryTimes = 0;
   int _bufferingRetryTimes = 0;
   Timer? _bufferingTimer;
+  Timer? _stableTimer; // 持续稳定播放判定:连续稳定 N 秒才重置重试计数(防直播抖动流击穿重试上限)
   Timer? _retryTimer; // 失败后延迟重载的定时器(切台/卸载时需取消,否则会回头再重载一次)
   int _loadToken = 0; // 每次加载的代号:被新加载取代后,旧加载的异步回调据此丢弃
   bool _isHandlingBuffering = false;
@@ -213,6 +214,7 @@ class _PlayerScreenState extends State<PlayerScreen>
   void dispose() {
     _retryTimer?.cancel();
     _bufferingTimer?.cancel();
+    _stableTimer?.cancel();
     autoCloseTimer?.cancel();
     _zapOsdTimer?.cancel();
     _numberTimer?.cancel();
@@ -264,6 +266,8 @@ class _PlayerScreenState extends State<PlayerScreen>
     // 取消上一轮尚未触发的重试/缓冲定时器,否则切台后会被旧定时器再重载一次
     _retryTimer?.cancel();
     _bufferingTimer?.cancel();
+    _stableTimer?.cancel();
+    _stableTimer = null;
     _isHandlingBuffering = false;
     _loadStartedAt = DateTime.now();
 
@@ -410,6 +414,9 @@ class _PlayerScreenState extends State<PlayerScreen>
     _updateWakelock(value.isPlaying && !value.hasError);
 
     if (value.isBuffering) {
+      // 缓冲期间取消“稳定播放”判定:抖动流会有一瞬 READY,不能借此重置重试计数
+      _stableTimer?.cancel();
+      _stableTimer = null;
       Logger.debug('视频正在缓冲...');
       if (!_isHandlingBuffering) {
         _isHandlingBuffering = true;
@@ -418,12 +425,12 @@ class _PlayerScreenState extends State<PlayerScreen>
           if (_backend.notifier.value.isBuffering) {
             if (_bufferingRetryTimes < 3) {
               _bufferingRetryTimes += 1;
-              Logger.debug('长时间缓冲，尝试重新加载...($_bufferingRetryTimes/3)');
-              _backend.pause();
-              _backend.seekTo(Duration.zero);
-              _backend.play();
-              // 缓冲重试时保持视频画面 + 缓冲指示,不切到整页加载页,
-              // 否则断断续续的流会在「视频」与「加载页」间反复闪烁
+              Logger.debug('长时间缓冲，从直播边缘重连...($_bufferingRetryTimes/3)');
+              // 修复:原先 pause→seekTo(Duration.zero)→play 对直播是错的——seekTo(0) 会跳到
+              // 可回看窗口最早端 / 未缓冲位置,反而触发新一轮缓冲并把播放点甩到直播边缘之后,
+              // 导致「缓冲↔播放」无限震荡卡死。改为从直播边缘全量重连(与切台同款可靠恢复;
+              // fresh:false 保留重试计数,超 3 次才停到失败页)。
+              _initializePlayer(fresh: false);
             } else {
               // 长缓冲重试已达上限,不再无限重载,直接标记失败
               Logger.error('播放视频失败(长时间缓冲超限): ${_channel.name} | $_sourceLink');
@@ -445,11 +452,20 @@ class _PlayerScreenState extends State<PlayerScreen>
     } else {
       _bufferingTimer?.cancel();
       _isHandlingBuffering = false;
-      _bufferingRetryTimes = 0;
       if (value.isPlaying && !value.hasError) {
-        // 真正在播放:重置错误重试计数,允许后续偶发错误重新重试
-        _retryTimes = 0;
         _isHandlingError = false;
+        // 关键:重试计数不在此处“见到播放就清零”——直播抖动会有一瞬 READY,若每次清零
+        // 会击穿重试上限(_bufferingRetryTimes < 3 永远成立),恢复逻辑永不放弃 → 无限震荡。
+        // 改为“连续稳定播放 12 秒”才重置计数;抖动流因此能累积到上限、正确退出到失败页。
+        _stableTimer ??= Timer(const Duration(seconds: 12), () {
+          _stableTimer = null;
+          if (!mounted) return;
+          final v = _backend.notifier.value;
+          if (v.isPlaying && !v.isBuffering && !v.hasError) {
+            _retryTimes = 0;
+            _bufferingRetryTimes = 0;
+          }
+        });
       }
       if (_playState == PlayState.buffering) {
         setState(() {
