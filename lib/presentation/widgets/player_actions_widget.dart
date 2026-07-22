@@ -111,7 +111,8 @@ class _PlayerActionsWidgetState extends State<PlayerActionsWidget>
   @override
   void initState() {
     super.initState();
-    _isPlaying = widget.backend.notifier.value.isPlaying;
+    final v0 = widget.backend.notifier.value;
+    _isPlaying = v0.isPlaying || v0.isBuffering;
     _updateIsFavorite();
     if (!widget.backend.notifier.value.hasError) {
       widget.backend.notifier.addListener(_updateIsPlaying);
@@ -126,9 +127,14 @@ class _PlayerActionsWidgetState extends State<PlayerActionsWidget>
   }
 
   void _updateIsPlaying() {
-    setState(() {
-      _isPlaying = widget.backend.notifier.value.isPlaying;
-    });
+    final v = widget.backend.notifier.value;
+    // 缓冲中视为“播放中”:ExoPlayer 每次微卡都会把 isPlaying 掉成 false,若按钮直接跟随
+    // 会在「播放/暂停」间高频抖动。用 isPlaying||isBuffering 表达“用户播放意图”,只有真正
+    // 暂停(既不在播也不在缓冲)才显示播放箭头。仅在变化时 setState,避免无谓重建。
+    final playing = v.isPlaying || v.isBuffering;
+    if (playing != _isPlaying && mounted) {
+      setState(() => _isPlaying = playing);
+    }
   }
 
   void _handlePlayPause() {

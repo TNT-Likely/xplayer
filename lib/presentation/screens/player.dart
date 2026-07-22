@@ -60,6 +60,8 @@ class _PlayerScreenState extends State<PlayerScreen>
   int _bufferingRetryTimes = 0;
   Timer? _bufferingTimer;
   Timer? _stableTimer; // 持续稳定播放判定:连续稳定 N 秒才重置重试计数(防直播抖动流击穿重试上限)
+  Timer? _bufShowTimer; // 缓冲遮罩“显示防抖”:缓冲持续 ≥1s 才显示,过滤边缘带宽的高频微卡闪烁
+  Timer? _bufHideTimer; // 缓冲遮罩“隐藏防抖”:恢复后 ~0.8s 才撤,避免刚恢复又卡的 show/hide 抖动
   Timer? _retryTimer; // 失败后延迟重载的定时器(切台/卸载时需取消,否则会回头再重载一次)
   int _loadToken = 0; // 每次加载的代号:被新加载取代后,旧加载的异步回调据此丢弃
   bool _isHandlingBuffering = false;
@@ -215,6 +217,8 @@ class _PlayerScreenState extends State<PlayerScreen>
     _retryTimer?.cancel();
     _bufferingTimer?.cancel();
     _stableTimer?.cancel();
+    _bufShowTimer?.cancel();
+    _bufHideTimer?.cancel();
     autoCloseTimer?.cancel();
     _zapOsdTimer?.cancel();
     _numberTimer?.cancel();
@@ -268,6 +272,10 @@ class _PlayerScreenState extends State<PlayerScreen>
     _bufferingTimer?.cancel();
     _stableTimer?.cancel();
     _stableTimer = null;
+    _bufShowTimer?.cancel();
+    _bufShowTimer = null;
+    _bufHideTimer?.cancel();
+    _bufHideTimer = null;
     _isHandlingBuffering = false;
     _loadStartedAt = DateTime.now();
 
@@ -441,11 +449,18 @@ class _PlayerScreenState extends State<PlayerScreen>
           }
           _isHandlingBuffering = false;
         });
-        // 仅在已初始化(真正播放中再缓冲)时切 buffering 态;初始加载阶段保持 loading,
-        // 否则「加载中」(未初始化的兜底 loading 视图)与「缓存中」浮层会同时出现,冲突。
-        if (value.isInitialized) {
-          setState(() {
-            _playState = PlayState.buffering;
+      }
+      // 缓冲遮罩「显示防抖」:缓冲持续 ≥1s 才显示遮罩,过滤边缘带宽下的高频微卡闪烁;
+      // 初始加载阶段(未初始化)保持 loading 视图,不叠加遮罩。
+      if (value.isInitialized) {
+        _bufHideTimer?.cancel();
+        _bufHideTimer = null;
+        if (_playState != PlayState.buffering && _bufShowTimer == null) {
+          _bufShowTimer = Timer(const Duration(milliseconds: 1000), () {
+            _bufShowTimer = null;
+            if (mounted && _backend.notifier.value.isBuffering) {
+              setState(() => _playState = PlayState.buffering);
+            }
           });
         }
       }
@@ -467,10 +482,15 @@ class _PlayerScreenState extends State<PlayerScreen>
           }
         });
       }
-      if (_playState == PlayState.buffering) {
-        setState(() {
-          // 缓冲结束更新状态为 playing
-          _playState = PlayState.playing;
+      _bufShowTimer?.cancel();
+      _bufShowTimer = null;
+      // 缓冲遮罩「隐藏防抖」:恢复后再等 ~0.8s 才撤遮罩,避免刚恢复又卡导致 show/hide 抖动。
+      if (_playState == PlayState.buffering && _bufHideTimer == null) {
+        _bufHideTimer = Timer(const Duration(milliseconds: 800), () {
+          _bufHideTimer = null;
+          if (mounted && !_backend.notifier.value.isBuffering) {
+            setState(() => _playState = PlayState.playing);
+          }
         });
       }
     }
