@@ -15,6 +15,7 @@ import 'package:xplayer/providers/media_provider.dart';
 import 'package:xplayer/providers/global_provider.dart';
 import 'package:xplayer/utils/logger_util.dart';
 import 'package:xplayer/utils/hls_probe.dart';
+import 'package:xplayer/services/player/stall_detector.dart';
 import 'package:xplayer/services/sleep_timer.dart';
 import 'package:xplayer/providers/mini_player_controller.dart';
 import 'package:xplayer/presentation/widgets/cast_device_sheet.dart';
@@ -62,6 +63,11 @@ class _PlayerScreenState extends State<PlayerScreen>
   Timer? _stableTimer; // 持续稳定播放判定:连续稳定 N 秒才重置重试计数(防直播抖动流击穿重试上限)
   Timer? _bufShowTimer; // 缓冲遮罩“显示防抖”:缓冲持续 ≥1s 才显示,过滤边缘带宽的高频微卡闪烁
   Timer? _bufHideTimer; // 缓冲遮罩“隐藏防抖”:恢复后 ~0.8s 才撤,避免刚恢复又卡的 show/hide 抖动
+  // 静默卡死看门狗:状态“在播”但位置 8s 纹丝不动(READY 卡死,不缓冲不报错)→ 重连。
+  // 这是错误重试/长缓冲重连之外的第三种故障形态,ExoPlayer 自身不会上报。
+  final StallDetector _stallDetector = StallDetector();
+  Timer? _stallCheckTimer; // 每 2s 采样一次位置推进
+  int _stallRetryTimes = 0;
   Timer? _retryTimer; // 失败后延迟重载的定时器(切台/卸载时需取消,否则会回头再重载一次)
   int _loadToken = 0; // 每次加载的代号:被新加载取代后,旧加载的异步回调据此丢弃
   bool _isHandlingBuffering = false;
@@ -148,6 +154,9 @@ class _PlayerScreenState extends State<PlayerScreen>
       if (mini.hasMini) mini.close();
       _initializePlayer();
     }
+    // 静默卡死看门狗:周期采样位置推进(逻辑见 _onStallTick / StallDetector)
+    _stallCheckTimer =
+        Timer.periodic(const Duration(seconds: 2), _onStallTick);
     _focusNode.requestFocus();
 
     // Android 系统画中画:监听原生 PiP 模式变化 → 进 PiP 时收起操作栏。
@@ -219,6 +228,7 @@ class _PlayerScreenState extends State<PlayerScreen>
     _stableTimer?.cancel();
     _bufShowTimer?.cancel();
     _bufHideTimer?.cancel();
+    _stallCheckTimer?.cancel();
     autoCloseTimer?.cancel();
     _zapOsdTimer?.cancel();
     _numberTimer?.cancel();
@@ -276,6 +286,7 @@ class _PlayerScreenState extends State<PlayerScreen>
     _bufShowTimer = null;
     _bufHideTimer?.cancel();
     _bufHideTimer = null;
+    _stallDetector.reset(); // 新会话重新建立位置基线,不残留旧计时
     _isHandlingBuffering = false;
     _loadStartedAt = DateTime.now();
 
@@ -283,6 +294,7 @@ class _PlayerScreenState extends State<PlayerScreen>
       // 用户主动加载(首次/切台/换源/手动重试):重置重试计数
       _retryTimes = 0;
       _bufferingRetryTimes = 0;
+      _stallRetryTimes = 0;
     }
     _isHandlingError = false; // 新一轮加载,允许下次错误被处理
 
@@ -400,6 +412,41 @@ class _PlayerScreenState extends State<PlayerScreen>
     }
   }
 
+  /// 静默卡死看门狗(每 2s 采样):状态“在播”(READY、不缓冲、无错误)但位置
+  /// 连续 8s 纹丝不动 → 播放时钟停走(解码器/音频渲染器卡死),ExoPlayer 不会
+  /// 自己上报 —— 错误重试与长缓冲重连都探测不到,只能靠位置推进判定。
+  /// 处置与切台同款:全量重连(上限 3 次,12s 稳定播放后配额恢复,超限停失败页)。
+  void _onStallTick(Timer _) {
+    if (!mounted || !_hasBackend || _handedOff) return;
+    // 加载/重试/失败页阶段不采样(位置不动是预期);缓冲有自己的看门狗
+    if (_playState == PlayState.loading ||
+        _playState == PlayState.retrying ||
+        _playState == PlayState.failed) {
+      return;
+    }
+    final v = _backend.notifier.value;
+    final stalled = _stallDetector.sample(
+      eligible: v.isInitialized && v.isPlaying && !v.isBuffering && !v.hasError,
+      position: v.position,
+      now: DateTime.now(),
+    );
+    if (!stalled) return;
+    if (_stallRetryTimes < 3) {
+      _stallRetryTimes += 1;
+      Logger.error(
+          '检测到播放卡死(状态在播但位置 8s 未推进),重连($_stallRetryTimes/3): ${_channel.name}');
+      LogStore.instance.w('player',
+          '⚠ 卡死看门狗:position 停在 ${v.position.inSeconds}s 未推进,重连($_stallRetryTimes/3)');
+      _initializePlayer(fresh: false);
+    } else {
+      Logger.error('播放视频失败(卡死重连超限): ${_channel.name} | $_sourceLink');
+      LogStore.instance.e('player', '✖ 卡死重连 3 次仍未恢复,停止播放');
+      setState(() {
+        _playState = PlayState.failed;
+      });
+    }
+  }
+
   /// 原生后端运行时诊断(真实音频解码器名/是否 FFmpeg 软解)→ 合并进 _streamInfo 供信息面板展示。
   void _onBackendDiag() {
     final diag = _backend.diagnostics;
@@ -479,6 +526,7 @@ class _PlayerScreenState extends State<PlayerScreen>
           if (v.isPlaying && !v.isBuffering && !v.hasError) {
             _retryTimes = 0;
             _bufferingRetryTimes = 0;
+            _stallRetryTimes = 0;
           }
         });
       }
