@@ -266,9 +266,15 @@ class NativeVideoEngine(
         val r = object : Runnable {
             override fun run() {
                 if (player === p) {
+                    // renderedFrames:视频渲染器累计已渲染帧数(DecoderCounters 原始计数)。
+                    // Dart 侧卡死看门狗据此判断“位置在走但画面死”(音频时钟活着、视频管线卡住)。
+                    val rendered = p.videoDecoderCounters?.let {
+                        it.ensureUpdated(); it.renderedOutputBufferCount
+                    } ?: -1
                     emit(mapOf("event" to "position", "ms" to p.currentPosition,
                         "duration" to (if (p.duration == C.TIME_UNSET) 0L else p.duration),
-                        "bufferedMs" to (p.bufferedPosition - p.currentPosition).coerceAtLeast(0L)))
+                        "bufferedMs" to (p.bufferedPosition - p.currentPosition).coerceAtLeast(0L),
+                        "renderedFrames" to rendered))
                     // 直接从 player 读当前格式(比 AnalyticsListener 更可靠,HLS 也准)。
                     emit(buildFormatStats(p))
                     main.postDelayed(this, 500)

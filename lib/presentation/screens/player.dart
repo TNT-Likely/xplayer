@@ -66,8 +66,14 @@ class _PlayerScreenState extends State<PlayerScreen>
   // 静默卡死看门狗:状态“在播”但位置 8s 纹丝不动(READY 卡死,不缓冲不报错)→ 重连。
   // 这是错误重试/长缓冲重连之外的第三种故障形态,ExoPlayer 自身不会上报。
   final StallDetector _stallDetector = StallDetector();
-  Timer? _stallCheckTimer; // 每 2s 采样一次位置推进
+  // 帧推进看门狗:位置在走(音频时钟活着)但画面帧 15s 不推进 = 视频管线死。仅对有视频轨的流生效。
+  final StallDetector _frameStallDetector =
+      StallDetector(threshold: const Duration(seconds: 15));
+  Timer? _stallCheckTimer; // 每 2s 采样一次位置/帧推进
   int _stallRetryTimes = 0;
+  // 用户暂停意图:看门狗只信它,不信 ExoPlayer 的 isPlaying/isBuffering 标志——
+  // 卡死时标志会“说谎”(如卡成假 paused),按标志豁免就会漏检(2.5.11 的教训)。
+  bool _pauseIntended = false;
   Timer? _retryTimer; // 失败后延迟重载的定时器(切台/卸载时需取消,否则会回头再重载一次)
   int _loadToken = 0; // 每次加载的代号:被新加载取代后,旧加载的异步回调据此丢弃
   bool _isHandlingBuffering = false;
@@ -146,6 +152,7 @@ class _PlayerScreenState extends State<PlayerScreen>
       _backend.notifier.addListener(_listenToVideoController);
       _backend.diagnostics?.addListener(_onBackendDiag);
       _playState = PlayState.playing;
+      _pauseIntended = false;
       _backend.play(); // 取回时确保在播(小窗可能因切后台被暂停过)
       _updateWakelock(true); // 从小窗取回已在播 → 直接保持常亮(监听器不会补发)
       WidgetsBinding.instance.addPostFrameCallback((_) => _setSurfaceFullscreen());
@@ -209,6 +216,7 @@ class _PlayerScreenState extends State<PlayerScreen>
     if (state == AppLifecycleState.resumed) {
       if (_resumeAfterBg) {
         _resumeAfterBg = false;
+        _pauseIntended = false;
         _backend.play();
       }
     } else if (state == AppLifecycleState.paused ||
@@ -216,6 +224,7 @@ class _PlayerScreenState extends State<PlayerScreen>
       // 切后台(如 TV 按 HOME 退桌面)→ 暂停,避免退到后台还在出声;回前台再恢复。
       if (_backend.notifier.value.isPlaying) {
         _resumeAfterBg = true;
+        _pauseIntended = true; // 切后台的暂停是有意的,回前台恢复时清除
         _backend.pause();
       }
     }
@@ -287,6 +296,8 @@ class _PlayerScreenState extends State<PlayerScreen>
     _bufHideTimer?.cancel();
     _bufHideTimer = null;
     _stallDetector.reset(); // 新会话重新建立位置基线,不残留旧计时
+    _frameStallDetector.reset();
+    _pauseIntended = false; // 加载即意图播放(初始化成功后会立即 play)
     _isHandlingBuffering = false;
     _loadStartedAt = DateTime.now();
 
@@ -418,29 +429,52 @@ class _PlayerScreenState extends State<PlayerScreen>
   /// 处置与切台同款:全量重连(上限 3 次,12s 稳定播放后配额恢复,超限停失败页)。
   void _onStallTick(Timer _) {
     if (!mounted || !_hasBackend || _handedOff) return;
-    // 加载/重试/失败页阶段不采样(位置不动是预期);缓冲有自己的看门狗
+    // 加载/重试/失败页阶段不采样(位置不动是预期)
     if (_playState == PlayState.loading ||
         _playState == PlayState.retrying ||
         _playState == PlayState.failed) {
       return;
     }
     final v = _backend.notifier.value;
-    final stalled = _stallDetector.sample(
-      eligible: v.isInitialized && v.isPlaying && !v.isBuffering && !v.hasError,
-      position: v.position,
-      now: DateTime.now(),
-    );
-    if (!stalled) return;
+    // 缓冲态由长缓冲看门狗(5s)负责重连,这里让位,避免双重重连互相打架
+    if (v.isBuffering) {
+      _stallDetector.reset();
+      _frameStallDetector.reset();
+      return;
+    }
+    // 关键:eligible 只看用户意图(_pauseIntended)与硬条件(已初始化/无错误),
+    // 不看 isPlaying —— 卡死时 ExoPlayer 可能卡成“假暂停”(isPlaying=false 但用户
+    // 从未暂停),2.5.11 按 isPlaying 豁免导致漏检、不自动重连。
+    final eligible = v.isInitialized && !v.hasError && !_pauseIntended;
+    final now = DateTime.now();
+    // 检测 1:播放位置 8s 纹丝不动(时钟停走/假暂停/管线卡死)
+    final posStalled = _stallDetector.sample(
+        eligible: eligible, position: v.position, now: now);
+    // 检测 2:位置在走(音频时钟活着)但已渲染帧数 15s 不增长 = 视频管线死。
+    // 仅原生引擎提供 renderedFrames;仅对有视频轨的流生效(纯音频/电台不误伤)。
+    final frames =
+        (_backend.diagnostics?.value['renderedFrames'] as num?)?.toInt();
+    final frameStalled = (frames != null && frames >= 0 && v.size.width > 0)
+        ? _frameStallDetector.sample(
+            eligible: eligible,
+            position: Duration(milliseconds: frames), // 帧计数当作推进量复用检测器
+            now: now)
+        : false;
+    if (!posStalled && !frameStalled) return;
+    final kind = posStalled ? '位置停滞' : '画面帧停滞';
+    // 状态快照进日志中心:若仍有漏网形态,凭这条日志能直接定位卡死时的真实状态
+    final snap = 'pos=${v.position.inSeconds}s frames=$frames '
+        'playing=${v.isPlaying} buffering=${v.isBuffering} err=${v.hasError} '
+        'state=$_playState pauseIntended=$_pauseIntended';
     if (_stallRetryTimes < 3) {
       _stallRetryTimes += 1;
-      Logger.error(
-          '检测到播放卡死(状态在播但位置 8s 未推进),重连($_stallRetryTimes/3): ${_channel.name}');
-      LogStore.instance.w('player',
-          '⚠ 卡死看门狗:position 停在 ${v.position.inSeconds}s 未推进,重连($_stallRetryTimes/3)');
+      Logger.error('检测到播放卡死[$kind],重连($_stallRetryTimes/3): ${_channel.name}');
+      LogStore.instance
+          .w('player', '⚠ 卡死看门狗[$kind] $snap → 重连($_stallRetryTimes/3)');
       _initializePlayer(fresh: false);
     } else {
       Logger.error('播放视频失败(卡死重连超限): ${_channel.name} | $_sourceLink');
-      LogStore.instance.e('player', '✖ 卡死重连 3 次仍未恢复,停止播放');
+      LogStore.instance.e('player', '✖ 卡死重连 3 次仍未恢复[$kind] $snap');
       setState(() {
         _playState = PlayState.failed;
       });
@@ -678,16 +712,13 @@ class _PlayerScreenState extends State<PlayerScreen>
                 // 有交互(如遥控器移动焦点)就重置倒计时,停手 5 秒后再自动收起
                 _startAutoCloseTimer();
               },
-              onPlayPause: (isPlaying) {
-                if (isPlaying) {
-                  setState(() {
-                    _playState = PlayState.playing;
-                  });
-                } else {
-                  setState(() {
-                    _playState = PlayState.paused;
-                  });
-                }
+              onPlayPause: (wasPlaying) {
+                // 回调参数是按键前的状态:按下时在播 → 本次动作是“暂停”
+                _pauseIntended = wasPlaying;
+                setState(() {
+                  _playState =
+                      wasPlaying ? PlayState.paused : PlayState.playing;
+                });
               },
               backend: _backend,
               favoriteChannels: widget.favoriteChannels,
@@ -916,7 +947,10 @@ class _PlayerScreenState extends State<PlayerScreen>
       context,
       url: _playUrl,
       title: _channel.name,
-      onCasted: () => _backend.pause(),
+      onCasted: () {
+        _pauseIntended = true; // 投出后本地有意暂停
+        _backend.pause();
+      },
     );
   }
 
@@ -928,6 +962,7 @@ class _PlayerScreenState extends State<PlayerScreen>
       } else {
         sleepTimer.start(d, onFire: () {
           if (mounted) {
+            _pauseIntended = true; // 睡眠定时到点,有意暂停
             _backend.pause();
             showToast(AppLocalizations.of(context)!.sleepStopped);
           }

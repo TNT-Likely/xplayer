@@ -95,8 +95,14 @@ class NativePlayerBackend implements XPlayerBackend {
           position: Duration(milliseconds: (m['ms'] as num).toInt()),
           duration: Duration(milliseconds: (m['duration'] as num).toInt()),
         );
-        if (m['bufferedMs'] != null) {
-          _diag.value = {..._diag.value, 'bufferedMs': m['bufferedMs']};
+        if (m['bufferedMs'] != null || m['renderedFrames'] != null) {
+          _diag.value = {
+            ..._diag.value,
+            if (m['bufferedMs'] != null) 'bufferedMs': m['bufferedMs'],
+            // 已渲染帧数:卡死看门狗用来判断“位置在走但画面死”
+            if (m['renderedFrames'] != null)
+              'renderedFrames': m['renderedFrames'],
+          };
         }
         break;
       case 'stats':
