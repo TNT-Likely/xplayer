@@ -1,4 +1,5 @@
 import 'dart:io';
+import 'package:flutter/foundation.dart' show kDebugMode;
 
 import 'package:flutter/material.dart';
 import 'package:cached_network_image/cached_network_image.dart';
@@ -65,7 +66,9 @@ class _PlayerScreenState extends State<PlayerScreen>
   Timer? _bufHideTimer; // 缓冲遮罩“隐藏防抖”:恢复后 ~0.8s 才撤,避免刚恢复又卡的 show/hide 抖动
   // 静默卡死看门狗:状态“在播”但位置 8s 纹丝不动(READY 卡死,不缓冲不报错)→ 重连。
   // 这是错误重试/长缓冲重连之外的第三种故障形态,ExoPlayer 自身不会上报。
-  final StallDetector _stallDetector = StallDetector();
+  // 6s 阈值:实测正常播放位置每 ≤4s 必有一次向前进展,6s 有余量;越短恢复越快。
+  final StallDetector _stallDetector =
+      StallDetector(threshold: const Duration(seconds: 6));
   // 帧推进看门狗:位置在走(音频时钟活着)但画面帧 15s 不推进 = 视频管线死。仅对有视频轨的流生效。
   final StallDetector _frameStallDetector =
       StallDetector(threshold: const Duration(seconds: 15));
@@ -436,15 +439,20 @@ class _PlayerScreenState extends State<PlayerScreen>
       return;
     }
     final v = _backend.notifier.value;
-    // 缓冲态由长缓冲看门狗(5s)负责重连,这里让位,避免双重重连互相打架
-    if (v.isBuffering) {
-      _stallDetector.reset();
-      _frameStallDetector.reset();
-      return;
+    // 诊断探针(仅 debug 构建打 logcat):看门狗每次采样看到的 Dart 侧状态。
+    // 与原生层 XPlayerEngine 探针对照,可定位事件通道断流/标志谎报等形态。
+    if (kDebugMode) {
+      debugPrint('[stalltick] pos=${v.position.inMilliseconds}ms '
+          'frames=${(_backend.diagnostics?.value['renderedFrames'] as num?)?.toInt()} '
+          'init=${v.isInitialized} playing=${v.isPlaying} buffering=${v.isBuffering} '
+          'err=${v.hasError} state=$_playState intent=${_pauseIntended ? "paused" : "play"}');
     }
-    // 关键:eligible 只看用户意图(_pauseIntended)与硬条件(已初始化/无错误),
-    // 不看 isPlaying —— 卡死时 ExoPlayer 可能卡成“假暂停”(isPlaying=false 但用户
-    // 从未暂停),2.5.11 按 isPlaying 豁免导致漏检、不自动重连。
+    // 关键一:不再因缓冲让位/重置计时!实测卡死形态会每十几秒闪断一次缓冲
+    // (单采样周期,<5s,长缓冲看门狗接不住),若在此 reset 检测器,15s 帧计时
+    // 反复被闪断清零,触发被拖到 30s+ 甚至永不触发(2.5.12 实测拖了 33s)。
+    // 持续性的真缓冲会被 5s 长缓冲看门狗先接走并重建播放器,不会双重重连。
+    // 关键二:eligible 只看用户意图(_pauseIntended)与硬条件(已初始化/无错误),
+    // 不看 isPlaying/isBuffering —— 卡死时 ExoPlayer 的状态标志会说谎。
     final eligible = v.isInitialized && !v.hasError && !_pauseIntended;
     final now = DateTime.now();
     // 检测 1:播放位置 8s 纹丝不动(时钟停走/假暂停/管线卡死)
@@ -460,7 +468,16 @@ class _PlayerScreenState extends State<PlayerScreen>
             position: Duration(milliseconds: frames), // 帧计数当作推进量复用检测器
             now: now)
         : false;
-    if (!posStalled && !frameStalled) return;
+    if (!posStalled && !frameStalled) {
+      // 停滞已 ≥3s(未到重连阈值):亮出“缓冲中…”遮罩给用户反馈,不再静默冻屏。
+      // 遮罩的撤除由 _listenToVideoController 的隐藏防抖负责(恢复进展后自动撤)。
+      if (eligible &&
+          _stallDetector.stalledFor(now) >= const Duration(seconds: 3) &&
+          _playState != PlayState.buffering) {
+        setState(() => _playState = PlayState.buffering);
+      }
+      return;
+    }
     final kind = posStalled ? '位置停滞' : '画面帧停滞';
     // 状态快照进日志中心:若仍有漏网形态,凭这条日志能直接定位卡死时的真实状态
     final snap = 'pos=${v.position.inSeconds}s frames=$frames '
@@ -566,11 +583,20 @@ class _PlayerScreenState extends State<PlayerScreen>
       }
       _bufShowTimer?.cancel();
       _bufShowTimer = null;
+      // UI 状态被抖动打成 paused 后自动纠正:真实在播且用户没暂停,就该是 playing
+      // (否则 _playState 永远卡在 paused —— 抖动期一瞬的 paused 无人扳回)。
+      if (value.isPlaying && !_pauseIntended && _playState == PlayState.paused) {
+        setState(() => _playState = PlayState.playing);
+      }
       // 缓冲遮罩「隐藏防抖」:恢复后再等 ~0.8s 才撤遮罩,避免刚恢复又卡导致 show/hide 抖动。
+      // 卡死停滞期间(位置 ≥3s 无进展)不撤 —— 那是卡死看门狗亮的反馈遮罩,恢复进展后才撤。
       if (_playState == PlayState.buffering && _bufHideTimer == null) {
         _bufHideTimer = Timer(const Duration(milliseconds: 800), () {
           _bufHideTimer = null;
-          if (mounted && !_backend.notifier.value.isBuffering) {
+          if (mounted &&
+              !_backend.notifier.value.isBuffering &&
+              _stallDetector.stalledFor(DateTime.now()) <
+                  const Duration(seconds: 3)) {
             setState(() => _playState = PlayState.playing);
           }
         });

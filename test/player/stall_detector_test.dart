@@ -59,6 +59,32 @@ void main() {
       expect(d.sample(eligible: true, position: const Duration(seconds: 2), now: t(15)), isTrue); // 满 8 秒
     });
 
+    test('直播卡死实测形态:位置只倒跳不前进 → 照样累计并触发(倒跳不算进展)', () {
+      // 回放 2.5.12 漏检 wedge 的真实 logcat 轨迹:位置随直播窗口前移每 ~6s 向后跳,
+      // 从不向前。若“变了就算在播”,每次倒跳都重置计时 → 永不触发(旧实现的漏洞)。
+      final d = StallDetector(threshold: const Duration(seconds: 8));
+      Duration ms(int v) => Duration(milliseconds: v);
+      expect(d.sample(eligible: true, position: ms(-3606), now: t(0)), isFalse); // 基线
+      expect(d.sample(eligible: true, position: ms(-3606), now: t(2)), isFalse);
+      expect(d.sample(eligible: true, position: ms(-3606), now: t(4)), isFalse);
+      expect(d.sample(eligible: true, position: ms(-9006), now: t(6)), isFalse); // 倒跳:不重置
+      expect(d.sample(eligible: true, position: ms(-9006), now: t(8)), isTrue); // 满 8s 触发
+    });
+
+    test('正常直播抖动:位置前后摆动但周期性向前 → 不误报(生产阈值 6s)', () {
+      // 回放正常播放的真实轨迹:位置在 ±3s 抖动,但每 2~4s 必有一次向前移动。
+      final d = StallDetector(threshold: const Duration(seconds: 6));
+      Duration ms(int v) => Duration(milliseconds: v);
+      final trace = [763, -2520, -519, 1481, -1912, 91, 2088, -1209, 800, 1693];
+      for (var i = 0; i < trace.length; i++) {
+        expect(
+          d.sample(eligible: true, position: ms(trace[i]), now: t(i * 2)),
+          isFalse,
+          reason: '第 $i 个采样(pos=${trace[i]})不应误报',
+        );
+      }
+    });
+
     test('reset() 后从头建立基线(切台/重连后不残留旧计时)', () {
       final d = StallDetector(threshold: const Duration(seconds: 8));
       d.sample(eligible: true, position: Duration.zero, now: t(0));

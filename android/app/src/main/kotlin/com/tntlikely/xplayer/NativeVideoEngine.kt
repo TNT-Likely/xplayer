@@ -261,11 +261,22 @@ class NativeVideoEngine(
         return p
     }
 
+    private var pollTick = 0
+
     private fun startPositionPolling(p: ExoPlayer) {
         positionPoller?.let { main.removeCallbacks(it) }
         val r = object : Runnable {
             override fun run() {
                 if (player === p) {
+                    // 诊断探针:每 2s(每 4 次轮询)打一条 ExoPlayer 底层真实状态到 logcat,
+                    // 与 Dart 侧 [stalltick] 探针对照,可判断事件通道是否断流、标志是否谎报。
+                    if (pollTick++ % 4 == 0) {
+                        android.util.Log.d("XPlayerEngine",
+                            "state=${p.playbackState} pwr=${p.playWhenReady} playing=${p.isPlaying} " +
+                            "pos=${p.currentPosition} buf=${p.bufferedPosition} " +
+                            "frames=${p.videoDecoderCounters?.let { it.ensureUpdated(); it.renderedOutputBufferCount } ?: -1} " +
+                            "supp=${p.playbackSuppressionReason} err=${p.playerError?.errorCodeName ?: "none"}")
+                    }
                     // renderedFrames:视频渲染器累计已渲染帧数(DecoderCounters 原始计数)。
                     // Dart 侧卡死看门狗据此判断“位置在走但画面死”(音频时钟活着、视频管线卡住)。
                     val rendered = p.videoDecoderCounters?.let {
