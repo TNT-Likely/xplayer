@@ -53,6 +53,11 @@ class _ColorCell extends StatelessWidget {
   Widget build(BuildContext context) {
     return XBaseButton(
       onPressed: onTap,
+      // TV:打开即把焦点落在当前选中的色块上,与项目其它选择器一致
+      // (player_dialogs / quality_selector / channel_source /
+      //  audio_track_selector / log_center 均为 autofocus: selected)。
+      // 不设的话遥控器用户打开弹窗看不到任何高亮,要多按一次方向键才知道焦点在哪。
+      autofocus: selected,
       child: (focused) => Container(
         decoration: BoxDecoration(
           color: color,
