@@ -414,6 +414,9 @@ class AppLocalizationsEn extends AppLocalizations {
   String get itemSize => 'Item Size';
 
   @override
+  String get themeColor => 'Theme color';
+
+  @override
   String get noProgramme => 'No programme guide for this channel';
 
   @override

@@ -1,17 +1,21 @@
 import 'package:flutter/material.dart';
+import 'package:xplayer/shared/theme/theme_settings.dart';
 
 /// XPlayer Design Token 系统（结构参考 BeeCount 的 BeeTokens / BeeDimens）。
 ///
 /// 设计理念：语义化命名统一管理颜色与尺寸，UI 组件应使用 Token 而非散落的字面量。
-/// 现状：单一深色主题（TV / IPTV 场景），**暂未引入暗色模式**，故全部为静态常量，
-/// 无需 context，便于在 CustomPainter、默认参数等无 context 处复用。
+/// 现状：单一深色主题（TV / IPTV 场景），**暂未引入暗色模式**。
+/// 除强调色 [brand] / [focusRing] 外全部为静态常量，无需 context，
+/// 便于在 CustomPainter、默认参数等无 context 处复用。
+/// 强调色由用户设定（见 theme_settings.dart），故为 getter；其余保持 const，
+/// 以免破坏 `const TextStyle(...)` 等现有 const 上下文。
 /// 引入暗色模式时，可改造为 `static Color xxx(BuildContext)` 形式（见 BeeTokens）。
 class AppTokens {
   AppTokens._();
 
   // ========== 品牌色 Brand ==========
-  /// 主色种子（#00dc82）。
-  static const Color brand = Color(0xFF00DC82);
+  /// 主色种子。由用户在「界面 → 主题色」中设定，默认 #00DC82。
+  static Color get brand => themeColor.value;
 
   // ========== 文字 Text ==========
   static const Color textPrimary = Colors.white;
@@ -48,7 +52,7 @@ class AppTokens {
   static const Color fillDefault = Color(0x26FFFFFF);
 
   /// 焦点高亮基色。
-  static const Color focusRing = brand;
+  static Color get focusRing => brand;
 
   // ========== 语义色 Semantic ==========
   static const Color success = Color(0xFF4CAF50);

@@ -3,34 +3,10 @@ import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
 import 'package:xplayer/localization/app_localizations.dart';
 import 'package:xplayer/providers/media_provider.dart';
+import 'package:xplayer/shared/components/x_dialog_shell.dart';
 import 'package:xplayer/shared/components/x_text_button.dart';
 import 'package:xplayer/shared/components/x_icon_button.dart';
 import 'package:xplayer/shared/theme/app_tokens.dart';
-
-/// 三个独立入口共享的弹窗外壳:统一背景/标题/确定按钮。
-class _FilterDialogShell extends StatelessWidget {
-  final String title;
-  final Widget child;
-  const _FilterDialogShell({required this.title, required this.child});
-
-  @override
-  Widget build(BuildContext context) {
-    final l = AppLocalizations.of(context)!;
-    return AlertDialog(
-      backgroundColor: AppTokens.surfacePanel,
-      title:
-          Text(title, style: const TextStyle(color: AppTokens.textPrimary)),
-      content: SizedBox(width: 360, child: child),
-      actions: [
-        XTextButton(
-          text: l.ok,
-          type: XTextButtonType.primary,
-          onPressed: () => Navigator.of(context).pop(),
-        ),
-      ],
-    );
-  }
-}
 
 /// 搜索弹窗(右上角搜索图标打开)。改动即时作用于首页网格。
 class ChannelSearchDialog extends StatefulWidget {
@@ -79,7 +55,7 @@ class _ChannelSearchDialogState extends State<ChannelSearchDialog> {
     final l = AppLocalizations.of(context)!;
     final media = Provider.of<MediaProvider>(context);
 
-    return _FilterDialogShell(
+    return XDialogShell(
       title: l.search,
       child: TextField(
         controller: _controller,
@@ -128,7 +104,7 @@ class ChannelGroupDialog extends StatelessWidget {
     final groups = media.availableGroups;
     final selected = media.selectedGroup;
 
-    return _FilterDialogShell(
+    return XDialogShell(
       title: l.groups,
       child: SingleChildScrollView(
         child: Wrap(
@@ -165,7 +141,7 @@ class ChannelSizeDialog extends StatelessWidget {
     final media = Provider.of<MediaProvider>(context);
     final level = media.gridSizeLevel; // 0 最大 .. 4 最小
 
-    return _FilterDialogShell(
+    return XDialogShell(
       title: l.itemSize,
       child: Row(
         children: [
@@ -200,7 +176,7 @@ class AutoRefreshDialog extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final l = AppLocalizations.of(context)!;
-    return _FilterDialogShell(
+    return XDialogShell(
       title: l.autoRefreshOnLaunch,
       child: Consumer<MediaProvider>(
         builder: (context, mp, _) => Column(

@@ -408,6 +408,9 @@ class AppLocalizationsZh extends AppLocalizations {
   String get itemSize => '显示大小';
 
   @override
+  String get themeColor => '主题色';
+
+  @override
   String get noProgramme => '该频道暂无节目单';
 
   @override

@@ -854,6 +854,12 @@ abstract class AppLocalizations {
   /// **'Item Size'**
   String get itemSize;
 
+  /// No description provided for @themeColor.
+  ///
+  /// In en, this message translates to:
+  /// **'Theme color'**
+  String get themeColor;
+
   /// No description provided for @noProgramme.
   ///
   /// In en, this message translates to:

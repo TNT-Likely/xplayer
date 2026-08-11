@@ -126,6 +126,7 @@
   "reloadingAttempt": "Reloading… (attempt {count})",
   "filterTitle": "Search & Filter",
   "itemSize": "Item Size",
+  "themeColor": "Theme color",
   "noProgramme": "No programme guide for this channel",
   "exitAppTitle": "Exit App",
   "exitAppMessage": "Are you sure you want to exit?",
