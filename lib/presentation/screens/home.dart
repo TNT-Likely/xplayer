@@ -39,6 +39,8 @@ import 'package:xplayer/providers/remote_provider.dart';
 import 'package:xplayer/providers/global_provider.dart';
 import 'package:xplayer/providers/mini_player_controller.dart';
 import 'package:xplayer/presentation/screens/player.dart';
+import 'package:xplayer/presentation/widgets/theme_color_dialog.dart';
+import 'package:xplayer/shared/theme/theme_settings.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -571,6 +573,37 @@ class _HomeScreenState extends State<HomeScreen> {
                     Navigator.of(context).pop();
                     _showSizeDialog(context);
                   },
+                ),
+                // 主题强调色:色块 trailing 实时反映当前色
+                ValueListenableBuilder<Color>(
+                  valueListenable: themeColor,
+                  builder: (_, color, __) => XBaseButton(
+                    child: animeContainer(
+                      ListTile(
+                        leading:
+                            const Icon(Icons.palette, color: Colors.white),
+                        title: Text(
+                          localizations.themeColor,
+                          style: const TextStyle(color: Colors.white),
+                        ),
+                        trailing: Container(
+                          width: 24,
+                          height: 24,
+                          decoration: BoxDecoration(
+                            color: color,
+                            shape: BoxShape.circle,
+                          ),
+                        ),
+                      ),
+                    ),
+                    onPressed: () {
+                      Navigator.of(context).pop();
+                      showDialog(
+                        context: context,
+                        builder: (_) => const ThemeColorDialog(),
+                      );
+                    },
+                  ),
                 ),
                 // 首页「最近播放」模块显示开关
                 ValueListenableBuilder<bool>(
