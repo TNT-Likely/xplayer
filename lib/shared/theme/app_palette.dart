@@ -1,0 +1,35 @@
+import 'package:flutter/material.dart';
+
+/// 主题强调色的预设色板。
+///
+/// 选色标准:对 [AppTokens.surfacePanel](#222222,抽屉/弹窗背景,也是主色
+/// 出现最多的场合)的 WCAG 对比度 ≥ 3:1 —— WCAG 2.1 对非文本 UI 组件的
+/// 最低要求。主色驱动 TV 焦点环,对比度不足会让焦点发闷。
+///
+/// 新增颜色必须先过 test/theme/app_palette_test.dart 的对比度断言。
+/// 设计阶段已因此排除紫 #9C27B0(对比度仅 2.52),改用 #BA68C8(4.47)。
+class AppPalette {
+  AppPalette._();
+
+  /// 默认色,即改造前硬编码的品牌色。
+  static const Color green = Color(0xFF00DC82); // 对比度 8.76
+  static const Color blue = Color(0xFF2196F3); // 5.09
+  static const Color cyan = Color(0xFF00BCD4); // 6.93
+  static const Color purple = Color(0xFFBA68C8); // 4.47
+  static const Color pink = Color(0xFFE91E63); // 3.66
+  static const Color red = Color(0xFFF44336); // 4.32
+  static const Color orange = Color(0xFFFF9800); // 7.38
+  static const Color amber = Color(0xFFFFC107); // 9.76
+
+  /// 色板顺序。UI 遍历此列表,避免各处重复维护顺序。
+  static const List<Color> all = <Color>[
+    green,
+    blue,
+    cyan,
+    purple,
+    pink,
+    red,
+    orange,
+    amber,
+  ];
+}
