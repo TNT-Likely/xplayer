@@ -62,7 +62,7 @@ class _ColorCell extends StatelessWidget {
               : null,
         ),
         child: selected
-            ? const Icon(Icons.check, color: Colors.white, size: 22)
+            ? const Icon(Icons.check, color: AppPalette.onPalette, size: 22)
             : null,
       ),
     );

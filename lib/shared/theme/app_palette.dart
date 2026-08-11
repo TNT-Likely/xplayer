@@ -26,6 +26,13 @@ class AppPalette {
   static const Color orange = Color(0xFFFF9800); // 7.38
   static const Color amber = Color(0xFFFFC107); // 9.76
 
+  /// 色块上的前景色(选中对勾)。
+  ///
+  /// 用黑而非白:色板的选色标准要求每个色对深色面板 ≥3:1,这使它们全都是亮色
+  /// (亮度 ≥0.192),而白/黑等对比的临界亮度是 0.179 —— 故黑色标记在 8 色上
+  /// 一律更清晰。实测白色最差仅 1.63(amber),黑色最差 4.84(pink)。
+  static const Color onPalette = Colors.black;
+
   /// 色板顺序。UI 遍历此列表,避免各处重复维护顺序。
   static const List<Color> all = <Color>[
     green,

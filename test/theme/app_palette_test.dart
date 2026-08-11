@@ -45,5 +45,15 @@ void main() {
         expect(c.a, 1.0, reason: '$c 带 alpha,对比度断言会失真');
       }
     });
+
+    test('选中标记色对每个预设色的对比度 ≥ 3:1(否则看不出选了哪个)', () {
+      // 对勾是选中态的唯一视觉线索。此前用白色时,amber/green/orange/cyan
+      // 四个色上的对比度仅 1.63~2.30,几乎看不出来。
+      for (final c in AppPalette.all) {
+        final ratio = _contrast(AppPalette.onPalette, c);
+        expect(ratio, greaterThanOrEqualTo(3.0),
+            reason: '$c 上的选中对勾对比度仅 ${ratio.toStringAsFixed(2)},看不清');
+      }
+    });
   });
 }
