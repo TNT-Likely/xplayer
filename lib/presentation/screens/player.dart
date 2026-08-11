@@ -73,6 +73,11 @@ class _PlayerScreenState extends State<PlayerScreen>
   final StallDetector _frameStallDetector =
       StallDetector(threshold: const Duration(seconds: 15));
   Timer? _stallCheckTimer; // 每 2s 采样一次位置/帧推进
+  // 位置能否当进展判据(见 positionIsProgressSignal)。iOS/macOS 的 AVPlayer 对
+  // HLS 直播位置不推进(真机实测恒为 1ms),位置停滞看门狗连同它的 3s 反馈遮罩
+  // 必须整体让开 —— 否则正常播放每 6s 被误判卡死一次,无限重连。
+  bool get _posIsProgress =>
+      positionIsProgressSignal(isAndroid: Platform.isAndroid);
   int _stallRetryTimes = 0;
   // 用户暂停意图:看门狗只信它,不信 ExoPlayer 的 isPlaying/isBuffering 标志——
   // 卡死时标志会“说谎”(如卡成假 paused),按标志豁免就会漏检(2.5.11 的教训)。
@@ -445,7 +450,8 @@ class _PlayerScreenState extends State<PlayerScreen>
       debugPrint('[stalltick] pos=${v.position.inMilliseconds}ms '
           'frames=${(_backend.diagnostics?.value['renderedFrames'] as num?)?.toInt()} '
           'init=${v.isInitialized} playing=${v.isPlaying} buffering=${v.isBuffering} '
-          'err=${v.hasError} state=$_playState intent=${_pauseIntended ? "paused" : "play"}');
+          'err=${v.hasError} state=$_playState intent=${_pauseIntended ? "paused" : "play"} '
+          'posSignal=$_posIsProgress');
     }
     // 关键一:不再因缓冲让位/重置计时!实测卡死形态会每十几秒闪断一次缓冲
     // (单采样周期,<5s,长缓冲看门狗接不住),若在此 reset 检测器,15s 帧计时
@@ -456,8 +462,11 @@ class _PlayerScreenState extends State<PlayerScreen>
     final eligible = v.isInitialized && !v.hasError && !_pauseIntended;
     final now = DateTime.now();
     // 检测 1:播放位置 8s 纹丝不动(时钟停走/假暂停/管线卡死)
-    final posStalled = _stallDetector.sample(
-        eligible: eligible, position: v.position, now: now);
+    // 仅在位置语义可信的后端上做(Android/ExoPlayer);AVPlayer 上位置恒定是常态,
+    // 判了就是把正常直播当卡死。
+    final posStalled = _posIsProgress &&
+        _stallDetector.sample(
+            eligible: eligible, position: v.position, now: now);
     // 检测 2:位置在走(音频时钟活着)但已渲染帧数 15s 不增长 = 视频管线死。
     // 仅原生引擎提供 renderedFrames;仅对有视频轨的流生效(纯音频/电台不误伤)。
     final frames =
@@ -471,7 +480,8 @@ class _PlayerScreenState extends State<PlayerScreen>
     if (!posStalled && !frameStalled) {
       // 停滞已 ≥3s(未到重连阈值):亮出“缓冲中…”遮罩给用户反馈,不再静默冻屏。
       // 遮罩的撤除由 _listenToVideoController 的隐藏防抖负责(恢复进展后自动撤)。
-      if (eligible &&
+      if (_posIsProgress &&
+          eligible &&
           _stallDetector.stalledFor(now) >= const Duration(seconds: 3) &&
           _playState != PlayState.buffering) {
         setState(() => _playState = PlayState.buffering);
@@ -595,8 +605,11 @@ class _PlayerScreenState extends State<PlayerScreen>
           _bufHideTimer = null;
           if (mounted &&
               !_backend.notifier.value.isBuffering &&
-              _stallDetector.stalledFor(DateTime.now()) <
-                  const Duration(seconds: 3)) {
+              // 位置不可信的后端上没有"卡死停滞"这回事,遮罩照常撤;
+              // 否则 stalledFor 会因从不采样而永远停在初值,遮罩再也撤不掉。
+              (!_posIsProgress ||
+                  _stallDetector.stalledFor(DateTime.now()) <
+                      const Duration(seconds: 3))) {
             setState(() => _playState = PlayState.playing);
           }
         });

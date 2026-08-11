@@ -14,4 +14,15 @@ void main() {
     expect(selectBackendKind(isAndroid: false, nativeEnabled: true),
         PlayerBackendKind.videoPlayer);
   });
+
+  group('positionIsProgressSignal', () {
+    test('Android:两种后端底层都是 ExoPlayer,位置可当进展判据', () {
+      expect(positionIsProgressSignal(isAndroid: true), isTrue);
+    });
+
+    test('非 Android:AVPlayer 对 HLS 直播位置不推进,不能当进展判据', () {
+      // iOS 真机实测:直播播放正常但 position 恒为 1ms,若据此判卡死会无限重连。
+      expect(positionIsProgressSignal(isAndroid: false), isFalse);
+    });
+  });
 }
