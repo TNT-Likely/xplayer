@@ -466,188 +466,6 @@ class _HomeScreenState extends State<HomeScreen> {
                   ),
                 ),
                 const Divider(color: Colors.white24, height: 1),
-                _drawerSectionHeader('播放'),
-                // 渲染模式开关:SurfaceView(platformView)/ 纹理。仅非 Android 显示 ——
-                // Android 的清晰度走「播放引擎=原生」(见下),且全局透明下 platformView 会卡;
-                // iOS/macOS(avfoundation 支持 platformView)保留此选项。
-                if (!Platform.isAndroid)
-                  ValueListenableBuilder<bool>(
-                    valueListenable: useSurfaceView,
-                    builder: (_, surface, __) => ListTile(
-                      leading: const Icon(Icons.hd, color: Colors.white),
-                      title: Text(
-                        '${localizations.renderMode}: ${surface ? "SurfaceView" : "Texture"}',
-                        style: const TextStyle(color: Colors.white),
-                      ),
-                      subtitle: Text(
-                        localizations.renderModeHint,
-                        style: const TextStyle(
-                            color: Colors.white54, fontSize: 11),
-                      ),
-                      trailing: Switch(
-                        value: surface,
-                        onChanged: (v) => setUseSurfaceView(v),
-                      ),
-                    ),
-                  ),
-                // 播放引擎开关:原生(SurfaceView,硬件 VPP)/ video_player。仅 Android。
-                if (Platform.isAndroid)
-                  ValueListenableBuilder<bool>(
-                    valueListenable: useNativeEngine,
-                    builder: (_, on, __) => ListTile(
-                      leading: const Icon(Icons.memory, color: Colors.white),
-                      title: Text(
-                        localizations.playerEngine,
-                        style: const TextStyle(color: Colors.white),
-                      ),
-                      subtitle: Text(
-                        on
-                            ? localizations.playerEngineNative
-                            : localizations.playerEngineVideoPlayer,
-                        style: const TextStyle(
-                            color: Colors.white54, fontSize: 11),
-                      ),
-                      trailing: Switch(
-                        value: on,
-                        onChanged: (v) => setUseNativeEngine(v),
-                      ),
-                    ),
-                  ),
-                // 返回首页小窗续播开关(全平台)
-                ValueListenableBuilder<bool>(
-                  valueListenable: miniPlayerOnExit,
-                  builder: (_, on, __) => ListTile(
-                    leading: const Icon(Icons.picture_in_picture_alt,
-                        color: Colors.white),
-                    title: Text(localizations.miniPlayerOnExit,
-                        style: const TextStyle(color: Colors.white)),
-                    subtitle: Text(
-                      localizations.miniPlayerOnExitHint,
-                      style:
-                          const TextStyle(color: Colors.white54, fontSize: 11),
-                    ),
-                    trailing: Switch(
-                      value: on,
-                      onChanged: (v) => setMiniPlayerOnExit(v),
-                    ),
-                  ),
-                ),
-                // 回桌面系统画中画开关(仅 Android 手机/平板;TV 无系统 PiP,隐藏)
-                if (Platform.isAndroid)
-                  Consumer<GlobalProvider>(
-                    builder: (context, g, _) {
-                      if (g.isTV) return const SizedBox.shrink();
-                      return ValueListenableBuilder<bool>(
-                        valueListenable: pipOnLeave,
-                        builder: (_, on, __) => ListTile(
-                          leading: const Icon(Icons.picture_in_picture,
-                              color: Colors.white),
-                          title: Text(localizations.pipOnLeave,
-                              style: const TextStyle(color: Colors.white)),
-                          subtitle: Text(
-                            localizations.pipOnLeaveHint,
-                            style: const TextStyle(
-                                color: Colors.white54, fontSize: 11),
-                          ),
-                          trailing: Switch(
-                            value: on,
-                            onChanged: (v) => setPipOnLeave(v),
-                          ),
-                        ),
-                      );
-                    },
-                  ),
-                _drawerSectionHeader('界面'),
-                XBaseButton(
-                  child: animeContainer(
-                    ListTile(
-                      leading: const Icon(Icons.photo_size_select_large,
-                          color: Colors.white),
-                      title: Text(
-                        localizations.itemSize,
-                        style: const TextStyle(color: Colors.white),
-                      ),
-                    ),
-                  ),
-                  onPressed: () {
-                    Navigator.of(context).pop();
-                    _showSizeDialog(context);
-                  },
-                ),
-                // 主题强调色:色块 trailing 实时反映当前色
-                ValueListenableBuilder<Color>(
-                  valueListenable: themeColor,
-                  builder: (_, color, __) => XBaseButton(
-                    child: animeContainer(
-                      ListTile(
-                        leading:
-                            const Icon(Icons.palette, color: Colors.white),
-                        title: Text(
-                          localizations.themeColor,
-                          style: const TextStyle(color: Colors.white),
-                        ),
-                        trailing: Container(
-                          width: 24,
-                          height: 24,
-                          decoration: BoxDecoration(
-                            color: color,
-                            shape: BoxShape.circle,
-                          ),
-                        ),
-                      ),
-                    ),
-                    onPressed: () {
-                      Navigator.of(context).pop();
-                      showDialog(
-                        context: context,
-                        builder: (_) => const ThemeColorDialog(),
-                      );
-                    },
-                  ),
-                ),
-                // 首页「最近播放」模块显示开关
-                ValueListenableBuilder<bool>(
-                  valueListenable: showRecentModule,
-                  builder: (_, on, __) => ListTile(
-                    leading: const Icon(Icons.history, color: Colors.white),
-                    title: Text(localizations.showRecentOnHome,
-                        style: const TextStyle(color: Colors.white)),
-                    trailing: Switch(
-                      value: on,
-                      onChanged: (v) => setShowRecentModule(v),
-                    ),
-                  ),
-                ),
-                // 首页「收藏」行显示开关
-                ValueListenableBuilder<bool>(
-                  valueListenable: showFavoritesRow,
-                  builder: (_, on, __) => ListTile(
-                    leading: const Icon(Icons.favorite, color: Colors.white),
-                    title: Text(localizations.showFavoritesOnHome,
-                        style: const TextStyle(color: Colors.white)),
-                    trailing: Switch(
-                      value: on,
-                      onChanged: (v) => setShowFavoritesRow(v),
-                    ),
-                  ),
-                ),
-                XBaseButton(
-                  child: animeContainer(
-                    ListTile(
-                      leading: const Icon(Icons.language, color: Colors.white),
-                      title: Text(
-                        localeProvider.locale.languageCode == 'zh'
-                            ? '中文'
-                            : 'English',
-                        style: const TextStyle(color: Colors.white),
-                      ),
-                    ),
-                  ),
-                  onPressed: () {
-                    Navigator.of(context).pop();
-                    _showLanguageSwitcher(context, localeProvider);
-                  },
-                ),
                 _drawerSectionHeader('源与节目单'),
                 Consumer<MediaProvider>(
                   builder: (BuildContext context2, mediaProvider, _) {
@@ -836,6 +654,188 @@ class _HomeScreenState extends State<HomeScreen> {
                       ),
                     ),
                   ),
+                ),
+                _drawerSectionHeader('播放'),
+                // 渲染模式开关:SurfaceView(platformView)/ 纹理。仅非 Android 显示 ——
+                // Android 的清晰度走「播放引擎=原生」(见下),且全局透明下 platformView 会卡;
+                // iOS/macOS(avfoundation 支持 platformView)保留此选项。
+                if (!Platform.isAndroid)
+                  ValueListenableBuilder<bool>(
+                    valueListenable: useSurfaceView,
+                    builder: (_, surface, __) => ListTile(
+                      leading: const Icon(Icons.hd, color: Colors.white),
+                      title: Text(
+                        '${localizations.renderMode}: ${surface ? "SurfaceView" : "Texture"}',
+                        style: const TextStyle(color: Colors.white),
+                      ),
+                      subtitle: Text(
+                        localizations.renderModeHint,
+                        style: const TextStyle(
+                            color: Colors.white54, fontSize: 11),
+                      ),
+                      trailing: Switch(
+                        value: surface,
+                        onChanged: (v) => setUseSurfaceView(v),
+                      ),
+                    ),
+                  ),
+                // 播放引擎开关:原生(SurfaceView,硬件 VPP)/ video_player。仅 Android。
+                if (Platform.isAndroid)
+                  ValueListenableBuilder<bool>(
+                    valueListenable: useNativeEngine,
+                    builder: (_, on, __) => ListTile(
+                      leading: const Icon(Icons.memory, color: Colors.white),
+                      title: Text(
+                        localizations.playerEngine,
+                        style: const TextStyle(color: Colors.white),
+                      ),
+                      subtitle: Text(
+                        on
+                            ? localizations.playerEngineNative
+                            : localizations.playerEngineVideoPlayer,
+                        style: const TextStyle(
+                            color: Colors.white54, fontSize: 11),
+                      ),
+                      trailing: Switch(
+                        value: on,
+                        onChanged: (v) => setUseNativeEngine(v),
+                      ),
+                    ),
+                  ),
+                // 返回首页小窗续播开关(全平台)
+                ValueListenableBuilder<bool>(
+                  valueListenable: miniPlayerOnExit,
+                  builder: (_, on, __) => ListTile(
+                    leading: const Icon(Icons.picture_in_picture_alt,
+                        color: Colors.white),
+                    title: Text(localizations.miniPlayerOnExit,
+                        style: const TextStyle(color: Colors.white)),
+                    subtitle: Text(
+                      localizations.miniPlayerOnExitHint,
+                      style:
+                          const TextStyle(color: Colors.white54, fontSize: 11),
+                    ),
+                    trailing: Switch(
+                      value: on,
+                      onChanged: (v) => setMiniPlayerOnExit(v),
+                    ),
+                  ),
+                ),
+                // 回桌面系统画中画开关(仅 Android 手机/平板;TV 无系统 PiP,隐藏)
+                if (Platform.isAndroid)
+                  Consumer<GlobalProvider>(
+                    builder: (context, g, _) {
+                      if (g.isTV) return const SizedBox.shrink();
+                      return ValueListenableBuilder<bool>(
+                        valueListenable: pipOnLeave,
+                        builder: (_, on, __) => ListTile(
+                          leading: const Icon(Icons.picture_in_picture,
+                              color: Colors.white),
+                          title: Text(localizations.pipOnLeave,
+                              style: const TextStyle(color: Colors.white)),
+                          subtitle: Text(
+                            localizations.pipOnLeaveHint,
+                            style: const TextStyle(
+                                color: Colors.white54, fontSize: 11),
+                          ),
+                          trailing: Switch(
+                            value: on,
+                            onChanged: (v) => setPipOnLeave(v),
+                          ),
+                        ),
+                      );
+                    },
+                  ),
+                _drawerSectionHeader('界面'),
+                XBaseButton(
+                  child: animeContainer(
+                    ListTile(
+                      leading: const Icon(Icons.photo_size_select_large,
+                          color: Colors.white),
+                      title: Text(
+                        localizations.itemSize,
+                        style: const TextStyle(color: Colors.white),
+                      ),
+                    ),
+                  ),
+                  onPressed: () {
+                    Navigator.of(context).pop();
+                    _showSizeDialog(context);
+                  },
+                ),
+                // 主题强调色:色块 trailing 实时反映当前色
+                ValueListenableBuilder<Color>(
+                  valueListenable: themeColor,
+                  builder: (_, color, __) => XBaseButton(
+                    child: animeContainer(
+                      ListTile(
+                        leading:
+                            const Icon(Icons.palette, color: Colors.white),
+                        title: Text(
+                          localizations.themeColor,
+                          style: const TextStyle(color: Colors.white),
+                        ),
+                        trailing: Container(
+                          width: 24,
+                          height: 24,
+                          decoration: BoxDecoration(
+                            color: color,
+                            shape: BoxShape.circle,
+                          ),
+                        ),
+                      ),
+                    ),
+                    onPressed: () {
+                      Navigator.of(context).pop();
+                      showDialog(
+                        context: context,
+                        builder: (_) => const ThemeColorDialog(),
+                      );
+                    },
+                  ),
+                ),
+                // 首页「最近播放」模块显示开关
+                ValueListenableBuilder<bool>(
+                  valueListenable: showRecentModule,
+                  builder: (_, on, __) => ListTile(
+                    leading: const Icon(Icons.history, color: Colors.white),
+                    title: Text(localizations.showRecentOnHome,
+                        style: const TextStyle(color: Colors.white)),
+                    trailing: Switch(
+                      value: on,
+                      onChanged: (v) => setShowRecentModule(v),
+                    ),
+                  ),
+                ),
+                // 首页「收藏」行显示开关
+                ValueListenableBuilder<bool>(
+                  valueListenable: showFavoritesRow,
+                  builder: (_, on, __) => ListTile(
+                    leading: const Icon(Icons.favorite, color: Colors.white),
+                    title: Text(localizations.showFavoritesOnHome,
+                        style: const TextStyle(color: Colors.white)),
+                    trailing: Switch(
+                      value: on,
+                      onChanged: (v) => setShowFavoritesRow(v),
+                    ),
+                  ),
+                ),
+                XBaseButton(
+                  child: animeContainer(
+                    ListTile(
+                      leading: const Icon(Icons.language, color: Colors.white),
+                      title: Text(
+                        localeProvider.locale.languageCode == 'zh'
+                            ? '中文'
+                            : 'English',
+                        style: const TextStyle(color: Colors.white),
+                      ),
+                    ),
+                  ),
+                  onPressed: () {
+                    Navigator.of(context).pop();
+                    _showLanguageSwitcher(context, localeProvider);
+                  },
                 ),
                 _drawerSectionHeader('诊断与系统'),
                 XBaseButton(
