@@ -37,5 +37,13 @@ void main() {
     test('色板恰好 8 色(UI 按 4x2 网格布局)', () {
       expect(AppPalette.all, hasLength(8));
     });
+
+    test('预设色必须全不透明(computeLuminance 无视 alpha,半透明会虚报对比度)', () {
+      // 实测:Color(0x40E91E63) 能以 3.66 通过上面的对比度断言,
+      // 但它叠加到 #222222 上的真实对比度只有 1.24。
+      for (final c in AppPalette.all) {
+        expect(c.a, 1.0, reason: '$c 带 alpha,对比度断言会失真');
+      }
+    });
   });
 }
