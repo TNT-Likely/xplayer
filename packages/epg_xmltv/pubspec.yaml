@@ -1,0 +1,17 @@
+name: epg_xmltv
+description: >-
+  XMLTV 电子节目单（EPG）解析与节目查找：当前/下一个节目、按频道检索、
+  XMLTV 时间格式解析。纯 Dart，无 Flutter 依赖。
+version: 0.1.0
+publish_to: none
+
+environment:
+  sdk: ">=3.0.0 <4.0.0"
+
+dependencies:
+  intl: ">=0.19.0 <0.21.0"
+  xml: ^6.0.0
+
+dev_dependencies:
+  test: ^1.24.0
+  lints: ^4.0.0

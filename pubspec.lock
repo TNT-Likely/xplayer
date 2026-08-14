@@ -279,6 +279,13 @@ packages:
       relative: true
     source: path
     version: "0.1.0"
+  epg_xmltv:
+    dependency: "direct main"
+    description:
+      path: "packages/epg_xmltv"
+      relative: true
+    source: path
+    version: "0.1.0"
   fake_async:
     dependency: transitive
     description:

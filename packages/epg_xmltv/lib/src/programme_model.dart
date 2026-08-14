@@ -1,5 +1,5 @@
 import 'package:xml/xml.dart';
-import 'package:xplayer/utils/playlist_util.dart';
+import 'playlist_util.dart';
 
 class Programme {
   final String channel;

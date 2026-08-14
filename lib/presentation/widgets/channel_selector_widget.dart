@@ -3,11 +3,10 @@ import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
 import 'package:xplayer/data/models/channel_model.dart';
-import 'package:xplayer/data/models/programme_model.dart';
+import 'package:epg_xmltv/epg_xmltv.dart';
 import 'package:xplayer/providers/media_provider.dart';
 import 'package:xplayer/utils/channel_filter.dart';
 import 'package:xplayer/utils/epg_metrics.dart';
-import 'package:xplayer/utils/playlist_util.dart';
 import 'package:xplayer/localization/app_localizations.dart';
 
 const String kAllGroups = '全部';

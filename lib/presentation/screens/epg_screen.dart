@@ -3,7 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:xplayer/localization/app_localizations.dart';
 import 'package:xplayer/data/models/channel_model.dart';
-import 'package:xplayer/data/models/programme_model.dart';
+import 'package:epg_xmltv/epg_xmltv.dart';
 import 'package:xplayer/presentation/screens/player.dart';
 import 'package:xplayer/presentation/widgets/epg_channel_column.dart';
 import 'package:xplayer/presentation/widgets/epg_programme_block.dart';

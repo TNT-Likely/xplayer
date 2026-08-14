@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
-import 'package:xplayer/data/models/programme_model.dart';
+import 'package:epg_xmltv/epg_xmltv.dart';
 import 'package:xplayer/shared/components/x_base_button.dart';
 
 /// 时间轴上的单个节目块。live=正在播,高亮。点击/OK 触发 onTap。

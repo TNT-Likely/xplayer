@@ -4,14 +4,13 @@ import 'package:intl/intl.dart';
 import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
 import 'package:xplayer/data/models/channel_model.dart';
-import 'package:xplayer/data/models/programme_model.dart';
+import 'package:epg_xmltv/epg_xmltv.dart';
 import 'package:xplayer/providers/global_provider.dart';
 import 'package:xplayer/shared/components/x_base_button.dart';
 import 'package:xplayer/shared/components/x_icon_button.dart';
 import 'package:xplayer/shared/components/ipv6_badge.dart';
 import 'package:xplayer/providers/media_provider.dart';
 import 'package:xplayer/services/player/x_player_backend.dart';
-import 'package:xplayer/utils/playlist_util.dart';
 import 'package:xplayer/utils/url_utils.dart';
 import 'package:xplayer/localization/app_localizations.dart';
 

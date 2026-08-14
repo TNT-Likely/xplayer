@@ -3,7 +3,7 @@ import 'dart:convert'; // 用于 jsonEncode/jsonDecode
 import 'package:flutter/material.dart';
 import 'package:xplayer/data/models/playlist_model.dart';
 import 'package:xplayer/data/models/channel_model.dart'; // 使用新的文件名
-import 'package:xplayer/data/models/programme_model.dart';
+import 'package:epg_xmltv/epg_xmltv.dart';
 import 'package:xplayer/data/models/channel_test_result.dart';
 import 'package:xplayer/data/models/iptv_presets.dart';
 import 'package:xplayer/utils/channel_filter.dart';

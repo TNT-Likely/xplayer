@@ -6,7 +6,7 @@ import 'package:sqflite/sqflite.dart';
 import 'package:path/path.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:xplayer/data/models/playlist_model.dart';
-import 'package:xplayer/data/models/programme_model.dart';
+import 'package:epg_xmltv/epg_xmltv.dart';
 import 'package:xplayer/services/update/update_proxy.dart';
 import 'package:xml/xml.dart';
 import 'package:m3u_parser_nullsafe/m3u_parser_nullsafe.dart';

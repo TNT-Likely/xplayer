@@ -1,5 +1,5 @@
 import 'package:xplayer/data/models/channel_model.dart';
-import 'package:xplayer/data/models/programme_model.dart';
+import 'package:epg_xmltv/epg_xmltv.dart';
 
 /// EPG 时间轴的纯几何 / 数据换算(无 Flutter 依赖,可单测)。
 class EpgMetrics {

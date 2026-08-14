@@ -1,5 +1,5 @@
 import 'package:intl/intl.dart';
-import 'package:xplayer/data/models/programme_model.dart';
+import 'programme_model.dart';
 
 class PlaylistUtil {
   // 查找指定频道和时间点的单个节目
