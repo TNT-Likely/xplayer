@@ -43,6 +43,7 @@ class PlaylistListScreen extends StatelessWidget {
         builder: (context, mediaProvider, _) {
           return PlaylistListWidget(
             playlists: mediaProvider.playlists,
+            onAdd: () => _showAddDialog(context),
             onDelete: (id) async {
               await mediaProvider.removePlaylist(id);
               showToast(localizations.deleteSuccess);
