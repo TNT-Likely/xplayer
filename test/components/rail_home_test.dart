@@ -129,6 +129,7 @@ void main() {
           channels: channels ?? [..._many('News', 6), ..._many('Sports', 4)],
           recentChannels: recent ?? _many('News', 3),
           favoriteChannels: favorites ?? _many('Sports', 3),
+          now: DateTime(2026, 8, 14, 19, 12),
         );
 
     testWidgets('渲染最近与收藏两条轨道', (tester) async {

@@ -1139,6 +1139,13 @@ class _HomeScreenState extends State<HomeScreen> {
                           channels: mediaProvider.channels,
                           recentChannels: mediaProvider.recentChannels,
                           favoriteChannels: mediaProvider.favoriteChannels,
+                          programmes: mediaProvider.programmes,
+                          now: DateTime.now(),
+                          onOpenGuide: () => Navigator.of(context).push(
+                            MaterialPageRoute<void>(
+                              builder: (_) => const EpgScreen(),
+                            ),
+                          ),
                         ),
                       ShellKind.expanded => ExpandedHomeBody(
                           channels: mediaProvider.channels,
