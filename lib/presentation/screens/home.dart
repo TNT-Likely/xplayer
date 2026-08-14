@@ -16,6 +16,9 @@ import 'package:xplayer/utils/player_settings.dart';
 import 'package:xplayer/services/update_service.dart';
 import 'package:xplayer/shared/components/x_base_button.dart';
 import 'package:xplayer/presentation/widgets/bg_wrapper.dart';
+import 'package:adaptive_shell/adaptive_shell.dart';
+import 'package:xplayer/presentation/components/expanded_home_body.dart';
+import 'package:xplayer/presentation/components/ten_foot_home_body.dart';
 import 'package:xplayer/presentation/components/rail_home_body.dart';
 import 'package:xplayer/presentation/widgets/channel_list_widget.dart';
 import 'package:xplayer/presentation/widgets/channel_filter_dialog.dart';
@@ -1129,11 +1132,25 @@ class _HomeScreenState extends State<HomeScreen> {
                       (mediaProvider.selectedGroup == null ||
                           mediaProvider.selectedGroup!.isEmpty);
                   if (browsing) {
-                    return RailHomeBody(
-                      channels: mediaProvider.channels,
-                      recentChannels: mediaProvider.recentChannels,
-                      favoriteChannels: mediaProvider.favoriteChannels,
-                    );
+                    // 全应用唯一的形态分支。往下所有组件都不判断平台或尺寸,
+                    // 只接受参数(卡片宽度、安全边距等)。
+                    return switch (resolveShell(context)) {
+                      ShellKind.compact => RailHomeBody(
+                          channels: mediaProvider.channels,
+                          recentChannels: mediaProvider.recentChannels,
+                          favoriteChannels: mediaProvider.favoriteChannels,
+                        ),
+                      ShellKind.expanded => ExpandedHomeBody(
+                          channels: mediaProvider.channels,
+                          recentChannels: mediaProvider.recentChannels,
+                          favoriteChannels: mediaProvider.favoriteChannels,
+                        ),
+                      ShellKind.tenFoot => TenFootHomeBody(
+                          channels: mediaProvider.channels,
+                          recentChannels: mediaProvider.recentChannels,
+                          favoriteChannels: mediaProvider.favoriteChannels,
+                        ),
+                    };
                   }
                   return Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
