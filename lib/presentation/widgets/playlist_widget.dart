@@ -64,92 +64,70 @@ class PlaylistListWidget extends StatelessWidget {
         final count = _channelCount(playlist);
         final stale = isStale(playlist.updatedAt, now);
 
-        // 刻意不用 ListTile:它的 subtitle 高度是写死的,塞两行文字必溢出
-        // (RenderFlex overflowed by 15 pixels)。isThreeLine 只是把写死的值
-        // 换成另一个写死的值,字号一变又会溢出,所以直接换成无高度约束的布局。
-        // 刻意不用 ListTile:它的 subtitle 高度写死,塞两行必溢出
-        // (真机报 RenderFlex overflowed by 15 pixels)。isThreeLine 只是把
-        // 一个写死的值换成另一个,字号一变又会溢出。
+        // 沿用 ListTile —— 它自带 hover / 涟漪 / 行高节奏 / 统一最小高度。
+        // 曾经换成裸 Row 想自己控高度,结果把这些全丢了,明显变丑,已改回。
         //
-        // 但换掉它就得自己把它的视觉规矩补回来:统一最小高度让各行等高、
-        // 操作按钮垂直居中(顶部对齐会跟标题齐平,看着很怪)、行距按
-        // 「名称→地址」紧、「地址→摘要」松,让三行读起来是两组而不是三条。
-        return ConstrainedBox(
-          constraints: const BoxConstraints(minHeight: 76),
-          child: Padding(
-            padding: const EdgeInsets.symmetric(
-                horizontal: AppDimens.s16, vertical: AppDimens.s12),
-            child: Row(
-              crossAxisAlignment: CrossAxisAlignment.center,
-              children: [
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      // 此前标题是 `3: 主源` —— 那个 id 是数据库自增主键,
-                      // 对用户没有任何意义,不该出现在界面上。
-                      Text(
-                        playlist.name,
-                        maxLines: 1,
-                        overflow: TextOverflow.ellipsis,
-                        style: const TextStyle(
-                            color: AppTokens.textPrimary,
-                            fontSize: 15,
-                            height: 1.3,
-                            fontWeight: FontWeight.w600),
-                      ),
-                      const SizedBox(height: 2),
-                      Text(
-                        playlist.url,
-                        maxLines: 1,
-                        overflow: TextOverflow.ellipsis,
-                        style: const TextStyle(
-                            color: AppTokens.textTertiary,
-                            fontSize: 11,
-                            height: 1.35,
-                            fontFamily: 'monospace'),
-                      ),
-                      const SizedBox(height: 7),
-                      // 「多少个频道、多久没更新」是用户真正据以判断的信息。
-                      // 超过 7 天未更新时转琥珀色 —— 源失效不会有任何通知。
-                      Text(
-                        _summary(l, playlist, count, now),
-                        maxLines: 1,
-                        overflow: TextOverflow.ellipsis,
-                        style: TextStyle(
-                          color: stale
-                              ? AppTokens.sourceSlow
-                              : AppTokens.textSecondary,
-                          fontSize: 12,
-                          height: 1.3,
-                        ),
-                      ),
-                    ],
-                  ),
+        // subtitle 有两行,所以要 isThreeLine 告诉 ListTile 按三行分配高度;
+        // 两行之间不插 SizedBox,靠 TextStyle.height 撑行距。
+        return ListTile(
+          style: ListTileStyle.drawer,
+          isThreeLine: true,
+          // 此前标题是 `3: 主源` —— 那个 id 是数据库自增主键,
+          // 对用户没有任何意义,不该出现在界面上。
+          title: Text(
+            playlist.name,
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
+            style: const TextStyle(color: AppTokens.textPrimary),
+          ),
+          subtitle: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Text(
+                playlist.url,
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+                style: const TextStyle(
+                  color: AppTokens.textTertiary,
+                  fontSize: 12,
+                  height: 1.45,
                 ),
-                const SizedBox(width: AppDimens.s12),
-                Row(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    XIconButton(
-                      icon: Icons.edit,
-                      onPressed: () => _showEditDialog(context, playlist),
-                    ),
-                    XIconButton(
-                      onPressed: () => onRefresh(playlist.id!, playlist.url),
-                      icon: Icons.refresh,
-                    ),
-                    XIconButton(
-                      icon: Icons.delete,
-                      type: XIconButtonType.danger,
-                      onPressed: () => _confirmRemove(context, playlist, count),
-                    ),
-                  ],
+              ),
+              // 「多少个频道、多久没更新」是用户真正据以判断的信息。
+              // 超过 7 天未更新时转琥珀色 —— 源失效不会有任何通知。
+              Text(
+                _summary(l, playlist, count, now),
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+                style: TextStyle(
+                  color:
+                      stale ? AppTokens.sourceSlow : AppTokens.textSecondary,
+                  fontSize: 12,
+                  height: 1.45,
                 ),
-              ],
-            ),
+              ),
+            ],
+          ),
+          trailing: Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              XIconButton(
+                icon: Icons.edit,
+                onPressed: () => _showEditDialog(context, playlist),
+              ),
+              const SizedBox(width: 8),
+              XIconButton(
+                onPressed: () => onRefresh(playlist.id!, playlist.url),
+                icon: Icons.refresh,
+              ),
+              const SizedBox(width: 8),
+              XIconButton(
+                icon: Icons.delete,
+                type: XIconButtonType.danger,
+                onPressed: () => _confirmRemove(context, playlist, count),
+              ),
+            ],
           ),
         );
       },

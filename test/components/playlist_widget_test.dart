@@ -22,14 +22,34 @@ Playlist _pl({
       updatedAt: updatedAt,
     );
 
+/// 渲染期间捕获到的溢出错误。
+///
+/// `tester.takeException()` **抓不到 RenderFlex 溢出** —— 实测把 isThreeLine
+/// 去掉(即真机报错的那个版本)，用 takeException 的断言依然全绿。
+/// 溢出是通过 FlutterError.onError 上报的，必须自己接住。
+late List<String> _overflows;
+
 Future<void> _pump(
   WidgetTester tester,
   List<Playlist> playlists, {
   Size size = const Size(400, 700),
+  double textScale = 1.0,
 }) async {
   tester.view.physicalSize = size;
   tester.view.devicePixelRatio = 1.0;
   addTearDown(tester.view.reset);
+
+  _overflows = <String>[];
+  final prev = FlutterError.onError;
+  FlutterError.onError = (details) {
+    final s = details.exceptionAsString();
+    if (s.contains('overflowed')) {
+      _overflows.add(s);
+    } else {
+      prev?.call(details);
+    }
+  };
+  addTearDown(() => FlutterError.onError = prev);
 
   await tester.pumpWidget(MaterialApp(
     locale: const Locale('zh'),
@@ -40,19 +60,29 @@ Future<void> _pump(
       GlobalCupertinoLocalizations.delegate,
     ],
     supportedLocales: const [Locale('en'), Locale('zh')],
-    home: Scaffold(
-      body: PlaylistListWidget(
-        playlists: playlists,
-        clock: () => _now,
-        onAdd: () {},
-        onDelete: (_) async {},
-        onUpdate: (_) async {},
-        onLoadAll: () async {},
-        onRefresh: (_, __) async {},
+    home: MediaQuery(
+      // 真机上用户可能放大字号，这是把 ListTile 的高度额度顶爆的常见原因，
+      // 默认 1.0 测不出来。
+      data: MediaQueryData(textScaler: TextScaler.linear(textScale)),
+      child: Scaffold(
+        body: PlaylistListWidget(
+          playlists: playlists,
+          clock: () => _now,
+          onAdd: () {},
+          onDelete: (_) async {},
+          onUpdate: (_) async {},
+          onLoadAll: () async {},
+          onRefresh: (_, __) async {},
+        ),
       ),
     ),
   ));
   await tester.pumpAndSettle();
+}
+
+void _expectNoOverflow() {
+  expect(_overflows, isEmpty,
+      reason: '渲染时发生溢出:\n${_overflows.join("\n")}');
 }
 
 void main() {
@@ -63,7 +93,7 @@ void main() {
       await _pump(tester, [
         _pl(channels: '[{},{},{}]', updatedAt: _now.subtract(const Duration(minutes: 2))),
       ]);
-      expect(tester.takeException(), isNull);
+      _expectNoOverflow();
     });
 
     testWidgets('长名称 + 长地址不溢出', (tester) async {
@@ -76,7 +106,7 @@ void main() {
           updatedAt: _now.subtract(const Duration(days: 400)),
         ),
       ]);
-      expect(tester.takeException(), isNull);
+      _expectNoOverflow();
     });
 
     testWidgets('窄屏(320)下不溢出', (tester) async {
@@ -85,7 +115,21 @@ void main() {
         [_pl(channels: '[{}]', updatedAt: _now.subtract(const Duration(days: 9)))],
         size: const Size(320, 600),
       );
-      expect(tester.takeException(), isNull);
+      _expectNoOverflow();
+    });
+
+    testWidgets('文字放大 1.3 倍不溢出 —— 真机上用户会调大字号', (tester) async {
+      await _pump(tester, [
+        _pl(channels: '[{},{}]', updatedAt: _now.subtract(const Duration(days: 3))),
+      ], textScale: 1.3);
+      _expectNoOverflow();
+    });
+
+    testWidgets('文字放大 1.6 倍不溢出', (tester) async {
+      await _pump(tester, [
+        _pl(channels: '[{},{}]', updatedAt: _now.subtract(const Duration(days: 3))),
+      ], textScale: 1.6);
+      _expectNoOverflow();
     });
 
     testWidgets('多条目滚动不溢出', (tester) async {
@@ -94,7 +138,7 @@ void main() {
           _pl(id: i, name: '源 $i', channels: '[{},{}]',
               updatedAt: _now.subtract(Duration(days: i))),
       ]);
-      expect(tester.takeException(), isNull);
+      _expectNoOverflow();
     });
   });
 
@@ -124,7 +168,7 @@ void main() {
 
     testWidgets('缓存格式异常时不崩,只是不显示计数', (tester) async {
       await _pump(tester, [_pl(channels: '{不是合法 json')]);
-      expect(tester.takeException(), isNull);
+      _expectNoOverflow();
       expect(find.textContaining('个频道'), findsNothing);
     });
 
@@ -143,7 +187,7 @@ void main() {
 
     testWidgets('空状态不溢出', (tester) async {
       await _pump(tester, [], size: const Size(320, 480));
-      expect(tester.takeException(), isNull);
+      _expectNoOverflow();
     });
   });
 }

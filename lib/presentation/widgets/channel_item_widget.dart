@@ -135,8 +135,12 @@ class _ChannelItemWidgetState extends State<ChannelItemWidget> {
                   if (widget.hideTitle != true)
                     Expanded(
                       child: Container(
-                        padding: const EdgeInsets.symmetric(
-                            vertical: 4.0, horizontal: 8.0),
+                        // 内边距按宽度取比例,与卡片其余尺寸一致。
+                        // 固定 4px 在窄卡片(多列布局)上占比过大,会把
+                        // 标题区挤爆 —— 高度预算是按比例算的,padding 却不是。
+                        padding: EdgeInsets.symmetric(
+                            vertical: widget.width * 0.03,
+                            horizontal: widget.width * 0.06),
                         decoration: const BoxDecoration(
                           color: Colors.transparent,
                           borderRadius: BorderRadius.vertical(
