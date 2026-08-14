@@ -1,5 +1,5 @@
-import 'package:flutter_test/flutter_test.dart';
-import 'package:xplayer/utils/channel_normalize.dart';
+import 'package:test/test.dart';
+import 'package:m3u_normalize/m3u_normalize.dart';
 
 void main() {
   group('splitGroupTitle', () {

@@ -1,6 +1,6 @@
 import 'dart:convert';
 
-import 'package:xplayer/utils/channel_normalize.dart';
+import 'package:m3u_normalize/m3u_normalize.dart';
 
 class Source {
   final String title;

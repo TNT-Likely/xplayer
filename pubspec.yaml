@@ -10,6 +10,10 @@ environment:
   sdk: '>=3.11.0 <4.0.0'
 
 dependencies:
+  # 本仓内的独立包。纯 Dart、无 Flutter 依赖，可单独发布或被其它项目复用。
+  m3u_normalize:
+    path: packages/m3u_normalize
+
   bot_toast: ^4.1.3
   cached_network_image: ^3.3.1
   chewie: ^1.7.5

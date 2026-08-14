@@ -3,7 +3,7 @@
 import 'package:m3u_parser_nullsafe/m3u_parser_nullsafe.dart';
 
 import 'package:xplayer/data/models/channel_model.dart';
-import 'package:xplayer/utils/channel_normalize.dart';
+import 'package:m3u_normalize/m3u_normalize.dart';
 
 extension M3uItemExtension on M3uItem {
   Channel toChannel() {

@@ -1,5 +1,5 @@
 import 'package:xplayer/data/models/channel_model.dart';
-import 'package:xplayer/utils/channel_normalize.dart';
+import 'package:m3u_normalize/m3u_normalize.dart';
 
 /// 频道过滤纯函数（无副作用，便于单测）。
 ///
