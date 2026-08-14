@@ -38,16 +38,13 @@ class ChannelListWidget extends StatelessWidget {
               crossAxisCount: crossAxisCount,
               mainAxisSpacing: itemSpacing,
               crossAxisSpacing: itemSpacing,
-              // 卡片高度必须容得下:牌面 16:10(= 0.625W)+ 名称最多两行
-              // + 分组/地区副行 + 上下内边距。
+              // 保持原值。牌面是 16:9(= 0.5625W),标题区因此有 0.1875W。
               //
-              // 原值 16/12(高 0.75W)是配 16:9 牌面 + 单行标题的。牌面改成
-              // 16:10 之后标题区只剩 0.125W —— 宽 120 时是 15px,扣掉 8px
-              // 内边距只余 7px,而一行名字就要 10.5px,于是真机报
+              // ⚠️ 改这个值或改 ChannelPlate.aspectRatio 时必须同步核对另一个:
+              // 曾把牌面改成 16:10,标题区只剩 0.125W,真机直接报
               // 「RenderFlex overflowed by 15 pixels」。
-              //
-              // 16/15(高 0.9375W)给标题区留 0.3125W,两行名称加副行都装得下。
-              childAspectRatio: 16 / 15,
+              // test/components/channel_grid_overflow_test.dart 钉住了这条约束。
+              childAspectRatio: 16 / 12,
             ),
             itemCount: channels.length,
             itemBuilder: (context, index) {

@@ -135,11 +135,8 @@ class _ChannelItemWidgetState extends State<ChannelItemWidget> {
                   if (widget.hideTitle != true)
                     Expanded(
                       child: Container(
-                        // 内边距按宽度取比例,与卡片其余尺寸一致。
-                        // 固定 4px 在窄卡片(多列布局)上占比过大,会把
-                        // 标题区挤爆 —— 高度预算是按比例算的,padding 却不是。
                         padding: EdgeInsets.symmetric(
-                            vertical: widget.width * 0.03,
+                            vertical: widget.width * 0.015,
                             horizontal: widget.width * 0.06),
                         decoration: const BoxDecoration(
                           color: Colors.transparent,
@@ -148,35 +145,54 @@ class _ChannelItemWidgetState extends State<ChannelItemWidget> {
                         ),
                         // 这里此前渲染的是 channel.id —— 那是机器标识
                         // (`123TV.DE@SD`),全大写还被截断成
-                        // `1PLUS1INTERNATIONA…`。改用规范化后的展示名,
-                        // 并允许换到两行:宁可换行也不中途截断。
-                        child: Column(
-                          mainAxisAlignment: MainAxisAlignment.center,
-                          crossAxisAlignment: CrossAxisAlignment.stretch,
-                          children: [
-                            Text(
-                              widget.channel.name.isEmpty
-                                  ? widget.channel.id
-                                  : widget.channel.name,
-                              textAlign: TextAlign.center,
-                              style: TextStyle(
-                                  fontSize: widget.width * 0.07,
-                                  height: 1.25,
-                                  color: AppTokens.textPrimary),
-                              overflow: TextOverflow.ellipsis,
-                              maxLines: 2,
-                            ),
-                            if (_subtitle.isNotEmpty)
-                              Text(
-                                _subtitle,
-                                textAlign: TextAlign.center,
-                                style: TextStyle(
-                                    fontSize: widget.width * 0.055,
-                                    color: AppTokens.textTertiary),
-                                overflow: TextOverflow.ellipsis,
-                                maxLines: 1,
-                              ),
-                          ],
+                        // `1PLUS1INTERNATIONA…`。改用规范化后的展示名。
+                        //
+                        // 标题区拿到多少高度取决于网格比例与牌面比例的差,
+                        // 硬写行数必然在某个尺寸下溢出(已经栽过两次)。
+                        // 所以这里按实际可用高度决定显示多少:
+                        // 装得下就带副行,装不下就只留名称,且两者都用 Flexible
+                        // —— 无论拿到多少高度都不会溢出。
+                        child: LayoutBuilder(
+                          builder: (context, constraints) {
+                            final nameH = widget.width * 0.07 * 1.25;
+                            final subH = widget.width * 0.055 * 1.2;
+                            final showSub = _subtitle.isNotEmpty &&
+                                constraints.maxHeight >= nameH + subH;
+                            return Column(
+                              mainAxisAlignment: MainAxisAlignment.center,
+                              mainAxisSize: MainAxisSize.min,
+                              crossAxisAlignment: CrossAxisAlignment.stretch,
+                              children: [
+                                Flexible(
+                                  child: Text(
+                                    widget.channel.name.isEmpty
+                                        ? widget.channel.id
+                                        : widget.channel.name,
+                                    textAlign: TextAlign.center,
+                                    style: TextStyle(
+                                        fontSize: widget.width * 0.07,
+                                        height: 1.25,
+                                        color: AppTokens.textPrimary),
+                                    overflow: TextOverflow.ellipsis,
+                                    maxLines: showSub ? 1 : 2,
+                                  ),
+                                ),
+                                if (showSub)
+                                  Flexible(
+                                    child: Text(
+                                      _subtitle,
+                                      textAlign: TextAlign.center,
+                                      style: TextStyle(
+                                          fontSize: widget.width * 0.055,
+                                          height: 1.2,
+                                          color: AppTokens.textTertiary),
+                                      overflow: TextOverflow.ellipsis,
+                                      maxLines: 1,
+                                    ),
+                                  ),
+                              ],
+                            );
+                          },
                         ),
                       ),
                     )

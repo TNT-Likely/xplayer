@@ -2,101 +2,186 @@ import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:xplayer/data/models/channel_model.dart';
 import 'package:xplayer/presentation/components/channel_plate.dart';
+import 'package:xplayer/shared/theme/app_tokens.dart';
 
-/// 频道卡片的高度预算护栏。
+/// 频道卡片布局护栏。
 ///
-/// 真机上报过 `RenderFlex overflowed by 15 pixels on the bottom`，根因是
-/// 牌面从 16:9 改成 16:10 吃掉了标题区，而标题同时从单行变成两行 + 副行。
-/// 两处改动叠加，网格 `childAspectRatio: 16/12` 留下的空间就不够了。
+/// 真机连报两次 `RenderFlex overflowed`，根因都是「牌面比例」与
+/// 「网格比例」这两个数字被单独改动，标题区被挤没了。
 ///
-/// 这里不去渲染整张卡（它依赖 Provider / 路由），而是直接验证几何约束：
-/// **牌面高度 + 文字高度 ≤ 卡片高度**。算术护栏比 widget 树更能说清为什么。
+/// 这里直接搭一个和 `channel_item_widget` 同构的最小卡片去渲染，
+/// 而不是用算术推演——上一版护栏就是算术推的，参数一对不上就形同虚设。
 void main() {
-  /// 与 channel_list_widget 保持一致。改那边必须同步改这里，否则护栏失效。
-  const cardAspect = 16 / 15;
+  /// 与 channel_list_widget 保持一致。
+  const gridAspect = 16 / 12;
 
-  /// 与 channel_item_widget 保持一致。
-  const nameFontFactor = 0.07;
-  const nameLineHeight = 1.25;
-  const subFontFactor = 0.055;
-  const subLineHeight = 1.2;
+  late List<String> overflows;
 
-  /// 上下内边距各 0.03W。按比例而非固定值 —— 固定值在窄卡片上占比过大，
-  /// 会把按比例算出来的高度预算挤爆。
-  const verticalPaddingFactor = 0.06;
-
-  double plateHeight(double w) => w * 10 / 16; // ChannelPlate 固定 16:10
-  double cardHeight(double w) => w / cardAspect;
-
-  double textHeight(double w, {required int nameLines, required bool hasSub}) {
-    final name = w * nameFontFactor * nameLineHeight * nameLines;
-    final sub = hasSub ? w * subFontFactor * subLineHeight : 0.0;
-    return name + sub + w * verticalPaddingFactor;
-  }
-
-  group('卡片高度预算', () {
-    // 覆盖真实网格里会出现的宽度区间:手机 3 列到桌面多列。
-    const widths = [80.0, 100.0, 120.0, 148.0, 180.0, 240.0];
-
-    test('单行名称 + 副行放得下', () {
-      for (final w in widths) {
-        final need = plateHeight(w) + textHeight(w, nameLines: 1, hasSub: true);
-        expect(need, lessThanOrEqualTo(cardHeight(w)),
-            reason: '宽 $w 时需要 ${need.toStringAsFixed(1)}，'
-                '卡片只有 ${cardHeight(w).toStringAsFixed(1)}');
-      }
-    });
-
-    test('两行名称 + 副行放得下 —— 长频道名会换行', () {
-      for (final w in widths) {
-        final need = plateHeight(w) + textHeight(w, nameLines: 2, hasSub: true);
-        expect(need, lessThanOrEqualTo(cardHeight(w)),
-            reason: '宽 $w 时需要 ${need.toStringAsFixed(1)}，'
-                '卡片只有 ${cardHeight(w).toStringAsFixed(1)}');
-      }
-    });
-
-    test('旧比例 16/12 装不下当前内容 —— 记录这次回归的成因', () {
-      // 这条不是在测当前代码，而是把「为什么必须改比例」钉住:
-      // 换牌面比例时若忘了同步网格，就会退回这个状态。
-      const oldAspect = 16 / 12;
-      const w = 120.0;
-      final need = plateHeight(w) + textHeight(w, nameLines: 1, hasSub: true);
-      expect(need, greaterThan(w / oldAspect),
-          reason: '旧比例本应装不下，若此断言失败说明几何参数已变，'
-              '需重新核对 channel_list_widget 的 childAspectRatio');
-    });
-  });
-
-  group('ChannelPlate 几何', () {
-    testWidgets('牌面确实是 16:10，与上面的预算一致', (tester) async {
-      await tester.pumpWidget(MaterialApp(
-        home: Scaffold(
-          body: Center(
-            child: SizedBox(
-              width: 120,
-              child: ChannelPlate(
-                channel: Channel(
-                  id: 'X',
-                  name: 'CCTV-1 综合',
-                  source: [
-                    Source(
-                      title: 't',
-                      link: 'http://a/x.m3u8',
-                      groupTitle: 'News',
-                      attributes: const {},
-                      duration: -1,
-                    )
-                  ],
-                ),
-                width: 120,
+  /// 与 channel_item_widget 的标题区同构：牌面 + 自适应文字区。
+  Widget buildCard(double w, {required String name, required String sub}) {
+    return SizedBox(
+      width: w,
+      height: w / gridAspect,
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          ChannelPlate(
+            channel: Channel(
+              id: 'X',
+              name: name,
+              source: [
+                Source(
+                  title: 't',
+                  link: 'http://a/x.m3u8',
+                  groupTitle: 'News',
+                  attributes: const {},
+                  duration: -1,
+                )
+              ],
+            ),
+            width: w,
+          ),
+          Expanded(
+            child: Container(
+              padding: EdgeInsets.symmetric(
+                  vertical: w * 0.015, horizontal: w * 0.06),
+              child: LayoutBuilder(
+                builder: (context, c) {
+                  final nameH = w * 0.07 * 1.25;
+                  final subH = w * 0.055 * 1.2;
+                  final showSub = sub.isNotEmpty && c.maxHeight >= nameH + subH;
+                  return Column(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    mainAxisSize: MainAxisSize.min,
+                    crossAxisAlignment: CrossAxisAlignment.stretch,
+                    children: [
+                      Flexible(
+                        child: Text(name,
+                            textAlign: TextAlign.center,
+                            maxLines: showSub ? 1 : 2,
+                            overflow: TextOverflow.ellipsis,
+                            style: TextStyle(
+                                fontSize: w * 0.07,
+                                height: 1.25,
+                                color: AppTokens.textPrimary)),
+                      ),
+                      if (showSub)
+                        Flexible(
+                          child: Text(sub,
+                              textAlign: TextAlign.center,
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
+                              style: TextStyle(
+                                  fontSize: w * 0.055,
+                                  height: 1.2,
+                                  color: AppTokens.textTertiary)),
+                        ),
+                    ],
+                  );
+                },
               ),
             ),
           ),
+        ],
+      ),
+    );
+  }
+
+  Future<void> pump(
+    WidgetTester tester,
+    double w, {
+    String name = 'CCTV-1 综合',
+    String sub = '综合 · CN',
+    double textScale = 1.0,
+  }) async {
+    overflows = <String>[];
+    final prev = FlutterError.onError;
+    FlutterError.onError = (d) {
+      final s = d.exceptionAsString();
+      if (s.contains('overflowed')) {
+        overflows.add(s);
+      } else {
+        prev?.call(d);
+      }
+    };
+    addTearDown(() => FlutterError.onError = prev);
+
+    await tester.pumpWidget(MaterialApp(
+      home: MediaQuery(
+        data: MediaQueryData(textScaler: TextScaler.linear(textScale)),
+        child: Scaffold(
+          body: Center(child: buildCard(w, name: name, sub: sub)),
         ),
-      ));
-      final size = tester.getSize(find.byType(AspectRatio));
-      expect(size.width / size.height, closeTo(16 / 10, 0.01));
+      ),
+    ));
+    await tester.pumpAndSettle();
+  }
+
+  void expectNoOverflow(double w) {
+    expect(overflows, isEmpty,
+        reason: '宽 $w 时溢出:\n${overflows.join("\n")}');
+  }
+
+  group('卡片不溢出', () {
+    // 覆盖真实网格里会出现的宽度区间:手机多列到桌面大卡。
+    const widths = [80.0, 100.0, 120.0, 148.0, 180.0, 240.0];
+
+    testWidgets('常规名称 + 副行', (tester) async {
+      for (final w in widths) {
+        await pump(tester, w);
+        expectNoOverflow(w);
+      }
+    });
+
+    testWidgets('超长名称会换行,仍不溢出', (tester) async {
+      for (final w in widths) {
+        await pump(tester, w,
+            name: '一个非常非常长的频道名称用来逼它换行看会不会溢出');
+        expectNoOverflow(w);
+      }
+    });
+
+    testWidgets('没有副行时也不溢出', (tester) async {
+      for (final w in widths) {
+        await pump(tester, w, sub: '');
+        expectNoOverflow(w);
+      }
+    });
+
+    testWidgets('文字放大 1.3 倍不溢出 —— 用户会调大系统字号', (tester) async {
+      for (final w in widths) {
+        await pump(tester, w, textScale: 1.3);
+        expectNoOverflow(w);
+      }
+    });
+
+    testWidgets('文字放大 1.6 倍不溢出', (tester) async {
+      for (final w in widths) {
+        await pump(tester, w, textScale: 1.6);
+        expectNoOverflow(w);
+      }
+    });
+  });
+
+  group('几何约束', () {
+    testWidgets('牌面默认 16:9 —— 与网格 16/12 的高度预算配套', (tester) async {
+      await pump(tester, 120);
+      final size = tester.getSize(find.byType(AspectRatio).first);
+      expect(size.width / size.height, closeTo(16 / 9, 0.01),
+          reason: '改牌面比例必须同步核对 channel_list_widget 的 childAspectRatio');
+    });
+
+    testWidgets('衬底是半透明的 —— 首页有背景图,卡片要透出底图', (tester) async {
+      await pump(tester, 120);
+      final box = tester
+          .widgetList<Container>(find.byType(Container))
+          .firstWhere((c) {
+        final d = c.decoration;
+        return d is BoxDecoration && d.color == AppTokens.surfaceThumb;
+      });
+      final d = box.decoration as BoxDecoration;
+      expect(d.color!.a, lessThan(1.0),
+          reason: '牌面刷成不透明会把背景图挡住,整屏变成实心色块');
     });
   });
 }

@@ -46,19 +46,23 @@ enum SourceHealth {
   }
 }
 
-/// 统一频道牌 —— 整套界面重构的地基组件。
+/// 统一频道牌。
 ///
-/// 原始台标尺寸不一、底色各异,透明的在深色底上直接隐形,几千个频道摆在一起
-/// 像一盘散沙。解法是不再直接贴图,而是一律合成进同一规格的牌子:
-/// 固定 16:10、统一内边距、中性衬底([AppTokens.surfacePlate] 是表面阶梯里
-/// 最亮的一档,正是为了让透明台标也看得见)。
+/// 原始台标尺寸不一、底色各异,几千个频道摆在一起像一盘散沙。解法是不再各自
+/// 贴图,而是一律合成进同一规格的牌子:统一比例、统一内边距、统一角标位置。
 ///
-/// 本组件内部**没有任何平台判断**,尺寸差异一律由 [width] 参数表达:
-/// 手机轨道 104、TV 浮层 118、iPad 竖屏 148。
+/// 本组件内部**没有任何平台判断**,尺寸差异一律由 [width] 参数表达。
+///
+/// ⚠️ 两个参数是跟外部约定死的,不要单独改:
+/// - [aspectRatio] 与 `channel_list_widget` 的 `childAspectRatio` 配套,
+///   改一个不改另一个会把标题区挤没,真机报 RenderFlex 溢出
+/// - [background] 默认半透明,首页有背景图,卡片要透出底图
+///
+/// `test/components/channel_grid_overflow_test.dart` 钉住了这两条。
 class ChannelPlate extends StatelessWidget {
   final Channel channel;
 
-  /// 牌面宽度。高度按 16:10 自动推导。
+  /// 牌面宽度。高度按 [aspectRatio] 推导。
   final double width;
 
   /// 焦点态（遥控器 / 键盘）。
@@ -69,6 +73,20 @@ class ChannelPlate extends StatelessWidget {
   /// 叠在牌面上的额外内容，例如聚焦时的播放图标。
   final Widget? overlay;
 
+  /// 牌面宽高比。默认 16:9，与首页网格的高度预算配套。
+  ///
+  /// 设计稿里画的是 16:10（牌面更高、留白更匀），但改这个值必须**同时**
+  /// 调 `channel_list_widget` 的 `childAspectRatio`，否则标题区被吃掉，
+  /// 真机直接报 RenderFlex 溢出。踩过一次，留个记号。
+  final double aspectRatio;
+
+  /// 衬底色。默认 [AppTokens.surfaceThumb]（半透明黑）——
+  /// 首页有背景图，卡片透出底图是这个 App 原本的观感，不要改成不透明色块。
+  ///
+  /// 代价：深色台标在深色底图上仍然发闷。要彻底解决得给台标本身加描边或
+  /// 亮度自适应，而不是把整张牌子刷成不透明。
+  final Color background;
+
   const ChannelPlate({
     super.key,
     required this.channel,
@@ -76,6 +94,8 @@ class ChannelPlate extends StatelessWidget {
     this.focused = false,
     this.health = SourceHealth.unknown,
     this.overlay,
+    this.aspectRatio = 16 / 9,
+    this.background = AppTokens.surfaceThumb,
   });
 
   bool get _isDead => health == SourceHealth.dead;
@@ -87,9 +107,8 @@ class ChannelPlate extends StatelessWidget {
     final plate = Container(
       width: width,
       decoration: BoxDecoration(
-        color: AppTokens.surfacePlate,
+        color: background,
         borderRadius: radius,
-        border: Border.all(color: AppTokens.line),
       ),
       // 焦点环用 foregroundDecoration 画在内容之上,不进入布局计算 ——
       // 因此不会把轨道里相邻的卡片挤开。刻意不用缩放:在电视上,
@@ -102,7 +121,7 @@ class ChannelPlate extends StatelessWidget {
           : null,
       clipBehavior: Clip.antiAlias,
       child: AspectRatio(
-        aspectRatio: 16 / 10,
+        aspectRatio: aspectRatio,
         child: Stack(
           fit: StackFit.expand,
           children: [

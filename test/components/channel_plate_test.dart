@@ -44,23 +44,46 @@ Future<void> _pump(
 Container _plateBox(WidgetTester tester) {
   return tester.widgetList<Container>(find.byType(Container)).firstWhere((c) {
     final d = c.decoration;
-    return d is BoxDecoration && d.color == AppTokens.surfacePlate;
+    return d is BoxDecoration && d.color == AppTokens.surfaceThumb;
   });
 }
 
 void main() {
   group('牌面基本形态', () {
-    testWidgets('固定 16:10 —— 几千个台标能扫成一个系统全靠规格统一', (tester) async {
+    testWidgets('默认 16:9 —— 与网格 childAspectRatio 16/12 的高度预算配套', (tester) async {
       await _pump(tester, ChannelPlate(channel: _ch(), width: 200));
+      final ar = tester.widget<AspectRatio>(find.byType(AspectRatio));
+      expect(ar.aspectRatio, 16 / 9);
+    });
+
+    testWidgets('比例可覆盖,但改了必须同步改网格', (tester) async {
+      await _pump(tester,
+          ChannelPlate(channel: _ch(), width: 200, aspectRatio: 16 / 10));
       final ar = tester.widget<AspectRatio>(find.byType(AspectRatio));
       expect(ar.aspectRatio, 16 / 10);
     });
 
-    testWidgets('衬底用 surfacePlate —— 表面阶梯里最亮的一档,保证透明台标可见',
+    testWidgets('衬底半透明 —— 首页有背景图,卡片要透出底图而不是实心色块',
         (tester) async {
       await _pump(tester, ChannelPlate(channel: _ch(), width: 200));
       final d = _plateBox(tester).decoration as BoxDecoration;
-      expect(d.color, AppTokens.surfacePlate);
+      expect(d.color, AppTokens.surfaceThumb);
+      expect(d.color!.a, lessThan(1.0));
+    });
+
+    testWidgets('衬底可覆盖 —— 无背景图的场景(如弹窗内)可换成不透明档',
+        (tester) async {
+      await _pump(
+        tester,
+        ChannelPlate(
+            channel: _ch(), width: 200, background: AppTokens.surfacePlate),
+      );
+      final box = tester.widgetList<Container>(find.byType(Container)).firstWhere(
+          (c) {
+        final d = c.decoration;
+        return d is BoxDecoration && d.color == AppTokens.surfacePlate;
+      });
+      expect((box.decoration as BoxDecoration).color, AppTokens.surfacePlate);
     });
 
     testWidgets('不同 width 下都不溢出', (tester) async {
