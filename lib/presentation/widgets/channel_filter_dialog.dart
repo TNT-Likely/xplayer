@@ -7,6 +7,7 @@ import 'package:xplayer/shared/components/x_dialog_shell.dart';
 import 'package:xplayer/shared/components/x_text_button.dart';
 import 'package:xplayer/shared/components/x_icon_button.dart';
 import 'package:xplayer/shared/theme/app_tokens.dart';
+import 'package:xplayer/utils/channel_filter.dart';
 
 /// 搜索弹窗(右上角搜索图标打开)。改动即时作用于首页网格。
 class ChannelSearchDialog extends StatefulWidget {
@@ -101,32 +102,50 @@ class ChannelGroupDialog extends StatelessWidget {
   Widget build(BuildContext context) {
     final l = AppLocalizations.of(context)!;
     final media = Provider.of<MediaProvider>(context);
-    final groups = media.availableGroups;
     final selected = media.selectedGroup;
+    final all = media.channels;
 
-    return XDialogShell(
+    // 计数是选择依据 —— 「新闻 47」比光一个「新闻」有用得多,
+    // 用户据此判断值不值得点进去。
+    final counts = groupCounts(all);
+    final ordered = counts.entries.toList()
+      ..sort((a, b) => b.value.compareTo(a.value));
+    final uncategorized = uncategorizedCount(all);
+
+    // 选择类弹窗不给「确定」—— 点一下就是选中,再要求确认是多余一步。
+    return XPickerDialog(
       title: l.groups,
       child: SingleChildScrollView(
+        padding: const EdgeInsets.symmetric(horizontal: AppDimens.s16),
         child: Wrap(
           spacing: AppDimens.s8,
           runSpacing: AppDimens.s8,
           children: [
-            _chip(l.allGroups, selected == null || selected.isEmpty,
+            _chip(context, l.allGroups, all.length,
+                selected == null || selected.isEmpty,
                 () => media.setSelectedGroup(null)),
-            for (final g in groups)
-              _chip(g, selected == g, () => media.setSelectedGroup(g)),
+            for (final e in ordered)
+              _chip(context, e.key, e.value, selected == e.key,
+                  () => media.setSelectedGroup(e.key)),
+            // 未分类排最后 —— 它不是一个真实分类,只是「没归到任何组」。
+            if (uncategorized > 0)
+              _chip(context, '未分类', uncategorized, false, () {}),
           ],
         ),
       ),
     );
   }
 
-  Widget _chip(String label, bool active, VoidCallback onTap) {
+  Widget _chip(BuildContext context, String label, int count, bool active,
+      VoidCallback onTap) {
     return XTextButton(
-      text: label,
+      text: '$label  $count',
       size: XTextButtonSize.flexible,
       type: active ? XTextButtonType.primary : XTextButtonType.defaultType,
-      onPressed: onTap,
+      onPressed: () {
+        onTap();
+        Navigator.of(context).pop();
+      },
     );
   }
 }
