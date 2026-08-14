@@ -1,3 +1,4 @@
+import 'package:adaptive_shell/adaptive_shell.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:xplayer/presentation/screens/splash.dart';
@@ -106,7 +107,11 @@ class MyApp extends StatelessWidget {
 
     // 主色变化时重建 MaterialApp,使 buildAppTheme() 取到新的种子色。
     // 换色是低频操作,整树重建的代价可接受。
-    return ValueListenableBuilder<Color>(
+    // 输入方式在根部注入一次,下游靠 resolveShell 取形态。
+    // 这是全应用唯一的形态判定入口 —— 组件层不再判断平台或尺寸。
+    return InputModeScope(
+      mode: detectInputMode(),
+      child: ValueListenableBuilder<Color>(
       valueListenable: themeColor,
       builder: (context, _, __) => MaterialApp(
         title: 'XPlayer',
@@ -141,6 +146,7 @@ class MyApp extends StatelessWidget {
           '/playlists': (context) => const PlaylistListScreen(),
           '/remote': (context) => const RemoteInputScreen(),
         },
+      ),
       ),
     );
   }

@@ -16,6 +16,7 @@ import 'package:xplayer/utils/player_settings.dart';
 import 'package:xplayer/services/update_service.dart';
 import 'package:xplayer/shared/components/x_base_button.dart';
 import 'package:xplayer/presentation/widgets/bg_wrapper.dart';
+import 'package:xplayer/presentation/components/rail_home_body.dart';
 import 'package:xplayer/presentation/widgets/channel_list_widget.dart';
 import 'package:xplayer/presentation/widgets/channel_filter_dialog.dart';
 import 'package:xplayer/presentation/widgets/playlist_dialog.dart';
@@ -1119,11 +1120,24 @@ class _HomeScreenState extends State<HomeScreen> {
                       ),
                     );
                   }
+                  // 无筛选时走轨道式浏览:分组不再需要纵向翻找,每组一条横向轨道。
+                  //
+                  // 一旦有搜索词或分组筛选,退回网格 —— 那时用户要看的是
+                  // 「符合条件的全部」,那是网格擅长的事。轨道与网格不是
+                  // 互斥的替代关系,是浏览态与筛选态的分工。
+                  final bool browsing = mediaProvider.searchQuery.isEmpty &&
+                      (mediaProvider.selectedGroup == null ||
+                          mediaProvider.selectedGroup!.isEmpty);
+                  if (browsing) {
+                    return RailHomeBody(
+                      channels: mediaProvider.channels,
+                      recentChannels: mediaProvider.recentChannels,
+                      favoriteChannels: mediaProvider.favoriteChannels,
+                    );
+                  }
                   return Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      const RecentPlayedWidget(),
-                      const FavoritesRowWidget(),
                       const AllChannelsHeader(),
                       Expanded(
                         child: ChannelListWidget(

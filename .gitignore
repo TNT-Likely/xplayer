@@ -61,3 +61,10 @@ windows/installer/vc_redist.x64.exe
 
 # fvm
 .fvm/
+
+# 子包的构建产物。根部的 `/build/` 带前导斜杠,只锚定仓库根,
+# 匹配不到 packages/*/build/ —— 拆包后这些会被误提交。
+build/
+packages/*/.dart_tool/
+packages/*/pubspec.lock
+packages/*/.packages
