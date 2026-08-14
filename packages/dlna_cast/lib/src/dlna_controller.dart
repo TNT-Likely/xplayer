@@ -2,8 +2,8 @@ import 'dart:async';
 
 import 'package:http/http.dart' as http;
 
-import 'package:xplayer/services/cast/dlna_device.dart';
-import 'package:xplayer/services/cast/dlna_xml.dart';
+import 'dlna_device.dart';
+import 'dlna_xml.dart';
 
 /// 面向单台 DLNA 设备的 AVTransport 控制(SetURI/Play/Pause/Stop/状态/进度)。
 class DlnaController {

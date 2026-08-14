@@ -1,0 +1,17 @@
+name: dlna_cast
+description: >-
+  DLNA / UPnP 投屏客户端：SSDP 设备发现（多播 + 单播兜底）与 AVTransport 控制。
+  纯 Dart，无 Flutter 依赖。
+version: 0.1.0
+publish_to: none
+
+environment:
+  sdk: ">=3.0.0 <4.0.0"
+
+dependencies:
+  http: ^1.0.0
+  xml: ^6.0.0
+
+dev_dependencies:
+  test: ^1.24.0
+  lints: ^4.0.0

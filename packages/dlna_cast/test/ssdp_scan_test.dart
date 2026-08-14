@@ -1,5 +1,5 @@
-import 'package:flutter_test/flutter_test.dart';
-import 'package:xplayer/services/cast/dlna_discovery.dart';
+import 'package:test/test.dart';
+import 'package:dlna_cast/dlna_cast.dart';
 
 void main() {
   group('buildMSearch', () {

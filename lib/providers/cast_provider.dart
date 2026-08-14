@@ -2,15 +2,30 @@ import 'dart:async';
 
 import 'package:flutter/foundation.dart';
 
-import 'package:xplayer/services/cast/dlna_device.dart';
-import 'package:xplayer/services/cast/dlna_discovery.dart';
-import 'package:xplayer/services/cast/dlna_controller.dart';
+import 'package:dlna_cast/dlna_cast.dart';
+import 'package:xplayer/services/log_store.dart';
 
 enum CastState { idle, discovering, connecting, casting, error }
 
 /// 投屏状态机:发现 DLNA 设备、投出、远端控制与状态轮询。
 class CastProvider with ChangeNotifier {
-  final DlnaDiscovery _discovery = DlnaDiscovery();
+  // 把包内的诊断日志接回 App 的日志中心。dlna_cast 不假设宿主用什么记日志,
+  // 但这些日志必须落地 —— 「多播被拒」「网卡枚举失败」不写出来的话,
+  // 排查时只剩「搜索正常结束、一台设备都没有」。
+  final DlnaDiscovery _discovery = DlnaDiscovery(logger: _toLogStore);
+
+  static void _toLogStore(CastLogLevel level, String message) {
+    switch (level) {
+      case CastLogLevel.debug:
+        LogStore.instance.d('cast', message);
+      case CastLogLevel.info:
+        LogStore.instance.i('cast', message);
+      case CastLogLevel.warning:
+        LogStore.instance.w('cast', message);
+      case CastLogLevel.error:
+        LogStore.instance.e('cast', message);
+    }
+  }
 
   CastState _state = CastState.idle;
   CastState get state => _state;

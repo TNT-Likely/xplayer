@@ -3,9 +3,9 @@ import 'dart:io';
 
 import 'package:http/http.dart' as http;
 
-import 'package:xplayer/services/cast/dlna_device.dart';
-import 'package:xplayer/services/cast/dlna_xml.dart';
-import 'package:xplayer/services/log_store.dart';
+import 'dlna_device.dart';
+import 'dlna_xml.dart';
+import 'cast_logger.dart';
 
 const _ssdpAddr = '239.255.255.250';
 const _ssdpPort = 1900;
@@ -70,6 +70,13 @@ List<int>? _octets(String ip) {
 ///    因此是 iOS 上目前唯一可用的路径;顺带还能捞到被路由器 IGMP snooping
 ///    挡掉多播的设备。
 class DlnaDiscovery {
+  /// 诊断日志出口。不传则丢弃 —— 但强烈建议接上:
+  /// 「多播被拒」「网卡枚举失败」这些分支不写出来,
+  /// 排查时就只剩「搜索正常结束、一台设备都没有」。
+  final CastLogger _log;
+
+  DlnaDiscovery({CastLogger logger = noopCastLogger}) : _log = logger;
+
   /// 同时问「渲染器设备」和「AVTransport 服务」,兼容只应答其一的渲染器。
   static const _sts = [
     'urn:schemas-upnp-org:device:MediaRenderer:1',
@@ -105,12 +112,11 @@ class DlnaDiscovery {
       final multicastOk = await _sendMulticast(socket);
       final unicastSent = await _sendUnicastSweep(socket);
       if (!multicastOk) {
-        LogStore.instance.w('cast',
+        _log(CastLogLevel.warning,
             'SSDP 多播不可用(iOS 需 multicast entitlement),本轮仅靠单播扫描');
       }
       if (!multicastOk && unicastSent == 0) {
-        LogStore.instance
-            .e('cast', '多播与单播都没发出去,无法发现设备:检查本地网络权限与 WiFi 连接');
+        _log(CastLogLevel.error, '多播与单播都没发出去,无法发现设备:检查本地网络权限与 WiFi 连接');
       }
 
       final rest = deadline.difference(DateTime.now());
@@ -124,7 +130,7 @@ class DlnaDiscovery {
     for (final d in resolved) {
       if (d != null) byUdn[d.udn] = d;
     }
-    LogStore.instance.i('cast',
+    _log(CastLogLevel.info,
         '发现结束:收到 ${seenLocations.length} 个 SSDP 应答,解析出 ${byUdn.length} 台可投设备');
     return byUdn.values.toList();
   }
@@ -133,7 +139,7 @@ class DlnaDiscovery {
     try {
       return await RawDatagramSocket.bind(InternetAddress.anyIPv4, 0);
     } catch (e) {
-      LogStore.instance.e('cast', 'SSDP socket 绑定失败,无法发现设备:$e');
+      _log(CastLogLevel.error, 'SSDP socket 绑定失败,无法发现设备:$e');
       return null;
     }
   }
@@ -154,7 +160,7 @@ class DlnaDiscovery {
       }
     } catch (e) {
       // iOS 无 multicast entitlement 时这里是 SocketException(errno 65)。
-      LogStore.instance.w('cast', '多播 M-SEARCH 被拒:$e');
+      _log(CastLogLevel.warning, '多播 M-SEARCH 被拒:$e');
       return false;
     }
     return anySent;
@@ -164,7 +170,7 @@ class DlnaDiscovery {
   Future<int> _sendUnicastSweep(RawDatagramSocket socket) async {
     final targets = await _scanTargets();
     if (targets.isEmpty) {
-      LogStore.instance.w('cast', '未找到可扫描的私有网段(没连 WiFi?),跳过单播发现');
+      _log(CastLogLevel.warning, '未找到可扫描的私有网段(没连 WiFi?),跳过单播发现');
       return 0;
     }
 
@@ -185,8 +191,8 @@ class DlnaDiscovery {
         await Future<void>.delayed(_batchGap);
       }
     }
-    LogStore.instance
-        .d('cast', '单播扫描:${targets.length} 个地址,发出 $sent 个探测包');
+    _log(
+            CastLogLevel.debug, '单播扫描:${targets.length} 个地址,发出 $sent 个探测包');
     return sent;
   }
 
@@ -197,7 +203,7 @@ class DlnaDiscovery {
       ifaces = await NetworkInterface.list(
           includeLoopback: false, type: InternetAddressType.IPv4);
     } catch (e) {
-      LogStore.instance.w('cast', '枚举网卡失败:$e');
+      _log(CastLogLevel.warning, '枚举网卡失败:$e');
       return const [];
     }
 
@@ -205,8 +211,8 @@ class DlnaDiscovery {
     for (final iface in ifaces) {
       for (final addr in iface.addresses) {
         if (!isPrivateIPv4(addr.address)) continue;
-        LogStore.instance
-            .d('cast', '扫描网段 ${addr.address}/24 (${iface.name})');
+        _log(
+                CastLogLevel.debug, '扫描网段 ${addr.address}/24 (${iface.name})');
         out.addAll(subnetHostsFor(addr.address));
       }
     }
@@ -228,7 +234,7 @@ class DlnaDiscovery {
         controlUrl: desc.controlUrl,
       );
     } catch (e) {
-      LogStore.instance.d('cast', '设备描述拉取失败 $location:$e');
+      _log(CastLogLevel.debug, '设备描述拉取失败 $location:$e');
       return null;
     }
   }
