@@ -21,6 +21,7 @@ import 'package:xplayer/providers/cast_provider.dart';
 import 'package:xplayer/presentation/widgets/mini_player_overlay.dart';
 import 'package:xplayer/shared/theme/app_theme.dart';
 import 'package:xplayer/shared/theme/theme_settings.dart';
+import 'package:xplayer/shared/theme/theme_mode_setting.dart';
 import 'package:xplayer/services/log_store.dart';
 import 'package:xplayer/utils/player_settings.dart';
 
@@ -63,6 +64,7 @@ void main() {
     loadMiniPlayerSetting(); // 载入「返回小窗续播」偏好
     loadPipSetting(); // 载入「回桌面画中画」偏好
     loadThemeColor(); // 载入用户设定的主题强调色
+    loadThemeMode(); // 载入日间/暗黑外观偏好
 
     FlutterError.onError = (FlutterErrorDetails details) {
       _winLog('FlutterError: ${details.exceptionAsString()}');
@@ -111,7 +113,11 @@ class MyApp extends StatelessWidget {
     // 这是全应用唯一的形态判定入口 —— 组件层不再判断平台或尺寸。
     return InputModeScope(
       mode: detectInputMode(),
-      child: ValueListenableBuilder<Color>(
+      // 两个 notifier 都要监听:主色变化与外观模式变化都需要重建 MaterialApp,
+      // 因为 AppTokens 的取值依赖它们。换色/换外观都是低频操作,整树重建可接受。
+      child: ValueListenableBuilder<AppThemeMode>(
+      valueListenable: appThemeMode,
+      builder: (context, __mode, ___) => ValueListenableBuilder<Color>(
       valueListenable: themeColor,
       builder: (context, _, __) => MaterialApp(
         title: 'XPlayer',
@@ -138,7 +144,9 @@ class MyApp extends StatelessWidget {
             ),
           );
         },
-        theme: buildAppTheme(),
+        theme: buildAppTheme(brightness: Brightness.light),
+        darkTheme: buildAppTheme(brightness: Brightness.dark),
+        themeMode: materialThemeMode,
         initialRoute: '/',
         routes: {
           '/': (context) => const SplashScreen(),
@@ -146,6 +154,7 @@ class MyApp extends StatelessWidget {
           '/playlists': (context) => const PlaylistListScreen(),
           '/remote': (context) => const RemoteInputScreen(),
         },
+      ),
       ),
       ),
     );

@@ -45,6 +45,7 @@ import 'package:xplayer/providers/mini_player_controller.dart';
 import 'package:xplayer/presentation/screens/player.dart';
 import 'package:xplayer/presentation/widgets/theme_color_dialog.dart';
 import 'package:xplayer/shared/theme/theme_settings.dart';
+import 'package:xplayer/shared/theme/theme_mode_setting.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -244,9 +245,9 @@ class _HomeScreenState extends State<HomeScreen> {
       builder: (ctx) => AlertDialog(
         backgroundColor: AppTokens.surfacePanel,
         title: Text(l.exitAppTitle,
-            style: const TextStyle(color: AppTokens.textPrimary)),
+            style: TextStyle(color: AppTokens.textPrimary)),
         content: Text(l.exitAppMessage,
-            style: const TextStyle(color: AppTokens.textSecondary)),
+            style: TextStyle(color: AppTokens.textSecondary)),
         actions: [
           XTextButton(
             text: l.cancel,
@@ -798,6 +799,44 @@ class _HomeScreenState extends State<HomeScreen> {
                     },
                   ),
                 ),
+                // 外观:日间 / 暗黑 / 跟随系统。三态循环切换,
+                // trailing 直接显示当前档位,不必点进去才知道。
+                ValueListenableBuilder<AppThemeMode>(
+                  valueListenable: appThemeMode,
+                  builder: (_, mode, __) => XBaseButton(
+                    child: animeContainer(
+                      ListTile(
+                        leading: Icon(
+                          switch (mode) {
+                            AppThemeMode.light => Icons.light_mode,
+                            AppThemeMode.dark => Icons.dark_mode,
+                            AppThemeMode.system => Icons.brightness_auto,
+                          },
+                          color: Colors.white,
+                        ),
+                        title: const Text('外观',
+                            style: TextStyle(color: Colors.white)),
+                        trailing: Text(
+                          switch (mode) {
+                            AppThemeMode.light => '日间',
+                            AppThemeMode.dark => '暗黑',
+                            AppThemeMode.system => '跟随系统',
+                          },
+                          style: const TextStyle(color: Colors.white70),
+                        ),
+                      ),
+                    ),
+                    onPressed: () {
+                      // 循环:暗黑 → 日间 → 跟随系统 → 暗黑。
+                      // 抽屉里不弹二级选择 —— 三个档位循环点比开弹窗快。
+                      setThemeMode(switch (appThemeMode.value) {
+                        AppThemeMode.dark => AppThemeMode.light,
+                        AppThemeMode.light => AppThemeMode.system,
+                        AppThemeMode.system => AppThemeMode.dark,
+                      });
+                    },
+                  ),
+                ),
                 // 首页「最近播放」模块显示开关
                 ValueListenableBuilder<bool>(
                   valueListenable: showRecentModule,
@@ -971,7 +1010,7 @@ class _HomeScreenState extends State<HomeScreen> {
                         context: context,
                         builder: (_) => AlertDialog(
                           backgroundColor: AppTokens.surfacePanel,
-                          title: const Text('Github',
+                          title: Text('Github',
                               style: TextStyle(color: AppTokens.textPrimary)),
                           content: Column(
                             mainAxisSize: MainAxisSize.min,
@@ -979,7 +1018,7 @@ class _HomeScreenState extends State<HomeScreen> {
                             children: [
                               Text(
                                 localizations.githubTvHint,
-                                style: const TextStyle(
+                                style: TextStyle(
                                     color: AppTokens.textSecondary),
                               ),
                               const SizedBox(height: 16),
@@ -998,7 +1037,7 @@ class _HomeScreenState extends State<HomeScreen> {
                                 ),
                               ),
                               const SizedBox(height: 12),
-                              const SelectableText(
+                              SelectableText(
                                 url,
                                 style: TextStyle(
                                     color: AppTokens.textPrimary,

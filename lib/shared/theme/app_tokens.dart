@@ -1,18 +1,18 @@
 import 'package:flutter/material.dart';
+import 'package:xplayer/shared/theme/theme_mode_setting.dart';
 import 'package:xplayer/shared/theme/theme_settings.dart';
 
 /// XPlayer Design Token 系统（结构参考 BeeCount 的 BeeTokens / BeeDimens）。
 ///
 /// 设计理念：语义化命名统一管理颜色与尺寸，UI 组件应使用 Token 而非散落的字面量。
-/// 现状：单一深色主题（TV / IPTV 场景），**暂未引入浅色模式**。
-/// 除强调色 [brand] / [focusRing] 外全部为静态常量，无需 context，
-/// 便于在 CustomPainter、默认参数等无 context 处复用。
-/// 强调色由用户设定（见 theme_settings.dart），故为 getter；其余保持 const，
-/// 以免破坏 `const TextStyle(...)` 等现有 const 上下文。
 ///
-/// **关于浅色模式**：需要把这里全部改成 `static Color xxx(BuildContext)`
-/// 形式（见 BeeTokens），那会波及每一处调用点。这是独立的一件事，
-/// 不要顺手掺进别的改动里做——先把色板本身收敛好，再统一切换取值方式。
+/// **取值方式**：颜色是静态 getter，由 [appThemeMode] / [themeColor] 两个全局
+/// notifier 驱动，MaterialApp 监听它们重建。因此调用点**不需要** context，
+/// 在 CustomPainter、默认参数等无 context 处照样能用。
+///
+/// 曾评估过改成 `static Color xxx(BuildContext)`（BeeTokens 那种形态），
+/// 结论是不必：实测全仓只有 17 处把 token 用在 `const` 上下文里，
+/// 去掉那几个 `const` 比让每个调用点都拿 context 便宜得多。
 ///
 /// 配色取向：中性色一律带轻微冷偏（蓝向）。纯中性灰读起来像没选过色，
 /// 冷偏则读起来是有意为之，也与视频内容的冷调更协调。
@@ -23,62 +23,85 @@ class AppTokens {
   /// 主色种子。由用户在「界面 → 主题色」中设定，默认 #00DC82。
   static Color get brand => themeColor.value;
 
+  // ========== 双色板 ==========
+  //
+  // 深色是主场景（视频应用），浅色是可选项。两套同名不同值，
+  // 由 [isDarkMode] 在取值时选择 —— 沿用 [brand] 那套「可变静态 getter +
+  // ValueNotifier 驱动 MaterialApp 重建」的机制，因此调用点无需改成
+  // `Color xxx(BuildContext)`，在无 context 处也照样能用。
+
+  static const _AppPaletteSet _dark = _AppPaletteSet(
+    textPrimary: Color(0xFFE9EEF4),
+    textSecondary: Color(0xFF94A2B1),
+    textTertiary: Color(0xFF7A8896),
+    textDisabled: Color(0xFF46525E),
+    surfaceGround: Color(0xFF0A0E13),
+    surfaceDefault: Color(0xFF131A22),
+    surfaceRaised: Color(0xFF1D2731),
+    surfacePlate: Color(0xFF252F3A),
+    line: Color(0xFF33404D),
+  );
+
+  static const _AppPaletteSet _light = _AppPaletteSet(
+    textPrimary: Color(0xFF0F1620),
+    textSecondary: Color(0xFF56646F),
+    textTertiary: Color(0xFF6E7C88),
+    textDisabled: Color(0xFFA8B2BC),
+    surfaceGround: Color(0xFFF4F7F9),
+    surfaceDefault: Color(0xFFFFFFFF),
+    surfaceRaised: Color(0xFFFFFFFF),
+    surfacePlate: Color(0xFFEDF1F5),
+    line: Color(0xFFD5DDE4),
+  );
+
+  static _AppPaletteSet get _p => isDarkMode ? _dark : _light;
+
   // ========== 文字 Text ==========
-  /// 正文。冷偏的近白色，而非纯白——纯白在深色底上偏「刺」，
-  /// 且与下面的表面阶梯同属蓝向，整体才像一套配色而非拼凑。
-  static const Color textPrimary = Color(0xFFE9EEF4);
-  static const Color textSecondary = Color(0xFF94A2B1);
+  /// 正文。深色下是冷偏近白而非纯白——纯白在深色底上偏「刺」。
+  static Color get textPrimary => _p.textPrimary;
+  static Color get textSecondary => _p.textSecondary;
 
   /// 等宽副行（分组、地区、时间码）这类次级信息。
-  ///
-  /// 取值受最亮的一档表面（[surfacePlate]）约束：更暗会掉到 3:1 以下，
-  /// 在浮起层与牌面上都读不清。真正「几乎不可见」的角色交给 [textDisabled]。
-  static const Color textTertiary = Color(0xFF7A8896);
-
-  static const Color textDisabled = Color(0xFF46525E);
+  static Color get textTertiary => _p.textTertiary;
+  static Color get textDisabled => _p.textDisabled;
 
   // ========== 图标 Icon ==========
-  static const Color iconPrimary = Color(0xFFE9EEF4);
-  static const Color iconSecondary = Color(0xFF94A2B1);
+  static Color get iconPrimary => _p.textPrimary;
+  static Color get iconSecondary => _p.textSecondary;
 
   // ========== 背景 / 表面 Surface ==========
   //
-  // 四级阶梯，越靠上越「浮起」。全部带轻微冷偏（蓝向）——
-  // 纯中性灰读起来像没选过色，冷偏则读起来是有意为之。
-  //
-  // 阶梯关系：ground（页面底）< surface（卡片/面板）
-  //          < raised（弹窗/浮层）< plate（频道牌衬底）
+  // 四级阶梯，越靠上越「浮起」。深色下全部带冷偏（蓝向）——
+  // 纯中性灰读起来像没选过色。
 
   /// 页面底色。
-  static const Color surfaceGround = Color(0xFF0A0E13);
+  static Color get surfaceGround => _p.surfaceGround;
 
   /// 卡片、列表行、输入框等常规表面。
-  static const Color surfaceDefault = Color(0xFF131A22);
+  static Color get surfaceDefault => _p.surfaceDefault;
 
   /// 弹窗、浮层等需要与背景拉开层次的表面。
-  static const Color surfaceRaised = Color(0xFF1D2731);
+  static Color get surfaceRaised => _p.surfaceRaised;
 
-  /// 频道牌衬底。比其它表面更亮一档，目的是让**透明台标也看得见**——
-  /// 这是统一频道牌能成立的前提。
-  static const Color surfacePlate = Color(0xFF252F3A);
+  /// 频道牌衬底。⚠️ 注意首页的频道牌**不用**它，用的是半透明的
+  /// [surfaceThumb]——那里有背景图，卡片要透出底图。这个值用于
+  /// 无背景图的场景（弹窗内的频道牌等）。
+  static Color get surfacePlate => _p.surfacePlate;
 
-  /// 分隔线 / 描边。
+  /// 分隔线 / 描边。必须比最亮的一档表面还亮（深色）或还暗（浅色），
+  /// 否则频道牌画在浮层里时边界会糊掉。
+  static Color get line => _p.line;
+
+  /// 抽屉、对话框等深色面板背景。保留此名以兼容既有调用点。
+  static Color get surfacePanel => _p.surfaceDefault;
+
+  /// 频道项缩略图背景（半透明黑）。
   ///
-  /// 必须比最亮的一档表面（[surfacePlate]）还亮 —— 否则频道牌画在浮层里时
-  /// 边界会糊掉。深色主题里相邻表面的亮度差本就极小，层次感实际是描边给的，
-  /// 不是亮度差给的，所以这个令牌不能跟着表面阶梯一起压暗。
-  static const Color line = Color(0xFF33404D);
-
-  /// 抽屉、对话框等深色面板背景。
-  ///
-  /// 保留此名以兼容既有调用点；取值已并入表面阶梯（原 #222222 中性灰）。
-  static const Color surfacePanel = surfaceDefault;
-
-  /// 频道项缩略图背景（半透明黑 0.35）。
+  /// **两种模式下都是半透明黑**——它压在背景图上，不跟随表面阶梯。
+  /// 换成不透明色块会把背景图挡住，整屏变成实心色块。
   static const Color surfaceThumb = Color(0x59000000);
 
-  /// 角标 / 标签背景（black54）。压在台标上，需在任何底色上都可读，
-  /// 故保持半透明黑而非跟随表面阶梯。
+  /// 角标 / 标签背景。压在台标上，需在任何底色上都可读，故恒为半透明黑。
   static const Color surfaceBadge = Colors.black54;
 
   // ========== 遮罩 Overlay ==========
@@ -145,4 +168,29 @@ class AppDurations {
   AppDurations._();
   static const Duration fast = Duration(milliseconds: 150);
   static const Duration normal = Duration(milliseconds: 250);
+}
+
+/// 一套完整的中性色板。深浅两套同名不同值，由 [isDarkMode] 选择。
+class _AppPaletteSet {
+  final Color textPrimary;
+  final Color textSecondary;
+  final Color textTertiary;
+  final Color textDisabled;
+  final Color surfaceGround;
+  final Color surfaceDefault;
+  final Color surfaceRaised;
+  final Color surfacePlate;
+  final Color line;
+
+  const _AppPaletteSet({
+    required this.textPrimary,
+    required this.textSecondary,
+    required this.textTertiary,
+    required this.textDisabled,
+    required this.surfaceGround,
+    required this.surfaceDefault,
+    required this.surfaceRaised,
+    required this.surfacePlate,
+    required this.line,
+  });
 }

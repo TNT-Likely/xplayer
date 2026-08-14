@@ -62,18 +62,18 @@ class _ChannelSearchDialogState extends State<ChannelSearchDialog> {
         controller: _controller,
         focusNode: _searchFocus,
         autofocus: true,
-        style: const TextStyle(color: AppTokens.textPrimary),
+        style: TextStyle(color: AppTokens.textPrimary),
         cursorColor: AppTokens.brand,
         textInputAction: TextInputAction.search,
         onChanged: media.setSearchQuery,
         decoration: InputDecoration(
           isDense: true,
           prefixIcon:
-              const Icon(Icons.search, color: AppTokens.iconSecondary),
+              Icon(Icons.search, color: AppTokens.iconSecondary),
           suffixIcon: _controller.text.isEmpty
               ? null
               : IconButton(
-                  icon: const Icon(Icons.clear,
+                  icon: Icon(Icons.clear,
                       color: AppTokens.iconSecondary),
                   onPressed: () {
                     _controller.clear();
@@ -81,7 +81,7 @@ class _ChannelSearchDialogState extends State<ChannelSearchDialog> {
                   },
                 ),
           hintText: l.searchChannelsHint,
-          hintStyle: const TextStyle(color: AppTokens.textTertiary),
+          hintStyle: TextStyle(color: AppTokens.textTertiary),
           filled: true,
           fillColor: AppTokens.fillDefault,
           border: OutlineInputBorder(
@@ -165,7 +165,7 @@ class ChannelSizeDialog extends StatelessWidget {
       child: Row(
         children: [
           Text(l.itemSize,
-              style: const TextStyle(color: AppTokens.textSecondary)),
+              style: TextStyle(color: AppTokens.textSecondary)),
           const Spacer(),
           XIconButton(
             icon: Icons.zoom_out, // 更小(列更多)
@@ -175,7 +175,7 @@ class ChannelSizeDialog extends StatelessWidget {
           Padding(
             padding: const EdgeInsets.symmetric(horizontal: AppDimens.s8),
             child: Text('${5 - level} / 5',
-                style: const TextStyle(color: AppTokens.textPrimary)),
+                style: TextStyle(color: AppTokens.textPrimary)),
           ),
           XIconButton(
             icon: Icons.zoom_in, // 更大(列更少)
@@ -217,7 +217,7 @@ class AutoRefreshDialog extends StatelessWidget {
       children: [
         Expanded(
           child: Text(label,
-              style: const TextStyle(color: AppTokens.textPrimary)),
+              style: TextStyle(color: AppTokens.textPrimary)),
         ),
         Switch(
           value: value,

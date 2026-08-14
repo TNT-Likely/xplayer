@@ -135,7 +135,7 @@ class ChannelZapOsd extends StatelessWidget {
             children: [
               Text(
                 channel.name.isEmpty ? channel.id : channel.name,
-                style: const TextStyle(
+                style: TextStyle(
                   color: AppTokens.textPrimary,
                   fontSize: 15,
                   fontWeight: FontWeight.w600,
@@ -146,7 +146,7 @@ class ChannelZapOsd extends StatelessWidget {
                   padding: const EdgeInsets.only(top: 2),
                   child: Text(
                     programme!,
-                    style: const TextStyle(
+                    style: TextStyle(
                       color: AppTokens.textSecondary,
                       fontSize: 11.5,
                     ),

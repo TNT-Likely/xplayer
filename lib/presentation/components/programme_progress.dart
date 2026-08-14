@@ -76,7 +76,7 @@ class ProgrammeProgress extends StatelessWidget {
                 p.title,
                 maxLines: 1,
                 overflow: TextOverflow.ellipsis,
-                style: const TextStyle(
+                style: TextStyle(
                   color: AppTokens.textPrimary,
                   fontSize: 13,
                   fontWeight: FontWeight.w600,
@@ -86,7 +86,7 @@ class ProgrammeProgress extends StatelessWidget {
             const SizedBox(width: AppDimens.s8),
             Text(
               '${_hhmm(p.start)} – ${_hhmm(p.end)}',
-              style: const TextStyle(
+              style: TextStyle(
                 color: AppTokens.textSecondary,
                 fontSize: 10.5,
                 fontFamily: 'monospace',
@@ -95,7 +95,7 @@ class ProgrammeProgress extends StatelessWidget {
             const Spacer(),
             Text(
               formatRemaining(p.remainingAt(now)),
-              style: const TextStyle(
+              style: TextStyle(
                 color: AppTokens.textSecondary,
                 fontSize: 10.5,
                 fontFamily: 'monospace',

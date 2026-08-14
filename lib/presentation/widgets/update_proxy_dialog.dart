@@ -69,14 +69,14 @@ class _UpdateProxyDialogState extends State<UpdateProxyDialog> {
     return AlertDialog(
       backgroundColor: AppTokens.surfacePanel,
       title: Text(l.updateProxy,
-          style: const TextStyle(color: AppTokens.textPrimary)),
+          style: TextStyle(color: AppTokens.textPrimary)),
       content: Column(
         mainAxisSize: MainAxisSize.min,
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Text(
             l.updateProxyHint,
-            style: const TextStyle(color: AppTokens.textTertiary, fontSize: 12),
+            style: TextStyle(color: AppTokens.textTertiary, fontSize: 12),
           ),
           const SizedBox(height: AppDimens.s12),
           TextField(
@@ -85,9 +85,9 @@ class _UpdateProxyDialogState extends State<UpdateProxyDialog> {
             autocorrect: false,
             enableSuggestions: false,
             keyboardType: TextInputType.url,
-            style: const TextStyle(color: AppTokens.textPrimary),
+            style: TextStyle(color: AppTokens.textPrimary),
             cursorColor: AppTokens.brand,
-            decoration: const InputDecoration(
+            decoration: InputDecoration(
               hintText: '127.0.0.1:7890',
               hintStyle: TextStyle(color: AppTokens.textTertiary),
             ),
@@ -98,7 +98,7 @@ class _UpdateProxyDialogState extends State<UpdateProxyDialog> {
             dense: true,
             activeColor: AppTokens.brand,
             title: Text(l.proxyForUpdate,
-                style: const TextStyle(
+                style: TextStyle(
                     color: AppTokens.textPrimary, fontSize: 14)),
             value: _useUpdate,
             onChanged: (v) => setState(() => _useUpdate = v),
@@ -108,7 +108,7 @@ class _UpdateProxyDialogState extends State<UpdateProxyDialog> {
             dense: true,
             activeColor: AppTokens.brand,
             title: Text(l.proxyForSource,
-                style: const TextStyle(
+                style: TextStyle(
                     color: AppTokens.textPrimary, fontSize: 14)),
             value: _useSource,
             onChanged: (v) => setState(() => _useSource = v),

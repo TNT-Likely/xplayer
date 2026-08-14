@@ -30,7 +30,7 @@ class ReconnectingView extends StatelessWidget {
   Widget build(BuildContext context) {
     return _Centered(
       children: [
-        const SizedBox(
+        SizedBox(
           width: 22,
           height: 22,
           child: CircularProgressIndicator(
@@ -42,7 +42,7 @@ class ReconnectingView extends StatelessWidget {
         Text(
           '正在重连 $channelName',
           textAlign: TextAlign.center,
-          style: const TextStyle(
+          style: TextStyle(
             color: AppTokens.textPrimary,
             fontSize: 14,
             fontWeight: FontWeight.w600,
@@ -51,7 +51,7 @@ class ReconnectingView extends StatelessWidget {
         const SizedBox(height: 4),
         Text(
           '第 $attempt 次尝试 · 共 $maxAttempts 次',
-          style: const TextStyle(
+          style: TextStyle(
             color: AppTokens.textSecondary,
             fontSize: 11,
             fontFamily: 'monospace',
@@ -111,7 +111,7 @@ class PlaybackFailedView extends StatelessWidget {
               color: Color(0xFFFF8C85), size: 22),
         ),
         const SizedBox(height: AppDimens.s12),
-        const Text(
+        Text(
           '这条源连不上',
           style: TextStyle(
             color: AppTokens.textPrimary,
@@ -125,7 +125,7 @@ class PlaybackFailedView extends StatelessWidget {
           child: Text(
             reason ?? '重试 $attempts 次均超时。源地址可能已失效，或需要代理才能访问。',
             textAlign: TextAlign.center,
-            style: const TextStyle(
+            style: TextStyle(
               color: AppTokens.textSecondary,
               fontSize: 11.5,
               height: 1.5,

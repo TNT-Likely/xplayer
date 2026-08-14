@@ -170,7 +170,7 @@ class DialogUtils {
           surfaceTintColor: Colors.transparent,
           title: title != null
               ? Text(title,
-                  style: const TextStyle(color: AppTokens.textPrimary))
+                  style: TextStyle(color: AppTokens.textPrimary))
               : null,
           content: Column(
             mainAxisSize: MainAxisSize.min,

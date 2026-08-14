@@ -76,7 +76,7 @@ class LiveEdgeBadge extends StatelessWidget {
                 color: Colors.white.withValues(alpha: 0.14),
                 borderRadius: BorderRadius.circular(999),
               ),
-              child: const Text(
+              child: Text(
                 '回到直播',
                 style: TextStyle(
                     color: AppTokens.textPrimary,

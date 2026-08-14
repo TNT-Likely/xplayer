@@ -58,7 +58,7 @@ class PlaylistListWidget extends StatelessWidget {
     return ListView.separated(
       itemCount: playlists.length,
       separatorBuilder: (_, __) =>
-          const Divider(height: 1, color: AppTokens.line),
+          Divider(height: 1, color: AppTokens.line),
       itemBuilder: (context, index) {
         final playlist = playlists[index];
         final count = _channelCount(playlist);
@@ -78,7 +78,7 @@ class PlaylistListWidget extends StatelessWidget {
             playlist.name,
             maxLines: 1,
             overflow: TextOverflow.ellipsis,
-            style: const TextStyle(color: AppTokens.textPrimary),
+            style: TextStyle(color: AppTokens.textPrimary),
           ),
           subtitle: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
@@ -88,7 +88,7 @@ class PlaylistListWidget extends StatelessWidget {
                 playlist.url,
                 maxLines: 1,
                 overflow: TextOverflow.ellipsis,
-                style: const TextStyle(
+                style: TextStyle(
                   color: AppTokens.textTertiary,
                   fontSize: 12,
                   height: 1.45,

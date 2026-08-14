@@ -175,14 +175,14 @@ class XConfirmDialog extends StatelessWidget {
     return AlertDialog(
       backgroundColor: AppTokens.surfaceRaised,
       title: Text(title,
-          style: const TextStyle(
+          style: TextStyle(
               color: AppTokens.textPrimary,
               fontSize: 17,
               fontWeight: FontWeight.w600)),
       content: SizedBox(
         width: _kDialogWidth,
         child: Text(description,
-            style: const TextStyle(
+            style: TextStyle(
                 color: AppTokens.textSecondary, fontSize: 14, height: 1.5)),
       ),
       actions: [
@@ -215,7 +215,7 @@ class _Title extends StatelessWidget {
   Widget build(BuildContext context) {
     if (description == null) {
       return Text(title,
-          style: const TextStyle(
+          style: TextStyle(
               color: AppTokens.textPrimary,
               fontSize: 17,
               fontWeight: FontWeight.w600));
@@ -225,13 +225,13 @@ class _Title extends StatelessWidget {
       mainAxisSize: MainAxisSize.min,
       children: [
         Text(title,
-            style: const TextStyle(
+            style: TextStyle(
                 color: AppTokens.textPrimary,
                 fontSize: 17,
                 fontWeight: FontWeight.w600)),
         const SizedBox(height: AppDimens.s4),
         Text(description!,
-            style: const TextStyle(
+            style: TextStyle(
                 color: AppTokens.textSecondary, fontSize: 13, height: 1.45)),
       ],
     );
@@ -252,7 +252,7 @@ class XDialogShell extends StatelessWidget {
     final l = AppLocalizations.of(context)!;
     return AlertDialog(
       backgroundColor: AppTokens.surfaceRaised,
-      title: Text(title, style: const TextStyle(color: AppTokens.textPrimary)),
+      title: Text(title, style: TextStyle(color: AppTokens.textPrimary)),
       content: SizedBox(width: _kDialogWidth, child: child),
       actions: [
         XTextButton(

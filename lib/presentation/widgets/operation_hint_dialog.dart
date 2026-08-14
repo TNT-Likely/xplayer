@@ -21,7 +21,7 @@ class OperationHintDialog extends StatelessWidget {
     return AlertDialog(
       backgroundColor: AppTokens.surfacePanel,
       title: Text(l.operationHints,
-          style: const TextStyle(color: AppTokens.textPrimary)),
+          style: TextStyle(color: AppTokens.textPrimary)),
       content: Column(
         mainAxisSize: MainAxisSize.min,
         children: [
@@ -51,7 +51,7 @@ class OperationHintDialog extends StatelessWidget {
           Expanded(
             child: Text(
               label,
-              style: const TextStyle(color: AppTokens.textSecondary, fontSize: 15),
+              style: TextStyle(color: AppTokens.textSecondary, fontSize: 15),
             ),
           ),
         ],

@@ -59,7 +59,7 @@ class ChannelRail extends StatelessWidget {
             children: [
               Text(
                 title,
-                style: const TextStyle(
+                style: TextStyle(
                   color: AppTokens.textPrimary,
                   fontSize: 15,
                   fontWeight: FontWeight.w600,
@@ -68,7 +68,7 @@ class ChannelRail extends StatelessWidget {
               const SizedBox(width: AppDimens.s8),
               Text(
                 '${channels.length}',
-                style: const TextStyle(
+                style: TextStyle(
                   color: AppTokens.textTertiary,
                   fontSize: 11,
                   fontFamily: 'monospace',
@@ -78,7 +78,7 @@ class ChannelRail extends StatelessWidget {
               if (onSeeAll != null)
                 GestureDetector(
                   onTap: onSeeAll,
-                  child: const Text(
+                  child: Text(
                     '全部 ›',
                     style: TextStyle(
                         color: AppTokens.textSecondary, fontSize: 12),

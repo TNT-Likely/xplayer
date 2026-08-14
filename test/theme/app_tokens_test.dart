@@ -3,6 +3,7 @@ import 'dart:math';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:xplayer/shared/theme/app_tokens.dart';
+import 'package:xplayer/shared/theme/theme_mode_setting.dart';
 
 /// WCAG 对比度公式:(较亮亮度 + 0.05) / (较暗亮度 + 0.05)
 double _contrast(Color a, Color b) {
@@ -11,13 +12,16 @@ double _contrast(Color a, Color b) {
   return (max(la, lb) + 0.05) / (min(la, lb) + 0.05);
 }
 
-/// 表面阶梯,由深到浅。
-const _ladder = <(String, Color)>[
-  ('surfaceGround', AppTokens.surfaceGround),
-  ('surfaceDefault', AppTokens.surfaceDefault),
-  ('surfaceRaised', AppTokens.surfaceRaised),
-  ('surfacePlate', AppTokens.surfacePlate),
-];
+/// 表面阶梯，由「最底」到「最浮起」。
+///
+/// 深色下是由深到浅，浅色下是由浅到深 —— 方向相反但语义一致：
+/// 越靠后越「浮起」。所以断言用的是「与底色的距离递增」，而不是「亮度递增」。
+List<(String, Color)> get _ladder => [
+      ('surfaceGround', AppTokens.surfaceGround),
+      ('surfaceDefault', AppTokens.surfaceDefault),
+      ('surfaceRaised', AppTokens.surfaceRaised),
+      ('surfacePlate', AppTokens.surfacePlate),
+    ];
 
 void main() {
   group('表面阶梯', () {
@@ -154,6 +158,88 @@ void main() {
       // 它是旧调用点的名字,保留以免一次性改动过大;
       // 取值必须跟阶梯一致,否则又会分裂出第二套配色。
       expect(AppTokens.surfacePanel, AppTokens.surfaceDefault);
+    });
+  });
+
+  group('浅色模式', () {
+    // 深色是主场景,但浅色不能是「凑合能看」—— 同样的可读性底线要过一遍,
+    // 否则等于没做。
+    setUp(() => appThemeMode.value = AppThemeMode.light);
+    tearDown(() => appThemeMode.value = AppThemeMode.dark);
+
+    test('取到的是浅色板 —— 底色比正文亮', () {
+      expect(AppTokens.surfaceGround.computeLuminance(),
+          greaterThan(AppTokens.textPrimary.computeLuminance()));
+    });
+
+    test('阶梯方向相反但语义一致:越靠后离底色越远', () {
+      // 浅色下「浮起」是变暗(白纸上的阴影),不是变亮。
+      final ground = AppTokens.surfaceGround.computeLuminance();
+      final plate = AppTokens.surfacePlate.computeLuminance();
+      expect(plate, lessThan(ground),
+          reason: '浅色下频道牌衬底应比页面底色暗,才显得浮起');
+    });
+
+    test('正文对每一级表面都达 AA(≥ 4.5:1)', () {
+      for (final (name, surface) in _ladder) {
+        final ratio = _contrast(AppTokens.textPrimary, surface);
+        expect(ratio, greaterThanOrEqualTo(4.5),
+            reason: '浅色下正文在 $name 上仅 ${ratio.toStringAsFixed(2)}:1');
+      }
+    });
+
+    test('次要文字对每一级表面都达 AA(≥ 4.5:1)', () {
+      for (final (name, surface) in _ladder) {
+        final ratio = _contrast(AppTokens.textSecondary, surface);
+        expect(ratio, greaterThanOrEqualTo(4.5),
+            reason: '浅色下次要文字在 $name 上仅 ${ratio.toStringAsFixed(2)}:1');
+      }
+    });
+
+    test('三级文字至少达 3:1', () {
+      for (final (name, surface) in _ladder) {
+        final ratio = _contrast(AppTokens.textTertiary, surface);
+        expect(ratio, greaterThanOrEqualTo(3.0),
+            reason: '浅色下三级文字在 $name 上仅 ${ratio.toStringAsFixed(2)}:1');
+      }
+    });
+
+    test('描边可辨', () {
+      for (final (name, surface) in _ladder) {
+        final ratio = _contrast(AppTokens.line, surface);
+        expect(ratio, greaterThanOrEqualTo(1.10),
+            reason: '浅色下描边在 $name 上仅 ${ratio.toStringAsFixed(3)}');
+      }
+    });
+
+    test('文字层级不倒挂', () {
+      final p = AppTokens.textPrimary.computeLuminance();
+      final sec = AppTokens.textSecondary.computeLuminance();
+      final t = AppTokens.textTertiary.computeLuminance();
+      final d = AppTokens.textDisabled.computeLuminance();
+      // 浅色下越次要越亮(越接近白底)
+      expect(p, lessThan(sec));
+      expect(sec, lessThan(t));
+      expect(t, lessThan(d));
+    });
+  });
+
+  group('外观模式切换', () {
+    tearDown(() => appThemeMode.value = AppThemeMode.dark);
+
+    test('切换后 token 立刻换值 —— 无需 context,故无 context 处也生效', () {
+      appThemeMode.value = AppThemeMode.dark;
+      final darkBg = AppTokens.surfaceGround;
+      appThemeMode.value = AppThemeMode.light;
+      final lightBg = AppTokens.surfaceGround;
+      expect(darkBg, isNot(lightBg));
+    });
+
+    test('半透明覆盖层两种模式下不变 —— 它们压在背景图/台标上,不跟随表面阶梯', () {
+      appThemeMode.value = AppThemeMode.dark;
+      final a = (AppTokens.surfaceThumb, AppTokens.surfaceBadge);
+      appThemeMode.value = AppThemeMode.light;
+      expect((AppTokens.surfaceThumb, AppTokens.surfaceBadge), a);
     });
   });
 }
