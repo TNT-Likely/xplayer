@@ -150,16 +150,34 @@
     "playlistNameExists": "已存在同名播放列表",
     "epgNext": "下一个",
     "epgRemaining": "剩 {min} 分钟",
-    "@epgRemaining": { "placeholders": { "min": { "type": "Object" } } },
+    "@epgRemaining": {
+        "placeholders": {
+            "min": {
+                "type": "Object"
+            }
+        }
+    },
     "castToTv": "投屏到电视",
     "castingTo": "正在投到:{name}",
-    "@castingTo": { "placeholders": { "name": { "type": "Object" } } },
+    "@castingTo": {
+        "placeholders": {
+            "name": {
+                "type": "Object"
+            }
+        }
+    },
     "stopCast": "停止投屏",
     "castSearching": "正在搜索设备…",
     "castNoDevice": "未发现可投设备",
     "castNoDeviceHint": "请确认电视与手机在同一 Wi-Fi,且电视已开启投屏/DLNA",
     "castStarted": "已投到 {name}",
-    "@castStarted": { "placeholders": { "name": { "type": "Object" } } },
+    "@castStarted": {
+        "placeholders": {
+            "name": {
+                "type": "Object"
+            }
+        }
+    },
     "castFailed": "投屏失败,该设备可能不支持此源",
     "tvResumeHint": "按 菜单键 继续观看",
     "miniPlayerOnExit": "返回小窗续播",
@@ -172,21 +190,43 @@
     "lanSyncStop": "关闭",
     "lanSyncSearching": "正在搜索设备…",
     "lanSyncRemaining": "{s} 秒后自动关闭",
-    "@lanSyncRemaining": { "placeholders": { "s": { "type": "int" } } },
+    "@lanSyncRemaining": {
+        "placeholders": {
+            "s": {
+                "type": "int"
+            }
+        }
+    },
     "syncApply": "应用",
     "syncPreviewTitle": "预览同步",
     "syncSecPlaylists": "播放列表",
     "syncSecSettings": "应用设置",
     "syncFailed": "拉取配置失败",
     "syncResult": "已应用:播放列表 {pl}、收藏 {fav}、设置 {st}",
-    "@syncResult": { "placeholders": { "pl": {"type":"int"}, "fav": {"type":"int"}, "st": {"type":"int"} } },
+    "@syncResult": {
+        "placeholders": {
+            "pl": {
+                "type": "int"
+            },
+            "fav": {
+                "type": "int"
+            },
+            "st": {
+                "type": "int"
+            }
+        }
+    },
     "allChannels": "全部频道",
     "clearAll": "清除",
     "sleepTimer": "睡眠定时",
     "sleepOff": "关闭",
     "sleepMinutes": "{n} 分钟",
     "@sleepMinutes": {
-        "placeholders": { "n": { "type": "int" } }
+        "placeholders": {
+            "n": {
+                "type": "int"
+            }
+        }
     },
     "sleepStopped": "睡眠定时已停止播放",
     "audioTrack": "音轨",
@@ -232,5 +272,21 @@
     "infoBitrate": "码率",
     "infoAudioCodec": "音频编码",
     "infoAudioDecoder": "音频解码器",
-    "infoTier2Hint": "丢帧/卡顿/Audio Path/AV 同步等指标需后续(挂 ExoPlayer 分析器)"
+    "infoTier2Hint": "丢帧/卡顿/Audio Path/AV 同步等指标需后续(挂 ExoPlayer 分析器)",
+    "timeJustNow": "刚刚",
+    "timeMinutesAgo": "{n} 分钟前",
+    "timeHoursAgo": "{n} 小时前",
+    "timeDaysAgo": "{n} 天前",
+    "timeMonthsAgo": "{n} 个月前",
+    "timeYearsAgo": "{n} 年前",
+    "playlistChannelCount": "{n} 个频道",
+    "playlistUpdatedAt": "{time}更新",
+    "playlistNeverUpdated": "尚未更新",
+    "playlistEmptyTitle": "添加一个播放列表",
+    "playlistEmptyMessage": "XPlayer 不内置频道。粘贴你的 M3U 链接，或从文件里选一个。",
+    "playlistRemoveTitle": "移除「{name}」？",
+    "playlistRemoveBodyWithCount": "这个源提供的 {n} 个频道会从列表中消失。源地址不会被记住，重新添加需要再输一次。",
+    "playlistRemoveBody": "这个源提供的频道会从列表中消失。源地址不会被记住，重新添加需要再输一次。",
+    "remove": "移除",
+    "audioCodecMaybeUnsupported": "此设备可能无法解码，选中后或许没有声音"
 }

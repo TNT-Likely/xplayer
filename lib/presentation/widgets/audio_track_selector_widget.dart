@@ -1,4 +1,5 @@
 import 'package:flutter/widgets.dart';
+import 'package:xplayer/localization/app_localizations.dart';
 import 'package:xplayer/services/player/x_player_backend.dart';
 import 'package:xplayer/shared/components/x_text_button.dart';
 import 'package:xplayer/shared/theme/app_tokens.dart';
@@ -52,14 +53,15 @@ class AudioTrackSelectorWidget extends StatelessWidget {
                     },
                   ),
                   if (risky)
-                    const Padding(
-                      padding: EdgeInsets.only(top: 2),
+                    Padding(
+                      padding: const EdgeInsets.only(top: 2),
                       child: SizedBox(
                         width: 200,
                         child: Text(
-                          '此设备可能无法解码,选中后或许没有声音',
+                          AppLocalizations.of(context)!
+                              .audioCodecMaybeUnsupported,
                           textAlign: TextAlign.center,
-                          style: TextStyle(
+                          style: const TextStyle(
                             fontSize: 10,
                             height: 1.3,
                             color: AppTokens.sourceSlow,

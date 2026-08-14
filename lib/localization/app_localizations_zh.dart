@@ -717,4 +717,70 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get infoTier2Hint => '丢帧/卡顿/Audio Path/AV 同步等指标需后续(挂 ExoPlayer 分析器)';
+
+  @override
+  String get timeJustNow => '刚刚';
+
+  @override
+  String timeMinutesAgo(int n) {
+    return '$n 分钟前';
+  }
+
+  @override
+  String timeHoursAgo(int n) {
+    return '$n 小时前';
+  }
+
+  @override
+  String timeDaysAgo(int n) {
+    return '$n 天前';
+  }
+
+  @override
+  String timeMonthsAgo(int n) {
+    return '$n 个月前';
+  }
+
+  @override
+  String timeYearsAgo(int n) {
+    return '$n 年前';
+  }
+
+  @override
+  String playlistChannelCount(int n) {
+    return '$n 个频道';
+  }
+
+  @override
+  String playlistUpdatedAt(String time) {
+    return '$time更新';
+  }
+
+  @override
+  String get playlistNeverUpdated => '尚未更新';
+
+  @override
+  String get playlistEmptyTitle => '添加一个播放列表';
+
+  @override
+  String get playlistEmptyMessage => 'XPlayer 不内置频道。粘贴你的 M3U 链接，或从文件里选一个。';
+
+  @override
+  String playlistRemoveTitle(String name) {
+    return '移除「$name」？';
+  }
+
+  @override
+  String playlistRemoveBodyWithCount(int n) {
+    return '这个源提供的 $n 个频道会从列表中消失。源地址不会被记住，重新添加需要再输一次。';
+  }
+
+  @override
+  String get playlistRemoveBody => '这个源提供的频道会从列表中消失。源地址不会被记住，重新添加需要再输一次。';
+
+  @override
+  String get remove => '移除';
+
+  @override
+  String get audioCodecMaybeUnsupported => '此设备可能无法解码，选中后或许没有声音';
 }

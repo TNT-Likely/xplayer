@@ -1447,6 +1447,102 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Dropped frames / audio path / A-V sync need a later pass (ExoPlayer analytics)'**
   String get infoTier2Hint;
+
+  /// No description provided for @timeJustNow.
+  ///
+  /// In en, this message translates to:
+  /// **'just now'**
+  String get timeJustNow;
+
+  /// No description provided for @timeMinutesAgo.
+  ///
+  /// In en, this message translates to:
+  /// **'{n} min ago'**
+  String timeMinutesAgo(int n);
+
+  /// No description provided for @timeHoursAgo.
+  ///
+  /// In en, this message translates to:
+  /// **'{n} hr ago'**
+  String timeHoursAgo(int n);
+
+  /// No description provided for @timeDaysAgo.
+  ///
+  /// In en, this message translates to:
+  /// **'{n} days ago'**
+  String timeDaysAgo(int n);
+
+  /// No description provided for @timeMonthsAgo.
+  ///
+  /// In en, this message translates to:
+  /// **'{n} months ago'**
+  String timeMonthsAgo(int n);
+
+  /// No description provided for @timeYearsAgo.
+  ///
+  /// In en, this message translates to:
+  /// **'{n} years ago'**
+  String timeYearsAgo(int n);
+
+  /// No description provided for @playlistChannelCount.
+  ///
+  /// In en, this message translates to:
+  /// **'{n} channels'**
+  String playlistChannelCount(int n);
+
+  /// No description provided for @playlistUpdatedAt.
+  ///
+  /// In en, this message translates to:
+  /// **'updated {time}'**
+  String playlistUpdatedAt(String time);
+
+  /// No description provided for @playlistNeverUpdated.
+  ///
+  /// In en, this message translates to:
+  /// **'Never updated'**
+  String get playlistNeverUpdated;
+
+  /// No description provided for @playlistEmptyTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Add a playlist'**
+  String get playlistEmptyTitle;
+
+  /// No description provided for @playlistEmptyMessage.
+  ///
+  /// In en, this message translates to:
+  /// **'XPlayer ships no channels. Paste your M3U link, or pick a file.'**
+  String get playlistEmptyMessage;
+
+  /// No description provided for @playlistRemoveTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Remove “{name}”?'**
+  String playlistRemoveTitle(String name);
+
+  /// No description provided for @playlistRemoveBodyWithCount.
+  ///
+  /// In en, this message translates to:
+  /// **'The {n} channels from this source will disappear from your list. The URL is not kept — you\'d have to type it again.'**
+  String playlistRemoveBodyWithCount(int n);
+
+  /// No description provided for @playlistRemoveBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Channels from this source will disappear from your list. The URL is not kept — you\'d have to type it again.'**
+  String get playlistRemoveBody;
+
+  /// No description provided for @remove.
+  ///
+  /// In en, this message translates to:
+  /// **'Remove'**
+  String get remove;
+
+  /// No description provided for @audioCodecMaybeUnsupported.
+  ///
+  /// In en, this message translates to:
+  /// **'This device may not decode it — there may be no sound'**
+  String get audioCodecMaybeUnsupported;
 }
 
 class _AppLocalizationsDelegate

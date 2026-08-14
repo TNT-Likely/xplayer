@@ -731,4 +731,73 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String get infoTier2Hint =>
       'Dropped frames / audio path / A-V sync need a later pass (ExoPlayer analytics)';
+
+  @override
+  String get timeJustNow => 'just now';
+
+  @override
+  String timeMinutesAgo(int n) {
+    return '$n min ago';
+  }
+
+  @override
+  String timeHoursAgo(int n) {
+    return '$n hr ago';
+  }
+
+  @override
+  String timeDaysAgo(int n) {
+    return '$n days ago';
+  }
+
+  @override
+  String timeMonthsAgo(int n) {
+    return '$n months ago';
+  }
+
+  @override
+  String timeYearsAgo(int n) {
+    return '$n years ago';
+  }
+
+  @override
+  String playlistChannelCount(int n) {
+    return '$n channels';
+  }
+
+  @override
+  String playlistUpdatedAt(String time) {
+    return 'updated $time';
+  }
+
+  @override
+  String get playlistNeverUpdated => 'Never updated';
+
+  @override
+  String get playlistEmptyTitle => 'Add a playlist';
+
+  @override
+  String get playlistEmptyMessage =>
+      'XPlayer ships no channels. Paste your M3U link, or pick a file.';
+
+  @override
+  String playlistRemoveTitle(String name) {
+    return 'Remove “$name”?';
+  }
+
+  @override
+  String playlistRemoveBodyWithCount(int n) {
+    return 'The $n channels from this source will disappear from your list. The URL is not kept — you\'d have to type it again.';
+  }
+
+  @override
+  String get playlistRemoveBody =>
+      'Channels from this source will disappear from your list. The URL is not kept — you\'d have to type it again.';
+
+  @override
+  String get remove => 'Remove';
+
+  @override
+  String get audioCodecMaybeUnsupported =>
+      'This device may not decode it — there may be no sound';
 }

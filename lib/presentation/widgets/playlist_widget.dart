@@ -2,6 +2,7 @@ import 'dart:convert';
 
 import 'package:flutter/material.dart';
 import 'package:xplayer/data/models/playlist_model.dart';
+import 'package:xplayer/localization/app_localizations.dart';
 import 'package:xplayer/presentation/components/empty_state.dart';
 import 'package:xplayer/presentation/widgets/playlist_dialog.dart';
 import 'package:xplayer/shared/components/x_dialog_shell.dart';
@@ -37,16 +38,17 @@ class PlaylistListWidget extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final now = clock();
+    final l = AppLocalizations.of(context)!;
     if (playlists.isEmpty) {
       // 商店包不内置任何源,新用户第一眼看到的就是这里。
       // 文案直说「不内置频道」——与商店定位一致,也免得用户以为加载失败。
       return EmptyState(
         icon: Icons.playlist_add_rounded,
-        title: '添加一个播放列表',
-        message: 'XPlayer 不内置频道。粘贴你的 M3U 链接，或从文件里选一个。',
+        title: l.playlistEmptyTitle,
+        message: l.playlistEmptyMessage,
         actions: [
           XTextButton(
-            text: '添加播放列表',
+            text: l.addPlaylist,
             type: XTextButtonType.primary,
             onPressed: onAdd,
           ),
@@ -62,73 +64,123 @@ class PlaylistListWidget extends StatelessWidget {
         final count = _channelCount(playlist);
         final stale = isStale(playlist.updatedAt, now);
 
-        return ListTile(
-          style: ListTileStyle.drawer,
-          contentPadding: const EdgeInsets.symmetric(
-              horizontal: AppDimens.s16, vertical: AppDimens.s4),
-          // 此前标题是 `3: 主源` —— 那个 id 是数据库自增主键,
-          // 对用户没有任何意义,不该出现在界面上。
-          title: Text(
-            playlist.name,
-            style: const TextStyle(
-                color: AppTokens.textPrimary, fontWeight: FontWeight.w600),
-          ),
-          subtitle: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              const SizedBox(height: 2),
-              Text(
-                playlist.url,
-                maxLines: 1,
-                overflow: TextOverflow.ellipsis,
-                style: const TextStyle(
-                    color: AppTokens.textTertiary,
-                    fontSize: 11,
-                    fontFamily: 'monospace'),
-              ),
-              const SizedBox(height: 4),
-              // 「多少个频道、多久没更新」是用户真正据以判断的信息。
-              // 超过 7 天未更新时用琥珀色提醒 —— 源失效不会有任何通知。
-              Text(
-                _summary(playlist, count, now),
-                style: TextStyle(
-                  color: stale ? AppTokens.sourceSlow : AppTokens.textSecondary,
-                  fontSize: 12,
+        // 刻意不用 ListTile:它的 subtitle 高度是写死的,塞两行文字必溢出
+        // (RenderFlex overflowed by 15 pixels)。isThreeLine 只是把写死的值
+        // 换成另一个写死的值,字号一变又会溢出,所以直接换成无高度约束的布局。
+        // 刻意不用 ListTile:它的 subtitle 高度写死,塞两行必溢出
+        // (真机报 RenderFlex overflowed by 15 pixels)。isThreeLine 只是把
+        // 一个写死的值换成另一个,字号一变又会溢出。
+        //
+        // 但换掉它就得自己把它的视觉规矩补回来:统一最小高度让各行等高、
+        // 操作按钮垂直居中(顶部对齐会跟标题齐平,看着很怪)、行距按
+        // 「名称→地址」紧、「地址→摘要」松,让三行读起来是两组而不是三条。
+        return ConstrainedBox(
+          constraints: const BoxConstraints(minHeight: 76),
+          child: Padding(
+            padding: const EdgeInsets.symmetric(
+                horizontal: AppDimens.s16, vertical: AppDimens.s12),
+            child: Row(
+              crossAxisAlignment: CrossAxisAlignment.center,
+              children: [
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      // 此前标题是 `3: 主源` —— 那个 id 是数据库自增主键,
+                      // 对用户没有任何意义,不该出现在界面上。
+                      Text(
+                        playlist.name,
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                        style: const TextStyle(
+                            color: AppTokens.textPrimary,
+                            fontSize: 15,
+                            height: 1.3,
+                            fontWeight: FontWeight.w600),
+                      ),
+                      const SizedBox(height: 2),
+                      Text(
+                        playlist.url,
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                        style: const TextStyle(
+                            color: AppTokens.textTertiary,
+                            fontSize: 11,
+                            height: 1.35,
+                            fontFamily: 'monospace'),
+                      ),
+                      const SizedBox(height: 7),
+                      // 「多少个频道、多久没更新」是用户真正据以判断的信息。
+                      // 超过 7 天未更新时转琥珀色 —— 源失效不会有任何通知。
+                      Text(
+                        _summary(l, playlist, count, now),
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                        style: TextStyle(
+                          color: stale
+                              ? AppTokens.sourceSlow
+                              : AppTokens.textSecondary,
+                          fontSize: 12,
+                          height: 1.3,
+                        ),
+                      ),
+                    ],
+                  ),
                 ),
-              ),
-            ],
-          ),
-          trailing: Row(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              XIconButton(
-                icon: Icons.edit,
-                onPressed: () => _showEditDialog(context, playlist),
-              ),
-              const SizedBox(width: 8),
-              XIconButton(
-                onPressed: () => onRefresh(playlist.id!, playlist.url),
-                icon: Icons.refresh,
-              ),
-              const SizedBox(width: 8),
-              XIconButton(
-                icon: Icons.delete,
-                type: XIconButtonType.danger,
-                onPressed: () => _confirmRemove(context, playlist, count),
-              ),
-            ],
+                const SizedBox(width: AppDimens.s12),
+                Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    XIconButton(
+                      icon: Icons.edit,
+                      onPressed: () => _showEditDialog(context, playlist),
+                    ),
+                    XIconButton(
+                      onPressed: () => onRefresh(playlist.id!, playlist.url),
+                      icon: Icons.refresh,
+                    ),
+                    XIconButton(
+                      icon: Icons.delete,
+                      type: XIconButtonType.danger,
+                      onPressed: () => _confirmRemove(context, playlist, count),
+                    ),
+                  ],
+                ),
+              ],
+            ),
           ),
         );
       },
     );
   }
 
-  String _summary(Playlist p, int? count, DateTime now) {
+  String _summary(AppLocalizations l, Playlist p, int? count, DateTime now) {
     final parts = <String>[];
-    if (count != null) parts.add('$count 个频道');
-    final t = relativeTime(p.updatedAt ?? p.createdAt, now);
-    if (t.isNotEmpty) parts.add('$t更新');
-    return parts.isEmpty ? '尚未更新' : parts.join(' · ');
+    if (count != null) parts.add(l.playlistChannelCount(count));
+    final rt = relativeTime(p.updatedAt ?? p.createdAt, now);
+    if (rt != null) parts.add(l.playlistUpdatedAt(_formatRelative(l, rt)));
+    return parts.isEmpty ? l.playlistNeverUpdated : parts.join(' · ');
+  }
+
+  /// 把结构化的相对时间落成本地化文案。
+  /// [relativeTime] 只算「几个什么单位」，措辞在这里决定。
+  String _formatRelative(AppLocalizations l, RelativeTime rt) {
+    switch (rt.unit) {
+      case TimeUnit.justNow:
+        return l.timeJustNow;
+      case TimeUnit.minutes:
+        return l.timeMinutesAgo(rt.value);
+      case TimeUnit.hours:
+        return l.timeHoursAgo(rt.value);
+      case TimeUnit.days:
+        return l.timeDaysAgo(rt.value);
+      case TimeUnit.months:
+        return l.timeMonthsAgo(rt.value);
+      case TimeUnit.years:
+        return l.timeYearsAgo(rt.value);
+    }
   }
 
   /// 频道数。缓存已迁到文件存储后 [Playlist.channels] 通常为空，
@@ -149,16 +201,17 @@ class PlaylistListWidget extends StatelessWidget {
   }
 
   void _confirmRemove(BuildContext context, Playlist p, int? count) {
+    final l = AppLocalizations.of(context)!;
     // 说清具体后果,而不是「确定要删除吗?此操作不可撤销」这种空话。
-    final what = count != null
-        ? '这个源提供的 $count 个频道会从列表中消失。'
-        : '这个源提供的频道会从列表中消失。';
+    // 拿得到频道数就报数,拿不到就退回泛化说法,不编造数字。
     XConfirmDialog.show(
       context,
       XConfirmDialog(
-        title: '移除「${p.name}」？',
-        description: '$what源地址不会被记住，重新添加需要再输一次。',
-        actionLabel: '移除',
+        title: l.playlistRemoveTitle(p.name),
+        description: count != null
+            ? l.playlistRemoveBodyWithCount(count)
+            : l.playlistRemoveBody,
+        actionLabel: l.remove,
         onAction: () => onDelete(p.id!),
       ),
     );
