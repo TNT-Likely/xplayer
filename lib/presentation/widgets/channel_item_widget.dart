@@ -1,8 +1,8 @@
-import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:xplayer/data/models/channel_model.dart';
 import 'package:xplayer/data/models/channel_test_result.dart';
+import 'package:xplayer/presentation/components/channel_plate.dart';
 import 'package:xplayer/presentation/screens/player.dart';
 import 'package:xplayer/shared/components/x_base_button.dart';
 import 'package:xplayer/actions/channel_actions.dart';
@@ -70,96 +70,67 @@ class _ChannelItemWidgetState extends State<ChannelItemWidget> {
               Column(
                 crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: [
-                  AspectRatio(
-                    aspectRatio: 16 / 9,
-                    child: Stack(children: [
-                      Stack(
-                        fit: StackFit.expand,
-                        children: [
-                          // 显示缩略图或 Logo
-                          Container(
-                            alignment: Alignment.center,
-                            padding: const EdgeInsets.all(8.0),
-                            decoration: const BoxDecoration(
-                              color: AppTokens.surfaceThumb,
-                              borderRadius: BorderRadius.vertical(
-                                  top: Radius.circular(AppDimens.radius),
-                                  bottom: Radius.circular(AppDimens.radius)),
-                            ),
-                            child: _buildThumbnailOrLogo(testResult, isFocused),
+                  // 统一频道牌:固定 16:10、统一内边距、中性衬底。
+                  // 台标规格千差万别,靠这层合成才能扫成一个系统。
+                  ChannelPlate(
+                    channel: widget.channel,
+                    width: widget.width,
+                    focused: isFocused,
+                    health: SourceHealth.fromTestResult(testResult),
+                    overlay: Stack(
+                      children: [
+                        // 收藏心标 —— 右下角
+                        Positioned(
+                          right: widget.width * 0.05,
+                          bottom: widget.width * 0.05,
+                          child: Icon(
+                            _isFavorite
+                                ? Icons.favorite
+                                : Icons.favorite_border,
+                            color:
+                                _isFavorite ? Colors.red : AppTokens.textPrimary,
+                            size: widget.width * 0.12,
                           ),
-                          // Group Title - 左下角
+                        ),
+                        // 延时数值只在测过之后显示,且避开清晰度角标所在的右下角
+                        if (testResult != null &&
+                            _getStatusText(testResult).isNotEmpty)
                           Positioned(
-                            bottom: 8.0,
-                            left: 8.0,
+                            top: widget.width * 0.05,
+                            right: widget.width * 0.05,
                             child: Container(
-                              padding: const EdgeInsets.symmetric(
-                                  horizontal: 8.0, vertical: 4.0),
+                              padding: EdgeInsets.symmetric(
+                                  horizontal: widget.width * 0.04,
+                                  vertical: widget.width * 0.014),
                               decoration: BoxDecoration(
-                                color: AppTokens.surfaceBadge,
-                                borderRadius: BorderRadius.circular(AppDimens.radiusSm),
+                                color: _getStatusColor(testResult),
+                                borderRadius: BorderRadius.circular(
+                                    AppDimens.radiusSm),
                               ),
                               child: Text(
-                                widget.channel.source.first.groupTitle,
+                                _getStatusText(testResult),
                                 style: TextStyle(
                                     color: Colors.white,
-                                    fontSize: widget.width * 0.06),
+                                    fontSize: widget.width * 0.06,
+                                    fontWeight: FontWeight.bold),
                               ),
                             ),
                           ),
-                          // Latency Tag 或错误提示 - 右上角
-                          if (testResult != null)
-                            Positioned(
-                              top: 8.0,
-                              right: 8.0,
-                              child: Container(
-                                padding: const EdgeInsets.symmetric(
-                                    horizontal: 8.0, vertical: 4.0),
-                                decoration: BoxDecoration(
-                                  color: _getStatusColor(testResult),
-                                  borderRadius: BorderRadius.circular(4.0),
-                                ),
-                                child: Text(
-                                  _getStatusText(testResult),
-                                  style: TextStyle(
-                                      color: Colors.white,
-                                      fontSize: widget.width * 0.06,
-                                      fontWeight: FontWeight.bold),
+                        if (isFocused)
+                          Positioned.fill(
+                            child: Container(
+                              color: AppTokens.focusPlayOverlay,
+                              child: Center(
+                                child: Icon(
+                                  Icons.play_circle,
+                                  color: AppTokens.textPrimary,
+                                  size: widget.width * 0.3,
                                 ),
                               ),
                             ),
-                          Positioned(
-                            right: 8.0,
-                            bottom: 8.0,
-                            child: Icon(
-                              _isFavorite
-                                  ? Icons.favorite
-                                  : Icons.favorite_border,
-                              color: _isFavorite ? Colors.red : Colors.white,
-                              size: widget.width * 0.12,
-                            ),
-                          )
-                        ],
-                      ),
-                      Positioned.fill(
-                        child: Opacity(
-                            opacity: isFocused ? 1 : 0,
-                            child: Stack(children: [
-                              Container(
-                                decoration: BoxDecoration(
-                                  color: AppTokens.focusPlayOverlay,
-                                  borderRadius: BorderRadius.circular(AppDimens.radius),
-                                ),
-                                child: Center(
-                                    child: Icon(
-                                  Icons.play_circle,
-                                  color: Colors.white,
-                                  size: widget.width * 0.3,
-                                )),
-                              )
-                            ])),
-                      ),
-                    ]),
+                          ),
+                      ],
+                    ),
                   ),
                   if (widget.hideTitle != true)
                     Expanded(
@@ -171,21 +142,36 @@ class _ChannelItemWidgetState extends State<ChannelItemWidget> {
                           borderRadius: BorderRadius.vertical(
                               bottom: Radius.circular(8.0)),
                         ),
-                        child: Row(
-                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                          crossAxisAlignment: CrossAxisAlignment.center,
+                        // 这里此前渲染的是 channel.id —— 那是机器标识
+                        // (`123TV.DE@SD`),全大写还被截断成
+                        // `1PLUS1INTERNATIONA…`。改用规范化后的展示名,
+                        // 并允许换到两行:宁可换行也不中途截断。
+                        child: Column(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          crossAxisAlignment: CrossAxisAlignment.stretch,
                           children: [
-                            Expanded(
-                              child: Text(
-                                widget.channel.id,
+                            Text(
+                              widget.channel.name.isEmpty
+                                  ? widget.channel.id
+                                  : widget.channel.name,
+                              textAlign: TextAlign.center,
+                              style: TextStyle(
+                                  fontSize: widget.width * 0.07,
+                                  height: 1.25,
+                                  color: AppTokens.textPrimary),
+                              overflow: TextOverflow.ellipsis,
+                              maxLines: 2,
+                            ),
+                            if (_subtitle.isNotEmpty)
+                              Text(
+                                _subtitle,
                                 textAlign: TextAlign.center,
                                 style: TextStyle(
-                                    fontSize: widget.width * 0.07,
-                                    color: Colors.white),
+                                    fontSize: widget.width * 0.055,
+                                    color: AppTokens.textTertiary),
                                 overflow: TextOverflow.ellipsis,
                                 maxLines: 1,
                               ),
-                            ),
                           ],
                         ),
                       ),
@@ -197,32 +183,18 @@ class _ChannelItemWidgetState extends State<ChannelItemWidget> {
     );
   }
 
-  /// 构建缩略图或 Logo
-  Widget _buildThumbnailOrLogo(ChannelTestResult? testResult, bool isFocused) {
-    // 直接显示 Logo（IPTV 直播流不支持截图）
-    return _buildLogo(isFocused);
-  }
-
-  /// 构建 Logo
-  Widget _buildLogo(bool isFocused) {
-    return LayoutBuilder(
-      builder: (BuildContext context, BoxConstraints constraints) {
-        final double logoWidth = constraints.maxWidth * 0.4 * (isFocused ? 1.1 : 1.0);
-        return SizedBox(
-          width: logoWidth,
-          child: CachedNetworkImage(
-            imageUrl: widget.channel.logo ?? '',
-            fit: BoxFit.fitWidth,
-            errorWidget: (BuildContext context, String exception, Object? stackTrace) {
-              return Icon(
-                  Icons.signal_wifi_statusbar_connected_no_internet_4,
-                  color: Colors.white70,
-                  size: logoWidth * 0.8);
-            },
-          ),
-        );
-      },
-    );
+  /// 名称下方的副行:分组 · 地区。
+  ///
+  /// 分组此前是压在牌面左下角的大标签,满屏都是「General」,占着黄金位置却
+  /// 几乎不携带信息;而且 `Entertainment;Family;General` 会直接溢出。
+  /// 现在降为副行,并走拆分后的多标签(只取第一个,副行放不下更多)。
+  String get _subtitle {
+    final parts = <String>[];
+    final groups = widget.channel.groups;
+    if (groups.isNotEmpty) parts.add(groups.first);
+    final region = widget.channel.region;
+    if (region != null && region.isNotEmpty) parts.add(region);
+    return parts.join(' · ');
   }
 
   /// 根据测试结果获取显示文本
