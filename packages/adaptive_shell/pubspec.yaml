@@ -1,0 +1,17 @@
+name: adaptive_shell
+description: >-
+  按「输入能力 × 屏幕宽度」判定界面骨架形态，把多端适配的分支收敛到唯一一处。
+version: 0.1.0
+publish_to: none
+
+environment:
+  sdk: ">=3.0.0 <4.0.0"
+
+dependencies:
+  flutter:
+    sdk: flutter
+
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+  flutter_lints: ^4.0.0

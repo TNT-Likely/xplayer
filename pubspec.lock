@@ -9,6 +9,13 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "93.0.0"
+  adaptive_shell:
+    dependency: "direct main"
+    description:
+      path: "packages/adaptive_shell"
+      relative: true
+    source: path
+    version: "0.1.0"
   analyzer:
     dependency: transitive
     description:
