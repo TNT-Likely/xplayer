@@ -1,0 +1,282 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>XPlayer · Pad 子页面适配 — 4 方向</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Archivo:ital,wdth,wght@0,62..125,100..900&family=Manrope:wght@400;500;600;700;800&family=Barlow:wght@400;500;600;700&family=Chivo+Mono:wght@400;500;600;700&family=Spline+Sans+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+* { margin:0; padding:0; box-sizing:border-box; }
+body { background:#15161A; color:#E9ECEF; font-family:'PingFang SC','Noto Sans SC',sans-serif; -webkit-font-smoothing:antialiased; padding:52px 48px 90px; }
+.head h1 { font-size:26px; font-weight:750; }
+.head h1 em { font-style:normal; color:#8A8F9C; font-weight:600; }
+.head p { margin-top:10px; font-size:14px; line-height:1.8; color:#9BA0AC; max-width:880px; }
+.head p b { color:#C9CDD6; font-weight:600; }
+.board-wrap { margin-top:44px; display:flex; flex-direction:column; gap:56px; max-width:1240px; }
+figure.pad-fig { display:flex; flex-direction:column; gap:14px; }
+figcaption { font-size:13px; color:#8A90A0; line-height:1.7; }
+figcaption b { color:#E9ECEF; font-weight:650; margin-right:10px; }
+.device { width:838px; height:592px; overflow:hidden; border-radius:30px; padding:11px; background:#000; box-shadow:0 20px 50px rgba(0,0,0,.5), inset 0 0 0 1.5px #2C2F35; align-self:flex-start; }
+.surface { width:1194px; height:834px; transform:scale(.682); transform-origin:0 0; border-radius:20px; overflow:hidden; position:relative; background:var(--bg); color:var(--tx); }
+.dir-a { --bg:#0A0C0B; --panel:#121614; --panel2:#171C19; --line:#232925; --line2:#2C342F; --tx:#F2F5F3; --tx2:#98A69D; --tx3:#5C685F; --acc:#00DC82; --acc-ink:#04150C; --live:#FF453A; --mono:'Spline Sans Mono',monospace; --radius:13px; font-family:'Archivo','PingFang SC','Noto Sans SC',sans-serif; }
+.dir-b { --bg:#0D1220; --panel:rgba(255,255,255,.055); --panel-solid:#151C2E; --line:rgba(255,255,255,.09); --line2:rgba(255,255,255,.14); --tx:#EEF2FB; --tx2:#8B94AD; --tx3:#5C6580; --acc:#FFB347; --acc-ink:#241503; --live:#FF453A; --mono:'Manrope',sans-serif; --radius:16px; font-family:'Manrope','PingFang SC','Noto Sans SC',sans-serif; }
+.dir-c { --bg:#0B0E11; --panel:#10151B; --panel2:#141B23; --line:#1B232D; --line2:#243040; --tx:#E8EDF2; --tx2:#7C8B99; --tx3:#4E5D6C; --acc:#3B9EFF; --acc-ink:#04121F; --live:#FF453A; --mono:'Chivo Mono',monospace; --radius:10px; font-family:'Barlow','PingFang SC','Noto Sans SC',sans-serif; }
+.dir-d { --bg:#08090C; --panel:#0F1116; --panel2:#14161D; --line:#1D2029; --line2:#272B37; --tx:#F4F4F6; --tx2:#8A8E9A; --tx3:#565B68; --acc:#F0568C; --acc-ink:#1B0710; --live:#FF453A; --mono:'Doto',monospace; --radius:6px; font-family:'Archivo','PingFang SC','Noto Sans SC',sans-serif; }
+.pad { width:1194px; height:834px; display:flex; flex-direction:column; }
+.pstatus { height:34px; flex:none; display:flex; align-items:center; justify-content:space-between; padding:12px 30px 0; font-size:14px; font-weight:650; }
+.pstatus .r { display:flex; gap:8px; align-items:center; }
+.padhome { position:absolute; bottom:7px; left:50%; transform:translateX(-50%); width:150px; height:5px; border-radius:3px; background:rgba(255,255,255,.75); z-index:60; }
+.gback { width:44px; height:44px; border-radius:var(--radius); border:1px solid var(--line); background:var(--panel); display:grid; place-items:center; color:var(--tx2); flex:none; }
+.gback svg { width:18px; height:18px; }
+.gicon { width:44px; height:44px; border-radius:var(--radius); border:1px solid var(--line); background:var(--panel); display:grid; place-items:center; color:var(--tx2); flex:none; }
+.gicon svg { width:18px; height:18px; }
+/* 搜索 */
+.s-top { display:flex; align-items:center; gap:14px; padding:6px 30px 16px; }
+.s-input { flex:1; display:flex; align-items:center; gap:12px; height:50px; border-radius:calc(var(--radius) + 4px); border:1.5px solid var(--acc); background:var(--panel); padding:0 16px; font-size:16px; color:var(--tx2); }
+.s-input b { color:var(--tx); font-weight:500; }
+.s-caret { width:2px; height:22px; background:var(--acc); display:inline-block; }
+.s-body { flex:1; min-height:0; display:flex; gap:28px; padding:0 30px; }
+.s-left { width:300px; flex:none; display:flex; flex-direction:column; }
+.s-h { font-size:13px; color:var(--tx3); padding:6px 2px 10px; }
+.s-chips { display:flex; flex-wrap:wrap; gap:9px; }
+.s-chips span { font-size:13.5px; padding:9px 15px; border-radius:99px; border:1px solid var(--line); background:var(--panel); color:var(--tx2); display:flex; gap:8px; align-items:center; }
+.s-chips span i { color:var(--tx3); font-style:normal; }
+.s-grp { display:flex; align-items:center; gap:11px; padding:12px 10px; border-radius:var(--radius); }
+.s-grp:hover { background:var(--panel); }
+.s-grp .lg { width:40px; height:40px; border-radius:10px; background:var(--panel2); border:1px solid var(--line); display:grid; place-items:center; color:var(--acc); }
+.s-grp .n { font-size:14.5px; font-weight:650; }
+.s-grp .c { font-size:11.5px; color:var(--tx3); margin-top:1px; }
+.s-right { flex:1; min-width:0; }
+.s-row { display:flex; align-items:center; gap:13px; padding:11px 12px; border-radius:var(--radius); }
+.s-row.cur { background:var(--panel); outline:1px solid var(--line2); }
+.s-row .lg { width:46px; height:46px; border-radius:11px; background:var(--panel2); border:1px solid var(--line); display:grid; place-items:center; flex:none; }
+.s-row .in { flex:1; min-width:0; }
+.s-row .in .n { font-size:15px; font-weight:650; }
+.s-row .in .p { font-size:12px; color:var(--tx3); margin-top:2px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+.s-row .rt { font-family:var(--mono); font-size:12px; color:var(--tx3); }
+/* 设置 master-detail */
+.st-body { flex:1; min-height:0; display:flex; margin:0 30px 30px; border:1px solid var(--line); border-radius:16px; background:var(--panel); overflow:hidden; }
+.st-nav { width:280px; flex:none; border-right:1px solid var(--line); padding:14px 0; display:flex; flex-direction:column; }
+.st-n { display:flex; align-items:center; gap:12px; height:52px; padding:0 20px; font-size:15.5px; font-weight:600; color:var(--tx2); position:relative; }
+.st-n svg { width:18px; height:18px; }
+.st-n.on { background:var(--panel2); color:var(--tx); }
+.st-n.on::before { content:''; position:absolute; left:0; top:12px; bottom:12px; width:3px; border-radius:2px; background:var(--acc); }
+.st-nav .sp { flex:1; }
+.st-nav .ver { padding:0 20px; font-family:var(--mono); font-size:11px; color:var(--tx3); }
+.st-det { flex:1; min-width:0; padding:22px 28px; overflow:hidden; }
+.st-det h3 { font-size:19px; font-weight:750; }
+.st-row { display:flex; align-items:center; gap:14px; padding:15px 2px; border-bottom:1px solid var(--line); }
+.st-row .in { flex:1; }
+.st-row .in .n { font-size:15px; font-weight:600; }
+.st-row .in .p { font-size:12px; color:var(--tx3); margin-top:2px; }
+.st-row .v { font-size:13.5px; color:var(--tx2); display:flex; align-items:center; gap:8px; }
+.st-row .v::after { content:'›'; color:var(--tx3); }
+.st-sw { width:44px; height:26px; border-radius:14px; background:var(--acc); position:relative; flex:none; }
+.st-sw i { position:absolute; top:3px; right:3px; width:20px; height:20px; border-radius:50%; background:#fff; }
+.st-sw.off { background:var(--line2); }
+.st-sw.off i { right:auto; left:3px; }
+.st-swatch { display:flex; gap:10px; }
+.st-swatch i { width:26px; height:26px; border-radius:50%; border:2px solid transparent; }
+.st-swatch i.on { border-color:var(--tx); }
+/* EPG 时间轴 */
+.e-top { display:flex; align-items:center; gap:14px; padding:6px 30px 14px; }
+.e-title { font-size:18px; font-weight:750; }
+.e-tabs { display:flex; gap:8px; }
+.e-tabs span { font-size:13px; padding:8px 14px; border-radius:99px; border:1px solid var(--line); background:var(--panel); color:var(--tx2); }
+.e-tabs span.on { background:var(--acc); border-color:var(--acc); color:var(--acc-ink); font-weight:650; }
+.e-body { flex:1; min-height:0; margin:0 30px 30px; border:1px solid var(--line); border-radius:16px; background:var(--panel); display:flex; flex-direction:column; overflow:hidden; position:relative; }
+.e-hd { display:flex; height:46px; flex:none; border-bottom:1px solid var(--line); }
+.e-hd .ch { width:210px; flex:none; padding-left:16px; font-size:12px; color:var(--tx3); display:flex; align-items:center; }
+.e-hd .tl { flex:1; display:flex; }
+.e-hd .tl span { width:220px; flex:none; font-family:var(--mono); font-size:12px; color:var(--tx3); border-left:1px solid var(--line); padding:14px 0 0 10px; }
+.e-rows { flex:1; min-height:0; overflow:hidden; position:relative; }
+.e-row { display:flex; height:98px; border-bottom:1px solid var(--line); }
+.e-row:last-child { border-bottom:none; }
+.e-row .ch { width:210px; flex:none; display:flex; align-items:center; gap:11px; padding:0 12px 0 16px; border-right:1px solid var(--line); }
+.e-row .ch .lg { width:52px; height:52px; border-radius:11px; background:var(--panel2); border:1px solid var(--line); display:grid; place-items:center; flex:none; }
+.e-row .ch .in .n { font-size:14px; font-weight:650; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+.e-row .ch .in .no { font-family:var(--mono); font-size:10.5px; color:var(--tx3); margin-top:2px; }
+.e-blks { flex:1; display:flex; padding:12px 0; gap:6px; overflow:hidden; position:relative; }
+.e-blk { flex:none; height:74px; border-radius:10px; background:var(--panel2); border:1px solid var(--line); padding:9px 12px 8px; position:relative; overflow:hidden; }
+.e-blk .t { font-family:var(--mono); font-size:10px; color:var(--tx3); }
+.e-blk .n { font-size:13px; font-weight:650; margin-top:3px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+.e-blk.cut { border-radius:0 10px 10px 0; margin-left:-14px; opacity:.55; }
+.e-blk.cur { background:color-mix(in srgb, var(--acc) 13%, transparent); border-color:color-mix(in srgb, var(--acc) 50%, transparent); }
+.e-blk.cur .t { color:var(--acc); }
+.e-blk.cur .prog { position:absolute; left:0; bottom:0; height:3px; background:var(--acc); border-radius:0 2px 0 3px; }
+.e-now { position:absolute; top:0; bottom:0; width:2px; background:var(--live); z-index:5; }
+.e-now::before { content:''; position:absolute; top:-1px; left:50%; transform:translateX(-50%); width:8px; height:8px; border-radius:50%; background:var(--live); }
+</style>
+</head>
+<body>
+<div class="head">
+  <h1>Pad 子页面适配 <em>· 搜索 / 设置 / EPG · 4 方向</em></h1>
+  <p>三个最有代表性的子页面在横屏上的形态：<b>搜索</b>升为双栏（左输入与分组、右结果列表）；<b>设置</b>变为 master-detail 双栏；<b>EPG</b> 展开完整时间轴（频道列 + 节目块按时长占宽 + 当前时刻红线）。四个方向共用此信息架构，视觉随各自 tokens。手机 11 屏见各方向文件，TV 端见 <a href="tv-pages.html" style="color:#7AA2FF;text-decoration:none">tv-pages.html</a>。</p>
+</div>
+<div class="board-wrap">
+
+<figure class="pad-fig" data-dir="a">
+    <div class="device"><div class="surface dir-a">
+      <div class="pad">
+        <div class="pstatus"><span>20:47</span>
+          <span class="r">
+            <svg width="18" height="12" viewBox="0 0 18 12" fill="currentColor"><path d="M9 9.6a1.5 1.5 0 1 0 0 3 1.5 1.5 0 0 0 0-3zM5.6 8.9 4.3 10.2a6.7 6.7 0 0 1 9.4 0l-1.3-1.3a4.8 4.8 0 0 0-6.8 0zM9 5.2c-2.2 0-4.3.9-5.8 2.4l1.3 1.3A8.2 8.2 0 0 1 9 6.6c1.8 0 3.5.7 4.5 2.3l1.3-1.3A8.2 8.2 0 0 0 9 5.2z"/></svg>
+            <svg width="27" height="13" viewBox="0 0 27 13"><rect x=".5" y=".5" width="23" height="12" rx="4" fill="none" stroke="rgba(255,255,255,.4)"/><rect x="2" y="2" width="18" height="9" rx="2.5" fill="#F2F5F3"/><path d="M25 4.5v4a2.4 2.4 0 0 0 0-4z" fill="rgba(255,255,255,.4)"/></svg>
+          </span>
+        </div>
+        <div class="s-top">
+          <div class="gback"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 5l-7 7 7 7"/></svg></div>
+          <div class="s-input"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg><b>世预</b><span class="s-caret"></span></div>
+          <div class="gicon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M13 2 4.5 13.5H11L10 22l8.5-11.5H12L13 2z"/></svg></div>
+        </div>
+        <div class="s-body">
+          <div class="s-left">
+            <div class="s-h">最近搜索</div>
+            <div class="s-chips"><span>世预赛 <i>×</i></span><span>新闻联播 <i>×</i></span><span>湖南卫视 <i>×</i></span><span>少儿 <i>×</i></span></div>
+            <div class="s-h" style="margin-top:16px">分组</div>
+            <div class="s-grp"><div class="lg"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M13 2 4.5 13.5H11L10 22l8.5-11.5H12L13 2z"/></svg></div><div><div class="n">体育赛事</div><div class="c">74 个频道</div></div></div>
+            <div class="s-grp"><div class="lg"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><rect x="3" y="5" width="18" height="14" rx="3"/><path d="M8 21h8"/></svg></div><div><div class="n">卫视频道</div><div class="c">62 个频道</div></div></div>
+            <div class="s-grp"><div class="lg"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><rect x="3" y="4" width="18" height="17" rx="3"/><path d="M3 9h18M8 2v4M16 2v4"/></svg></div><div><div class="n">新闻资讯</div><div class="c">86 个频道</div></div></div>
+          </div>
+          <div class="s-right">
+            <div class="s-h">频道 · 3 个结果</div>
+            <div class="s-row cur"><div class="lg"><svg width="36" height="16" viewBox="0 0 36 16"><rect width="36" height="16" rx="3.5" fill="#1E2622"/><text x="18" y="12" text-anchor="middle" font-family="Archivo,sans-serif" font-weight="800" font-size="9" fill="#F2F5F3">CCTV</text></svg></div><div class="in"><div class="n">CCTV-5 体育</div><div class="p">央视频道 · 世预赛亚洲区 · 中国 vs 澳大利亚</div></div><span class="rt">CH 03</span></div>
+            <div class="s-row"><div class="lg"><svg width="36" height="16" viewBox="0 0 36 16"><rect width="36" height="16" rx="3.5" fill="#1E2622"/><text x="18" y="12" text-anchor="middle" font-family="Archivo,sans-serif" font-weight="800" font-size="9" fill="#F2F5F3">CCTV</text></svg></div><div class="in"><div class="n">CCTV-5+ 体育赛事</div><div class="p">央视频道 · CBA 总决赛 · 第 4 场</div></div><span class="rt">CH 04</span></div>
+            <div class="s-row"><div class="lg"><svg width="36" height="16" viewBox="0 0 36 16"><rect width="36" height="16" rx="3.5" fill="#D6402C"/><text x="18" y="12" text-anchor="middle" font-family="'PingFang SC',sans-serif" font-weight="700" font-size="9.5" fill="#fff">体育</text></svg></div><div class="in"><div class="n">五星体育</div><div class="p">体育 · 赛事集锦</div></div><span class="rt">CH 88</span></div>
+            <div class="s-h" style="margin-top:10px">节目 · 2 个结果</div>
+            <div class="s-row"><div class="lg"><svg width="36" height="16" viewBox="0 0 36 16"><rect width="36" height="16" rx="3.5" fill="#1E2622"/><text x="18" y="12" text-anchor="middle" font-family="Archivo,sans-serif" font-weight="800" font-size="9" fill="#F2F5F3">CCTV</text></svg></div><div class="in"><div class="n">世预赛亚洲区 · 第 2 轮</div><div class="p">CCTV-5 体育 · 19:00 开始</div></div><span class="rt">EPG</span></div>
+            <div class="s-row"><div class="lg"><svg width="36" height="16" viewBox="0 0 36 16"><rect width="36" height="16" rx="3.5" fill="#1E2622"/><text x="18" y="12" text-anchor="middle" font-family="Archivo,sans-serif" font-weight="800" font-size="9" fill="#F2F5F3">CCTV</text></svg></div><div class="in"><div class="n">世预赛半场数据</div><div class="p">CCTV-5+ 体育赛事 · 20:50 开始</div></div><span class="rt">EPG</span></div>
+          </div>
+        </div>
+      </div>
+      <div class="padhome"></div>
+    </div></div>
+    <figcaption><b>搜索</b>双栏：左输入与分组入口，右分区结果（频道 / 节目带 EPG 时间）</figcaption>
+  </figure>
+
+<figure class="pad-fig" data-dir="a">
+    <div class="device"><div class="surface dir-a">
+      <div class="pad">
+        <div class="pstatus"><span>20:47</span>
+          <span class="r">
+            <svg width="18" height="12" viewBox="0 0 18 12" fill="currentColor"><path d="M9 9.6a1.5 1.5 0 1 0 0 3 1.5 1.5 0 0 0 0-3zM5.6 8.9 4.3 10.2a6.7 6.7 0 0 1 9.4 0l-1.3-1.3a4.8 4.8 0 0 0-6.8 0zM9 5.2c-2.2 0-4.3.9-5.8 2.4l1.3 1.3A8.2 8.2 0 0 1 9 6.6c1.8 0 3.5.7 4.5 2.3l1.3-1.3A8.2 8.2 0 0 0 9 5.2z"/></svg>
+            <svg width="27" height="13" viewBox="0 0 27 13"><rect x=".5" y=".5" width="23" height="12" rx="4" fill="none" stroke="rgba(255,255,255,.4)"/><rect x="2" y="2" width="18" height="9" rx="2.5" fill="#F2F5F3"/><path d="M25 4.5v4a2.4 2.4 0 0 0 0-4z" fill="rgba(255,255,255,.4)"/></svg>
+          </span>
+        </div>
+        <div class="s-top">
+          <div class="gback"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 5l-7 7 7 7"/></svg></div>
+          <div class="e-title">设置</div>
+        </div>
+        <div class="st-body">
+          <div class="st-nav">
+            <div class="st-n"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M13 2 4.5 13.5H11L10 22l8.5-11.5H12L13 2z"/></svg>播放</div>
+            <div class="st-n on"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="9"/><path d="M12 3v18M3 12h18" opacity=".5"/></svg>界面</div>
+            <div class="st-n"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="13" r="8"/><path d="M12 9v4l2.5 2.5M9 2h6"/></svg>定时</div>
+            <div class="st-n"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M4 7h16M4 12h16M4 17h10"/></svg>数据</div>
+            <div class="sp"></div>
+            <div class="ver">XPlayer 1.2.0 (340)</div>
+          </div>
+          <div class="st-det">
+            <h3>界面</h3>
+            <div style="height:8px"></div>
+            <div class="st-row"><div class="in"><div class="n">主题色</div><div class="p">强调色驱动焦点、按钮、进度条；背景保持深色</div></div><span class="st-swatch"><i style="background:#00DC82" class="on"></i><i style="background:#2196F3"></i><i style="background:#00BCD4"></i><i style="background:#BA68C8"></i><i style="background:#E91E63"></i><i style="background:#F44336"></i><i style="background:#FF9800"></i><i style="background:#FFC107"></i></span></div>
+            <div class="st-row"><div class="in"><div class="n">语言</div></div><span class="v">中文</span></div>
+            <div class="st-row"><div class="in"><div class="n">默认清晰度</div></div><span class="v">1080P 及以上</span></div>
+            <div class="st-row"><div class="in"><div class="n">硬件解码</div><div class="p">视频走硬件视频平面，吃到电视 VPP / 超分</div></div><span class="st-sw"><i></i></span></div>
+            <div class="st-row"><div class="in"><div class="n">音频软解（FFmpeg）</div><div class="p">补齐 AC-3 / E-AC-3 / DTS 等编码</div></div><span class="st-sw"><i></i></span></div>
+            <div class="st-row"><div class="in"><div class="n">隐藏不可播放频道</div></div><span class="st-sw off"><i></i></span></div>
+          </div>
+        </div>
+      </div>
+      <div class="padhome"></div>
+    </div></div>
+    <figcaption><b>设置</b>master-detail：左分组导航（含版本号），右详情面板；主题色色板内嵌</figcaption>
+  </figure>
+
+<figure class="pad-fig" data-dir="a">
+    <div class="device"><div class="surface dir-a">
+      <div class="pad">
+        <div class="pstatus"><span>20:47</span>
+          <span class="r">
+            <svg width="18" height="12" viewBox="0 0 18 12" fill="currentColor"><path d="M9 9.6a1.5 1.5 0 1 0 0 3 1.5 1.5 0 0 0 0-3zM5.6 8.9 4.3 10.2a6.7 6.7 0 0 1 9.4 0l-1.3-1.3a4.8 4.8 0 0 0-6.8 0zM9 5.2c-2.2 0-4.3.9-5.8 2.4l1.3 1.3A8.2 8.2 0 0 1 9 6.6c1.8 0 3.5.7 4.5 2.3l1.3-1.3A8.2 8.2 0 0 0 9 5.2z"/></svg>
+            <svg width="27" height="13" viewBox="0 0 27 13"><rect x=".5" y=".5" width="23" height="12" rx="4" fill="none" stroke="rgba(255,255,255,.4)"/><rect x="2" y="2" width="18" height="9" rx="2.5" fill="#F2F5F3"/><path d="M25 4.5v4a2.4 2.4 0 0 0 0-4z" fill="rgba(255,255,255,.4)"/></svg>
+          </span>
+        </div>
+        <div class="e-top">
+          <div class="gback"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 5l-7 7 7 7"/></svg></div>
+          <div class="e-title">节目单 · CCTV-1 综合</div>
+          <div class="e-tabs"><span>昨天</span><span class="on">今天 10-24</span><span>明天</span></div>
+        </div>
+        <div class="e-body">
+          <div class="e-hd">
+            <div class="ch">频道 / 节目单</div>
+            <div class="tl"><span>20:30</span><span>21:00</span><span>21:30</span><span>22:00</span></div>
+          </div>
+          <div class="e-rows">
+            <div class="e-now" style="left:325px"></div>
+            <div class="e-row">
+              <div class="ch"><div class="lg"><svg width="40" height="17" viewBox="0 0 40 17"><rect width="40" height="17" rx="3.5" fill="#1E2622"/><text x="20" y="12.5" text-anchor="middle" font-family="Archivo,sans-serif" font-weight="800" font-size="10" fill="#F2F5F3">CCTV</text></svg></div><div class="in"><div class="n">CCTV-1 综合</div><div class="no">CH 01 · HD</div></div></div>
+              <div class="e-blks">
+                <div class="e-blk cut" style="width:104px"><span class="t">20:00</span><div class="n">晚间剧场《归途》</div><span class="prog" style="width:76%"></span></div>
+                <div class="e-blk cur" style="width:220px"><span class="t">21:00 – 21:32</span><div class="n">新闻夜线</div></div>
+                <div class="e-blk" style="width:220px"><span class="t">21:32 – 21:45</span><div class="n">天气预报</div></div>
+                <div class="e-blk" style="width:180px"><span class="t">21:45</span><div class="n">体育世界</div></div>
+              </div>
+            </div>
+            <div class="e-row">
+              <div class="ch"><div class="lg"><svg width="40" height="17" viewBox="0 0 40 17"><rect width="40" height="17" rx="3.5" fill="#1E2622"/><text x="20" y="12.5" text-anchor="middle" font-family="Archivo,sans-serif" font-weight="800" font-size="10" fill="#F2F5F3">CCTV</text></svg></div><div class="in"><div class="n">CCTV-5+ 赛事</div><div class="no">CH 04 · HD</div></div></div>
+              <div class="e-blks">
+                <div class="e-blk cut" style="width:66px"><span class="t">19:45</span><div class="n">世预赛上半场</div></div>
+                <div class="e-blk cur" style="width:146px"><span class="t">20:45 – 21:05</span><div class="n">中场数据</div><span class="prog" style="width:13%"></span></div>
+                <div class="e-blk" style="width:220px"><span class="t">21:05 – 22:50</span><div class="n">下半场 · 中国 vs 澳大利亚</div></div>
+              </div>
+            </div>
+            <div class="e-row">
+              <div class="ch"><div class="lg"><svg width="40" height="17" viewBox="0 0 40 17"><rect width="40" height="17" rx="3.5" fill="#1E2622"/><text x="20" y="12.5" text-anchor="middle" font-family="Archivo,sans-serif" font-weight="800" font-size="10" fill="#F2F5F3">CCTV</text></svg></div><div class="in"><div class="n">CCTV-13 新闻</div><div class="no">CH 13 · HD</div></div></div>
+              <div class="e-blks">
+                <div class="e-blk cur" style="width:440px"><span class="t">20:00 – 22:00</span><div class="n">新闻直播间</div><span class="prog" style="width:39%"></span></div>
+                <div class="e-blk" style="width:200px"><span class="t">22:00</span><div class="n">环球视线</div></div>
+              </div>
+            </div>
+            <div class="e-row">
+              <div class="ch"><div class="lg"><svg width="40" height="17" viewBox="0 0 40 17"><rect width="40" height="17" rx="3.5" fill="#C99A2E"/><text x="20" y="12.5" text-anchor="middle" font-family="Archivo,sans-serif" font-weight="800" font-size="10" fill="#1A1204">C6</text></svg></div><div class="in"><div class="n">CCTV-6 电影</div><div class="no">CH 05 · HD</div></div></div>
+              <div class="e-blks">
+                <div class="e-blk cut" style="width:293px"><span class="t">19:55</span><div class="n">光影星播客</div></div>
+                <div class="e-blk" style="width:220px"><span class="t">21:10 – 23:00</span><div class="n">深夜影院《城市之光》</div></div>
+              </div>
+            </div>
+            <div class="e-row">
+              <div class="ch"><div class="lg"><svg width="40" height="17" viewBox="0 0 40 17"><rect width="40" height="17" rx="3.5" fill="#D6402C"/><text x="20" y="12.5" text-anchor="middle" font-family="'PingFang SC',sans-serif" font-weight="700" font-size="10" fill="#fff">湖南</text></svg></div><div class="in"><div class="n">湖南卫视</div><div class="no">CH 28 · HD</div></div></div>
+              <div class="e-blks">
+                <div class="e-blk cur" style="width:440px"><span class="t">20:20 – 22:00</span><div class="n">快乐大本营 · 暑期特辑</div><span class="prog" style="width:24%"></span></div>
+                <div class="e-blk" style="width:200px"><span class="t">22:00</span><div class="n">晚间新闻</div></div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="padhome"></div>
+    </div></div>
+    <figcaption><b>EPG 节目单</b>日期切换 + 完整时间轴：频道列、节目块按时长占宽、当前时刻红线</figcaption>
+  </figure>
+</div>
+
+<script>
+if (true) {
+  document.documentElement.classList.add('figma-mode');
+  const css = `
+    .head, figcaption { display:none !important; }
+    body { background:#0B0C10 !important; padding:64px !important; width:2640px !important; }
+    .board-wrap { display:flex !important; flex-wrap:wrap; gap:64px !important; padding:0 !important; max-width:none !important; }
+    .device { width:auto !important; height:auto !important; overflow:visible !important; box-shadow:none !important; }
+    .surface { transform:none !important; }
+  `;
+  const st = document.createElement('style');
+  st.textContent = css;
+  document.head.appendChild(st);
+}
+</script>
+</body>
+</html>

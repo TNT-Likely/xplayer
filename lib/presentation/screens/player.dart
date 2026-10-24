@@ -763,6 +763,7 @@ class _PlayerScreenState extends State<PlayerScreen>
               favoriteChannels: widget.favoriteChannels,
               channel: _channel,
               sourceLink: _sourceLink,
+              onSwitchChannel: _switchChannel,
               onRetryInit: () {
                 _initializePlayer();
               },

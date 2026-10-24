@@ -731,4 +731,25 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String get infoTier2Hint =>
       'Dropped frames / audio path / A-V sync need a later pass (ExoPlayer analytics)';
+
+  @override
+  String get upNext => 'Up next';
+
+  @override
+  String remainMinutes(int count) {
+    return '$count min left';
+  }
+
+  @override
+  String viewGroupChannels(int count) {
+    return 'View $count channels';
+  }
+
+  @override
+  String groupsTotal(int count) {
+    return '$count groups';
+  }
+
+  @override
+  String get reset => 'Reset';
 }

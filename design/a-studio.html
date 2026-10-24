@@ -1,0 +1,778 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>方向 A · ON AIR 演播室 — XPlayer 设计稿</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Archivo:ital,wdth,wght@0,62..125,100..900&family=Spline+Sans+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+/* ========== 设计稿工作台外壳（与屏幕内容无关） ========== */
+* { margin:0; padding:0; box-sizing:border-box; }
+body {
+  background:#131513; color:#E9EDEA;
+  font-family:'Archivo','PingFang SC','Noto Sans SC',sans-serif;
+  -webkit-font-smoothing:antialiased;
+}
+.deck-head {
+  display:flex; gap:36px; align-items:flex-end; flex-wrap:wrap;
+  padding:44px 48px 36px; border-bottom:1px solid #262B27;
+}
+.deck-no {
+  font-size:112px; font-weight:800; line-height:.82; letter-spacing:-.02em;
+  font-stretch:125%; color:transparent; -webkit-text-stroke:1.5px #3A443D;
+}
+.deck-info { max-width:760px; }
+.deck-info h1 { font-size:30px; font-weight:750; letter-spacing:.01em; }
+.deck-info h1 span { color:#00DC82; }
+.deck-info .idea { margin-top:10px; font-size:15px; line-height:1.7; color:#A8B3AC; }
+.deck-points { display:flex; gap:8px; margin-top:16px; flex-wrap:wrap; }
+.deck-points li {
+  list-style:none; font-size:12.5px; color:#C4CCC7;
+  border:1px solid #2E3530; border-radius:99px; padding:5px 12px;
+}
+.deck-meta { display:flex; gap:24px; margin-left:auto; align-items:flex-start; }
+.deck-meta .label { font-size:11px; color:#6C766F; letter-spacing:.08em; margin-bottom:8px; }
+.chips { display:flex; gap:6px; }
+.chips i { width:22px; height:22px; border-radius:6px; display:block; border:1px solid rgba(255,255,255,.14); }
+.deck { display:flex; gap:44px; padding:44px 48px 72px; flex-wrap:wrap; }
+figure.stage { display:flex; flex-direction:column; gap:14px; }
+figcaption { font-size:13px; color:#8D978F; }
+figcaption b { color:#E9EDEA; font-weight:650; margin-right:10px; }
+
+/* 手机壳 */
+.phone {
+  width:406px; border-radius:56px; padding:8px; background:#000;
+  box-shadow:0 24px 60px rgba(0,0,0,.5), inset 0 0 0 1.5px #2A2E2B;
+}
+.screen {
+  width:390px; height:844px; border-radius:48px; overflow:hidden; position:relative;
+  background:var(--bg); color:var(--tx);
+  font-family:'Archivo','PingFang SC','Noto Sans SC',sans-serif;
+  display:flex; flex-direction:column;
+}
+.statusbar {
+  height:48px; display:flex; align-items:center; justify-content:space-between;
+  padding:14px 28px 0; font-size:15px; font-weight:650; flex:none;
+  font-family:'Spline Sans Mono',monospace; font-size:13.5px; letter-spacing:.02em;
+}
+.statusbar .right { display:flex; gap:6px; align-items:center; }
+.island { position:absolute; top:11px; left:50%; transform:translateX(-50%); width:118px; height:32px; border-radius:20px; background:#000; z-index:60; }
+
+/* ========== 方向 A · ON AIR 演播室 ========== */
+.dir-a {
+  --bg:#0A0C0B; --panel:#121614; --panel2:#171C19; --line:#232925; --line2:#2C342F;
+  --tx:#F2F5F3; --tx2:#98A69D; --tx3:#5C685F;
+  --acc:#00DC82; --acc-ink:#04150C; --live:#FF453A;
+}
+.mono { font-family:'Spline Sans Mono',monospace; }
+
+/* 顶栏 */
+.a-top { display:flex; align-items:center; gap:16px; padding:10px 20px 12px; }
+.a-top .wordmark { font-weight:800; font-stretch:125%; letter-spacing:.14em; font-size:15px; }
+.a-top .wordmark em { font-style:normal; color:var(--acc); }
+.a-top .grow { flex:1; }
+.a-icon { width:38px; height:38px; border-radius:12px; border:1px solid var(--line); display:grid; place-items:center; color:var(--tx2); background:var(--panel); }
+.a-icon svg { width:17px; height:17px; }
+
+/* 大直播卡 */
+.a-hero { margin:2px 16px 0; border-radius:16px; overflow:hidden; position:relative; border:1px solid var(--line2); background:var(--panel); }
+.a-hero .pic { height:196px; position:relative; }
+.a-hero .pic svg { width:100%; height:100%; display:block; }
+.a-live {
+  position:absolute; top:12px; left:12px; display:flex; align-items:center; gap:6px;
+  background:rgba(10,12,11,.78); backdrop-filter:blur(8px); border-radius:8px; padding:5px 9px 5px 7px;
+  font-family:'Spline Sans Mono',monospace; font-size:10.5px; font-weight:600; letter-spacing:.12em;
+}
+.a-live i { width:6px; height:6px; border-radius:50%; background:var(--live); }
+.a-hd {
+  position:absolute; top:12px; right:12px; font-family:'Spline Sans Mono',monospace;
+  font-size:10.5px; font-weight:600; letter-spacing:.1em; color:var(--tx);
+  background:rgba(10,12,11,.78); backdrop-filter:blur(8px); border-radius:8px; padding:5px 8px;
+}
+.a-hero .meta { padding:12px 14px 13px; }
+.a-hero .meta .row1 { display:flex; align-items:baseline; gap:10px; }
+.a-hero .meta .ch { font-size:16.5px; font-weight:700; }
+.a-hero .meta .src { font-size:11px; color:var(--tx3); }
+.a-hero .meta .grow { flex:1; }
+.a-hero .meta .fav { color:var(--acc); }
+.a-hero .meta .pg { margin-top:4px; font-size:12.5px; color:var(--tx2); }
+.a-prog { margin-top:10px; }
+.a-prog .bar { height:4px; border-radius:2px; background:var(--line); position:relative; overflow:hidden; }
+.a-prog .bar b { position:absolute; inset:0 auto 0 0; width:76%; background:var(--acc); border-radius:2px; }
+.a-prog .times { display:flex; justify-content:space-between; margin-top:6px; font-family:'Spline Sans Mono',monospace; font-size:10px; color:var(--tx3); }
+
+/* 分组 chips */
+.a-chips { display:flex; gap:8px; padding:16px 16px 4px; overflow:hidden; }
+.a-chip {
+  flex:none; font-size:12.5px; padding:7px 14px; border-radius:99px;
+  border:1px solid var(--line); color:var(--tx2); background:var(--panel);
+}
+.a-chip.on { background:var(--acc); border-color:var(--acc); color:var(--acc-ink); font-weight:650; }
+
+/* 频道网格 */
+.a-grid { display:grid; grid-template-columns:1fr 1fr; gap:10px; padding:10px 16px 0; flex:1; overflow:hidden; align-content:start; }
+.a-card { border-radius:13px; border:1px solid var(--line); background:var(--panel); overflow:hidden; }
+.a-card .logo { height:78px; display:grid; place-items:center; position:relative; background:var(--panel2); }
+.a-card .logo .fv { position:absolute; top:8px; right:9px; color:var(--tx3); }
+.a-card .logo .fv.on { color:var(--acc); }
+.a-card .nm { display:flex; align-items:center; gap:6px; padding:8px 10px 2px; font-size:13px; font-weight:600; }
+.a-card .nm .hd { margin-left:auto; font-family:'Spline Sans Mono',monospace; font-size:9px; letter-spacing:.08em; color:var(--tx3); border:1px solid var(--line2); border-radius:4px; padding:1px 4px; }
+.a-card .pg { padding:0 10px 9px; font-size:10.5px; color:var(--tx3); white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+.a-card.next { opacity:.55; }
+
+/* 迷你播放条 */
+.a-mini {
+  margin:10px 16px 30px; border-radius:14px; background:var(--panel2); border:1px solid var(--line2);
+  padding:10px 12px 12px; position:relative; overflow:hidden; flex:none;
+}
+.a-mini .bar { position:absolute; top:0; left:0; right:0; height:2px; background:var(--line); }
+.a-mini .bar b { display:block; height:100%; width:76%; background:var(--acc); }
+.a-mini .row { display:flex; align-items:center; gap:10px; }
+.a-mini .pp { width:34px; height:34px; border-radius:50%; background:var(--acc); color:var(--acc-ink); display:grid; place-items:center; flex:none; }
+.a-mini .tt { flex:1; min-width:0; }
+.a-mini .tt .n { font-size:12.5px; font-weight:650; }
+.a-mini .tt .p { font-size:10.5px; color:var(--tx3); margin-top:1px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+.a-mini .more { color:var(--tx3); }
+.homebar { position:absolute; bottom:8px; left:50%; transform:translateX(-50%); width:130px; height:5px; border-radius:3px; background:rgba(255,255,255,.9); z-index:60; }
+
+/* 呼吸动画 */
+@media (prefers-reduced-motion: no-preference) {
+  .a-live i { animation:pulse 1.6s ease-in-out infinite; }
+}
+@keyframes pulse { 0%,100%{opacity:1} 50%{opacity:.35} }
+
+/* ========== 播放器屏 ========== */
+.p-screen { background:#000; }
+.p-vid { position:absolute; inset:0; }
+.p-vid svg { width:100%; height:100%; }
+.p-grad { position:absolute; inset:0; background:linear-gradient(180deg, rgba(0,0,0,.62), rgba(0,0,0,0) 26%, rgba(0,0,0,0) 52%, rgba(0,0,0,.82)); }
+.p-top { position:absolute; top:0; left:0; right:0; padding:56px 20px 0; display:flex; align-items:center; gap:12px; z-index:5; }
+.p-top .back { width:38px; height:38px; border-radius:12px; background:rgba(255,255,255,.1); backdrop-filter:blur(10px); display:grid; place-items:center; }
+.p-top .chlogo { width:38px; height:38px; border-radius:10px; background:var(--panel2); border:1px solid var(--line2); display:grid; place-items:center; }
+.p-top .chn { flex:1; }
+.p-top .chn .n { font-size:15px; font-weight:700; }
+.p-top .chn .g { font-size:11px; color:rgba(255,255,255,.55); margin-top:1px; }
+.p-sig { display:flex; align-items:center; gap:10px; }
+.p-sig .lv { display:flex; align-items:center; gap:5px; font-family:'Spline Sans Mono',monospace; font-size:10.5px; letter-spacing:.12em; font-weight:600; }
+.p-sig .lv i { width:6px; height:6px; border-radius:50%; background:var(--live); }
+.p-clock { font-family:'Spline Sans Mono',monospace; font-size:12px; color:rgba(255,255,255,.75); }
+
+.p-bottom { position:absolute; left:0; right:0; bottom:0; padding:0 20px 30px; z-index:5; }
+.p-prog .times { display:flex; justify-content:space-between; font-family:'Spline Sans Mono',monospace; font-size:10.5px; color:rgba(255,255,255,.5); margin-bottom:7px; }
+.p-prog .times .mid { color:rgba(255,255,255,.85); }
+.p-prog .bar { height:4px; border-radius:2px; background:rgba(255,255,255,.16); position:relative; }
+.p-prog .bar i { position:absolute; left:0; top:0; bottom:0; width:82%; background:rgba(255,255,255,.28); border-radius:2px; }
+.p-prog .bar b { position:absolute; left:0; top:0; bottom:0; width:76%; background:var(--acc); border-radius:2px; }
+.p-prog .bar s { position:absolute; top:50%; left:76%; width:13px; height:13px; border-radius:50%; background:var(--acc); transform:translate(-50%,-50%); box-shadow:0 0 0 4px rgba(0,220,130,.22); }
+.p-epg { display:flex; align-items:baseline; gap:10px; margin-top:14px; }
+.p-epg .t { font-size:14.5px; font-weight:700; }
+.p-epg .r { font-family:'Spline Sans Mono',monospace; font-size:10.5px; color:rgba(255,255,255,.45); }
+.p-main { display:flex; align-items:center; justify-content:center; gap:18px; margin-top:18px; }
+.p-chbtn {
+  width:56px; height:46px; border-radius:13px; background:rgba(255,255,255,.09); backdrop-filter:blur(10px);
+  display:flex; flex-direction:column; align-items:center; justify-content:center; gap:1px; color:var(--tx);
+}
+.p-chbtn span { font-family:'Spline Sans Mono',monospace; font-size:9px; letter-spacing:.1em; color:rgba(255,255,255,.55); }
+.p-play { width:64px; height:64px; border-radius:50%; background:#fff; color:#0A0C0B; display:grid; place-items:center; }
+.p-list { width:56px; height:46px; border-radius:13px; background:rgba(255,255,255,.09); backdrop-filter:blur(10px); display:grid; place-items:center; }
+.p-sub { display:flex; justify-content:center; gap:5px; margin-top:18px; flex-wrap:nowrap; overflow:hidden; }
+.p-sub .s {
+  display:flex; align-items:center; gap:4px; font-size:10.5px; color:rgba(255,255,255,.72);
+  background:rgba(255,255,255,.08); backdrop-filter:blur(10px); border-radius:9px; padding:7px 8px;
+}
+.p-sub .s.fav { color:var(--acc); }
+.p-sub .s.mono { font-family:'Spline Sans Mono',monospace; font-size:11px; }
+.homebar.dark { background:rgba(255,255,255,.85); }
+
+/* ========== 分组屏 ========== */
+.g-screen { position:relative; }
+.g-dim { position:absolute; inset:0; filter:blur(14px) brightness(.5); transform:scale(1.06); }
+.g-sheet {
+  position:absolute; left:0; right:0; bottom:0; height:640px; z-index:10;
+  background:var(--panel); border-radius:22px 22px 0 0; border-top:1px solid var(--line2);
+  padding:10px 20px 0; display:flex; flex-direction:column;
+}
+.g-grab { width:38px; height:4px; border-radius:2px; background:var(--line2); margin:0 auto 14px; }
+.g-head { display:flex; align-items:baseline; gap:10px; }
+.g-head h3 { font-size:19px; font-weight:750; }
+.g-head .c { font-family:'Spline Sans Mono',monospace; font-size:11px; color:var(--tx3); }
+.g-head .rst { margin-left:auto; font-size:12px; color:var(--tx2); }
+.g-rows { flex:1; overflow:hidden; margin-top:12px; }
+.g-row { display:flex; align-items:center; gap:12px; padding:13px 2px 13px 14px; border-bottom:1px solid var(--line); position:relative; }
+.g-row .nm { font-size:14.5px; font-weight:550; }
+.g-row .ct { margin-left:auto; font-family:'Spline Sans Mono',monospace; font-size:12px; color:var(--tx3); }
+.g-row.sel { background:linear-gradient(90deg, rgba(0,220,130,.08), transparent 70%); border-radius:10px; border-bottom-color:transparent; }
+.g-row.sel::before { content:''; position:absolute; left:0; top:10px; bottom:10px; width:3px; border-radius:2px; background:var(--acc); }
+.g-row.sel .ct { color:var(--acc); }
+.g-ok { padding:12px 0 32px; }
+.g-ok button {
+  width:100%; height:50px; border:none; border-radius:14px; background:var(--acc); color:var(--acc-ink);
+  font-size:15.5px; font-weight:700; font-family:inherit;
+}
+</style>
+</head>
+<body>
+
+<header class="deck-head">
+  <div class="deck-no">A</div>
+  <div class="deck-info">
+    <h1>ON AIR 演播室<span>·</span>Studio</h1>
+    <p class="idea">把「正在直播」做成产品语言：打开即回答三个问题——现在播什么、播到哪、下一档是什么。首屏以大直播卡开场，频道卡片自带节目信息，播放器给换台一对主角级按钮。沿用品牌绿作为强调色（与现有主题色体系一致）。</p>
+    <ul class="deck-points">
+      <li>首屏「大直播卡」：节目 + 进度条</li>
+      <li>LIVE 红点为固定信号灯，强调色跟随主题设置</li>
+      <li>播放器 CH− / CH+ 换台大按钮</li>
+      <li>数字与时间用等宽字，信息不跳</li>
+    </ul>
+  </div>
+  <div class="deck-meta">
+    <div><div class="label">色板</div>
+      <div class="chips">
+        <i style="background:#0A0C0B"></i><i style="background:#171C19"></i>
+        <i style="background:#00DC82"></i><i style="background:#FF453A"></i><i style="background:#F2F5F3"></i>
+      </div>
+    </div>
+    <div><div class="label">字体</div><div style="font-size:12.5px;color:#A8B3AC;line-height:1.7">Archivo（宽体字标）<br>Spline Sans Mono（数字）<br>苹方 / Noto Sans SC（中文）</div></div>
+  </div>
+</header>
+
+<main class="deck">
+
+  <!-- ===== 屏 1 · 首页 ===== -->
+  <figure class="stage">
+    <div class="phone"><div class="screen dir-a">
+      <div class="island"></div>
+      <div class="statusbar"><span>20:47</span>
+        <span class="right">
+          <svg width="17" height="11" viewBox="0 0 17 11" fill="currentColor"><rect x="0" y="7" width="3" height="4" rx="1"/><rect x="4.5" y="5" width="3" height="6" rx="1"/><rect x="9" y="2.5" width="3" height="8.5" rx="1"/><rect x="13.5" y="0" width="3" height="11" rx="1"/></svg>
+          <svg width="16" height="11" viewBox="0 0 16 11" fill="currentColor"><path d="M8 9.2a1.4 1.4 0 1 0 0 2.8 1.4 1.4 0 0 0 0-2.8zM8 5.6c-1.6 0-3 .6-4.1 1.7l1.4 1.4A3.9 3.9 0 0 1 8 7.6c1 0 2 .4 2.7 1.1l1.4-1.4A5.8 5.8 0 0 0 8 5.6zM8 2C5.5 2 3.2 3 1.5 4.7l1.4 1.4A7.2 7.2 0 0 1 8 4c1.9 0 3.7.8 5.1 2.1l1.4-1.4A9.1 9.1 0 0 0 8 2z" transform="translate(0,-1.5)"/></svg>
+          <svg width="25" height="12" viewBox="0 0 25 12"><rect x=".5" y=".5" width="21" height="11" rx="3.5" fill="none" stroke="rgba(255,255,255,.4)"/><rect x="2" y="2" width="16" height="8" rx="2" fill="#F2F5F3"/><path d="M23 4v4a2.2 2.2 0 0 0 0-4z" fill="rgba(255,255,255,.4)"/></svg>
+        </span>
+      </div>
+
+      <div class="a-top">
+        <div class="a-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M4 7h16M4 12h16M4 17h10"/></svg></div>
+        <div class="wordmark">X<em>PLAYER</em></div>
+        <div class="grow"></div>
+        <div class="a-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg></div>
+        <div class="a-icon"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M4 6h16M7 12h10M10 18h4"/></svg></div>
+        <div class="a-icon"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 3l18 18"/><path d="M10.5 5.2A9.8 9.8 0 0 1 12 5c6.5 0 9 7 9 7a14.5 14.5 0 0 1-2.4 3.4M6.5 6.5A14.3 14.3 0 0 0 3 12s2.5 7 9 7a9.6 9.6 0 0 0 4.3-1"/></svg></div>
+        <div class="a-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M13 2 4.5 13.5H11L10 22l8.5-11.5H12L13 2z"/></svg></div>
+      </div>
+
+      <div class="a-hero">
+        <div class="pic">
+          <svg viewBox="0 0 358 196" preserveAspectRatio="xMidYMid slice">
+            <defs>
+              <linearGradient id="a-bg" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#0F2233"/><stop offset="1" stop-color="#0A1520"/></linearGradient>
+              <linearGradient id="a-desk" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#132019"/><stop offset="1" stop-color="#0C130F"/></linearGradient>
+            </defs>
+            <rect width="358" height="196" fill="url(#a-bg)"/>
+            <rect x="24" y="26" width="9" height="96" rx="4.5" fill="#00DC82" opacity=".85"/>
+            <rect x="40" y="40" width="5" height="82" rx="2.5" fill="#00DC82" opacity=".3"/>
+            <circle cx="228" cy="74" r="52" fill="none" stroke="rgba(255,255,255,.14)" stroke-width="1.5"/>
+            <circle cx="228" cy="74" r="40" fill="none" stroke="rgba(0,220,130,.35)" stroke-width="1"/>
+            <rect x="196" y="50" width="64" height="48" rx="8" fill="rgba(255,255,255,.07)"/>
+            <rect x="205" y="60" width="30" height="5" rx="2.5" fill="rgba(255,255,255,.35)"/>
+            <rect x="205" y="71" width="46" height="4" rx="2" fill="rgba(255,255,255,.18)"/>
+            <rect x="205" y="80" width="38" height="4" rx="2" fill="rgba(255,255,255,.18)"/>
+            <g opacity=".5" fill="#0D1826">
+              <rect x="290" y="52" width="18" height="70"/><rect x="312" y="38" width="24" height="84"/><rect x="340" y="60" width="16" height="62"/>
+            </g>
+            <g fill="#16283C"><rect x="293" y="58" width="3" height="3"/><rect x="298" y="66" width="3" height="3"/><rect x="317" y="46" width="3" height="3"/><rect x="324" y="56" width="3" height="3"/><rect x="319" y="70" width="3" height="3"/><rect x="344" y="68" width="3" height="3"/></g>
+            <path d="M0 132 Q179 108 358 128" stroke="rgba(255,255,255,.1)" fill="none" stroke-width="1"/>
+            <path d="M0 134 L358 130 L358 196 L0 196 Z" fill="url(#a-desk)"/>
+            <path d="M0 134 Q179 110 358 130" stroke="rgba(0,220,130,.5)" fill="none" stroke-width="1.5"/>
+          </svg>
+          <div class="a-live"><i></i>LIVE</div>
+          <div class="a-hd">1080P</div>
+        </div>
+        <div class="meta">
+          <div class="row1">
+            <span class="ch">CCTV-1 综合</span><span class="src">央视频道</span>
+            <span class="grow"></span>
+            <svg class="fav" width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M12 21s-7.5-4.6-10-9.3C.5 8 2.6 4.5 6.2 4.5c2.2 0 3.9 1.2 4.8 3 .9-1.8 2.6-3 4.8-3 3.6 0 5.7 3.5 4.2 7.2C17.5 16.4 12 21 12 21z"/></svg>
+          </div>
+          <div class="pg">晚间剧场 ·《归途》第 14 集</div>
+          <div class="a-prog">
+            <div class="bar"><b></b></div>
+            <div class="times"><span>20:06</span><span>剩 13 分钟 · 下一档 21:00 新闻夜线</span><span>21:00</span></div>
+          </div>
+        </div>
+      </div>
+
+      <div class="a-chips">
+        <span class="a-chip on">全部</span><span class="a-chip">央视</span><span class="a-chip">卫视</span><span class="a-chip">新闻</span><span class="a-chip">体育</span><span class="a-chip">电影</span><span class="a-chip">纪录</span><span class="a-chip">少儿</span>
+      </div>
+
+      <div class="a-grid">
+        <div class="a-card">
+          <div class="logo"><span class="fv on"><svg width="15" height="15" viewBox="0 0 24 24" fill="currentColor"><path d="M12 21s-7.5-4.6-10-9.3C.5 8 2.6 4.5 6.2 4.5c2.2 0 3.9 1.2 4.8 3 .9-1.8 2.6-3 4.8-3 3.6 0 5.7 3.5 4.2 7.2C17.5 16.4 12 21 12 21z"/></svg></span>
+            <svg width="86" height="30" viewBox="0 0 86 30"><rect width="46" height="30" rx="5" fill="#1E2622"/><text x="23" y="20" text-anchor="middle" font-family="Archivo,sans-serif" font-weight="800" font-size="13" fill="#F2F5F3">CCTV</text><rect x="50" width="36" height="30" rx="5" fill="#00DC82"/><text x="68" y="21.5" text-anchor="middle" font-family="Archivo,sans-serif" font-weight="800" font-size="16" fill="#04150C">5+</text></svg>
+          </div>
+          <div class="nm">CCTV-5+ 体育赛事<span class="hd">HD</span></div>
+          <div class="pg">CBA 总决赛 · 第 4 场</div>
+        </div>
+        <div class="a-card">
+          <div class="logo"><span class="fv"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 20s-6.6-4-8.8-8.1C1.7 8.6 3.6 5.5 6.8 5.5c1.9 0 3.4 1 4.2 2.6.8-1.6 2.3-2.6 4.2-2.6 3.2 0 5.1 3.1 3.6 6.4C16.6 16 12 20 12 20z"/></svg></span>
+            <svg width="96" height="30" viewBox="0 0 96 30"><rect x="0" y="2" width="30" height="26" rx="6" fill="#D6402C"/><text x="15" y="21" text-anchor="middle" font-family="'PingFang SC',sans-serif" font-weight="700" font-size="15" fill="#fff">湖南</text><text x="38" y="21" font-family="'PingFang SC',sans-serif" font-weight="600" font-size="14" fill="#F2F5F3">卫视</text></svg>
+          </div>
+          <div class="nm">湖南卫视<span class="hd">HD</span></div>
+          <div class="pg">快乐大本营 · 暑期特辑</div>
+        </div>
+        <div class="a-card">
+          <div class="logo"><span class="fv"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 20s-6.6-4-8.8-8.1C1.7 8.6 3.6 5.5 6.8 5.5c1.9 0 3.4 1 4.2 2.6.8-1.6 2.3-2.6 4.2-2.6 3.2 0 5.1 3.1 3.6 6.4C16.6 16 12 20 12 20z"/></svg></span>
+            <svg width="96" height="30" viewBox="0 0 96 30"><rect x="0" y="2" width="30" height="26" rx="6" fill="#1D5FA8"/><text x="15" y="21" text-anchor="middle" font-family="'PingFang SC',sans-serif" font-weight="700" font-size="15" fill="#fff">东方</text><text x="38" y="21" font-family="'PingFang SC',sans-serif" font-weight="600" font-size="14" fill="#F2F5F3">卫视</text></svg>
+          </div>
+          <div class="nm">东方卫视<span class="hd">HD</span></div>
+          <div class="pg">东方新闻 · 夜间播报</div>
+        </div>
+        <div class="a-card">
+          <div class="logo"><span class="fv"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 20s-6.6-4-8.8-8.1C1.7 8.6 3.6 5.5 6.8 5.5c1.9 0 3.4 1 4.2 2.6.8-1.6 2.3-2.6 4.2-2.6 3.2 0 5.1 3.1 3.6 6.4C16.6 16 12 20 12 20z"/></svg></span>
+            <svg width="86" height="30" viewBox="0 0 86 30"><rect width="46" height="30" rx="5" fill="#1E2622"/><text x="23" y="20" text-anchor="middle" font-family="Archivo,sans-serif" font-weight="800" font-size="13" fill="#F2F5F3">CCTV</text><rect x="50" width="36" height="30" rx="5" fill="#C99A2E"/><text x="68" y="21.5" text-anchor="middle" font-family="Archivo,sans-serif" font-weight="800" font-size="16" fill="#1A1204">6</text></svg>
+          </div>
+          <div class="nm">CCTV-6 电影<span class="hd">HD</span></div>
+          <div class="pg">光影星播客</div>
+        </div>
+        <div class="a-card next">
+          <div class="logo"><span class="fv"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 20s-6.6-4-8.8-8.1C1.7 8.6 3.6 5.5 6.8 5.5c1.9 0 3.4 1 4.2 2.6.8-1.6 2.3-2.6 4.2-2.6 3.2 0 5.1 3.1 3.6 6.4C16.6 16 12 20 12 20z"/></svg></span>
+            <svg width="92" height="30" viewBox="0 0 92 30"><rect x="0" y="2" width="30" height="26" rx="6" fill="#7A5CA8"/><text x="15" y="21" text-anchor="middle" font-family="'PingFang SC',sans-serif" font-weight="700" font-size="15" fill="#fff">浙江</text><text x="38" y="21" font-family="'PingFang SC',sans-serif" font-weight="600" font-size="14" fill="#F2F5F3">卫视</text></svg>
+          </div>
+          <div class="nm">浙江卫视<span class="hd">HD</span></div>
+          <div class="pg">中国好声音 · 盲选</div>
+        </div>
+        <div class="a-card next">
+          <div class="logo"><span class="fv"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 20s-6.6-4-8.8-8.1C1.7 8.6 3.6 5.5 6.8 5.5c1.9 0 3.4 1 4.2 2.6.8-1.6 2.3-2.6 4.2-2.6 3.2 0 5.1 3.1 3.6 6.4C16.6 16 12 20 12 20z"/></svg></span>
+            <svg width="86" height="30" viewBox="0 0 86 30"><rect width="46" height="30" rx="5" fill="#1E2622"/><text x="23" y="20" text-anchor="middle" font-family="Archivo,sans-serif" font-weight="800" font-size="13" fill="#F2F5F3">CCTV</text><rect x="50" width="36" height="30" rx="5" fill="#3E8E5A"/><text x="68" y="21.5" text-anchor="middle" font-family="Archivo,sans-serif" font-weight="800" font-size="16" fill="#06170D">9</text></svg>
+          </div>
+          <div class="nm">CCTV-9 纪录<span class="hd">HD</span></div>
+          <div class="pg">蓝色星球 · 深海</div>
+        </div>
+      </div>
+
+      <div class="a-mini">
+        <div class="bar"><b></b></div>
+        <div class="row">
+          <div class="pp"><svg width="12" height="14" viewBox="0 0 12 14" fill="currentColor"><rect width="3.4" height="14" rx="1.2"/><rect x="8.6" width="3.4" height="14" rx="1.2"/></svg></div>
+          <div class="tt"><div class="n">CCTV-1 综合</div><div class="p">晚间剧场 ·《归途》第 14 集 · 剩 13 分钟</div></div>
+          <svg class="more" width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><circle cx="5" cy="12" r="1.8"/><circle cx="12" cy="12" r="1.8"/><circle cx="19" cy="12" r="1.8"/></svg>
+        </div>
+      </div>
+      <div class="homebar"></div>
+    </div></div>
+    <figcaption><b>首页</b>大直播卡开场 · 频道卡带当前节目 · 底部迷你播放条</figcaption>
+  </figure>
+
+  <!-- ===== 屏 2 · 播放器 ===== -->
+  <figure class="stage">
+    <div class="phone"><div class="screen dir-a p-screen">
+      <div class="island"></div>
+      <div class="p-vid">
+        <svg viewBox="0 0 390 844" preserveAspectRatio="xMidYMid slice">
+          <defs>
+            <linearGradient id="p-bg" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#0F2233"/><stop offset=".55" stop-color="#0B1725"/><stop offset="1" stop-color="#0A121C"/></linearGradient>
+            <linearGradient id="p-desk" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#122018"/><stop offset="1" stop-color="#0B110D"/></linearGradient>
+          </defs>
+          <rect width="390" height="844" fill="url(#p-bg)"/>
+          <rect x="36" y="180" width="12" height="240" rx="6" fill="#00DC82" opacity=".8"/>
+          <rect x="56" y="210" width="6" height="210" rx="3" fill="#00DC82" opacity=".28"/>
+          <circle cx="250" cy="300" r="120" fill="none" stroke="rgba(255,255,255,.13)" stroke-width="2"/>
+          <circle cx="250" cy="300" r="92" fill="none" stroke="rgba(0,220,130,.3)" stroke-width="1.5"/>
+          <rect x="180" y="240" width="140" height="120" rx="14" fill="rgba(255,255,255,.06)"/>
+          <rect x="200" y="264" width="66" height="9" rx="4.5" fill="rgba(255,255,255,.3)"/>
+          <rect x="200" y="286" width="100" height="7" rx="3.5" fill="rgba(255,255,255,.15)"/>
+          <rect x="200" y="302" width="84" height="7" rx="3.5" fill="rgba(255,255,255,.15)"/>
+          <rect x="200" y="318" width="92" height="7" rx="3.5" fill="rgba(255,255,255,.15)"/>
+          <g opacity=".45" fill="#0D1826"><rect x="330" y="220" width="30" height="240"/><rect x="365" y="180" width="34" height="280"/></g>
+          <g fill="#16283C"><rect x="336" y="234" width="4" height="4"/><rect x="344" y="258" width="4" height="4"/><rect x="372" y="196" width="4" height="4"/><rect x="380" y="228" width="4" height="4"/><rect x="373" y="264" width="4" height="4"/></g>
+          <path d="M0 470 Q195 420 390 462" stroke="rgba(255,255,255,.09)" fill="none"/>
+          <path d="M0 474 L390 466 L390 844 L0 844 Z" fill="url(#p-desk)"/>
+          <path d="M0 472 Q195 422 390 464" stroke="rgba(0,220,130,.45)" fill="none" stroke-width="2"/>
+        </svg>
+      </div>
+      <div class="p-grad"></div>
+
+      <div class="p-top">
+        <div class="back"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#F2F5F3" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 5l-7 7 7 7"/></svg></div>
+        <div class="chlogo"><svg width="34" height="24" viewBox="0 0 34 24"><rect width="34" height="24" rx="4" fill="#1E2622"/><text x="17" y="16" text-anchor="middle" font-family="Archivo,sans-serif" font-weight="800" font-size="9.5" fill="#F2F5F3">CCTV</text></svg></div>
+        <div class="chn"><div class="n">CCTV-1 综合</div><div class="g">央视频道 · 中国直播源</div></div>
+        <div class="p-sig">
+          <span class="lv"><i></i>LIVE</span>
+          <span class="p-clock">20:47</span>
+        </div>
+      </div>
+
+      <div class="p-bottom">
+        <div class="p-prog">
+          <div class="times"><span class="mid">20:33</span><span>20:06 – 21:00 · 剩 13 分钟</span><span>21:00</span></div>
+          <div class="bar"><i></i><b></b><s></s></div>
+        </div>
+        <div class="p-epg"><span class="t">晚间剧场 ·《归途》第 14 集</span><span class="r">下一档 21:00 新闻夜线</span></div>
+
+        <div class="p-main">
+          <div class="p-chbtn"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 5l-7 7 7 7"/></svg><span>CH−</span></div>
+          <div class="p-play"><svg width="22" height="26" viewBox="0 0 22 26" fill="currentColor"><rect width="6" height="26" rx="2"/><rect x="16" width="6" height="26" rx="2"/></svg></div>
+          <div class="p-list"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#F2F5F3" stroke-width="2" stroke-linecap="round"><path d="M4 6h16M4 12h16M4 18h9"/></svg></div>
+          <div class="p-chbtn"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 5l7 7-7 7"/></svg><span>CH+</span></div>
+        </div>
+
+        <div class="p-sub">
+          <span class="s fav"><svg width="13" height="13" viewBox="0 0 24 24" fill="currentColor"><path d="M12 21s-7.5-4.6-10-9.3C.5 8 2.6 4.5 6.2 4.5c2.2 0 3.9 1.2 4.8 3 .9-1.8 2.6-3 4.8-3 3.6 0 5.7 3.5 4.2 7.2C17.5 16.4 12 21 12 21z"/></svg>已收藏</span>
+          <span class="s"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><rect x="3" y="4" width="18" height="17" rx="3"/><path d="M3 9h18M8 2v4M16 2v4"/></svg>节目单</span>
+          <span class="s" title="切换源"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M7 8h10M17 8l-3.2-3.2M17 8l-3.2 3.2M17 16H7M7 16l3.2-3.2M7 16l3.2 3.2"/></svg>切源</span>
+          <span class="s"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 14v-3a8 8 0 0 1 16 0v3"/><rect x="2" y="14" width="5" height="7" rx="2"/><rect x="17" y="14" width="5" height="7" rx="2"/></svg>音轨</span>
+          <span class="s mono">1080P</span>
+          <span class="s" title="投屏"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><rect x="3" y="5" width="18" height="13" rx="2"/><path d="M8 21h8"/></svg>投屏</span>
+          <span class="s" title="睡眠定时"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 13A8 8 0 1 1 11 4a6.5 6.5 0 0 0 9 9z"/></svg></span>
+          <span class="s" title="播放信息"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="9"/><path d="M12 8h.01M12 11.5V16"/></svg></span>
+          <span class="s"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M8 3H5a2 2 0 0 0-2 2v3M16 3h3a2 2 0 0 1 2 2v3M8 21H5a2 2 0 0 1-2-2v-3M16 21h3a2 2 0 0 0 2-2v-3"/></svg></span>
+        </div>
+      </div>
+      <div class="homebar dark"></div>
+    </div></div>
+    <figcaption><b>播放器</b>全屏画面 + CH−/CH+ 换台主角按钮 · 节目进度与下一档</figcaption>
+  </figure>
+
+  <!-- ===== 屏 3 · 分组 ===== -->
+  <figure class="stage">
+    <div class="phone"><div class="screen dir-a g-screen">
+      <div class="island"></div>
+      <div class="g-dim">
+        <svg width="390" height="844" viewBox="0 0 390 844">
+          <rect width="390" height="844" fill="#0A0C0B"/>
+          <g fill="#121614" stroke="#232925">
+            <rect x="16" y="70" width="174" height="130" rx="13"/><rect x="200" y="70" width="174" height="130" rx="13"/>
+            <rect x="16" y="210" width="174" height="130" rx="13"/><rect x="200" y="210" width="174" height="130" rx="13"/>
+            <rect x="16" y="350" width="174" height="130" rx="13"/><rect x="200" y="350" width="174" height="130" rx="13"/>
+          </g>
+        </svg>
+      </div>
+
+      <div class="g-sheet">
+        <div class="g-grab"></div>
+        <div class="g-head"><h3>频道分组</h3><span class="c">共 8 组</span><span class="rst">重置</span></div>
+        <div class="g-rows">
+          <div class="g-row"><span class="nm">全部频道</span><span class="ct">1284</span></div>
+          <div class="g-row"><span class="nm">央视频道</span><span class="ct">48</span></div>
+          <div class="g-row"><span class="nm">卫视频道</span><span class="ct">62</span></div>
+          <div class="g-row sel"><span class="nm">体育赛事</span><span class="ct">74</span></div>
+          <div class="g-row"><span class="nm">新闻资讯</span><span class="ct">86</span></div>
+          <div class="g-row"><span class="nm">电影频道</span><span class="ct">113</span></div>
+          <div class="g-row"><span class="nm">纪录片</span><span class="ct">41</span></div>
+          <div class="g-row"><span class="nm">少儿动画</span><span class="ct">38</span></div>
+          <div class="g-row"><span class="nm">港澳台</span><span class="ct">156</span></div>
+        </div>
+        <div class="g-ok"><button>查看 74 个频道</button></div>
+      </div>
+      <div class="homebar"></div>
+    </div></div>
+    <figcaption><b>分组</b>半模态底部抽屉 · 左缘选中条 · 按钮直说结果「查看 74 个频道」</figcaption>
+  </figure>
+
+</main>
+
+<script>
+/* figma=1 干净导出模式：隐藏工作台外壳，屏幕按画布排布，取消缩放 */
+if (new URLSearchParams(location.search).has('figma')) {
+  document.documentElement.classList.add('figma-mode');
+  const css = `
+    .deck-head, .pghead, .head, .note, figcaption, .deck-meta { display:none !important; }
+    body { background:#0B0C10 !important; padding:64px !important; width:1720px !important; }
+    .deck, .deck.small, .board-wrap { display:flex !important; flex-wrap:wrap; gap:56px !important; padding:0 !important; max-width:none !important; }
+    .phone, .device, .mdev { width:auto !important; height:auto !important; overflow:visible !important; box-shadow:none !important; }
+    .mscr, .surface { transform:none !important; }
+  `;
+  const st = document.createElement('style');
+  st.textContent = css;
+  document.head.appendChild(st);
+}
+</script>
+</body>
+</html>
+
+<style>
+/* ===== 其余页面 · 小屏壳 ===== */
+.pghead { margin-top:74px; border-top:1px solid #262B27; padding:46px 48px 6px; }
+.pghead h2 { font-size:21px; font-weight:700; }
+.pghead h2 span { color:#00DC82; }
+.pghead p { margin-top:8px; font-size:13.5px; line-height:1.75; color:#9AA49D; max-width:860px; }
+.deck.small { padding:26px 48px 80px; gap:24px; row-gap:34px; }
+figure.mstage { display:flex; flex-direction:column; gap:10px; }
+.mdev { width:256px; height:538px; overflow:hidden; border-radius:36px; padding:7px; background:#000; box-shadow:0 14px 36px rgba(0,0,0,.45), inset 0 0 0 1.5px #2A2E2B; }
+.mscr { width:390px; height:844px; transform:scale(.62); transform-origin:0 0; border-radius:29px; overflow:hidden; position:relative; background:var(--bg); color:var(--tx); display:flex; flex-direction:column; }
+figure.mstage figcaption { font-size:11.5px; }
+.mhome { position:absolute; bottom:8px; left:50%; transform:translateX(-50%); width:120px; height:5px; border-radius:3px; background:rgba(255,255,255,.85); z-index:60; }
+/* 通用小屏组件（A 风格） */
+.as-top { display:flex; align-items:center; gap:12px; padding:14px 18px 10px; flex:none; }
+.as-back { width:38px; height:38px; border-radius:12px; border:1px solid var(--line); background:var(--panel); display:grid; place-items:center; color:var(--tx2); flex:none; }
+.as-back svg { width:16px; height:16px; }
+.as-title { font-size:17px; font-weight:700; }
+.as-input { flex:1; display:flex; align-items:center; gap:9px; height:42px; border-radius:13px; border:1.5px solid var(--acc); background:var(--panel); padding:0 13px; color:var(--tx3); font-size:14px; }
+.as-input b { color:var(--tx); font-weight:500; }
+.as-caret { width:2px; height:18px; background:var(--acc); display:inline-block; }
+.as-sec { padding:10px 18px 6px; font-size:11.5px; color:var(--tx3); display:flex; }
+.as-sec span { margin-left:auto; font-family:'Spline Sans Mono',monospace; font-size:10.5px; }
+.as-chips { display:flex; gap:8px; padding:2px 18px 12px; overflow:hidden; flex-wrap:wrap; }
+.as-chips .c { font-size:12.5px; padding:7px 13px; border-radius:99px; border:1px solid var(--line); background:var(--panel); color:var(--tx2); display:flex; gap:7px; align-items:center; }
+.as-chips .c i { color:var(--tx3); font-style:normal; }
+.as-rows { flex:1; min-height:0; overflow:hidden; padding:0 10px; }
+.as-row { display:flex; align-items:center; gap:11px; padding:11px 8px; border-radius:11px; }
+.as-row:hover { background:var(--panel); }
+.as-row .lg { width:40px; height:40px; border-radius:10px; background:var(--panel2); border:1px solid var(--line); display:grid; place-items:center; flex:none; }
+.as-row .in { flex:1; min-width:0; }
+.as-row .in .n { font-size:14px; font-weight:600; }
+.as-row .in .p { font-size:11px; color:var(--tx3); margin-top:1px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+.as-row .rt { font-size:11px; color:var(--tx3); flex:none; }
+.as-btn { margin:10px 18px 30px; flex:none; }
+.as-btn button { width:100%; height:48px; border:none; border-radius:13px; background:var(--acc); color:var(--acc-ink); font-size:15px; font-weight:700; font-family:inherit; }
+.as-foot { padding:0 18px 26px; font-size:11px; color:var(--tx3); text-align:center; flex:none; }
+/* 开关 */
+.as-sw { width:40px; height:24px; border-radius:12px; background:var(--acc); position:relative; flex:none; }
+.as-sw i { position:absolute; top:2.5px; right:2.5px; width:19px; height:19px; border-radius:50%; background:#fff; }
+.as-sw.off { background:var(--line2); }
+.as-sw.off i { right:auto; left:2.5px; }
+/* 色板 swatch */
+.as-swatches { display:flex; gap:8px; }
+.as-swatches i { width:24px; height:24px; border-radius:50%; border:2px solid transparent; display:block; }
+.as-swatches i.on { border-color:var(--tx); box-shadow:0 0 0 2px var(--bg) inset; }
+/* EPG 行 */
+.as-erow { display:flex; align-items:center; gap:12px; padding:13px 8px; border-bottom:1px solid var(--line); }
+.as-erow .t { font-family:'Spline Sans Mono',monospace; font-size:12px; color:var(--tx3); width:88px; flex:none; }
+.as-erow .in { flex:1; min-width:0; }
+.as-erow .in .n { font-size:14px; font-weight:600; }
+.as-erow .in .bar { margin-top:6px; height:3px; border-radius:2px; background:var(--line); position:relative; }
+.as-erow .in .bar b { position:absolute; inset:0 auto 0 0; background:var(--acc); border-radius:2px; }
+.as-erow .st { font-size:11px; flex:none; }
+.as-erow .st.live { color:var(--acc); }
+.as-erow .st.end { color:var(--tx3); }
+.as-erow .st.todo { color:var(--tx2); }
+.as-erow.dim { opacity:.5; }
+/* 信息网格 */
+.as-stats { display:grid; grid-template-columns:1fr 1fr; gap:8px; }
+.as-stat { border:1px solid var(--line); border-radius:11px; background:var(--panel); padding:10px 12px; }
+.as-stat .k { font-size:10.5px; color:var(--tx3); }
+.as-stat .v { font-family:'Spline Sans Mono',monospace; font-size:14px; font-weight:600; margin-top:3px; }
+/* 播放信息浮层屏 */
+.as-infoscr { background:#0A0C0B; }
+.as-infoscr .fake { position:absolute; inset:0; background:linear-gradient(180deg,#0F2233,#0A1520 55%,#0C130F); opacity:.5; }
+.as-panel { position:relative; z-index:5; margin:56px 16px 0; border:1px solid var(--line2); border-radius:18px; background:rgba(18,22,20,.92); backdrop-filter:blur(14px); padding:16px 16px 14px; }
+.as-panel .h { display:flex; align-items:center; font-size:15px; font-weight:700; }
+.as-panel .h span { margin-left:auto; color:var(--tx3); }
+.as-panel .grid { margin-top:12px; }
+.as-panel .cast { margin-top:12px; border-top:1px solid var(--line); padding-top:12px; }
+.as-panel .cast .t { font-size:11.5px; color:var(--tx3); margin-bottom:4px; }
+.as-crow { display:flex; align-items:center; gap:10px; padding:10px 2px; }
+.as-crow .dot { width:8px; height:8px; border-radius:50%; background:var(--tx3); flex:none; }
+.as-crow .dot.on { background:var(--acc); box-shadow:0 0 8px rgba(0,220,130,.7); }
+.as-crow .n { font-size:13.5px; font-weight:600; flex:1; }
+.as-crow .s { font-size:11px; color:var(--tx3); }
+.as-crow .s.on { color:var(--acc); }
+/* 启动页 */
+.as-splash { align-items:center; justify-content:center; display:flex; flex-direction:column; position:relative; }
+.as-splash .mark { font-weight:800; font-stretch:125%; letter-spacing:.14em; font-size:30px; }
+.as-splash .mark em { font-style:normal; color:var(--acc); }
+.as-splash .sq { width:56px; height:56px; border-radius:16px; background:var(--acc); display:grid; place-items:center; margin-bottom:16px; }
+.as-splash .ld { margin-top:56px; width:180px; }
+.as-splash .ld .t { font-size:12px; color:var(--tx2); text-align:center; margin-bottom:9px; }
+.as-splash .ld .bar { height:3px; border-radius:2px; background:var(--line); position:relative; }
+.as-splash .ld .bar b { position:absolute; inset:0 auto 0 0; width:42%; background:var(--acc); border-radius:2px; }
+.as-splash .ver { position:absolute; bottom:30px; font-family:'Spline Sans Mono',monospace; font-size:10.5px; color:var(--tx3); }
+</style>
+
+<div class="pghead">
+  <h2>方向 A · 其余页面<span> · 8 屏</span></h2>
+  <p>搜索、EPG 节目单、播放源管理、设置（含主题色）、播放信息与投屏、手机遥控 TV 输入、局域网同步预览、启动页。同一套 token 延伸到全量界面，风格自然一致。</p>
+</div>
+
+<main class="deck small">
+
+  <figure class="mstage">
+    <div class="mdev"><div class="mscr dir-a">
+      <div class="as-top">
+        <div class="as-back"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 5l-7 7 7 7"/></svg></div>
+        <div class="as-input"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg><b>世预</b><span class="as-caret"></span></div>
+      </div>
+      <div class="as-sec">最近搜索</div>
+      <div class="as-chips"><span class="c">世预赛 <i>×</i></span><span class="c">新闻联播 <i>×</i></span><span class="c">湖南卫视 <i>×</i></span><span class="c">少儿 <i>×</i></span></div>
+      <div class="as-sec">频道 · 3 个结果</div>
+      <div class="as-rows">
+        <div class="as-row"><div class="lg"><svg width="32" height="14" viewBox="0 0 32 14"><rect width="32" height="14" rx="3" fill="#1E2622"/><text x="16" y="10.5" text-anchor="middle" font-family="Archivo,sans-serif" font-weight="800" font-size="8" fill="#F2F5F3">CCTV</text></svg></div><div class="in"><div class="n">CCTV-5 体育</div><div class="p">央视频道 · 世预赛亚洲区进行中</div></div><span class="rt">CH 03</span></div>
+        <div class="as-row"><div class="lg"><svg width="32" height="14" viewBox="0 0 32 14"><rect width="32" height="14" rx="3" fill="#1E2622"/><text x="16" y="10.5" text-anchor="middle" font-family="Archivo,sans-serif" font-weight="800" font-size="8" fill="#F2F5F3">CCTV</text></svg></div><div class="in"><div class="n">CCTV-5+ 体育赛事</div><div class="p">央视频道 · CBA 总决赛</div></div><span class="rt">CH 04</span></div>
+        <div class="as-row"><div class="lg"><svg width="32" height="14" viewBox="0 0 32 14"><rect width="32" height="14" rx="3" fill="#D6402C"/><text x="16" y="10.5" text-anchor="middle" font-family="'PingFang SC',sans-serif" font-weight="700" font-size="8.5" fill="#fff">体育</text></svg></div><div class="in"><div class="n">五星体育</div><div class="p">体育 · 赛事集锦</div></div><span class="rt">CH 88</span></div>
+      </div>
+      <div class="as-sec">分组 · 1 个结果</div>
+      <div class="as-rows" style="flex:0 0 auto">
+        <div class="as-row"><div class="lg" style="color:var(--acc)"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M13 2 4.5 13.5H11L10 22l8.5-11.5H12L13 2z"/></svg></div><div class="in"><div class="n">体育赛事</div><div class="p">74 个频道</div></div></div>
+      </div>
+      <div class="mhome"></div>
+    </div></div>
+    <figcaption><b>搜索</b>输入态 · 最近搜索 chips · 频道/分组分区结果</figcaption>
+  </figure>
+
+  <figure class="mstage">
+    <div class="mdev"><div class="mscr dir-a">
+      <div class="as-top">
+        <div class="as-back"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 5l-7 7 7 7"/></svg></div>
+        <div class="as-title">节目单 · CCTV-1 综合</div>
+      </div>
+      <div class="as-chips"><span class="c" style="color:var(--tx3)">昨天</span><span class="c" style="background:var(--acc);border-color:var(--acc);color:var(--acc-ink);font-weight:650">今天 10-21</span><span class="c">明天</span></div>
+      <div class="as-rows">
+        <div class="as-erow dim"><span class="t">18:00 – 18:30</span><div class="in"><div class="n">新闻联播</div></div><span class="st end">已结束</span></div>
+        <div class="as-erow dim"><span class="t">19:00 – 19:38</span><div class="in"><div class="n">新闻联播</div></div><span class="st end">已结束</span></div>
+        <div class="as-erow dim"><span class="t">19:38 – 20:06</span><div class="in"><div class="n">焦点访谈</div></div><span class="st end">已结束</span></div>
+        <div class="as-erow"><span class="t">20:06 – 21:00</span><div class="in"><div class="n">晚间剧场《归途》第 14 集</div><div class="bar"><b style="width:76%"></b></div></div><span class="st live">正在播出</span></div>
+        <div class="as-erow"><span class="t">21:00 – 21:32</span><div class="in"><div class="n">新闻夜线</div></div><span class="st todo">30 分钟</span></div>
+        <div class="as-erow"><span class="t">21:32 – 21:45</span><div class="in"><div class="n">天气预报</div></div><span class="st todo">8 分钟</span></div>
+        <div class="as-erow"><span class="t">21:45 – 22:30</span><div class="in"><div class="n">体育世界</div></div><span class="st todo">45 分钟</span></div>
+        <div class="as-erow"><span class="t">22:30 – 00:00</span><div class="in"><div class="n">晚间报告</div></div><span class="st todo">90 分钟</span></div>
+      </div>
+      <div class="as-foot">节目单来自 XMLTV · 每 6 小时自动更新</div>
+      <div class="mhome"></div>
+    </div></div>
+    <figcaption><b>EPG 节目单</b>频道维度 · 日期切换 · 正在播出的节目带进度</figcaption>
+  </figure>
+
+  <figure class="mstage">
+    <div class="mdev"><div class="mscr dir-a">
+      <div class="as-top">
+        <div class="as-back"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 5l-7 7 7 7"/></svg></div>
+        <div class="as-title">播放源</div>
+        <span style="margin-left:auto;color:var(--acc);font-size:13.5px;font-weight:600">添加</span>
+      </div>
+      <div class="as-rows">
+        <div class="as-row" style="outline:1px solid rgba(0,220,130,.4);background:var(--panel)"><div class="lg" style="color:var(--acc)"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M13 2 4.5 13.5H11L10 22l8.5-11.5H12L13 2z"/></svg></div><div class="in"><div class="n">中国主源</div><div class="p">iptv-org · china · 1284 个频道</div></div><span class="rt" style="color:var(--acc)">使用中</span></div>
+        <div class="as-row"><div class="lg"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="9"/><path d="M3 12h18M12 3a15 15 0 0 1 0 18M12 3a15 15 0 0 0 0 18"/></svg></div><div class="in"><div class="n">iptv-org · 全部</div><div class="p">iptv-org · index.category.m3u · 9841 个</div></div><span class="rt">切源</span></div>
+        <div class="as-row"><div class="lg"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="9"/><path d="M3 12h18M12 3a15 15 0 0 1 0 18M12 3a15 15 0 0 0 0 18"/></svg></div><div class="in"><div class="n">港澳台精选</div><div class="p">自建 · 156 个频道</div></div><span class="rt">切源</span></div>
+        <div class="as-row"><div class="lg"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M13 2 4.5 13.5H11L10 22l8.5-11.5H12L13 2z"/></svg></div><div class="in"><div class="n">体育专区</div><div class="p">社区订阅 · 74 个频道</div></div><span class="rt">切源</span></div>
+        <div class="as-row"><div class="lg"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M4 6h16M4 12h16M4 18h16"/></svg></div><div class="in"><div class="n">本地 M3U</div><div class="p">downloads/live_v3.m3u · 412 个</div></div><span class="rt">切源</span></div>
+      </div>
+      <div class="as-btn"><button>添加订阅源 · 支持网络 URL / 本地文件</button></div>
+      <div class="mhome"></div>
+    </div></div>
+    <figcaption><b>播放源管理</b>当前源高亮 · 一键切源 · 底部添加入口（URL / 本地）</figcaption>
+  </figure>
+
+  <figure class="mstage">
+    <div class="mdev"><div class="mscr dir-a">
+      <div class="as-top">
+        <div class="as-back"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 5l-7 7 7 7"/></svg></div>
+        <div class="as-title">设置</div>
+      </div>
+      <div class="as-sec">播放</div>
+      <div class="as-rows" style="flex:0 0 auto">
+        <div class="as-row"><div class="in"><div class="n">默认清晰度</div></div><span class="rt">1080P 及以上 ›</span></div>
+        <div class="as-row"><div class="in"><div class="n">硬件解码</div><div class="p">视频走硬件视频平面，画质更锐利</div></div><span class="as-sw"><i></i></span></div>
+        <div class="as-row"><div class="in"><div class="n">音频软解（FFmpeg）</div><div class="p">补齐 AC-3 / DTS 等硬解不支持的编码</div></div><span class="as-sw"><i></i></span></div>
+      </div>
+      <div class="as-sec">界面</div>
+      <div class="as-rows" style="flex:0 0 auto">
+        <div class="as-row"><div class="in"><div class="n">主题色</div></div><span class="as-swatches"><i style="background:#00DC82" class="on"></i><i style="background:#2196F3"></i><i style="background:#00BCD4"></i><i style="background:#BA68C8"></i><i style="background:#E91E63"></i><i style="background:#F44336"></i></span></div>
+        <div class="as-row"><div class="in"><div class="n">语言</div></div><span class="rt">中文 ›</span></div>
+      </div>
+      <div class="as-sec">定时</div>
+      <div class="as-rows" style="flex:0 0 auto">
+        <div class="as-row"><div class="in"><div class="n">睡眠定时</div></div><span class="rt">关闭 ›</span></div>
+      </div>
+      <div class="as-sec">数据</div>
+      <div class="as-rows" style="flex:0 0 auto">
+        <div class="as-row"><div class="in"><div class="n">局域网同步</div><div class="p">从其他设备拉取列表 / 收藏 / 设置</div></div><span class="rt">›</span></div>
+        <div class="as-row"><div class="in"><div class="n">日志中心</div></div><span class="rt">›</span></div>
+      </div>
+      <div class="as-foot">XPlayer 1.2.0 (Build 340) · 全平台 IPTV 播放器</div>
+      <div class="mhome"></div>
+    </div></div>
+    <figcaption><b>设置</b>分组列表 · 主题色色板内嵌（当前绿）· 开关与说明文案</figcaption>
+  </figure>
+
+  <figure class="mstage">
+    <div class="mdev"><div class="mscr dir-a as-infoscr">
+      <div class="fake"></div>
+      <div class="as-panel">
+        <div class="h">播放信息<span>×</span></div>
+        <div class="grid as-stats">
+          <div class="as-stat"><div class="k">分辨率</div><div class="v">1920 × 1080</div></div>
+          <div class="as-stat"><div class="k">视频编码</div><div class="v">H.264</div></div>
+          <div class="as-stat"><div class="k">码率</div><div class="v">4.2 Mbps</div></div>
+          <div class="as-stat"><div class="k">帧率</div><div class="v">25 fps</div></div>
+          <div class="as-stat"><div class="k">缓冲</div><div class="v">3.2 s</div></div>
+          <div class="as-stat"><div class="k">丢帧</div><div class="v">0</div></div>
+          <div class="as-stat"><div class="k">视频解码</div><div class="v">硬解 · Surface</div></div>
+          <div class="as-stat"><div class="k">音频</div><div class="v">E-AC3 · 软解</div></div>
+        </div>
+        <div class="cast">
+          <div class="t">投屏到局域网设备</div>
+          <div class="as-crow"><span class="dot on"></span><span class="n">客厅电视 · XPlayer TV</span><span class="s on">本机播放</span></div>
+          <div class="as-crow"><span class="dot"></span><span class="n">卧室盒子 · 192.168.3.21</span><span class="s">连接</span></div>
+        </div>
+      </div>
+      <div class="mhome" style="background:rgba(255,255,255,.6)"></div>
+    </div></div>
+    <figcaption><b>播放信息 + 投屏</b>诊断网格（分辨率/编码/码率/缓冲/丢帧）+ 局域网设备连接</figcaption>
+  </figure>
+
+  <figure class="mstage">
+    <div class="mdev"><div class="mscr dir-a">
+      <div class="as-top">
+        <div class="as-back"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 5l-7 7 7 7"/></svg></div>
+        <div class="as-title">手机遥控输入</div>
+      </div>
+      <div style="padding:4px 18px 0">
+        <div style="display:flex;align-items:center;gap:10px;border:1px solid var(--line);border-radius:13px;background:var(--panel);padding:12px 14px">
+          <span style="width:9px;height:9px;border-radius:50%;background:var(--acc);box-shadow:0 0 8px rgba(0,220,130,.7);flex:none"></span>
+          <div style="flex:1"><div style="font-size:14px;font-weight:650">XPlayer TV</div><div class="as-rt" style="font-family:'Spline Sans Mono',monospace;font-size:11px;color:var(--tx3);margin-top:1px">192.168.3.16 · 已连接</div></div>
+          <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="var(--tx2)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12a9 9 0 1 1-2.64-6.36M21 3v6h-6"/></svg>
+        </div>
+        <div style="margin-top:14px;border:1.5px solid var(--acc);border-radius:14px;background:var(--panel);padding:15px 15px 17px">
+          <div style="font-size:19px;font-weight:550">世预赛<span class="as-caret" style="height:22px;margin-left:2px;vertical-align:-3px"></span></div>
+        </div>
+        <div style="margin-top:10px;font-size:12px;color:var(--tx3);text-align:center">输入实时同步到电视 · 右键删除单字</div>
+      </div>
+      <div class="as-btn" style="margin-top:16px"><button>发送到电视</button></div>
+      <div class="as-foot" style="margin-top:26px">同一 WiFi 下自动发现 TV 端 · 无需配对码</div>
+      <div class="mhome"></div>
+    </div></div>
+    <figcaption><b>遥控 TV 输入</b>设备连接态 · 实时同步输入框 · 发送</figcaption>
+  </figure>
+
+  <figure class="mstage">
+    <div class="mdev"><div class="mscr dir-a">
+      <div class="as-top">
+        <div class="as-back"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 5l-7 7 7 7"/></svg></div>
+        <div class="as-title">局域网同步</div>
+      </div>
+      <div style="padding:6px 18px 0">
+        <div style="display:flex;align-items:center;gap:12px;border:1px solid var(--line);border-radius:14px;background:var(--panel);padding:14px">
+          <div style="width:42px;height:42px;border-radius:12px;background:var(--panel2);border:1px solid var(--line);display:grid;place-items:center;color:var(--tx2)"><svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><rect x="4" y="2" width="16" height="20" rx="2.5"/><path d="M9 22h6" opacity=".6"/></svg></div>
+          <div style="flex:1"><div style="font-size:14.5px;font-weight:650">iPad of TNT</div><div class="as-rt" style="font-family:'Spline Sans Mono',monospace;font-size:11px;color:var(--tx3);margin-top:1px">192.168.3.8 · 发现于本机</div></div>
+        </div>
+      </div>
+      <div class="as-sec">选择要拉取的内容</div>
+      <div class="as-rows" style="flex:0 0 auto">
+        <div class="as-row"><div class="in"><div class="n">播放列表</div><div class="p">对方 4 个 · 本机 2 个，将新增 2 个</div></div><span class="as-sw"><i></i></span></div>
+        <div class="as-row"><div class="in"><div class="n">收藏</div><div class="p">32 个频道 · 重名 3 个将跳过</div></div><span class="as-sw"><i></i></span></div>
+        <div class="as-row"><div class="in"><div class="n">最近播放</div><div class="p">跨设备合并，保留最近 100 条</div></div><span class="as-sw"><i></i></span></div>
+        <div class="as-row"><div class="in"><div class="n">应用设置</div><div class="p">主题色 / 播放偏好 · 将覆盖本机</div></div><span class="as-sw off"><i></i></span></div>
+      </div>
+      <div class="as-btn" style="margin-top:8px"><button>开始同步 · 预计 5 秒</button></div>
+      <div class="mhome"></div>
+    </div></div>
+    <figcaption><b>局域网同步</b>来源设备卡 · 逐项预览勾选（含覆盖提示）· 结果化按钮</figcaption>
+  </figure>
+
+  <figure class="mstage">
+    <div class="mdev"><div class="mscr dir-a as-splash">
+      <div class="sq"><svg width="30" height="26" viewBox="0 0 30 26" fill="#04150C"><path d="M4 2l24 11L4 24z"/></svg></div>
+      <div class="mark">X<em>PLAYER</em></div>
+      <div class="ld">
+        <div class="t">正在加载直播源 · 中国主源</div>
+        <div class="bar"><b></b></div>
+      </div>
+      <div class="ver">1.2.0 (340) · 内置 iptv-org 公开直播源</div>
+      <div class="mhome"></div>
+    </div></div>
+    <figcaption><b>启动页</b>标态 + 加载直播源进度 · 底部版本与来源说明</figcaption>
+  </figure>
+
+</main>

@@ -233,4 +233,13 @@
     "infoAudioCodec": "音频编码",
     "infoAudioDecoder": "音频解码器",
     "infoTier2Hint": "丢帧/卡顿/Audio Path/AV 同步等指标需后续(挂 ExoPlayer 分析器)"
+,
+    "upNext": "下一档",
+    "remainMinutes": "剩 {count} 分钟",
+    "viewGroupChannels": "查看 {count} 个频道",
+    "groupsTotal": "共 {count} 组",
+    "reset": "重置",
+    "@remainMinutes": {"placeholders": {"count": {"type": "int"}}},
+    "@viewGroupChannels": {"placeholders": {"count": {"type": "int"}}},
+    "@groupsTotal": {"placeholders": {"count": {"type": "int"}}}
 }

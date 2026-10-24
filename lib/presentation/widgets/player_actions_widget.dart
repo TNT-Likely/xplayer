@@ -14,6 +14,7 @@ import 'package:xplayer/services/player/x_player_backend.dart';
 import 'package:xplayer/utils/playlist_util.dart';
 import 'package:xplayer/utils/url_utils.dart';
 import 'package:xplayer/localization/app_localizations.dart';
+import 'package:xplayer/shared/theme/app_tokens.dart';
 
 // 定义回调函数类型
 typedef PlayPauseCallback = void Function(bool isPlaying);
@@ -43,6 +44,8 @@ class PlayerActionsWidget extends StatefulWidget {
   final bool hasAudioTracks;
   final VoidCallback? showAudioTrackSelect;
   final VoidCallback? onCast;
+  /// 相对换台(±1):方向 A 的 CH−/CH+ 显式按钮;null 时隐藏(如无相邻频道场景)。
+  final void Function(int delta)? onSwitchChannel;
 
   const PlayerActionsWidget(
       {Key? key,
@@ -62,7 +65,8 @@ class PlayerActionsWidget extends StatefulWidget {
       this.showSleepTimer,
       this.hasAudioTracks = false,
       this.showAudioTrackSelect,
-      this.onCast})
+      this.onCast,
+      this.onSwitchChannel})
       : super(key: key);
 
   @override
@@ -289,7 +293,7 @@ class _PlayerActionsWidgetState extends State<PlayerActionsWidget>
                       minHeight: 3,
                       backgroundColor: Colors.white24,
                       valueColor:
-                          const AlwaysStoppedAnimation<Color>(Colors.redAccent),
+                          AlwaysStoppedAnimation<Color>(AppTokens.brand),
                     ),
                   ),
                 ],
@@ -335,7 +339,22 @@ class _PlayerActionsWidgetState extends State<PlayerActionsWidget>
         icon: _isPlaying ? Icons.pause : Icons.play_arrow,
         label: _isPlaying ? l.pause : l.play,
       ),
-      const SizedBox(width: 8),
+      // CH−/CH+ 显式换台(方向 A):紧邻播放键,横滑之外的可见入口
+      if (widget.onSwitchChannel != null) ...[
+        const SizedBox(width: 8),
+        _ChannelStepButton(
+          label: 'CH−',
+          icon: Icons.arrow_back_ios_new,
+          onTap: () => widget.onSwitchChannel!(-1),
+        ),
+        const SizedBox(width: 8),
+        _ChannelStepButton(
+          label: 'CH+',
+          icon: Icons.arrow_forward_ios,
+          onTap: () => widget.onSwitchChannel!(1),
+        ),
+        const SizedBox(width: 8),
+      ],
       // 收藏:常用,排前
       XIconButton(
         onPressed: () async {
@@ -509,5 +528,50 @@ class _PlayerActionsWidgetState extends State<PlayerActionsWidget>
 
   String formatTime(DateTime time) {
     return DateFormat('HH:mm').format(time.toLocal());
+  }
+}
+
+/// CH± 换台按钮(方向 A):方块容器内竖排箭头 + CH 文字,与设计稿一致。
+class _ChannelStepButton extends StatelessWidget {
+  final String label;
+  final IconData icon;
+  final VoidCallback onTap;
+
+  const _ChannelStepButton({
+    required this.label,
+    required this.icon,
+    required this.onTap,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Material(
+      color: Colors.white.withOpacity(0.09),
+      borderRadius: BorderRadius.circular(AppDimens.radiusLg),
+      child: InkWell(
+        borderRadius: BorderRadius.circular(AppDimens.radiusLg),
+        onTap: onTap,
+        child: SizedBox(
+          width: 54,
+          height: 46,
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Icon(icon, color: Colors.white, size: 14),
+              const SizedBox(height: 2),
+              Text(
+                label,
+                style: const TextStyle(
+                    color: Colors.white54,
+                    fontSize: 9,
+                    letterSpacing: 1.0,
+                    fontFamily: 'monospace',
+                    decoration: TextDecoration.none),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
   }
 }

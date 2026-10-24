@@ -1,0 +1,125 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>XPlayer UI 重设计 · 4 个风格方向</title>
+<style>
+* { margin:0; padding:0; box-sizing:border-box; }
+body { background:#101114; color:#EDEEF2; font-family:'PingFang SC','Noto Sans SC','Helvetica Neue',sans-serif; -webkit-font-smoothing:antialiased; padding:56px 48px 80px; }
+h1 { font-size:26px; font-weight:750; }
+h1 em { font-style:normal; color:#8A8F9C; font-weight:600; }
+.sub { margin-top:10px; font-size:14px; line-height:1.8; color:#9BA0AC; max-width:720px; }
+.sub b { color:#C9CDD6; font-weight:600; }
+.grid { display:grid; grid-template-columns:repeat(auto-fit, minmax(430px, 1fr)); gap:28px; margin-top:40px; max-width:1480px; }
+a.card { display:block; text-decoration:none; color:inherit; border:1px solid #26282F; border-radius:18px; overflow:hidden; background:#15161A; transition:border-color .15s, transform .15s; }
+a.card:hover { border-color:#4A4E5A; transform:translateY(-2px); }
+a.card:focus-visible { outline:2px solid #7AA2FF; outline-offset:2px; }
+.thumb { height:330px; overflow:hidden; position:relative; border-bottom:1px solid #26282F; background:#0C0D10; }
+.thumb iframe { width:1180px; height:860px; border:0; transform:scale(.385); transform-origin:0 0; pointer-events:none; }
+.thumb .veil { position:absolute; inset:0; }
+.meta { padding:18px 20px 20px; }
+.meta .tag { font-size:11px; letter-spacing:.14em; color:#6E7480; font-weight:600; }
+.meta h2 { font-size:19px; font-weight:700; margin-top:5px; }
+.meta h2 i { font-style:normal; color:#787E8A; font-weight:600; font-size:15px; margin-left:6px; }
+.meta p { font-size:13px; line-height:1.75; color:#9BA0AC; margin-top:8px; }
+.meta .chips { display:flex; gap:5px; margin-top:12px; }
+.meta .chips i { width:16px; height:16px; border-radius:5px; border:1px solid rgba(255,255,255,.14); }
+.note { margin-top:36px; font-size:13px; color:#787E8A; line-height:1.8; max-width:720px; }
+</style>
+</head>
+<body>
+<h1>XPlayer UI 重设计 <em>· 4 个风格方向</em></h1>
+<p class="sub">同一套真实内容（CCTV / 卫视频道、分组、EPG、收藏），四种不同的设计语言。每个方向含<b>首页 · 播放器 · 分组</b>三屏。<b>点击卡片查看大图</b>。四个方向都保持深色底、都兼容现有「主题色可切换」体系（每个方向用不同主题色做了示意），差别在于信息组织方式与性格。</p>
+
+<div class="grid">
+  <a class="card" href="a-studio.html">
+    <div class="thumb"><iframe src="a-studio.html" loading="lazy" tabindex="-1"></iframe><div class="veil"></div></div>
+    <div class="meta">
+      <div class="tag">A · STEADY</div>
+      <h2>ON AIR 演播室<i>延续现在的品牌绿，进化版</i></h2>
+      <p>把「正在直播」做成产品语言：首屏大直播卡回答现在播什么、播到哪、下一档是什么；播放器给换台一对主角按钮。改动最温和，最容易落地。</p>
+      <div class="chips"><i style="background:#0A0C0B"></i><i style="background:#00DC82"></i><i style="background:#FF453A"></i></div>
+    </div>
+  </a>
+  <a class="card" href="b-living.html">
+    <div class="thumb"><iframe src="b-living.html" loading="lazy" tabindex="-1"></iframe><div class="veil"></div></div>
+    <div class="meta">
+      <div class="tag">B · WARM</div>
+      <h2>暗夜客厅<i>氛围感 · 消费级</i></h2>
+      <p>屏幕是关灯房间里的那盏灯：「继续观看」卡带来自播放画面的暖光晕，控制条是悬浮玻璃胶囊，3 列海报网格。情绪价值最强的一版。</p>
+      <div class="chips"><i style="background:#0D1220"></i><i style="background:#FFB347"></i><i style="background:#FF453A"></i></div>
+    </div>
+  </a>
+  <a class="card" href="c-guide.html">
+    <div class="thumb"><iframe src="c-guide.html" loading="lazy" tabindex="-1"></iframe><div class="veil"></div></div>
+    <div class="meta">
+      <div class="tag">C · PRO</div>
+      <h2>频道指南<i>效率 · 机顶盒气质</i></h2>
+      <p>频道是有编号的：行式高密度列表 + 行底节目进度线，一屏能扫几十个台；播放器内嵌半透明频道指南，换台不离开画面。重度用户和 TV 端最受益。</p>
+      <div class="chips"><i style="background:#0B0E11"></i><i style="background:#3B9EFF"></i><i style="background:#FF453A"></i></div>
+    </div>
+  </a>
+  <a class="card" href="d-osd.html">
+    <div class="thumb"><iframe src="d-osd.html" loading="lazy" tabindex="-1"></iframe><div class="veil"></div></div>
+    <div class="meta">
+      <div class="tag">D · BOLD</div>
+      <h2>点阵 OSD<i>个性 · 年轻向</i></h2>
+      <p>数字电视的记忆：切台时浮在角落的巨大频道号变成 Doto 点阵大字，首页插一条电视台跑马灯。四个方向里最有辨识度、最大胆的一版。</p>
+      <div class="chips"><i style="background:#08090C"></i><i style="background:#F0568C"></i><i style="background:#FF453A"></i></div>
+    </div>
+  </a>
+</div>
+
+<h1 style="margin-top:64px; font-size:22px;">多端适配 <em>· Pad 与 Android TV</em></h1>
+<p class="sub">平板不是放大的手机，TV 是焦点驱动的十英尺界面。每个方向在大屏上的策略不同——点击查看四个方向的对比稿。</p>
+<div class="grid" style="margin-top:24px;">
+  <a class="card" href="pad.html">
+    <div class="thumb" style="background:#0C0D10"><iframe src="pad.html" loading="lazy" tabindex="-1" style="transform:scale(.385) translateY(-40px)"></iframe><div class="veil"></div></div>
+    <div class="meta">
+      <div class="tag">PAD · 1194 × 834</div>
+      <h2>Pad 横屏适配</h2>
+      <p>A 右栏「正在播放 + 节目单」控制台 · B 大幅海报主场 · C 完整 EPG 时间轴（天然形态）· D 常驻点阵 OSD 面板。</p>
+    </div>
+  </a>
+  <a class="card" href="tv.html">
+    <div class="thumb" style="background:#0C0D10"><iframe src="tv.html" loading="lazy" tabindex="-1" style="transform:scale(.385) translateY(-40px)"></iframe><div class="veil"></div></div>
+    <div class="meta">
+      <div class="tag">TV · 1920 × 1080</div>
+      <h2>Android TV 适配</h2>
+      <p>A 侧栏分组 + 焦点网格 + 0-9 直达频道 · B 沉浸海报行 + 暖光焦点 · C 左列表右预览机顶盒双栏 · D 巨大点阵频道号环境层 + 跑马灯。</p>
+    </div>
+  </a>
+  <a class="card" href="pad-pages.html">
+    <div class="thumb" style="background:#0C0D10"><iframe src="pad-pages.html" loading="lazy" tabindex="-1" style="transform:scale(.385) translateY(-40px)"></iframe><div class="veil"></div></div>
+    <div class="meta">
+      <div class="tag">PAD · 子页面 × 12</div>
+      <h2>Pad 子页面适配</h2>
+      <p>搜索（双栏）· 设置（master-detail）· EPG 节目单（完整时间轴 + 当前时刻红线），4 方向 × 3 页。</p>
+    </div>
+  </a>
+  <a class="card" href="landscape.html">
+    <div class="thumb" style="background:#0C0D10"><iframe src="landscape.html" loading="lazy" tabindex="-1" style="transform:scale(.385) translateY(-40px)"></iframe><div class="veil"></div></div>
+    <div class="meta">
+      <div class="tag">手机横屏 · 852 × 393</div>
+      <h2>手机横屏交互</h2>
+      <p>播放器全屏（OSD 控制层：CH± 换台 / 收藏 / 列表 / 切源 / 投屏 / 退出全屏）+ 首页 4 列宽网格，4 方向 × 2 屏。</p>
+    </div>
+  </a>
+  <a class="card" href="tv-pages.html">
+    <div class="thumb" style="background:#0C0D10"><iframe src="tv-pages.html" loading="lazy" tabindex="-1" style="transform:scale(.385) translateY(-40px)"></iframe><div class="veil"></div></div>
+    <div class="meta">
+      <div class="tag">TV · 子页面 × 12</div>
+      <h2>TV 子页面适配</h2>
+      <p>搜索（大输入焦点 + 结果网格）· 设置（左右双栏随焦点切换）· EPG 全屏指南（遥控左右跨频道浏览），4 方向 × 3 页。</p>
+    </div>
+  </a>
+</div>
+
+<p class="note">每个方向文件除了手机三主屏，末尾还有「其余页面 · 8 屏」：搜索、EPG 节目单、播放源管理、设置（含主题色）、播放信息与投屏、手机遥控 TV 输入、局域网同步预览、启动页——全量界面都有一致的方向语言。设计稿为静态 HTML，可直接浏览器打开；字体走 Google Fonts CDN，离线时中英文回退系统字体。选定方向后可映射回 Flutter 的 AppTokens 落地。</p>
+
+<script>
+document.querySelectorAll('.thumb iframe').forEach(f => { try { f.addEventListener('load', () => { try { f.contentWindow.scrollTo(0, 560); } catch(e){} }); } catch(e){} });
+</script>
+</body>
+</html>

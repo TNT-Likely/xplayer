@@ -233,4 +233,13 @@
   "infoAudioCodec": "Audio Codec",
   "infoAudioDecoder": "Audio Decoder",
   "infoTier2Hint": "Dropped frames / audio path / A-V sync need a later pass (ExoPlayer analytics)"
+,
+  "upNext": "Up next",
+  "remainMinutes": "{count} min left",
+  "viewGroupChannels": "View {count} channels",
+  "groupsTotal": "{count} groups",
+  "reset": "Reset",
+  "@remainMinutes": {"placeholders": {"count": {"type": "int"}}},
+  "@viewGroupChannels": {"placeholders": {"count": {"type": "int"}}},
+  "@groupsTotal": {"placeholders": {"count": {"type": "int"}}}
 }

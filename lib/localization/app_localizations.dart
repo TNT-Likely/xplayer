@@ -1447,6 +1447,36 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Dropped frames / audio path / A-V sync need a later pass (ExoPlayer analytics)'**
   String get infoTier2Hint;
+
+  /// No description provided for @upNext.
+  ///
+  /// In en, this message translates to:
+  /// **'Up next'**
+  String get upNext;
+
+  /// No description provided for @remainMinutes.
+  ///
+  /// In en, this message translates to:
+  /// **'{count} min left'**
+  String remainMinutes(int count);
+
+  /// No description provided for @viewGroupChannels.
+  ///
+  /// In en, this message translates to:
+  /// **'View {count} channels'**
+  String viewGroupChannels(int count);
+
+  /// No description provided for @groupsTotal.
+  ///
+  /// In en, this message translates to:
+  /// **'{count} groups'**
+  String groupsTotal(int count);
+
+  /// No description provided for @reset.
+  ///
+  /// In en, this message translates to:
+  /// **'Reset'**
+  String get reset;
 }
 
 class _AppLocalizationsDelegate
