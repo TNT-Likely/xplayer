@@ -9,5 +9,6 @@
 - [Figma 资源库](https://www.figma.com/design/g3InwuNMSszxmeHHWGKd2R)
 - [Flutter 组件包与验收](components/README.md)
 - [v3 主应用接入与原生验收](v3/README.md)
+- [v3 交接与恢复入口](v3/HANDOFF.md)
 
 `xplayer-v1/` 为确认版本快照；`publishing/` 为独立 Sites 发布检出目录；`releases/` 存放可下载资源包。后两者不纳入当前 Git 资源分支，避免将嵌套仓库或重复构建产物提交为应用源码。

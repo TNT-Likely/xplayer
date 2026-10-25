@@ -2,6 +2,8 @@
 
 2026-10-25。基于 main 的 `b215395`，在独立设计工作区的 `v3` 分支接入 A / Nocturne，应用版本为 `3.0.0+1`。原主工作区没有 UI 实现改动；B/C 与 v1 设计快照保留。
 
+恢复开发先阅读 [交接与恢复入口](HANDOFF.md)，PR 与测试资源清理状态见 [交付状态](validation/DELIVERY.md)。
+
 ## 分层与复用
 
 | 层级 | 位置 | 职责 |
@@ -70,11 +72,11 @@ python3 tool/v3_fixture_server.py --media .dart_tool/v3-qa/media/sample.mp4 \
 从 `server.json` 获取临时端口，用另一终端运行：
 
 ```sh
-flutter drive --no-pub -d '<专用模拟器 ID>' \
+flutter drive --no-pub --keep-app-running -d '<专用模拟器 ID>' \
   --driver=test_driver/v3_driver.dart --target=integration_test/v3_app_test.dart \
   --dart-define=QA_DEVICE=phone --dart-define=QA_BASE_URL=http://127.0.0.1:PORT
 ```
 
 Android 模拟器的地址改用 `http://10.0.2.2:PORT`，设备标识改为 `tv`；iPad 使用 `ipad`。合成流程会切换服务器 EPG 模式，三端应依次执行。该测试会清理专用设备中的测试数据，不要指定日常使用的设备。
 
-真实播放列表测试使用 `integration_test/v3_lan_test.dart`，通过 `QA_PLAYLIST_URL` 和 `QA_CHANNEL_NAME` 传入用户授权的列表及频道；不在仓库写入个人来源。日志与完整原始截图位于忽略目录 `.dart_tool/v3-qa/`。测试结束后重新构建 `lib/main.dart` 并安装，避免把测试入口应用当成正常体验版本。
+真实播放列表测试使用 `integration_test/v3_lan_test.dart`，通过 `QA_PLAYLIST_URL` 和 `QA_CHANNEL_NAME` 传入用户授权的列表及频道；不在仓库写入个人来源。运行时日志与完整原始截图写入忽略目录 `.dart_tool/v3-qa/`；交接时已清理本轮临时内容，仅保留脱敏验收记录。测试结束后重新构建 `lib/main.dart` 并安装，避免把测试入口应用当成正常体验版本。

@@ -15,7 +15,7 @@
 
 FLV 样本均验证了位置推进；HLS 的原生滑动窗口坐标会跳动，因此也按两秒内渲染帧持续增加判断视频推进，不将直播位置不单调误报为无画面。MediaKit 路径同时读取实际音频采样格式及 audiounit / opensles 输出驱动；原生路径读取音频解码器。
 
-虎牙和 B站地址由 Streamlink 8.6.2 对公开直播间即时解析，保留原始签名查询与所需请求头。测试配置、短效地址、完整日志和原生直播截图保存在 `.dart_tool/v3-live-audit/` 与 `.dart_tool/v3-qa/`，不提交签名 URL 或真实直播帧。
+虎牙和 B站地址由 Streamlink 8.6.2 对公开直播间即时解析，保留原始签名查询与所需请求头。测试配置、短效地址、完整日志和原生直播截图保存在 `.dart_tool/v3-live-audit/` 与 `.dart_tool/v3-qa/`，不提交签名 URL 或真实直播帧。这些临时目录在本轮交接清理中删除，脱敏结果继续保留。
 
 另外抽测 YanG 的第三方网关：虎牙同房间可解码到 1080p，B站同房间本次请求超时；而直接解析 B站 FLV 可播。旧 Kimentanm 虎牙、B站、斗鱼订阅均已返回 404。这些是来源/链路检查结果，不能据此认定所有 FLV 不受支持，也没有将本次成功扩大为所有直播间和所有设备都通过。
 
@@ -32,7 +32,7 @@ python3 tool/live_source_fixture_server.py --root /path/to/private-fixtures \
 3. 读取临时端口，使用专用模拟器执行：
 
 ```sh
-flutter drive --no-pub -d '<专用模拟器 ID>' \
+flutter drive --no-pub --keep-app-running -d '<专用模拟器 ID>' \
   --driver=test_driver/v3_driver.dart --target=integration_test/live_sources_test.dart \
   --dart-define=QA_DEVICE=phone \
   --dart-define=QA_STREAM_CONFIG=http://127.0.0.1:PORT/config.json
