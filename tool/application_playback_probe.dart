@@ -130,7 +130,9 @@ class _ApplicationProbeState extends State<_ApplicationProbe> {
                   (backend is NativePlayerBackend
                       ? (diag['renderedFrames'] as num? ?? 0) > 0
                       : backend is MediaKitBackend
-                      ? diag['firstFrameRendered'] == true
+                      ? diag['firstFrameRendered'] == true &&
+                            diag['videoOutputConfigured'] == 'yes' &&
+                            '${diag['videoOutputParams'] ?? ''}'.isNotEmpty
                       : value.size.width > 0);
               final audioReady =
                   entry['expectAudio'] == false ||
@@ -247,6 +249,7 @@ class _ApplicationProbeState extends State<_ApplicationProbe> {
         ? Colors.transparent
         : Colors.black,
     body: Stack(
+      fit: StackFit.expand,
       children: [
         if (_backend != null) Positioned.fill(child: _backend!.buildView()),
         SafeArea(
