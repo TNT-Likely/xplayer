@@ -1,6 +1,8 @@
 # 播放检查入口
 
-核心格式/传输工具由 `packages/xplayer_player/tool/` 维护，根目录的 Python 和设备入口保留转发，完整用法见[独立包测试说明](../packages/xplayer_player/docs/TESTING.md)。`probe_playlist.dart` 只检查网络和容器，不验证完整播放。
+核心格式/传输工具由 `packages/xplayer_player/tool/` 维护，根目录的 Python 和设备入口保留转发，完整用法见[独立包测试说明](../packages/xplayer_player/doc/TESTING.md)。`probe_playlist.dart` 只检查网络和容器，不验证完整播放。
+
+`package_player.py` 生成两个独立包，在仓库外检查发布预检、解析、单测和示例构建，并输出 HTML。`test_package_player.py` 校验分发边界与归档可复现性。`verify_darwin_distribution.py` 从保留的仓库外副本运行 Apple 设备矩阵，创建并清理自己的 iOS 模拟器。详见[分发约定](../packages/xplayer_player/doc/DISTRIBUTION.md)。
 
 应用接入增加实际内核工厂的设备检查。它会按平台策略依次尝试原生 SurfaceView、系统播放器和兼容内核；检查原生渲染计数或可用的视频输出状态、音轨和至少两秒媒体时钟推进，记录每个尝试和最终结果：
 

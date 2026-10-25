@@ -165,7 +165,7 @@ Android 音量对照来自同一直播源的相邻时段，节目内容不同，
 ## 技术资料与记录更正
 
 - [原始 JSON：逐项耗时、播放路径与错误](2026-10-25-audio-acceptance.json)
-- [测试运行方式与排障说明](../docs/TESTING.md)
-- [格式和设备兼容边界](../docs/COMPATIBILITY.md)
+- [测试运行方式与排障说明](../doc/TESTING.md)
+- [格式和设备兼容边界](../doc/COMPATIBILITY.md)
 
 本报告以逐项结果为依据，已更正原 JSON 摘要的一处归类错误：macOS 的 TVBS 样本 51 通过，第三个未通过项为 CCTV-6 样本 13。原始逐项结果与通过数量均未修改。

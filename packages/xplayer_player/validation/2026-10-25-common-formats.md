@@ -109,6 +109,6 @@ HE-AAC/v2 使用本包自行生成并固定 SHA-256 的正弦波音调，所有�
 
 - [声音与直播源原验收报告](2026-10-25-audio-acceptance.html)
 - [本轮原始结果](2026-10-25-common-formats.json)
-- [测试复现与发布门槛](../docs/TESTING.md)
-- [格式和设备兼容边界](../docs/COMPATIBILITY.md)
+- [测试复现与发布门槛](../doc/TESTING.md)
+- [格式和设备兼容边界](../doc/COMPATIBILITY.md)
 - [HE-AAC 样本来源](../test/fixtures/README.md)

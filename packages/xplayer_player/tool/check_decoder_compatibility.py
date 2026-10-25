@@ -12,6 +12,7 @@ import sys
 import tarfile
 import tempfile
 import urllib.request
+from urllib.parse import urljoin, urlparse
 
 ROOT = Path(__file__).resolve().parent.parent
 
@@ -83,12 +84,24 @@ def dart_binary():
 
 
 def package_configuration():
-    # The root forwarding entry point also works after only host pub get.
-    for root in [ROOT, ROOT.parent.parent]:
-        candidate = root / '.dart_tool/package_config.json'
-        if candidate.exists():
+    # Resolve from the invoking host first, then from this source package.
+    # This works in workspaces, standalone checkouts and installed packages.
+    for directory in [Path.cwd(), *Path.cwd().parents, ROOT, *ROOT.parents]:
+        candidate = directory / '.dart_tool/package_config.json'
+        if candidate.is_file():
             return str(candidate)
-    raise RuntimeError('Run flutter pub get in xplayer_player or the host first')
+    raise RuntimeError('Run flutter pub get in the host or package first')
+
+
+def native_package_root():
+    """Resolve the installed plugin, including hosted caches and staged releases."""
+    config = Path(package_configuration()).resolve()
+    packages = json.loads(config.read_text())["packages"]
+    entry = next(p for p in packages if p["name"] == "libmpv_xplayer")
+    uri = urlparse(urljoin(config.as_uri(), entry["rootUri"]))
+    if uri.scheme != "file":
+        raise RuntimeError("Native plugin must resolve to a local package")
+    return Path(urllib.request.url2pathname(uri.path))
 
 
 def main():
@@ -103,7 +116,7 @@ def main():
     cache = Path(args.cache).resolve()
     cache.mkdir(parents=True, exist_ok=True)
     env = dict(os.environ)
-    manifest = json.loads((ROOT.parent / "native/native_builds.json").read_text())
+    manifest = json.loads((native_package_root() / "native_builds.json").read_text())
     library = args.libmpv or native_library(manifest, cache, env)
     entries = json.loads((fixtures / "manifest.json").read_text())
     results = []

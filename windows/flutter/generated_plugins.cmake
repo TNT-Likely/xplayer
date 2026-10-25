@@ -4,7 +4,7 @@
 
 list(APPEND FLUTTER_PLUGIN_LIST
   bonsoir_windows
-  media_kit_libs_windows_video
+  libmpv_xplayer
   media_kit_video
   permission_handler_windows
   sqlite3_flutter_libs

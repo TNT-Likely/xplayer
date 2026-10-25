@@ -11,7 +11,7 @@ import threading
 import time
 from urllib.parse import urlsplit
 
-from check_decoder_compatibility import ROOT, dart_binary, native_library, package_configuration
+from check_decoder_compatibility import ROOT, dart_binary, native_library, package_configuration, native_package_root
 
 
 def main():
@@ -25,7 +25,7 @@ def main():
     env = dict(os.environ)
     cache = Path(args.cache).resolve()
     cache.mkdir(parents=True, exist_ok=True)
-    manifest = json.loads((ROOT.parent / 'native/native_builds.json').read_text())
+    manifest = json.loads((native_package_root() / 'native_builds.json').read_text())
     library = native_library(manifest, cache, env)
     requests = []
 

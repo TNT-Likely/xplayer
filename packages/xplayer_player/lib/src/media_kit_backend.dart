@@ -12,6 +12,7 @@ import 'hls_startup.dart';
 import 'playback_configuration.dart';
 import 'playback_log.dart';
 import 'playback_source.dart';
+import 'startup_eof_recovery.dart';
 import 'x_player_backend.dart';
 
 /// libmpv/FFmpeg provides a second demuxer/decoder path on every native OS.
@@ -66,6 +67,9 @@ class MediaKitBackend implements XPlayerBackend {
   bool _disposed = false;
   bool _started = false;
   final _startupWatch = Stopwatch();
+  final _startupEofRecovery = StartupEofRecovery();
+  Future<void>? _startupReload;
+  bool _playRequested = false;
 
   @override
   ValueListenable<XPlayerValue> get notifier => _notifier;
@@ -114,6 +118,7 @@ class MediaKitBackend implements XPlayerBackend {
       }
     }
     final source = PlaybackSource.parse(url, headers: headers);
+    mk.Media? preparedMedia;
     final player = _player = mk.Player(
       configuration: mk.PlayerConfiguration(
         title: 'XPlayer',
@@ -214,9 +219,43 @@ class MediaKitBackend implements XPlayerBackend {
       player.stream.buffering.listen(
         (v) => _update(_notifier.value.copyWith(isBuffering: v)),
       ),
-      player.stream.position.listen(
-        (v) => _update(_notifier.value.copyWith(position: v)),
-      ),
+      player.stream.position.listen((v) {
+        _startupEofRecovery.observePosition(v);
+        _update(_notifier.value.copyWith(position: v));
+      }),
+      player.stream.completed.listen((completed) {
+        // mpv 0.36 / FFmpeg can exhaust fMP4 HLS after the first Android
+        // Surface attachment issues an internal seek. Reopen the demuxer once
+        // with the now-established surface; normal EOF and user seeks never
+        // enter this path. This preserves seeking instead of disabling it.
+        if (!completed ||
+            _disposed ||
+            kIsWeb ||
+            defaultTargetPlatform != TargetPlatform.android ||
+            source.format != StreamFormat.hls ||
+            preparedMedia == null ||
+            !_startupEofRecovery.takeRecovery(player.state.duration)) {
+          return;
+        }
+        _startupReload = () async {
+          try {
+            await _video!.waitUntilFirstFrameRendered.timeout(
+              configuration.initializationTimeout,
+            );
+            if (_disposed) return;
+            _diagnostics.value = {
+              ..._diagnostics.value,
+              'startupHlsReloads': 1,
+            };
+            await player.open(preparedMedia!, play: false);
+            if (!_disposed && _playRequested) await player.play();
+          } catch (error) {
+            _reportError(
+              'HLS startup recovery failed: ${redactPlaybackLog('$error')}',
+            );
+          }
+        }();
+      }),
       player.stream.duration.listen(
         (v) => _update(_notifier.value.copyWith(duration: v)),
       ),
@@ -341,10 +380,8 @@ class MediaKitBackend implements XPlayerBackend {
         );
       }
       if (_disposed) throw StateError('Playback cancelled');
-      await player.open(
-        mk.Media(prepared.url, httpHeaders: prepared.headers),
-        play: false,
-      );
+      preparedMedia = mk.Media(prepared.url, httpHeaders: prepared.headers);
+      await player.open(preparedMedia!, play: false);
       if (!_disposed) {
         _diagnostics.value = {
           ..._diagnostics.value,
@@ -369,6 +406,9 @@ class MediaKitBackend implements XPlayerBackend {
   @override
   Future<void> play() async {
     if (_disposed) return;
+    _playRequested = true;
+    await _startupReload;
+    if (_disposed) return;
     if (_audioSessionLease != null) {
       await _appleAudioSession.reactivate();
       if (_disposed) return;
@@ -377,9 +417,18 @@ class MediaKitBackend implements XPlayerBackend {
   }
 
   @override
-  Future<void> pause() async => _player?.pause();
+  Future<void> pause() async {
+    _playRequested = false;
+    await _player?.pause();
+  }
+
   @override
-  Future<void> seekTo(Duration position) async => _player?.seek(position);
+  Future<void> seekTo(Duration position) async {
+    _startupEofRecovery.userSeek();
+    await _startupReload;
+    if (_disposed) return;
+    await _player?.seek(position);
+  }
 
   @override
   Future<List<AudioTrack>> getAudioTracks() async {

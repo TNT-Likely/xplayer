@@ -31,14 +31,38 @@ class _PlaybackProbeState extends State<_PlaybackProbe> {
 
   Future<void> _run() async {
     const configUrl = String.fromEnvironment('PLAYBACK_PROBE_CONFIG');
-    final client = HttpClient();
+    final client = HttpClient()
+      ..connectionTimeout = const Duration(seconds: 10);
     try {
       final response = await (await client.getUrl(
         Uri.parse(configUrl),
-      )).close();
+      )).close().timeout(const Duration(seconds: 10));
       final config =
-          jsonDecode(await utf8.decoder.bind(response).join()) as Map;
+          jsonDecode(
+                await utf8.decoder
+                    .bind(response)
+                    .join()
+                    .timeout(const Duration(seconds: 10)),
+              )
+              as Map;
       final results = <Map<String, Object?>>[];
+      final directory = await getApplicationSupportDirectory();
+      Future<void> checkpoint({required bool complete}) async {
+        await File('${directory.path}/codec_probe.json').writeAsString(
+          jsonEncode({
+            'probeVersion': 3,
+            'platform': Platform.operatingSystem,
+            'version': Platform.operatingSystemVersion,
+            'complete': complete,
+            'passed': results.where((r) => r['passed'] == true).length,
+            'total': results.length,
+            'results': results,
+          }),
+          flush: true,
+        );
+      }
+
+      await checkpoint(complete: false);
       const filter = String.fromEnvironment('PLAYBACK_PROBE_FILTER');
       const selectedMode = String.fromEnvironment('PLAYBACK_PROBE_MODE');
       for (final entry in config['sources'] as List) {
@@ -53,7 +77,7 @@ class _PlaybackProbeState extends State<_PlaybackProbe> {
           if (!mounted) return;
           final backend = MediaKitBackend(
             softwareDecoding: software,
-            muted: true,
+            muted: !const bool.fromEnvironment('PLAYBACK_PROBE_AUDIBLE'),
             audioOutputDriver:
                 const bool.fromEnvironment('PLAYBACK_PROBE_NULL_AUDIO')
                 ? 'null'
@@ -75,23 +99,36 @@ class _PlaybackProbeState extends State<_PlaybackProbe> {
             'audioOutput':
                 const bool.fromEnvironment('PLAYBACK_PROBE_NULL_AUDIO')
                 ? 'null (decoder test)'
+                : const bool.fromEnvironment('PLAYBACK_PROBE_AUDIBLE')
+                ? 'system (audible)'
                 : 'system (muted)',
           };
           final watch = Stopwatch()..start();
+          final playingWatch = Stopwatch();
+          var forwardProgress = Duration.zero;
+          VoidCallback? progressListener;
           try {
             await backend
                 .initialize(entry['url'] as String)
                 .timeout(const Duration(seconds: 25));
+            var previousPosition = backend.notifier.value.position;
+            progressListener = () {
+              final value = backend.notifier.value;
+              if (!value.isPlaying || value.isBuffering) return;
+              final delta = value.position - previousPosition;
+              if (delta > Duration.zero && delta < const Duration(seconds: 2)) {
+                forwardProgress += delta;
+              }
+              previousPosition = value.position;
+            };
+            backend.notifier.addListener(progressListener);
+            playingWatch.start();
             await backend.play();
-            Duration? firstPosition;
             final deadline = DateTime.now().add(const Duration(seconds: 15));
             while (DateTime.now().isBefore(deadline)) {
               final value = backend.notifier.value;
               if (value.hasError) {
                 throw StateError(value.errorDescription ?? 'Playback error');
-              }
-              if (value.isPlaying && !value.isBuffering) {
-                firstPosition ??= value.position;
               }
               final diag = backend.diagnostics.value;
               final videoReady =
@@ -101,12 +138,18 @@ class _PlaybackProbeState extends State<_PlaybackProbe> {
                       '${diag['videoOutputParams'] ?? ''}'.isNotEmpty);
               final audioReady =
                   entry['expectAudio'] == false ||
-                  diag['audioSampleFormat'] != null;
+                  (diag['audioSampleFormat'] != null &&
+                      (const bool.fromEnvironment(
+                            'PLAYBACK_PROBE_NULL_AUDIO',
+                          ) ||
+                          ('${diag['audioOutputDriver'] ?? ''}'.isNotEmpty &&
+                              diag['audioOutputDriver'] != 'null' &&
+                              '${diag['audioOutputParams'] ?? ''}'
+                                  .isNotEmpty)));
               if (videoReady &&
                   audioReady &&
-                  firstPosition != null &&
-                  value.position - firstPosition >=
-                      const Duration(seconds: 1)) {
+                  playingWatch.elapsed >= const Duration(seconds: 1) &&
+                  forwardProgress >= const Duration(seconds: 1)) {
                 result.addAll({
                   'passed': true,
                   'width': value.size.width,
@@ -125,6 +168,7 @@ class _PlaybackProbeState extends State<_PlaybackProbe> {
                   'firstFrameMs': diag['firstFrameMs'],
                   'videoOutputDriver': diag['videoOutputDriver'],
                   'videoOutputConfigured': diag['videoOutputConfigured'],
+                  'startupHlsReloads': diag['startupHlsReloads'] ?? 0,
                   'androidEglCapabilities': diag['androidEglCapabilities'],
                 });
                 break;
@@ -152,13 +196,19 @@ class _PlaybackProbeState extends State<_PlaybackProbe> {
               'isBuffering': backend.notifier.value.isBuffering,
               'width': backend.notifier.value.size.width,
               'height': backend.notifier.value.size.height,
+              'forwardProgressMs': forwardProgress.inMilliseconds,
+              'playingWallMs': playingWatch.elapsedMilliseconds,
             });
           } finally {
+            if (progressListener != null) {
+              backend.notifier.removeListener(progressListener);
+            }
             if (mounted) setState(() => _backend = null);
             await WidgetsBinding.instance.endOfFrame;
             await backend.dispose();
           }
           results.add(result);
+          await checkpoint(complete: false);
           // Machine-readable results are collected via adb logcat.
           // ignore: avoid_print
           print('XPLAYER_PROBE ${jsonEncode(result)}');
@@ -166,17 +216,7 @@ class _PlaybackProbeState extends State<_PlaybackProbe> {
       }
       final passed = results.where((r) => r['passed'] == true).length;
       if (results.isEmpty) throw StateError('No matching probe sources');
-      final directory = await getApplicationSupportDirectory();
-      await File('${directory.path}/codec_probe.json').writeAsString(
-        jsonEncode({
-          'platform': Platform.operatingSystem,
-          'version': Platform.operatingSystemVersion,
-          'passed': passed,
-          'total': results.length,
-          'results': results,
-        }),
-        flush: true,
-      );
+      await checkpoint(complete: true);
       setState(() => _status = 'Completed: $passed / ${results.length}');
       // ignore: avoid_print
       print(
