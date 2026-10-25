@@ -1,0 +1,179 @@
+{
+  "version": "0.1.0",
+  "theme": "A · Nocturne",
+  "date": "2026-10-25",
+  "package": "packages/xplayer_ui",
+  "gallery": "https://xplayer-design-studio-oct25.ivory-fox-4792.chatgpt.site/components/",
+  "sourceDownload": "https://xplayer-design-studio-oct25.ivory-fox-4792.chatgpt.site/resources/xplayer-ui-0.1.0.zip",
+  "widgetCount": 32,
+  "svgIcons": 28,
+  "scenarios": 21,
+  "components": [
+    {
+      "name": "XpBadge",
+      "layer": "foundation",
+      "source": "packages/xplayer_ui/lib/src/foundation/feedback.dart"
+    },
+    {
+      "name": "XpProgress",
+      "layer": "foundation",
+      "source": "packages/xplayer_ui/lib/src/foundation/feedback.dart"
+    },
+    {
+      "name": "XpEmptyState",
+      "layer": "foundation",
+      "source": "packages/xplayer_ui/lib/src/foundation/feedback.dart"
+    },
+    {
+      "name": "XpNotice",
+      "layer": "foundation",
+      "source": "packages/xplayer_ui/lib/src/foundation/feedback.dart"
+    },
+    {
+      "name": "XpConfirmDialog",
+      "layer": "foundation",
+      "source": "packages/xplayer_ui/lib/src/foundation/feedback.dart"
+    },
+    {
+      "name": "XpButton",
+      "layer": "foundation",
+      "source": "packages/xplayer_ui/lib/src/foundation/controls.dart"
+    },
+    {
+      "name": "XpIconButton",
+      "layer": "foundation",
+      "source": "packages/xplayer_ui/lib/src/foundation/controls.dart"
+    },
+    {
+      "name": "XpChip",
+      "layer": "foundation",
+      "source": "packages/xplayer_ui/lib/src/foundation/controls.dart"
+    },
+    {
+      "name": "XpNavigationItem",
+      "layer": "foundation",
+      "source": "packages/xplayer_ui/lib/src/foundation/controls.dart"
+    },
+    {
+      "name": "XpTextField",
+      "layer": "foundation",
+      "source": "packages/xplayer_ui/lib/src/foundation/controls.dart"
+    },
+    {
+      "name": "XpSearchField",
+      "layer": "foundation",
+      "source": "packages/xplayer_ui/lib/src/foundation/controls.dart"
+    },
+    {
+      "name": "XpToggleTile",
+      "layer": "foundation",
+      "source": "packages/xplayer_ui/lib/src/foundation/controls.dart"
+    },
+    {
+      "name": "XpIcon",
+      "layer": "foundation",
+      "source": "packages/xplayer_ui/lib/src/foundation/icons.dart"
+    },
+    {
+      "name": "XpTheme",
+      "layer": "foundation",
+      "source": "packages/xplayer_ui/lib/src/foundation/theme.dart"
+    },
+    {
+      "name": "XpSurface",
+      "layer": "foundation",
+      "source": "packages/xplayer_ui/lib/src/foundation/theme.dart"
+    },
+    {
+      "name": "XpProgrammeBlock",
+      "layer": "business",
+      "source": "packages/xplayer_ui/lib/src/components/epg.dart"
+    },
+    {
+      "name": "XpEpgTimeline",
+      "layer": "business",
+      "source": "packages/xplayer_ui/lib/src/components/epg.dart"
+    },
+    {
+      "name": "XpEpgStateView",
+      "layer": "business",
+      "source": "packages/xplayer_ui/lib/src/components/epg.dart"
+    },
+    {
+      "name": "XpPlayerStatusView",
+      "layer": "business",
+      "source": "packages/xplayer_ui/lib/src/components/player.dart"
+    },
+    {
+      "name": "XpPlayerControls",
+      "layer": "business",
+      "source": "packages/xplayer_ui/lib/src/components/player.dart"
+    },
+    {
+      "name": "XpMiniPlayer",
+      "layer": "business",
+      "source": "packages/xplayer_ui/lib/src/components/player.dart"
+    },
+    {
+      "name": "XpChannelIdentity",
+      "layer": "business",
+      "source": "packages/xplayer_ui/lib/src/components/channel.dart"
+    },
+    {
+      "name": "XpArtwork",
+      "layer": "business",
+      "source": "packages/xplayer_ui/lib/src/components/channel.dart"
+    },
+    {
+      "name": "XpLiveBadge",
+      "layer": "business",
+      "source": "packages/xplayer_ui/lib/src/components/channel.dart"
+    },
+    {
+      "name": "XpFavouriteButton",
+      "layer": "business",
+      "source": "packages/xplayer_ui/lib/src/components/channel.dart"
+    },
+    {
+      "name": "XpChannelCard",
+      "layer": "business",
+      "source": "packages/xplayer_ui/lib/src/components/channel.dart"
+    },
+    {
+      "name": "XpFeaturedChannel",
+      "layer": "business",
+      "source": "packages/xplayer_ui/lib/src/components/channel.dart"
+    },
+    {
+      "name": "XpSectionHeading",
+      "layer": "business",
+      "source": "packages/xplayer_ui/lib/src/components/channel.dart"
+    },
+    {
+      "name": "XpPlaylistCard",
+      "layer": "business",
+      "source": "packages/xplayer_ui/lib/src/components/management.dart"
+    },
+    {
+      "name": "XpRemotePad",
+      "layer": "business",
+      "source": "packages/xplayer_ui/lib/src/components/management.dart"
+    },
+    {
+      "name": "XpRemoteStatusView",
+      "layer": "business",
+      "source": "packages/xplayer_ui/lib/src/components/management.dart"
+    },
+    {
+      "name": "XpSyncDiffPanel",
+      "layer": "business",
+      "source": "packages/xplayer_ui/lib/src/components/management.dart"
+    }
+  ],
+  "validation": {
+    "widgetTests": 13,
+    "galleryViewportTests": 4,
+    "sectionCombinations": 28,
+    "sdk": "Flutter 3.41.9 / Dart 3.11.5"
+  }
+}
