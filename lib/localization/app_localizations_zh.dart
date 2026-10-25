@@ -717,25 +717,4 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get infoTier2Hint => '丢帧/卡顿/Audio Path/AV 同步等指标需后续(挂 ExoPlayer 分析器)';
-
-  @override
-  String get upNext => '下一档';
-
-  @override
-  String remainMinutes(int count) {
-    return '剩 $count 分钟';
-  }
-
-  @override
-  String viewGroupChannels(int count) {
-    return '查看 $count 个频道';
-  }
-
-  @override
-  String groupsTotal(int count) {
-    return '共 $count 组';
-  }
-
-  @override
-  String get reset => '重置';
 }

@@ -17,11 +17,6 @@ class AppTokens {
   /// 主色种子。由用户在「界面 → 主题色」中设定，默认 #00DC82。
   static Color get brand => themeColor.value;
 
-  /// 品牌色之上的文字/图标色:深色品牌色(如琥珀)配近黑,亮色配近黑亦可读,
-  /// 极暗品牌色自动翻白。按相对亮度阈值切换。
-  static Color get accInk =>
-      brand.computeLuminance() > 0.4 ? const Color(0xFF0A120C) : Colors.white;
-
   // ========== 文字 Text ==========
   static const Color textPrimary = Colors.white;
   static const Color textSecondary = Colors.white70;

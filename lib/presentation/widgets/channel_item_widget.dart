@@ -171,37 +171,21 @@ class _ChannelItemWidgetState extends State<ChannelItemWidget> {
                           borderRadius: BorderRadius.vertical(
                               bottom: Radius.circular(8.0)),
                         ),
-                        child: Column(
-                          mainAxisAlignment: MainAxisAlignment.center,
-                          crossAxisAlignment: CrossAxisAlignment.start,
+                        child: Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                          crossAxisAlignment: CrossAxisAlignment.center,
                           children: [
-                            Text(
-                              widget.channel.name.isNotEmpty
-                                  ? widget.channel.name
-                                  : widget.channel.id,
-                              style: TextStyle(
-                                  fontSize: widget.width * 0.07,
-                                  color: Colors.white),
-                              overflow: TextOverflow.ellipsis,
-                              maxLines: 1,
-                            ),
-                            // 当前节目行(方向 A):EPG 索引查询,O(log n)
-                            Builder(builder: (context) {
-                              final current = mediaProvider.epgIndex
-                                  .currentFor(
-                                      widget.channel.id, DateTime.now());
-                              if (current == null) {
-                                return const SizedBox.shrink();
-                              }
-                              return Text(
-                                current.title,
+                            Expanded(
+                              child: Text(
+                                widget.channel.id,
+                                textAlign: TextAlign.center,
                                 style: TextStyle(
-                                    fontSize: widget.width * 0.055,
-                                    color: Colors.white54),
+                                    fontSize: widget.width * 0.07,
+                                    color: Colors.white),
                                 overflow: TextOverflow.ellipsis,
                                 maxLines: 1,
-                              );
-                            }),
+                              ),
+                            ),
                           ],
                         ),
                       ),

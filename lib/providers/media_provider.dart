@@ -7,7 +7,6 @@ import 'package:xplayer/data/models/programme_model.dart';
 import 'package:xplayer/data/models/channel_test_result.dart';
 import 'package:xplayer/data/models/iptv_presets.dart';
 import 'package:xplayer/utils/channel_filter.dart';
-import 'package:xplayer/utils/epg_index.dart';
 import 'package:xplayer/shared/build_flags.dart';
 import 'package:xplayer/data/repositories/playlist_repository.dart';
 import 'package:xplayer/data/repositories/favorites_repository.dart';
@@ -31,12 +30,6 @@ class MediaProvider with ChangeNotifier {
   List<Channel> _favoriteChannels = [];
   List<Channel> _recentChannels = [];
   List<Programme> _programmes = [];
-
-  /// EPG 节目索引(refreshProgrammes 后重建),供首页大直播卡/频道卡高频查询。
-  EpgIndex _epgIndex = EpgIndex.empty;
-
-  /// EPG 节目索引(refreshProgrammes 后重建),供首页大直播卡/频道卡高频查询。
-  EpgIndex get epgIndex => _epgIndex;
 
   // 频道筛选状态(分组 + 搜索)
   String _searchQuery = '';
@@ -525,7 +518,6 @@ class MediaProvider with ChangeNotifier {
           '|${p.stop.millisecondsSinceEpoch}|${p.title}';
       return seen.add(key);
     }).toList();
-    _epgIndex = EpgIndex.fromProgrammes(_programmes);
     notifyListeners();
   }
 
