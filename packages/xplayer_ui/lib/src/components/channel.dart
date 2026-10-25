@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import '../../foundation.dart';
 import 'models.dart';
 
@@ -139,15 +140,18 @@ class XpFavouriteButton extends StatelessWidget {
       {super.key,
       required this.channelName,
       required this.value,
+      this.focusNode,
       required this.onChanged});
   final String channelName;
   final bool value;
   final ValueChanged<bool>? onChanged;
+  final FocusNode? focusNode;
   @override
   Widget build(BuildContext context) => XpIconButton(
         icon: XpSymbol.heart,
         label: '${value ? '取消收藏' : '收藏'} $channelName',
         selected: value,
+        focusNode: focusNode,
         onPressed: onChanged == null ? null : () => onChanged!(!value),
       );
 }
@@ -277,7 +281,7 @@ class XpChannelCard extends StatelessWidget {
   }
 }
 
-class XpFeaturedChannel extends StatelessWidget {
+class XpFeaturedChannel extends StatefulWidget {
   const XpFeaturedChannel(
       {super.key,
       required this.channel,
@@ -300,101 +304,168 @@ class XpFeaturedChannel extends StatelessWidget {
   final bool compact;
   final String? englishTitle;
   @override
+  State<XpFeaturedChannel> createState() => _XpFeaturedChannelState();
+}
+
+class _XpFeaturedChannelState extends State<XpFeaturedChannel> {
+  final _play = FocusNode(debugLabel: 'featured-play');
+  final _details = FocusNode(debugLabel: 'featured-details');
+  final _favourite = FocusNode(debugLabel: 'featured-favourite');
+
+  @override
+  void dispose() {
+    _play.dispose();
+    _details.dispose();
+    _favourite.dispose();
+    super.dispose();
+  }
+
+  KeyEventResult _onKey(FocusNode _, KeyEvent event) {
+    if (XpTheme.of(context).input != XpInputMode.directional ||
+        (event is! KeyDownEvent && event is! KeyRepeatEvent)) {
+      return KeyEventResult.ignored;
+    }
+    final key = event.logicalKey;
+    final FocusNode? target;
+    if (_favourite.hasFocus && key == LogicalKeyboardKey.arrowDown) {
+      target = _play;
+    } else if (_play.hasFocus && key == LogicalKeyboardKey.arrowRight) {
+      target = _details;
+    } else if (_details.hasFocus && key == LogicalKeyboardKey.arrowLeft) {
+      target = _play;
+    } else if ((_play.hasFocus || _details.hasFocus) &&
+        key == LogicalKeyboardKey.arrowUp) {
+      target = _favourite;
+    } else {
+      return KeyEventResult.ignored;
+    }
+    if (target.context == null || !target.canRequestFocus) {
+      return KeyEventResult.ignored;
+    }
+    target.requestFocus();
+    Scrollable.ensureVisible(target.context!,
+        duration: XpTheme.of(context).duration,
+        alignmentPolicy: key == LogicalKeyboardKey.arrowUp
+            ? ScrollPositionAlignmentPolicy.keepVisibleAtStart
+            : ScrollPositionAlignmentPolicy.keepVisibleAtEnd);
+    return KeyEventResult.handled;
+  }
+
+  @override
   Widget build(BuildContext context) {
+    final channel = widget.channel,
+        now = widget.now,
+        epgStatus = widget.epgStatus,
+        compact = widget.compact,
+        favourite = widget.favourite,
+        onFavouriteChanged = widget.onFavouriteChanged,
+        onPlay = widget.onPlay,
+        onDetails = widget.onDetails,
+        englishTitle = widget.englishTitle;
     final theme = XpTheme.of(context), p = theme.palette;
     final programme = epgStatus.hasCurrentMetadata ? channel.programme : null;
-    return ClipRRect(
-        borderRadius: BorderRadius.circular(16),
-        child: Stack(children: [
-          Positioned.fill(
-              child: XpArtwork(channel: channel, showPlaceholder: false)),
-          const Positioned.fill(
-              child: DecoratedBox(
-                  decoration: BoxDecoration(
-                      gradient: LinearGradient(
-                          begin: Alignment.topRight,
-                          end: Alignment.bottomLeft,
-                          colors: [Color(0x3307100b), Color(0xef07100b)])))),
-          Padding(
-              padding: EdgeInsets.all(compact
-                  ? 24
-                  : theme.device == XpDevice.phone
-                      ? 22
-                      : 32),
-              child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Row(children: [
-                      const XpLiveBadge(),
-                      const Spacer(),
-                      XpFavouriteButton(
-                          channelName: channel.name,
-                          value: favourite,
-                          onChanged: onFavouriteChanged)
-                    ]),
-                    SizedBox(
-                        height: compact
-                            ? 16
-                            : theme.isTv
-                                ? 100
-                                : 60),
-                    XpChannelIdentity(channel: channel),
-                    const SizedBox(height: 18),
-                    Text(programme?.title ?? channel.name,
-                        style: TextStyle(
-                            fontSize: compact
-                                ? 40
+    return Focus(
+        skipTraversal: true,
+        canRequestFocus: false,
+        onKeyEvent: _onKey,
+        child: ClipRRect(
+            borderRadius: BorderRadius.circular(16),
+            child: Stack(children: [
+              Positioned.fill(
+                  child: XpArtwork(channel: channel, showPlaceholder: false)),
+              const Positioned.fill(
+                  child: DecoratedBox(
+                      decoration: BoxDecoration(
+                          gradient: LinearGradient(
+                              begin: Alignment.topRight,
+                              end: Alignment.bottomLeft,
+                              colors: [
+                    Color(0x3307100b),
+                    Color(0xef07100b)
+                  ])))),
+              Padding(
+                  padding: EdgeInsets.all(compact
+                      ? 24
+                      : theme.device == XpDevice.phone
+                          ? 22
+                          : 32),
+                  child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Row(children: [
+                          const XpLiveBadge(),
+                          const Spacer(),
+                          XpFavouriteButton(
+                              focusNode: _favourite,
+                              channelName: channel.name,
+                              value: favourite,
+                              onChanged: onFavouriteChanged)
+                        ]),
+                        SizedBox(
+                            height: compact
+                                ? 16
                                 : theme.isTv
-                                    ? 60
-                                    : theme.device == XpDevice.phone
-                                        ? 36
-                                        : 44,
-                            color: p.foreground,
-                            fontWeight: FontWeight.w600,
-                            height: 1.2,
-                            letterSpacing: -1)),
-                    if (englishTitle != null && programme != null)
-                      Padding(
-                          padding: const EdgeInsets.only(top: 6),
-                          child: Text(englishTitle!,
+                                    ? 100
+                                    : 60),
+                        XpChannelIdentity(channel: channel),
+                        const SizedBox(height: 18),
+                        Text(programme?.title ?? channel.name,
+                            style: TextStyle(
+                                fontSize: compact
+                                    ? 40
+                                    : theme.isTv
+                                        ? 60
+                                        : theme.device == XpDevice.phone
+                                            ? 36
+                                            : 44,
+                                color: p.foreground,
+                                fontWeight: FontWeight.w600,
+                                height: 1.2,
+                                letterSpacing: -1)),
+                        if (englishTitle != null && programme != null)
+                          Padding(
+                              padding: const EdgeInsets.only(top: 6),
+                              child: Text(englishTitle,
+                                  style: TextStyle(
+                                      fontSize: theme.isTv ? 32 : 24,
+                                      fontFamily: 'serif',
+                                      fontStyle: FontStyle.italic,
+                                      color: p.muted))),
+                        const SizedBox(height: 16),
+                        Text(
+                            programme?.subtitle ??
+                                (programme == null
+                                    ? (epgStatus == XpEpgStatus.stale
+                                        ? '节目单已过期 · 频道仍可播放'
+                                        : '暂无节目单 · 频道仍可播放')
+                                    : ''),
+                            style: TextStyle(
+                                color: p.muted, fontSize: theme.bodySize)),
+                        const SizedBox(height: 22),
+                        Wrap(spacing: 10, runSpacing: 10, children: [
+                          XpButton(
+                              label: '立即观看',
+                              focusNode: _play,
+                              icon: XpSymbol.play,
+                              onPressed: onPlay),
+                          if (onDetails != null && programme != null)
+                            XpButton(
+                                label: '节目详情',
+                                focusNode: _details,
+                                onPressed: onDetails,
+                                variant: XpButtonVariant.ghost)
+                        ]),
+                        if (programme != null && programme.isCurrent(now)) ...[
+                          const SizedBox(height: 24),
+                          Text(
+                              '${xpTime(programme.start)} — ${xpTime(programme.end)}',
                               style: TextStyle(
-                                  fontSize: theme.isTv ? 32 : 24,
-                                  fontFamily: 'serif',
-                                  fontStyle: FontStyle.italic,
-                                  color: p.muted))),
-                    const SizedBox(height: 16),
-                    Text(
-                        programme?.subtitle ??
-                            (programme == null
-                                ? (epgStatus == XpEpgStatus.stale
-                                    ? '节目单已过期 · 频道仍可播放'
-                                    : '暂无节目单 · 频道仍可播放')
-                                : ''),
-                        style: TextStyle(
-                            color: p.muted, fontSize: theme.bodySize)),
-                    const SizedBox(height: 22),
-                    Wrap(spacing: 10, runSpacing: 10, children: [
-                      XpButton(
-                          label: '立即观看',
-                          icon: XpSymbol.play,
-                          onPressed: onPlay),
-                      if (onDetails != null && programme != null)
-                        XpButton(
-                            label: '节目详情',
-                            onPressed: onDetails,
-                            variant: XpButtonVariant.ghost)
-                    ]),
-                    if (programme != null && programme.isCurrent(now)) ...[
-                      const SizedBox(height: 24),
-                      Text(
-                          '${xpTime(programme.start)} — ${xpTime(programme.end)}',
-                          style: TextStyle(
-                              color: p.muted, fontSize: theme.smallSize)),
-                      const SizedBox(height: 12),
-                      XpProgress(value: programme.progressAt(now)!)
-                    ],
-                  ])),
-        ]));
+                                  color: p.muted, fontSize: theme.smallSize)),
+                          const SizedBox(height: 12),
+                          XpProgress(value: programme.progressAt(now)!)
+                        ],
+                      ])),
+            ])));
   }
 }
 

@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'icons.dart';
 import 'theme.dart';
 
@@ -311,27 +312,196 @@ class XpSearchField extends StatelessWidget {
   Widget build(BuildContext context) =>
       ValueListenableBuilder<TextEditingValue>(
         valueListenable: controller,
-        builder: (context, value, _) => XpTextField(
-          controller: controller,
-          focusNode: focusNode,
-          enabled: enabled,
-          onChanged: onChanged,
-          hint: hint,
-          prefix: const Padding(
-              padding: EdgeInsets.all(13), child: XpIcon(XpSymbol.search)),
-          suffix: value.text.isEmpty
-              ? null
-              : XpIconButton(
-                  icon: XpSymbol.close,
-                  label: '清除搜索',
-                  onPressed: enabled
-                      ? () {
-                          controller.clear();
-                          onChanged('');
-                        }
-                      : null),
-        ),
+        builder: (context, value, _) {
+          Widget input(FocusNode? node, [ValueChanged<String>? submit]) =>
+              XpTextField(
+                controller: controller,
+                focusNode: node,
+                onSubmitted: submit,
+                enabled: enabled,
+                onChanged: onChanged,
+                hint: hint,
+                prefix: const Padding(
+                    padding: EdgeInsets.all(13),
+                    child: XpIcon(XpSymbol.search)),
+                suffix: value.text.isEmpty
+                    ? null
+                    : XpIconButton(
+                        icon: XpSymbol.close,
+                        label: '清除搜索',
+                        onPressed: enabled
+                            ? () {
+                                controller.clear();
+                                onChanged('');
+                              }
+                            : null),
+              );
+          if (XpTheme.of(context).input == XpInputMode.directional) {
+            return _DirectionalSearchField(
+              controller: controller,
+              focusNode: focusNode,
+              enabled: enabled,
+              hint: hint,
+              input: (node, submit) => input(node, submit),
+            );
+          }
+          return input(focusNode);
+        },
       );
+}
+
+/// 遥控浏览时是一个普通焦点目标；确认后才把输入交给 EditableText。
+class _DirectionalSearchField extends StatefulWidget {
+  const _DirectionalSearchField(
+      {required this.input,
+      required this.controller,
+      required this.enabled,
+      required this.hint,
+      this.focusNode});
+  final Widget Function(FocusNode, ValueChanged<String>) input;
+  final TextEditingController controller;
+  final bool enabled;
+  final String hint;
+  final FocusNode? focusNode;
+  @override
+  State<_DirectionalSearchField> createState() =>
+      _DirectionalSearchFieldState();
+}
+
+class _DirectionalSearchFieldState extends State<_DirectionalSearchField>
+    with WidgetsBindingObserver {
+  final _navigation = FocusNode(debugLabel: 'search-navigation');
+  final _editor = FocusNode(debugLabel: 'search-editing');
+  bool _editing = false;
+  bool _keyboardVisible = false;
+  FocusNode get _navigationNode => widget.focusNode ?? _navigation;
+
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addObserver(this);
+  }
+
+  @override
+  void dispose() {
+    WidgetsBinding.instance.removeObserver(this);
+    _navigation.dispose();
+    _editor.dispose();
+    super.dispose();
+  }
+
+  @override
+  void didChangeMetrics() {
+    final visible = View.of(context).viewInsets.bottom > 0;
+    if (_keyboardVisible && !visible && _editing) _finish();
+    _keyboardVisible = visible;
+  }
+
+  void _begin() {
+    if (_editing || !widget.enabled) return;
+    setState(() => _editing = true);
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!mounted || !_editing) return;
+      _editor.requestFocus();
+      SystemChannels.textInput.invokeMethod<void>('TextInput.show');
+    });
+  }
+
+  void _finish([TraversalDirection? direction]) {
+    setState(() => _editing = false);
+    SystemChannels.textInput.invokeMethod<void>('TextInput.hide');
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!mounted) return;
+      _navigationNode.requestFocus();
+      if (direction != null) _navigationNode.focusInDirection(direction);
+    });
+  }
+
+  KeyEventResult _onKey(FocusNode _, KeyEvent event) {
+    if (event is! KeyDownEvent && event is! KeyRepeatEvent) {
+      return KeyEventResult.ignored;
+    }
+    final key = event.logicalKey;
+    if (key == LogicalKeyboardKey.enter ||
+        key == LogicalKeyboardKey.numpadEnter ||
+        key == LogicalKeyboardKey.select) {
+      if (event is KeyRepeatEvent) return KeyEventResult.handled;
+      _editing ? _finish(TraversalDirection.down) : _begin();
+      return KeyEventResult.handled;
+    }
+    if (_editing) {
+      final selection = widget.controller.selection;
+      if (key == LogicalKeyboardKey.arrowLeft &&
+          (widget.controller.text.isEmpty ||
+              (selection.isCollapsed && selection.baseOffset == 0))) {
+        _finish(TraversalDirection.left);
+        return KeyEventResult.handled;
+      }
+      if (key == LogicalKeyboardKey.arrowUp ||
+          key == LogicalKeyboardKey.arrowDown) {
+        _finish(key == LogicalKeyboardKey.arrowUp
+            ? TraversalDirection.up
+            : TraversalDirection.down);
+        return KeyEventResult.handled;
+      }
+      if (key == LogicalKeyboardKey.escape ||
+          key == LogicalKeyboardKey.goBack) {
+        _finish();
+        return KeyEventResult.handled;
+      }
+    }
+    return KeyEventResult.ignored;
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = XpTheme.of(context);
+    return Focus(
+      focusNode: _navigationNode,
+      canRequestFocus: widget.enabled && !_editing,
+      skipTraversal: _editing,
+      onKeyEvent: _onKey,
+      onFocusChange: (focused) {
+        if (!mounted) return;
+        setState(() {
+          if (!focused && _editing) {
+            _editing = false;
+            SystemChannels.textInput.invokeMethod<void>('TextInput.hide');
+            WidgetsBinding.instance.addPostFrameCallback((_) {
+              if (mounted &&
+                  FocusManager.instance.primaryFocus is FocusScopeNode) {
+                _navigationNode.requestFocus();
+              }
+            });
+          }
+        });
+      },
+      child: Semantics(
+        button: !_editing,
+        label: !_editing ? '${widget.hint}，按确认输入' : null,
+        excludeSemantics: !_editing,
+        child: GestureDetector(
+          onTap: !_editing ? _begin : null,
+          child: DecoratedBox(
+            decoration: BoxDecoration(
+              borderRadius: BorderRadius.circular(8),
+              border: !_editing && _navigationNode.hasFocus
+                  ? Border.all(color: theme.palette.accent, width: 2)
+                  : null,
+            ),
+            child: ExcludeFocus(
+              excluding: !_editing,
+              child: IgnorePointer(
+                ignoring: !_editing,
+                child: widget.input(
+                    _editor, (_) => _finish(TraversalDirection.down)),
+              ),
+            ),
+          ),
+        ),
+      ),
+    );
+  }
 }
 
 class XpToggleTile extends StatelessWidget {

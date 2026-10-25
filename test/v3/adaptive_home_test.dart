@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:provider/provider.dart';
@@ -49,6 +50,50 @@ Widget app(FakeMedia media, {bool tv = false, double scale = 1}) =>
 void main() {
   TestWidgetsFlutterBinding.ensureInitialized();
   setUp(() => SharedPreferences.setMockInitialValues({}));
+  testWidgets('TV 真实主页的搜索确认输入、返回与方向键退出不改变频道页', (tester) async {
+    tester.view.physicalSize = const Size(960, 540);
+    tester.view.devicePixelRatio = 1;
+    addTearDown(tester.view.resetPhysicalSize);
+    addTearDown(tester.view.resetDevicePixelRatio);
+    final media = FakeMedia();
+    await tester.pumpWidget(app(media, tv: true));
+    await tester.pumpAndSettle();
+    await tester.sendKeyEvent(LogicalKeyboardKey.arrowDown);
+    await tester.sendKeyEvent(LogicalKeyboardKey.enter);
+    await tester.pumpAndSettle();
+    expect(find.byType(XpSearchField), findsOneWidget);
+    await tester.sendKeyEvent(LogicalKeyboardKey.arrowRight);
+    await tester.pumpAndSettle();
+    expect(FocusManager.instance.primaryFocus?.debugLabel, 'search-navigation');
+    expect(tester.testTextInput.isVisible, isFalse);
+    await tester.sendKeyEvent(LogicalKeyboardKey.select);
+    await tester.pumpAndSettle();
+    expect(FocusManager.instance.primaryFocus?.debugLabel, 'search-editing');
+    await tester.enterText(find.byType(TextField), '测试');
+    await tester.binding.handlePopRoute();
+    await tester.pumpAndSettle();
+    expect(
+      tester
+          .widget<XpNavigationItem>(find.byKey(const ValueKey('nav-channels')))
+          .selected,
+      isTrue,
+    );
+    expect(FocusManager.instance.primaryFocus?.debugLabel, 'search-navigation');
+    expect(media.searchQuery, '测试');
+    await tester.sendKeyEvent(LogicalKeyboardKey.arrowDown);
+    await tester.pumpAndSettle();
+    expect(
+      FocusManager.instance.primaryFocus?.debugLabel,
+      isNot('search-navigation'),
+    );
+    expect(
+      FocusManager.instance.primaryFocus?.debugLabel,
+      isNot('search-editing'),
+    );
+    expect(tester.testTextInput.isVisible, isFalse);
+    expect(tester.takeException(), isNull);
+    await tester.pumpWidget(const SizedBox.shrink());
+  });
   test('输入方式独立于窗口尺寸，TV 不由宽度推断', () {
     const desktop = AppLayout(
       width: 390,

@@ -98,6 +98,13 @@ class _HomeScreenState extends State<HomeScreen> {
     _selected = null;
   });
   Future<void> _back() async {
+    final focus = FocusManager.instance.primaryFocus;
+    if (context.read<GlobalProvider>().isTV &&
+        focus?.context?.findAncestorStateOfType<EditableTextState>() != null) {
+      focus!.unfocus();
+      SystemChannels.textInput.invokeMethod<void>('TextInput.hide');
+      return;
+    }
     if (_selected != null) {
       setState(() => _selected = null);
       return;
