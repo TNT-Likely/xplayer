@@ -1,0 +1,442 @@
+{
+  "version": "1.0.0",
+  "fileKey": "g3InwuNMSszxmeHHWGKd2R",
+  "fileUrl": "https://www.figma.com/design/g3InwuNMSszxmeHHWGKd2R",
+  "status": "complete",
+  "primaryDirection": "A",
+  "retainedDirections": [
+    "B",
+    "C"
+  ],
+  "pages": {
+    "00 · 导览、基础与组件": "0:1",
+    "10 · A 静夜 · 主方案": "3:4",
+    "20 · B C · 保留备选": "3:5"
+  },
+  "overview": "14:2",
+  "screens": [
+    {
+      "name": "nocturne-phone-home",
+      "id": "17:7573",
+      "url": "https://www.figma.com/design/g3InwuNMSszxmeHHWGKd2R?node-id=17-7573"
+    },
+    {
+      "name": "nocturne-ipad-home",
+      "id": "17:7922",
+      "url": "https://www.figma.com/design/g3InwuNMSszxmeHHWGKd2R?node-id=17-7922"
+    },
+    {
+      "name": "nocturne-desktop-home",
+      "id": "17:8389",
+      "url": "https://www.figma.com/design/g3InwuNMSszxmeHHWGKd2R?node-id=17-8389"
+    },
+    {
+      "name": "nocturne-tv-home",
+      "id": "17:8895",
+      "url": "https://www.figma.com/design/g3InwuNMSszxmeHHWGKd2R?node-id=17-8895"
+    },
+    {
+      "name": "nocturne-phone-player",
+      "id": "17:9328",
+      "url": "https://www.figma.com/design/g3InwuNMSszxmeHHWGKd2R?node-id=17-9328"
+    },
+    {
+      "name": "nocturne-ipad-player",
+      "id": "17:9752",
+      "url": "https://www.figma.com/design/g3InwuNMSszxmeHHWGKd2R?node-id=17-9752"
+    },
+    {
+      "name": "nocturne-desktop-player",
+      "id": "17:10410",
+      "url": "https://www.figma.com/design/g3InwuNMSszxmeHHWGKd2R?node-id=17-10410"
+    },
+    {
+      "name": "nocturne-tv-player",
+      "id": "17:11107",
+      "url": "https://www.figma.com/design/g3InwuNMSszxmeHHWGKd2R?node-id=17-11107"
+    },
+    {
+      "name": "nocturne-phone-channels",
+      "id": "17:11626",
+      "url": "https://www.figma.com/design/g3InwuNMSszxmeHHWGKd2R?node-id=17-11626"
+    },
+    {
+      "name": "nocturne-phone-guide",
+      "id": "17:12006",
+      "url": "https://www.figma.com/design/g3InwuNMSszxmeHHWGKd2R?node-id=17-12006"
+    },
+    {
+      "name": "nocturne-phone-favorites",
+      "id": "17:12340",
+      "url": "https://www.figma.com/design/g3InwuNMSszxmeHHWGKd2R?node-id=17-12340"
+    },
+    {
+      "name": "nocturne-phone-sources",
+      "id": "17:12561",
+      "url": "https://www.figma.com/design/g3InwuNMSszxmeHHWGKd2R?node-id=17-12561"
+    },
+    {
+      "name": "nocturne-phone-remote",
+      "id": "17:12773",
+      "url": "https://www.figma.com/design/g3InwuNMSszxmeHHWGKd2R?node-id=17-12773"
+    },
+    {
+      "name": "nocturne-phone-settings",
+      "id": "17:12927",
+      "url": "https://www.figma.com/design/g3InwuNMSszxmeHHWGKd2R?node-id=17-12927"
+    },
+    {
+      "name": "nocturne-desktop-channels",
+      "id": "21:477",
+      "url": "https://www.figma.com/design/g3InwuNMSszxmeHHWGKd2R?node-id=21-477"
+    },
+    {
+      "name": "nocturne-desktop-guide",
+      "id": "21:1399",
+      "url": "https://www.figma.com/design/g3InwuNMSszxmeHHWGKd2R?node-id=21-1399"
+    },
+    {
+      "name": "nocturne-desktop-favorites",
+      "id": "22:985",
+      "url": "https://www.figma.com/design/g3InwuNMSszxmeHHWGKd2R?node-id=22-985"
+    },
+    {
+      "name": "nocturne-desktop-sources",
+      "id": "22:1672",
+      "url": "https://www.figma.com/design/g3InwuNMSszxmeHHWGKd2R?node-id=22-1672"
+    },
+    {
+      "name": "nocturne-desktop-remote",
+      "id": "22:2392",
+      "url": "https://www.figma.com/design/g3InwuNMSszxmeHHWGKd2R?node-id=22-2392"
+    },
+    {
+      "name": "nocturne-desktop-settings",
+      "id": "22:3031",
+      "url": "https://www.figma.com/design/g3InwuNMSszxmeHHWGKd2R?node-id=22-3031"
+    },
+    {
+      "name": "nocturne-ipad-channels",
+      "id": "22:3672",
+      "url": "https://www.figma.com/design/g3InwuNMSszxmeHHWGKd2R?node-id=22-3672"
+    },
+    {
+      "name": "nocturne-ipad-guide",
+      "id": "22:4553",
+      "url": "https://www.figma.com/design/g3InwuNMSszxmeHHWGKd2R?node-id=22-4553"
+    },
+    {
+      "name": "nocturne-ipad-favorites",
+      "id": "22:5355",
+      "url": "https://www.figma.com/design/g3InwuNMSszxmeHHWGKd2R?node-id=22-5355"
+    },
+    {
+      "name": "nocturne-ipad-sources",
+      "id": "22:6003",
+      "url": "https://www.figma.com/design/g3InwuNMSszxmeHHWGKd2R?node-id=22-6003"
+    },
+    {
+      "name": "nocturne-ipad-remote",
+      "id": "22:6682",
+      "url": "https://www.figma.com/design/g3InwuNMSszxmeHHWGKd2R?node-id=22-6682"
+    },
+    {
+      "name": "nocturne-ipad-settings",
+      "id": "22:7279",
+      "url": "https://www.figma.com/design/g3InwuNMSszxmeHHWGKd2R?node-id=22-7279"
+    },
+    {
+      "name": "nocturne-tv-channels",
+      "id": "22:7881",
+      "url": "https://www.figma.com/design/g3InwuNMSszxmeHHWGKd2R?node-id=22-7881"
+    },
+    {
+      "name": "nocturne-tv-guide",
+      "id": "22:8731",
+      "url": "https://www.figma.com/design/g3InwuNMSszxmeHHWGKd2R?node-id=22-8731"
+    },
+    {
+      "name": "nocturne-tv-favorites",
+      "id": "22:9502",
+      "url": "https://www.figma.com/design/g3InwuNMSszxmeHHWGKd2R?node-id=22-9502"
+    },
+    {
+      "name": "nocturne-tv-sources",
+      "id": "22:10118",
+      "url": "https://www.figma.com/design/g3InwuNMSszxmeHHWGKd2R?node-id=22-10118"
+    },
+    {
+      "name": "nocturne-tv-remote",
+      "id": "22:10767",
+      "url": "https://www.figma.com/design/g3InwuNMSszxmeHHWGKd2R?node-id=22-10767"
+    },
+    {
+      "name": "nocturne-tv-settings",
+      "id": "22:11336",
+      "url": "https://www.figma.com/design/g3InwuNMSszxmeHHWGKd2R?node-id=22-11336"
+    },
+    {
+      "name": "nocturne-phone-epg-unconfigured",
+      "id": "23:626",
+      "url": "https://www.figma.com/design/g3InwuNMSszxmeHHWGKd2R?node-id=23-626"
+    },
+    {
+      "name": "nocturne-phone-epg-none",
+      "id": "23:1082",
+      "url": "https://www.figma.com/design/g3InwuNMSszxmeHHWGKd2R?node-id=23-1082"
+    },
+    {
+      "name": "nocturne-phone-epg-loading",
+      "id": "23:1537",
+      "url": "https://www.figma.com/design/g3InwuNMSszxmeHHWGKd2R?node-id=23-1537"
+    },
+    {
+      "name": "nocturne-phone-epg-error",
+      "id": "23:1986",
+      "url": "https://www.figma.com/design/g3InwuNMSszxmeHHWGKd2R?node-id=23-1986"
+    },
+    {
+      "name": "nocturne-phone-epg-error-cache",
+      "id": "23:2444",
+      "url": "https://www.figma.com/design/g3InwuNMSszxmeHHWGKd2R?node-id=23-2444"
+    },
+    {
+      "name": "nocturne-phone-epg-stale",
+      "id": "23:3148",
+      "url": "https://www.figma.com/design/g3InwuNMSszxmeHHWGKd2R?node-id=23-3148"
+    },
+    {
+      "name": "nocturne-phone-epg-partial",
+      "id": "23:3841",
+      "url": "https://www.figma.com/design/g3InwuNMSszxmeHHWGKd2R?node-id=23-3841"
+    },
+    {
+      "name": "nocturne-phone-list-empty",
+      "id": "23:4505",
+      "url": "https://www.figma.com/design/g3InwuNMSszxmeHHWGKd2R?node-id=23-4505"
+    },
+    {
+      "name": "nocturne-phone-import-error",
+      "id": "23:4756",
+      "url": "https://www.figma.com/design/g3InwuNMSszxmeHHWGKd2R?node-id=23-4756"
+    },
+    {
+      "name": "nocturne-phone-player-error",
+      "id": "23:5228",
+      "url": "https://www.figma.com/design/g3InwuNMSszxmeHHWGKd2R?node-id=23-5228"
+    },
+    {
+      "name": "nocturne-phone-player-audio-only",
+      "id": "23:5637",
+      "url": "https://www.figma.com/design/g3InwuNMSszxmeHHWGKd2R?node-id=23-5637"
+    },
+    {
+      "name": "nocturne-phone-remote-none",
+      "id": "23:6035",
+      "url": "https://www.figma.com/design/g3InwuNMSszxmeHHWGKd2R?node-id=23-6035"
+    },
+    {
+      "name": "nocturne-phone-remote-permission",
+      "id": "23:6236",
+      "url": "https://www.figma.com/design/g3InwuNMSszxmeHHWGKd2R?node-id=23-6236"
+    },
+    {
+      "name": "nocturne-phone-network-offline",
+      "id": "23:6436",
+      "url": "https://www.figma.com/design/g3InwuNMSszxmeHHWGKd2R?node-id=23-6436"
+    },
+    {
+      "name": "nocturne-phone-sync-conflict",
+      "id": "24:807",
+      "url": "https://www.figma.com/design/g3InwuNMSszxmeHHWGKd2R?node-id=24-807"
+    },
+    {
+      "name": "nocturne-phone-search-empty",
+      "id": "24:963",
+      "url": "https://www.figma.com/design/g3InwuNMSszxmeHHWGKd2R?node-id=24-963"
+    },
+    {
+      "name": "nocturne-phone-favorites-empty",
+      "id": "24:1030",
+      "url": "https://www.figma.com/design/g3InwuNMSszxmeHHWGKd2R?node-id=24-1030"
+    },
+    {
+      "name": "nocturne-phone-list-no-channels",
+      "id": "24:1096",
+      "url": "https://www.figma.com/design/g3InwuNMSszxmeHHWGKd2R?node-id=24-1096"
+    },
+    {
+      "name": "nocturne-phone-player-connecting",
+      "id": "24:1167",
+      "url": "https://www.figma.com/design/g3InwuNMSszxmeHHWGKd2R?node-id=24-1167"
+    },
+    {
+      "name": "nocturne-phone-player-buffering",
+      "id": "24:1485",
+      "url": "https://www.figma.com/design/g3InwuNMSszxmeHHWGKd2R?node-id=24-1485"
+    },
+    {
+      "name": "nocturne-phone-player-unsupported",
+      "id": "24:1805",
+      "url": "https://www.figma.com/design/g3InwuNMSszxmeHHWGKd2R?node-id=24-1805"
+    },
+    {
+      "name": "nocturne-desktop-epg-unconfigured",
+      "id": "24:6479",
+      "url": "https://www.figma.com/design/g3InwuNMSszxmeHHWGKd2R?node-id=24-6479"
+    },
+    {
+      "name": "nocturne-desktop-epg-none",
+      "id": "24:6599",
+      "url": "https://www.figma.com/design/g3InwuNMSszxmeHHWGKd2R?node-id=24-6599"
+    },
+    {
+      "name": "nocturne-desktop-epg-loading",
+      "id": "24:6719",
+      "url": "https://www.figma.com/design/g3InwuNMSszxmeHHWGKd2R?node-id=24-6719"
+    },
+    {
+      "name": "nocturne-desktop-epg-error",
+      "id": "24:6837",
+      "url": "https://www.figma.com/design/g3InwuNMSszxmeHHWGKd2R?node-id=24-6837"
+    },
+    {
+      "name": "nocturne-desktop-epg-error-cache",
+      "id": "24:6958",
+      "url": "https://www.figma.com/design/g3InwuNMSszxmeHHWGKd2R?node-id=24-6958"
+    },
+    {
+      "name": "nocturne-desktop-epg-stale",
+      "id": "24:7255",
+      "url": "https://www.figma.com/design/g3InwuNMSszxmeHHWGKd2R?node-id=24-7255"
+    },
+    {
+      "name": "nocturne-desktop-epg-partial",
+      "id": "24:7541",
+      "url": "https://www.figma.com/design/g3InwuNMSszxmeHHWGKd2R?node-id=24-7541"
+    },
+    {
+      "name": "nocturne-ipad-epg-unconfigured",
+      "id": "24:7806",
+      "url": "https://www.figma.com/design/g3InwuNMSszxmeHHWGKd2R?node-id=24-7806"
+    },
+    {
+      "name": "nocturne-ipad-epg-none",
+      "id": "24:7906",
+      "url": "https://www.figma.com/design/g3InwuNMSszxmeHHWGKd2R?node-id=24-7906"
+    },
+    {
+      "name": "nocturne-ipad-epg-loading",
+      "id": "24:8006",
+      "url": "https://www.figma.com/design/g3InwuNMSszxmeHHWGKd2R?node-id=24-8006"
+    },
+    {
+      "name": "nocturne-ipad-epg-error",
+      "id": "24:8104",
+      "url": "https://www.figma.com/design/g3InwuNMSszxmeHHWGKd2R?node-id=24-8104"
+    },
+    {
+      "name": "nocturne-ipad-epg-error-cache",
+      "id": "24:8205",
+      "url": "https://www.figma.com/design/g3InwuNMSszxmeHHWGKd2R?node-id=24-8205"
+    },
+    {
+      "name": "nocturne-ipad-epg-stale",
+      "id": "24:8482",
+      "url": "https://www.figma.com/design/g3InwuNMSszxmeHHWGKd2R?node-id=24-8482"
+    },
+    {
+      "name": "nocturne-ipad-epg-partial",
+      "id": "24:8748",
+      "url": "https://www.figma.com/design/g3InwuNMSszxmeHHWGKd2R?node-id=24-8748"
+    },
+    {
+      "name": "nocturne-tv-epg-unconfigured",
+      "id": "24:8993",
+      "url": "https://www.figma.com/design/g3InwuNMSszxmeHHWGKd2R?node-id=24-8993"
+    },
+    {
+      "name": "nocturne-tv-epg-none",
+      "id": "24:9075",
+      "url": "https://www.figma.com/design/g3InwuNMSszxmeHHWGKd2R?node-id=24-9075"
+    },
+    {
+      "name": "nocturne-tv-epg-loading",
+      "id": "24:9157",
+      "url": "https://www.figma.com/design/g3InwuNMSszxmeHHWGKd2R?node-id=24-9157"
+    },
+    {
+      "name": "nocturne-tv-epg-error",
+      "id": "24:9237",
+      "url": "https://www.figma.com/design/g3InwuNMSszxmeHHWGKd2R?node-id=24-9237"
+    },
+    {
+      "name": "nocturne-tv-epg-error-cache",
+      "id": "24:9320",
+      "url": "https://www.figma.com/design/g3InwuNMSszxmeHHWGKd2R?node-id=24-9320"
+    },
+    {
+      "name": "nocturne-tv-epg-stale",
+      "id": "24:9579",
+      "url": "https://www.figma.com/design/g3InwuNMSszxmeHHWGKd2R?node-id=24-9579"
+    },
+    {
+      "name": "nocturne-tv-epg-partial",
+      "id": "24:9827",
+      "url": "https://www.figma.com/design/g3InwuNMSszxmeHHWGKd2R?node-id=24-9827"
+    }
+  ],
+  "counts": {
+    "primaryFrames": 74,
+    "core": 32,
+    "boundaries": 42,
+    "interactiveScenarios": 21,
+    "variables": 81,
+    "textStyles": 8,
+    "componentSets": 4,
+    "icons": 28
+  },
+  "sections": {
+    "Home": "17:7571",
+    "Player": "17:9326",
+    "Phone": "17:11624",
+    "Core-desktop": "21:475",
+    "Core-ipad": "22:3670",
+    "Core-tv": "22:7879",
+    "States-phone": "23:624",
+    "phoneAdditional": "24:6336",
+    "desktopEpg": "24:6478",
+    "ipadEpg": "24:7805",
+    "tvEpg": "24:8992",
+    "actions": "21:976"
+  },
+  "alternatives": {
+    "B": "24:15108",
+    "C": "24:15120"
+  },
+  "prototype": {
+    "flows": [
+      "phone",
+      "ipad",
+      "desktop",
+      "tv"
+    ],
+    "operations": 169,
+    "scope": "核心导航与观看入口；完整交互见 HTML"
+  },
+  "fonts": {
+    "latin": "Inter",
+    "cjkStyle": "Noto Sans SC",
+    "serif": "Georgia → Lora Italic",
+    "note": "HTML 系统字体与 Figma 字形、行高有差异；部分画板采用 Inter 的中文回退。"
+  },
+  "layout": {
+    "core": "Auto Layout、组件实例与原生文字",
+    "epgBoundaries": "固定位置、可编辑文字与矢量图标，保留时间比例"
+  },
+  "notes": [
+    "B/C 保留概念和原有 HTML，不扩充完整设计",
+    "中间参考画板已移除",
+    "完整业务边界见 EDGE-CASES.md"
+  ]
+}

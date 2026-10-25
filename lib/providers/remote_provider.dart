@@ -4,8 +4,8 @@ import 'dart:convert';
 import 'package:bonsoir/bonsoir.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:web_socket_channel/web_socket_channel.dart';
-import 'dart:io' show Platform;
+import 'dart:io' show Platform, WebSocket;
+import 'package:xplayer/shared/navigation.dart';
 import 'package:permission_handler/permission_handler.dart';
 
 import '../services/remote/remote_protocol.dart';
@@ -20,6 +20,7 @@ class RemoteProvider with ChangeNotifier {
   // TV-side server
   RemoteServer? _server;
   bool get isServerRunning => _server?.isRunning ?? false;
+  String? get serverAddress => _server?.address;
 
   Future<void> startServer({String serviceName = 'XPlayer TV'}) async {
     if (_server != null && _server!.isRunning) return;
@@ -31,25 +32,75 @@ class RemoteProvider with ChangeNotifier {
         if (!inserted) {
           await Clipboard.setData(ClipboardData(text: text));
         }
-        notifyListeners();
+        _notify();
       },
       onKey: (key) {
         _handleRemoteKey(key);
       },
     );
-    await _server!.start();
-    _log('Server started on port ${_server!.port}');
-    notifyListeners();
+    try {
+      await _server!.start();
+      _log('Server started on port ${_server!.port}');
+    } finally {
+      _notify();
+    }
   }
 
   Future<void> stopServer() async {
     await _server?.stop();
     _server = null;
-    notifyListeners();
+    _notify();
   }
 
   String _lastReceivedText = '';
   String get lastReceivedText => _lastReceivedText;
+
+  bool _disposed = false;
+  bool _discovering = false;
+  bool _permissionDenied = false;
+  bool _connecting = false;
+  String? _connectionError;
+  Timer? _discoveryTimer;
+  StreamSubscription? _socketSub;
+  int _connectionAttempt = 0;
+  VoidCallback? playPauseHandler;
+  bool get isDiscovering => _discovering;
+  bool get permissionDenied => _permissionDenied;
+  bool get isConnecting => _connecting;
+  String? get connectionError => _connectionError;
+  void _notify() {
+    if (!_disposed) notifyListeners();
+  }
+
+  Future<void> startDiscovery() async {
+    if (_discovering) return;
+    _discovering = true;
+    _permissionDenied = false;
+    _connectionError = null;
+    _notify();
+    try {
+      await _startDiscovery();
+      if (_permissionDenied) {
+        _discovering = false;
+        _notify();
+        return;
+      }
+      _discoveryTimer = Timer(const Duration(seconds: 8), () {
+        _discovering = false;
+        _notify();
+      });
+    } catch (_) {
+      _discovering = false;
+      _connectionError = '无法搜索设备，请检查局域网权限与网络。';
+      _notify();
+    }
+  }
+
+  Future<void> stopDiscovery() async {
+    _discoveryTimer?.cancel();
+    _discovering = false;
+    await _stopDiscovery();
+  }
 
   // Phone-side discovery
   BonsoirDiscovery? _discovery;
@@ -57,7 +108,7 @@ class RemoteProvider with ChangeNotifier {
   List<RemoteDeviceInfo> get devices => List.unmodifiable(_devices);
   StreamSubscription<BonsoirDiscoveryEvent>? _discoverySub;
 
-  Future<void> startDiscovery() async {
+  Future<void> _startDiscovery() async {
     // Request required permissions on Android before discovery.
     if (Platform.isAndroid) {
       final req = <Permission>[];
@@ -66,10 +117,15 @@ class RemoteProvider with ChangeNotifier {
       // Location often needed by NSD on some devices/ROMs
       req.add(Permission.locationWhenInUse);
       final statuses = await req.request();
+      if (statuses.values.every((status) => !status.isGranted)) {
+        _permissionDenied = true;
+        return;
+      }
       _log(
-          'Android permissions: nearbyWifiDevices=${statuses[Permission.nearbyWifiDevices]?.name}, location=${statuses[Permission.locationWhenInUse]?.name}');
+        'Android permissions: nearbyWifiDevices=${statuses[Permission.nearbyWifiDevices]?.name}, location=${statuses[Permission.locationWhenInUse]?.name}',
+      );
     }
-    await stopDiscovery();
+    await _stopDiscovery();
     _devices.clear();
     _discovery = BonsoirDiscovery(type: '_xplayer._tcp');
     _log('Discovery created for _xplayer._tcp');
@@ -92,7 +148,8 @@ class RemoteProvider with ChangeNotifier {
         if (s == null) return;
         final json = s.toJson();
         _log(
-            'Service resolved: ${s.name} -> addresses=${json['addresses'] ?? json['address']} port=${s.port}');
+          'Service resolved: ${s.name} -> addresses=${json['addresses'] ?? json['address']} port=${s.port}',
+        );
         String? host;
         if (json['addresses'] is List &&
             (json['addresses'] as List).isNotEmpty) {
@@ -121,22 +178,23 @@ class RemoteProvider with ChangeNotifier {
         if (!exists) {
           _devices.add(info);
           _log(
-              'Device added: ${info.name} ${info.host}:${info.port} (total=${_devices.length})');
-          notifyListeners();
+            'Device added: ${info.name} ${info.host}:${info.port} (total=${_devices.length})',
+          );
+          _notify();
         }
       } else if (event.type == BonsoirDiscoveryEventType.discoveryServiceLost) {
         final s = event.service;
         if (s == null) return;
         _devices.removeWhere((d) => d.name == s.name);
         _log('Service lost: ${s.name}');
-        notifyListeners();
+        _notify();
       }
     });
     await _discovery!.start();
     _log('Discovery started');
   }
 
-  Future<void> stopDiscovery() async {
+  Future<void> _stopDiscovery() async {
     await _discoverySub?.cancel();
     _discoverySub = null;
     if (_discovery != null) {
@@ -147,42 +205,96 @@ class RemoteProvider with ChangeNotifier {
   }
 
   // Phone-side client connection
-  WebSocketChannel? _channel;
+  WebSocket? _channel;
   bool get isConnected => _channel != null;
   RemoteDeviceInfo? _current;
   RemoteDeviceInfo? get current => _current;
 
   Future<void> connect(RemoteDeviceInfo device) async {
     await disconnect();
-    final h = device.host;
-    final needsBracket = h.contains(':') && !h.startsWith('[');
-    final hostPart = needsBracket ? '[$h]' : h;
-    final uri = Uri.parse('ws://$hostPart:${device.port}/');
-    _channel = WebSocketChannel.connect(uri);
-    _current = device;
-    notifyListeners();
+    final attempt = ++_connectionAttempt;
+    _connecting = true;
+    _connectionError = null;
+    _notify();
+    final host = device.host.contains(':') && !device.host.startsWith('[')
+        ? '[${device.host}]'
+        : device.host;
+    try {
+      final socket = await WebSocket.connect(
+        'ws://$host:${device.port}/',
+      ).timeout(const Duration(seconds: 8));
+      if (_disposed || attempt != _connectionAttempt) {
+        await socket.close();
+        return;
+      }
+      _channel = socket;
+      _current = device;
+      void lost() {
+        if (_channel != socket) return;
+        _channel = null;
+        _current = null;
+        _connectionError = '与电视的连接已断开。';
+        _notify();
+      }
+
+      _socketSub = socket.listen(
+        (_) {},
+        onDone: lost,
+        onError: (_) => lost(),
+        cancelOnError: true,
+      );
+    } catch (_) {
+      if (attempt == _connectionAttempt)
+        _connectionError = '连接失败，请确认电视仍在同一网络中。';
+    } finally {
+      if (attempt == _connectionAttempt) {
+        _connecting = false;
+        _notify();
+      }
+    }
   }
 
   Future<void> disconnect() async {
-    await _channel?.sink.close();
+    _connectionAttempt++;
+    _connecting = false;
+    final socket = _channel;
     _channel = null;
     _current = null;
-    notifyListeners();
+    await _socketSub?.cancel();
+    _socketSub = null;
+    try {
+      await socket?.close().timeout(const Duration(seconds: 2));
+    } catch (_) {}
+    _notify();
   }
 
   // 发送文本（会用于首次发送；之后若启用“实时同步”，则由控制器监听触发）
   Future<bool> sendText(String text) async {
     if (_channel == null) return false;
     final msg = RemoteMessage(RemoteMessageType.text, {'text': text});
-    _channel!.sink.add(jsonEncode(msg.toJson()));
-    return true;
+    try {
+      _channel!.add(jsonEncode(msg.toJson()));
+      return true;
+    } catch (_) {
+      await disconnect();
+      _connectionError = '连接已断开，请重新连接。';
+      _notify();
+      return false;
+    }
   }
 
   Future<bool> sendKey(String key) async {
     if (_channel == null) return false;
     final msg = RemoteMessage(RemoteMessageType.key, {'key': key});
-    _channel!.sink.add(jsonEncode(msg.toJson()));
-    return true;
+    try {
+      _channel!.add(jsonEncode(msg.toJson()));
+      return true;
+    } catch (_) {
+      await disconnect();
+      _connectionError = '连接已断开，请重新连接。';
+      _notify();
+      return false;
+    }
   }
 
   // ===== TV side helpers =====
@@ -202,7 +314,9 @@ class RemoteProvider with ChangeNotifier {
         composing: TextRange.empty,
       );
       editable.userUpdateTextEditingValue(
-          updated, SelectionChangedCause.keyboard);
+        updated,
+        SelectionChangedCause.keyboard,
+      );
       return true;
     } catch (_) {
       return false;
@@ -216,23 +330,40 @@ class RemoteProvider with ChangeNotifier {
     switch (key.toLowerCase()) {
       case 'up':
         Actions.maybeInvoke(
-            ctx, const DirectionalFocusIntent(TraversalDirection.up));
+          ctx,
+          const DirectionalFocusIntent(TraversalDirection.up),
+        );
         break;
       case 'down':
         Actions.maybeInvoke(
-            ctx, const DirectionalFocusIntent(TraversalDirection.down));
+          ctx,
+          const DirectionalFocusIntent(TraversalDirection.down),
+        );
         break;
       case 'left':
         Actions.maybeInvoke(
-            ctx, const DirectionalFocusIntent(TraversalDirection.left));
+          ctx,
+          const DirectionalFocusIntent(TraversalDirection.left),
+        );
         break;
       case 'right':
         Actions.maybeInvoke(
-            ctx, const DirectionalFocusIntent(TraversalDirection.right));
+          ctx,
+          const DirectionalFocusIntent(TraversalDirection.right),
+        );
         break;
       case 'enter':
       case 'ok':
         Actions.maybeInvoke(ctx, const ActivateIntent());
+        break;
+      case 'back':
+        AppNav.key.currentState?.maybePop();
+        break;
+      case 'home':
+        AppNav.key.currentState?.popUntil((route) => route.isFirst);
+        break;
+      case 'playpause':
+        playPauseHandler?.call();
         break;
       case 'backspace':
       case 'delete':
@@ -270,6 +401,20 @@ class RemoteProvider with ChangeNotifier {
       composing: TextRange.empty,
     );
     editable.userUpdateTextEditingValue(
-        updated, SelectionChangedCause.keyboard);
+      updated,
+      SelectionChangedCause.keyboard,
+    );
+  }
+
+  @override
+  void dispose() {
+    _disposed = true;
+    _discoveryTimer?.cancel();
+    _discoverySub?.cancel();
+    _discovery?.stop();
+    _socketSub?.cancel();
+    _channel?.close();
+    _server?.stop();
+    super.dispose();
   }
 }

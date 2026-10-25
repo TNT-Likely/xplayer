@@ -1,0 +1,493 @@
+import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
+import '../../foundation.dart';
+import 'models.dart';
+
+class XpChannelIdentity extends StatelessWidget {
+  const XpChannelIdentity(
+      {super.key, required this.channel, this.showName = true});
+  final XpChannelData channel;
+  final bool showName;
+  @override
+  Widget build(BuildContext context) {
+    final theme = XpTheme.of(context), p = theme.palette;
+    return Row(mainAxisSize: MainAxisSize.min, children: [
+      Flexible(
+          child: Container(
+        constraints: const BoxConstraints(minWidth: 40),
+        padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 5),
+        decoration: BoxDecoration(
+            color: p.accentWash,
+            border: Border.all(color: p.border),
+            borderRadius: BorderRadius.circular(4)),
+        child: channel.logo == null
+            ? Text(
+                channel.logoLabel ?? channel.name.characters.take(4).toString(),
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+                style: TextStyle(
+                    color: p.accent,
+                    fontSize: theme.smallSize,
+                    fontWeight: FontWeight.w600))
+            : Image(
+                image: channel.logo!,
+                width: 44,
+                height: 28,
+                fit: BoxFit.contain,
+                excludeFromSemantics: true,
+                errorBuilder: (_, __, ___) => Text(
+                    channel.logoLabel ??
+                        channel.name.characters.take(4).toString(),
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                    style:
+                        TextStyle(color: p.accent, fontSize: theme.smallSize))),
+      )),
+      if (showName) ...[
+        const SizedBox(width: 10),
+        Flexible(
+            child: Text(channel.name,
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+                style:
+                    TextStyle(fontSize: theme.bodySize, color: p.foreground)))
+      ],
+    ]);
+  }
+}
+
+/// 优先使用真实节目图片；无图或加载失败时使用随包提供的 A 设计装饰背景。
+class XpArtwork extends StatelessWidget {
+  const XpArtwork(
+      {super.key, required this.channel, this.showPlaceholder = true});
+  final XpChannelData channel;
+
+  /// 最终资源也不可读时，是否显示频道标识。
+  final bool showPlaceholder;
+
+  AssetImage _backdrop() {
+    final category = '${channel.group ?? ''} ${channel.name}'.toLowerCase();
+    final String name;
+    if (RegExp(r'体育|运动|sport|cctv-?5').hasMatch(category)) {
+      name = 'sport';
+    } else if (RegExp(r'新闻|财经|news|finance|cctv-?13').hasMatch(category)) {
+      name = 'city';
+    } else if (RegExp(r'纪录|自然|documentary|nature|cctv-?9').hasMatch(category)) {
+      name = 'forest';
+    } else {
+      // 频道 ID 稳定映射，刷新、收藏和切源不会随机换图。
+      final seed = channel.id.codeUnits
+          .fold<int>(0, (hash, unit) => (hash * 31 + unit) & 0x7fffffff);
+      name = const ['forest', 'mountain', 'ocean', 'city'][seed % 4];
+    }
+    return AssetImage('assets/backdrops/$name.jpg', package: 'xplayer_ui');
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final p = XpTheme.of(context).palette;
+    final fallback = Image(
+      image: _backdrop(),
+      fit: BoxFit.cover,
+      width: double.infinity,
+      height: double.infinity,
+      excludeFromSemantics: true,
+      gaplessPlayback: true,
+      errorBuilder: (_, __, ___) => ColoredBox(
+        color: p.raised,
+        child: showPlaceholder
+            ? Center(
+                child: Padding(
+                padding: const EdgeInsets.all(8),
+                child: Text(channel.logoLabel ?? channel.name,
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                    style: TextStyle(color: p.muted)),
+              ))
+            : const SizedBox.expand(),
+      ),
+    );
+    if (channel.artwork == null) return fallback;
+    return Image(
+      image: channel.artwork!,
+      fit: BoxFit.cover,
+      width: double.infinity,
+      excludeFromSemantics: true,
+      gaplessPlayback: true,
+      frameBuilder: (_, child, frame, synchronous) =>
+          frame != null || synchronous ? child : fallback,
+      errorBuilder: (_, __, ___) => fallback,
+    );
+  }
+}
+
+class XpLiveBadge extends StatelessWidget {
+  const XpLiveBadge({super.key, this.live = true});
+  final bool live;
+  @override
+  Widget build(BuildContext context) => DecoratedBox(
+        decoration: BoxDecoration(
+          color: XpTheme.of(context).palette.background.withValues(alpha: .86),
+          borderRadius: BorderRadius.circular(5),
+        ),
+        child: XpBadge(live ? 'LIVE' : '离线',
+            dot: live, tone: live ? XpTone.success : XpTone.warning),
+      );
+}
+
+class XpFavouriteButton extends StatelessWidget {
+  const XpFavouriteButton(
+      {super.key,
+      required this.channelName,
+      required this.value,
+      this.focusNode,
+      required this.onChanged});
+  final String channelName;
+  final bool value;
+  final ValueChanged<bool>? onChanged;
+  final FocusNode? focusNode;
+  @override
+  Widget build(BuildContext context) => XpIconButton(
+        icon: XpSymbol.heart,
+        label: '${value ? '取消收藏' : '收藏'} $channelName',
+        selected: value,
+        focusNode: focusNode,
+        onPressed: onChanged == null ? null : () => onChanged!(!value),
+      );
+}
+
+class XpChannelCard extends StatelessWidget {
+  const XpChannelCard(
+      {super.key,
+      required this.channel,
+      required this.now,
+      required this.onPlay,
+      this.favourite = false,
+      this.onFavouriteChanged,
+      this.epgStatus = XpEpgStatus.ready,
+      this.onDetails,
+      this.offline = false});
+  final XpChannelData channel;
+  final DateTime now;
+  final VoidCallback? onPlay, onDetails;
+  final bool favourite, offline;
+  final ValueChanged<bool>? onFavouriteChanged;
+  final XpEpgStatus epgStatus;
+  @override
+  Widget build(BuildContext context) {
+    final theme = XpTheme.of(context), p = theme.palette;
+    final programme = epgStatus.hasCurrentMetadata ? channel.programme : null;
+    final current = programme?.isCurrent(now) ?? false;
+    return XpSurface(
+        padding: EdgeInsets.zero,
+        child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              ClipRRect(
+                  borderRadius:
+                      const BorderRadius.vertical(top: Radius.circular(15)),
+                  child: AspectRatio(
+                      aspectRatio: 16 / 9,
+                      child: Stack(fit: StackFit.expand, children: [
+                        XpArtwork(channel: channel),
+                        const DecoratedBox(
+                            decoration: BoxDecoration(
+                                gradient: LinearGradient(
+                                    begin: Alignment.topCenter,
+                                    end: Alignment.bottomCenter,
+                                    colors: [
+                              Colors.transparent,
+                              Color(0xcc07100b)
+                            ]))),
+                        Positioned.fill(
+                            child: Semantics(
+                                button: true,
+                                label: '观看 ${channel.name}',
+                                child: Material(
+                                    color: Colors.transparent,
+                                    child: InkWell(
+                                        onTap: onPlay,
+                                        focusColor: p.accentWash,
+                                        hoverColor: p.accentWash,
+                                        child: const SizedBox.expand())))),
+                        Positioned(
+                            top: 10,
+                            left: 10,
+                            child: IgnorePointer(
+                                child: XpLiveBadge(live: !offline))),
+                        if (channel.quality != null)
+                          Positioned(
+                              top: 10,
+                              right: 8,
+                              child: IgnorePointer(
+                                  child: XpBadge(channel.quality!))),
+                        Positioned(
+                            left: 14,
+                            right: 14,
+                            bottom: 14,
+                            child: IgnorePointer(
+                                child: Text(programme?.title ?? channel.name,
+                                    maxLines: 2,
+                                    overflow: TextOverflow.ellipsis,
+                                    style: TextStyle(
+                                        fontSize: theme.isTv ? 24 : 20,
+                                        color: p.foreground,
+                                        fontWeight: FontWeight.w500)))),
+                      ]))),
+              Padding(
+                  padding: const EdgeInsets.fromLTRB(14, 10, 8, 14),
+                  child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Row(children: [
+                          Expanded(child: XpChannelIdentity(channel: channel)),
+                          if (onDetails != null)
+                            XpIconButton(
+                                icon: XpSymbol.info,
+                                label: '查看 ${channel.name} 节目',
+                                onPressed: onDetails),
+                          XpFavouriteButton(
+                              channelName: channel.name,
+                              value: favourite,
+                              onChanged: onFavouriteChanged)
+                        ]),
+                        if (programme == null) ...[
+                          const SizedBox(height: 2),
+                          Text(
+                              epgStatus == XpEpgStatus.stale
+                                  ? '节目单已过期'
+                                  : '暂无节目单',
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
+                              style: TextStyle(
+                                  fontSize: theme.smallSize, color: p.muted)),
+                        ],
+                        if (programme != null && programme.hasValidRange) ...[
+                          if (current) ...[
+                            const SizedBox(height: 12),
+                            XpProgress(
+                                value: programme.progressAt(now)!,
+                                label: '${programme.title} 节目进度')
+                          ],
+                          const SizedBox(height: 9),
+                          Text(
+                              '${xpTime(programme.start)} — ${xpTime(programme.end)}',
+                              style: TextStyle(
+                                  fontSize: theme.smallSize, color: p.muted)),
+                        ],
+                      ])),
+            ]));
+  }
+}
+
+class XpFeaturedChannel extends StatefulWidget {
+  const XpFeaturedChannel(
+      {super.key,
+      required this.channel,
+      required this.now,
+      required this.onPlay,
+      this.epgStatus = XpEpgStatus.ready,
+      this.favourite = false,
+      this.compact = false,
+      this.onFavouriteChanged,
+      this.onDetails,
+      this.englishTitle});
+  final XpChannelData channel;
+  final DateTime now;
+  final XpEpgStatus epgStatus;
+  final VoidCallback? onPlay, onDetails;
+  final ValueChanged<bool>? onFavouriteChanged;
+  final bool favourite;
+
+  /// 矮窗口减少装饰留白，主要播放操作保持可见。
+  final bool compact;
+  final String? englishTitle;
+  @override
+  State<XpFeaturedChannel> createState() => _XpFeaturedChannelState();
+}
+
+class _XpFeaturedChannelState extends State<XpFeaturedChannel> {
+  final _play = FocusNode(debugLabel: 'featured-play');
+  final _details = FocusNode(debugLabel: 'featured-details');
+  final _favourite = FocusNode(debugLabel: 'featured-favourite');
+
+  @override
+  void dispose() {
+    _play.dispose();
+    _details.dispose();
+    _favourite.dispose();
+    super.dispose();
+  }
+
+  KeyEventResult _onKey(FocusNode _, KeyEvent event) {
+    if (XpTheme.of(context).input != XpInputMode.directional ||
+        (event is! KeyDownEvent && event is! KeyRepeatEvent)) {
+      return KeyEventResult.ignored;
+    }
+    final key = event.logicalKey;
+    final FocusNode? target;
+    if (_favourite.hasFocus && key == LogicalKeyboardKey.arrowDown) {
+      target = _play;
+    } else if (_play.hasFocus && key == LogicalKeyboardKey.arrowRight) {
+      target = _details;
+    } else if (_details.hasFocus && key == LogicalKeyboardKey.arrowLeft) {
+      target = _play;
+    } else if ((_play.hasFocus || _details.hasFocus) &&
+        key == LogicalKeyboardKey.arrowUp) {
+      target = _favourite;
+    } else {
+      return KeyEventResult.ignored;
+    }
+    if (target.context == null || !target.canRequestFocus) {
+      return KeyEventResult.ignored;
+    }
+    target.requestFocus();
+    Scrollable.ensureVisible(target.context!,
+        duration: XpTheme.of(context).duration,
+        alignmentPolicy: key == LogicalKeyboardKey.arrowUp
+            ? ScrollPositionAlignmentPolicy.keepVisibleAtStart
+            : ScrollPositionAlignmentPolicy.keepVisibleAtEnd);
+    return KeyEventResult.handled;
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final channel = widget.channel,
+        now = widget.now,
+        epgStatus = widget.epgStatus,
+        compact = widget.compact,
+        favourite = widget.favourite,
+        onFavouriteChanged = widget.onFavouriteChanged,
+        onPlay = widget.onPlay,
+        onDetails = widget.onDetails,
+        englishTitle = widget.englishTitle;
+    final theme = XpTheme.of(context), p = theme.palette;
+    final programme = epgStatus.hasCurrentMetadata ? channel.programme : null;
+    return Focus(
+        skipTraversal: true,
+        canRequestFocus: false,
+        onKeyEvent: _onKey,
+        child: ClipRRect(
+            borderRadius: BorderRadius.circular(16),
+            child: Stack(children: [
+              Positioned.fill(
+                  child: XpArtwork(channel: channel, showPlaceholder: false)),
+              const Positioned.fill(
+                  child: DecoratedBox(
+                      decoration: BoxDecoration(
+                          gradient: LinearGradient(
+                              begin: Alignment.topRight,
+                              end: Alignment.bottomLeft,
+                              colors: [
+                    Color(0x3307100b),
+                    Color(0xef07100b)
+                  ])))),
+              Padding(
+                  padding: EdgeInsets.all(compact
+                      ? 24
+                      : theme.device == XpDevice.phone
+                          ? 22
+                          : 32),
+                  child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Row(children: [
+                          const XpLiveBadge(),
+                          const Spacer(),
+                          XpFavouriteButton(
+                              focusNode: _favourite,
+                              channelName: channel.name,
+                              value: favourite,
+                              onChanged: onFavouriteChanged)
+                        ]),
+                        SizedBox(
+                            height: compact
+                                ? 16
+                                : theme.isTv
+                                    ? 100
+                                    : 60),
+                        XpChannelIdentity(channel: channel),
+                        const SizedBox(height: 18),
+                        Text(programme?.title ?? channel.name,
+                            style: TextStyle(
+                                fontSize: compact
+                                    ? 40
+                                    : theme.isTv
+                                        ? 60
+                                        : theme.device == XpDevice.phone
+                                            ? 36
+                                            : 44,
+                                color: p.foreground,
+                                fontWeight: FontWeight.w600,
+                                height: 1.2,
+                                letterSpacing: -1)),
+                        if (englishTitle != null && programme != null)
+                          Padding(
+                              padding: const EdgeInsets.only(top: 6),
+                              child: Text(englishTitle,
+                                  style: TextStyle(
+                                      fontSize: theme.isTv ? 32 : 24,
+                                      fontFamily: 'serif',
+                                      fontStyle: FontStyle.italic,
+                                      color: p.muted))),
+                        const SizedBox(height: 16),
+                        Text(
+                            programme?.subtitle ??
+                                (programme == null
+                                    ? (epgStatus == XpEpgStatus.stale
+                                        ? '节目单已过期 · 频道仍可播放'
+                                        : '暂无节目单 · 频道仍可播放')
+                                    : ''),
+                            style: TextStyle(
+                                color: p.muted, fontSize: theme.bodySize)),
+                        const SizedBox(height: 22),
+                        Wrap(spacing: 10, runSpacing: 10, children: [
+                          XpButton(
+                              label: '立即观看',
+                              focusNode: _play,
+                              icon: XpSymbol.play,
+                              onPressed: onPlay),
+                          if (onDetails != null && programme != null)
+                            XpButton(
+                                label: '节目详情',
+                                focusNode: _details,
+                                onPressed: onDetails,
+                                variant: XpButtonVariant.ghost)
+                        ]),
+                        if (programme != null && programme.isCurrent(now)) ...[
+                          const SizedBox(height: 24),
+                          Text(
+                              '${xpTime(programme.start)} — ${xpTime(programme.end)}',
+                              style: TextStyle(
+                                  color: p.muted, fontSize: theme.smallSize)),
+                          const SizedBox(height: 12),
+                          XpProgress(value: programme.progressAt(now)!)
+                        ],
+                      ])),
+            ])));
+  }
+}
+
+class XpSectionHeading extends StatelessWidget {
+  const XpSectionHeading(
+      {super.key, required this.title, this.actionLabel, this.onAction});
+  final String title;
+  final String? actionLabel;
+  final VoidCallback? onAction;
+  @override
+  Widget build(BuildContext context) {
+    final theme = XpTheme.of(context);
+    return Row(children: [
+      Expanded(
+          child: Text(title,
+              style: TextStyle(
+                  fontSize: theme.titleSize, fontWeight: FontWeight.w500))),
+      if (actionLabel != null)
+        XpButton(
+            label: actionLabel!,
+            onPressed: onAction,
+            variant: XpButtonVariant.ghost)
+    ]);
+  }
+}

@@ -1,0 +1,40 @@
+{
+  "purpose": "经用户确认沿用 A 设计稿的装饰背景，不表示当前节目画面。",
+  "images": [
+    {
+      "name": "forest",
+      "path": "assets/backdrops/forest.jpg",
+      "source": "https://images.unsplash.com/photo-1441974231531-c6227db76b6e",
+      "purpose": "频道缺少真实节目图片时的装饰背景",
+      "sha256": "e0680194f777d1ff2a8e927317acd516fdcc760f1a18062159cf246d418f4ccc"
+    },
+    {
+      "name": "mountain",
+      "path": "assets/backdrops/mountain.jpg",
+      "source": "https://images.unsplash.com/photo-1464822759023-fed622ff2c3b",
+      "purpose": "频道缺少真实节目图片时的装饰背景",
+      "sha256": "0ce66375d676f9c6ef6d79f17b55da31f4bac69c2a0a29f9a7fbfad39087fea3"
+    },
+    {
+      "name": "ocean",
+      "path": "assets/backdrops/ocean.jpg",
+      "source": "https://images.unsplash.com/photo-1518837695005-2083093ee35b",
+      "purpose": "频道缺少真实节目图片时的装饰背景",
+      "sha256": "d0ce8cb316687641b925fe8cbe26cc8c2fe8e65f4e2ff83a26de7c3a34a4a6f1"
+    },
+    {
+      "name": "city",
+      "path": "assets/backdrops/city.jpg",
+      "source": "https://images.unsplash.com/photo-1519501025264-65ba15a82390",
+      "purpose": "频道缺少真实节目图片时的装饰背景",
+      "sha256": "1b12238a3c14988ef54ed5088d8e8af740d3db2767143a7083a4465dcb3246dd"
+    },
+    {
+      "name": "sport",
+      "path": "assets/backdrops/sport.jpg",
+      "source": "https://images.unsplash.com/photo-1574629810360-7efbbe195018",
+      "purpose": "频道缺少真实节目图片时的装饰背景",
+      "sha256": "afe3e0844cd20bcbb1d7eec9c38bb640dfbc92f9c0ccf48ba46b4b93d4d9efe0"
+    }
+  ]
+}

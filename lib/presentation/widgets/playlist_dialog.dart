@@ -1,371 +1,234 @@
-import 'package:flutter/material.dart';
-import 'package:xplayer/data/models/playlist_model.dart';
-import 'package:xplayer/data/repositories/playlist_repository.dart';
-import 'package:xplayer/shared/components/x_text_button.dart';
-import 'package:xplayer/utils/toast.dart';
-import 'package:xplayer/localization/app_localizations.dart';
-import 'package:flutter/services.dart';
 import 'dart:io';
 import 'package:file_picker/file_picker.dart';
+import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:path/path.dart' as p;
 import 'package:path_provider/path_provider.dart';
+import 'package:xplayer/data/models/playlist_model.dart';
+import 'package:xplayer/data/repositories/playlist_repository.dart';
+import 'package:xplayer/localization/app_localizations.dart';
+import 'package:xplayer_ui/xplayer_ui.dart';
 
 typedef OnSuccessCallback = void Function(Playlist playlist);
 
 class PlaylistDialog extends StatefulWidget {
+  const PlaylistDialog({
+    super.key,
+    this.initialPlaylist,
+    this.isNew = false,
+    this.onSuccess,
+  });
   final Playlist? initialPlaylist;
   final bool isNew;
   final OnSuccessCallback? onSuccess;
-
-  const PlaylistDialog(
-      {Key? key, this.initialPlaylist, this.isNew = false, this.onSuccess})
-      : super(key: key);
-
   @override
   State<PlaylistDialog> createState() => _PlaylistDialogState();
 }
 
 class _PlaylistDialogState extends State<PlaylistDialog> {
-  late final TextEditingController _nameController;
-  late final TextEditingController _urlController;
-
-  late final FocusNode _nameFocus;
-  late final FocusNode _urlFocus;
-  late final FocusNode _cancelFocus;
-  late final FocusNode _okFocus;
-  late final FocusNode _listenerFocus;
-  late final FocusNode _pickFocus;
-
-  final _nameOrder = const NumericFocusOrder(1.0);
-  final _urlOrder = const NumericFocusOrder(2.0);
-  final _cancelOrder = const NumericFocusOrder(3.0);
-  final _okOrder = const NumericFocusOrder(4.0);
-  final _pickOrder = const NumericFocusOrder(2.5);
-
-  final PlaylistRepository _repository = PlaylistRepository();
-
-  @override
-  void initState() {
-    super.initState();
-    _nameController =
-        TextEditingController(text: widget.initialPlaylist?.name ?? '');
-    _urlController =
-        TextEditingController(text: widget.initialPlaylist?.url ?? '');
-
-    _nameFocus = FocusNode();
-    _urlFocus = FocusNode();
-    _cancelFocus = FocusNode();
-    _okFocus = FocusNode();
-    _listenerFocus = FocusNode();
-    _pickFocus = FocusNode();
-
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      if (mounted) {
-        _listenerFocus.requestFocus();
-        _nameFocus.requestFocus();
-      }
-    });
-  }
-
+  late final _name = TextEditingController(
+    text: widget.initialPlaylist?.name ?? '',
+  );
+  late final _url = TextEditingController(
+    text: widget.initialPlaylist?.url ?? '',
+  );
+  late final _epg = TextEditingController(
+    text: widget.initialPlaylist?.epgUrl ?? '',
+  );
+  final _repository = PlaylistRepository();
+  bool _saving = false;
+  String? _error;
   @override
   void dispose() {
-    _nameController.dispose();
-    _urlController.dispose();
-    _nameFocus.dispose();
-    _urlFocus.dispose();
-    _cancelFocus.dispose();
-    _okFocus.dispose();
-    _listenerFocus.dispose();
-    _pickFocus.dispose();
+    _name.dispose();
+    _url.dispose();
+    _epg.dispose();
     super.dispose();
   }
 
-  Future<Playlist> _addPlaylist(String name, String url) async {
-    final newPlaylist = Playlist(name: name, url: url);
-    return await _repository.insertPlaylist(newPlaylist);
+  bool _http(String value) {
+    final uri = Uri.tryParse(value);
+    return uri != null &&
+        ['http', 'https'].contains(uri.scheme) &&
+        uri.host.isNotEmpty;
   }
 
-  Future<Playlist> _updatePlaylist(Playlist playlist) async {
-    await _repository.updatePlaylist(playlist);
-    return playlist;
-  }
-
-  void _handleKey(RawKeyEvent event) {
-    if (event is! RawKeyDownEvent) return;
-    final key = event.logicalKey;
-    final primary = FocusManager.instance.primaryFocus;
-
-    if (key == LogicalKeyboardKey.arrowDown) {
-      if (primary == _nameFocus) {
-        _urlFocus.requestFocus();
-      } else if (primary == _urlFocus) {
-        _pickFocus.requestFocus();
-      } else if (primary == _cancelFocus) {
-        _okFocus.requestFocus();
-      } else if (primary == _pickFocus) {
-        _cancelFocus.requestFocus();
-      }
-    } else if (key == LogicalKeyboardKey.arrowUp) {
-      if (primary == _okFocus) {
-        _cancelFocus.requestFocus();
-      } else if (primary == _cancelFocus) {
-        _pickFocus.requestFocus();
-      } else if (primary == _urlFocus) {
-        _nameFocus.requestFocus();
-      } else if (primary == _pickFocus) {
-        _urlFocus.requestFocus();
-      }
-    } else if (key == LogicalKeyboardKey.enter ||
-        key == LogicalKeyboardKey.select) {
-      if (primary == _okFocus) {
-        _onSubmit();
-      } else if (primary == _cancelFocus) {
-        Navigator.of(context).pop();
-      } else if (_pickFocus.hasFocus) {
-        _pickLocalM3u();
-      }
-    }
-  }
-
-  void _onSubmit() async {
-    final newPlaylist = Playlist(
-      id: widget.initialPlaylist?.id ?? DateTime.now().millisecondsSinceEpoch,
-      name: _nameController.text.trim(),
-      url: _urlController.text.trim(),
-    );
-
-    if (newPlaylist.name.isEmpty || newPlaylist.url.isEmpty) {
-      showToast(AppLocalizations.of(context)!.nameAndUrlOrFileRequired);
+  Future<void> _save() async {
+    if (_saving) return;
+    final name = _name.text.trim(),
+        url = _url.text.trim(),
+        epg = _epg.text.trim();
+    final local = Uri.tryParse(url)?.scheme == 'file' || p.isAbsolute(url);
+    if (name.isEmpty ||
+        (!_http(url) && !local) ||
+        (epg.isNotEmpty && !_http(epg))) {
+      setState(
+        () => _error = name.isEmpty
+            ? '请填写列表名称。'
+            : (!_http(url) && !local)
+            ? '请输入有效的 http / https 地址，或选择本地 M3U 文件。'
+            : '节目单地址需要使用 http 或 https。',
+      );
       return;
     }
-
-    // 重名校验:不允许与已有播放列表同名(编辑时排除自己)
-    final existing = await _repository.getAllPlaylists();
-    final dup = existing.any((p) =>
-        p.name.trim() == newPlaylist.name &&
-        p.id != widget.initialPlaylist?.id);
-    if (dup) {
-      if (!mounted) return;
-      showToast(AppLocalizations.of(context)!.playlistNameExists);
-      return;
-    }
-
+    setState(() {
+      _saving = true;
+      _error = null;
+    });
     try {
-      Playlist playlist;
-      if (widget.isNew) {
-        playlist = await _addPlaylist(newPlaylist.name, newPlaylist.url);
-      } else {
-        playlist = await _updatePlaylist(newPlaylist);
+      final existing = await _repository.getAllPlaylists();
+      if (existing.any(
+        (p) => p.name.trim() == name && p.id != widget.initialPlaylist?.id,
+      )) {
+        throw StateError('已存在同名列表，请使用其他名称。');
       }
+      final value = Playlist(
+        id: widget.initialPlaylist?.id,
+        name: name,
+        url: url,
+        epgUrl: epg,
+        createdAt: widget.initialPlaylist?.createdAt,
+        updatedAt: DateTime.now(),
+      );
+      final saved = widget.isNew
+          ? await _repository.insertPlaylist(value)
+          : await (() async {
+              await _repository.updatePlaylist(value);
+              return value;
+            })();
+      if (!mounted) return;
       Navigator.of(context).pop();
-      widget.onSuccess?.call(playlist);
-    } catch (e) {
-      showToast(e.toString());
+      widget.onSuccess?.call(saved);
+    } catch (error) {
+      if (mounted) {
+        setState(
+          () => _error = error is StateError ? error.message : '保存失败，请重试。',
+        );
+      }
+    } finally {
+      if (mounted) setState(() => _saving = false);
     }
   }
 
-  Future<void> _pickLocalM3u() async {
+  Future<void> _pick() async {
     try {
       final result = await FilePicker.platform.pickFiles(
         type: FileType.custom,
         allowedExtensions: ['m3u', 'm3u8'],
       );
       if (result == null || result.files.isEmpty) return;
-
       final picked = result.files.single;
-      final filePath = picked.path;
-
-      // 将文件复制到应用文档目录，保证长期可访问
       final docs = await getApplicationDocumentsDirectory();
-      final targetDir = Directory(p.join(docs.path, 'm3u'));
-      if (!await targetDir.exists()) {
-        await targetDir.create(recursive: true);
-      }
-      final originalName = p.basename(
-          filePath ?? (picked.name.isNotEmpty ? picked.name : 'playlist.m3u'));
-      final baseName = p.basenameWithoutExtension(originalName).isEmpty
-          ? 'playlist'
-          : p.basenameWithoutExtension(originalName);
-      final ext = p.extension(originalName).isEmpty
-          ? '.m3u'
-          : p.extension(originalName);
-      final ts = DateTime.now().millisecondsSinceEpoch;
-      final safeName = '${baseName}_$ts$ext';
-      final targetPath = p.join(targetDir.path, safeName);
-      if (filePath != null) {
-        final sourceFile = File(filePath);
-        await sourceFile.copy(targetPath);
+      final directory = Directory(p.join(docs.path, 'm3u'));
+      await directory.create(recursive: true);
+      final target = p.join(
+        directory.path,
+        '${DateTime.now().microsecondsSinceEpoch}_${p.basename(picked.name)}',
+      );
+      if (picked.path != null) {
+        await File(picked.path!).copy(target);
       } else if (picked.bytes != null) {
-        final out = File(targetPath);
-        await out.writeAsBytes(picked.bytes!);
+        await File(target).writeAsBytes(picked.bytes!);
       } else {
-        throw Exception('No readable content from picker.');
+        throw StateError('unreadable');
       }
-
-      final fileUri = Uri.file(targetPath).toString();
-      setState(() {
-        _urlController.text = fileUri; // 使用 file:// URL
-      });
-    } catch (e) {
-      showToast('${AppLocalizations.of(context)!.loadingFailed}: $e');
+      if (mounted) {
+        setState(() {
+          _url.text = Uri.file(target).toString();
+          _error = null;
+        });
+      }
+    } catch (_) {
+      if (mounted) setState(() => _error = '无法读取文件，请重新选择。');
     }
   }
 
+  Widget _field(Widget child) => Focus(
+    skipTraversal: true,
+    canRequestFocus: false,
+    onKeyEvent: (node, event) {
+      if (event is KeyDownEvent &&
+          event.logicalKey == LogicalKeyboardKey.arrowDown) {
+        FocusScope.of(context).nextFocus();
+        return KeyEventResult.handled;
+      }
+      if (event is KeyDownEvent &&
+          event.logicalKey == LogicalKeyboardKey.arrowUp) {
+        FocusScope.of(context).previousFocus();
+        return KeyEventResult.handled;
+      }
+      return KeyEventResult.ignored;
+    },
+    child: child,
+  );
   @override
   Widget build(BuildContext context) {
-    return RawKeyboardListener(
-      focusNode: _listenerFocus,
-      onKey: _handleKey,
-      child: AlertDialog(
-        title: Text(
-          widget.isNew
-              ? AppLocalizations.of(context)!.addPlaylist
-              : AppLocalizations.of(context)!.editPlaylist,
-          style: const TextStyle(color: Colors.white),
-        ),
-        backgroundColor: const Color.fromRGBO(34, 34, 34, 1),
-        content: FocusTraversalGroup(
+    final l = AppLocalizations.of(context)!;
+    return PopScope(
+      canPop: !_saving,
+      child: XpConfirmDialog(
+        title: widget.isNew ? l.addPlaylist : l.editPlaylist,
+        confirmLabel: widget.isNew ? l.add : l.save,
+        loading: _saving,
+        onConfirm: _save,
+        onCancel: () => Navigator.of(context).pop(),
+        child: FocusTraversalGroup(
           policy: OrderedTraversalPolicy(),
           child: Column(
             mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
-              FocusTraversalOrder(
-                order: _nameOrder,
-                child: Focus(
-                  onKey: (node, event) {
-                    if (event is RawKeyDownEvent &&
-                        event.logicalKey == LogicalKeyboardKey.arrowDown) {
-                      _urlFocus.requestFocus();
-                      return KeyEventResult.handled;
-                    }
-                    return KeyEventResult.ignored;
-                  },
-                  child: TextField(
-                    focusNode: _nameFocus,
-                    decoration: InputDecoration(
-                      labelText: AppLocalizations.of(context)!.name,
-                      labelStyle: const TextStyle(color: Colors.white),
-                    ),
-                    controller: _nameController,
-                    autofocus: true,
-                    cursorColor: Colors.white,
-                    style: const TextStyle(color: Colors.white),
-                    enableInteractiveSelection: false,
-                    textInputAction: TextInputAction.next,
-                    onEditingComplete: () => _urlFocus.requestFocus(),
-                  ),
+              _field(
+                XpTextField(
+                  key: const Key('playlist-name'),
+                  controller: _name,
+                  label: l.name,
+                  autofocus: true,
+                  enabled: !_saving,
                 ),
               ),
-              const SizedBox(height: 8),
-              FocusTraversalOrder(
-                order: _urlOrder,
-                child: Focus(
-                  onKey: (node, event) {
-                    if (event is RawKeyDownEvent) {
-                      if (event.logicalKey == LogicalKeyboardKey.arrowDown) {
-                        _pickFocus.requestFocus();
-                        return KeyEventResult.handled;
-                      } else if (event.logicalKey ==
-                          LogicalKeyboardKey.arrowUp) {
-                        _nameFocus.requestFocus();
-                        return KeyEventResult.handled;
-                      }
-                    }
-                    return KeyEventResult.ignored;
-                  },
-                  child: TextField(
-                    focusNode: _urlFocus,
-                    decoration: InputDecoration(
-                      labelText: AppLocalizations.of(context)!.url,
-                      labelStyle: const TextStyle(color: Colors.white),
-                    ),
-                    controller: _urlController,
-                    style: const TextStyle(color: Colors.white),
-                    enableInteractiveSelection: false,
-                    textInputAction: TextInputAction.done,
-                    onEditingComplete: () => _cancelFocus.requestFocus(),
-                  ),
+              const SizedBox(height: 16),
+              _field(
+                XpTextField(
+                  key: const Key('playlist-url'),
+                  controller: _url,
+                  label: '列表地址',
+                  hint: 'https://example.com/live.m3u',
+                  keyboardType: TextInputType.url,
+                  enabled: !_saving,
                 ),
               ),
-              const SizedBox(height: 8),
-              FocusTraversalOrder(
-                order: _pickOrder,
-                child: Focus(
-                  focusNode: _pickFocus,
-                  onFocusChange: (_) => setState(() {}),
-                  onKey: (node, event) {
-                    if (event is RawKeyDownEvent) {
-                      if (event.logicalKey == LogicalKeyboardKey.arrowDown) {
-                        _cancelFocus.requestFocus();
-                        return KeyEventResult.handled;
-                      } else if (event.logicalKey ==
-                          LogicalKeyboardKey.arrowUp) {
-                        _urlFocus.requestFocus();
-                        return KeyEventResult.handled;
-                      }
-                    }
-                    return KeyEventResult.ignored;
-                  },
-                  child: Align(
-                    alignment: Alignment.centerLeft,
-                    child: Builder(builder: (context) {
-                      final bool isFocused = _pickFocus.hasFocus;
-                      return TextButton.icon(
-                        onPressed: _pickLocalM3u,
-                        icon: Icon(
-                          Icons.folder_open,
-                          color: isFocused ? Colors.white : Colors.white70,
-                        ),
-                        label: Text(
-                          AppLocalizations.of(context)!.pickLocalM3u,
-                          style: TextStyle(
-                            color: isFocused ? Colors.white : Colors.white70,
-                            fontWeight:
-                                isFocused ? FontWeight.w600 : FontWeight.w400,
-                          ),
-                        ),
-                        style: TextButton.styleFrom(
-                          foregroundColor:
-                              isFocused ? Colors.white : Colors.white70,
-                          backgroundColor: isFocused
-                              ? Colors.white.withOpacity(0.12)
-                              : Colors.transparent,
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(20),
-                          ),
-                          padding: const EdgeInsets.symmetric(
-                              horizontal: 16.0, vertical: 8.0),
-                        ),
-                      );
-                    }),
-                  ),
+              const SizedBox(height: 12),
+              XpButton(
+                label: l.pickLocalM3u,
+                icon: XpSymbol.sources,
+                onPressed: _saving ? null : _pick,
+                variant: XpButtonVariant.secondary,
+              ),
+              const SizedBox(height: 18),
+              _field(
+                XpTextField(
+                  key: const Key('playlist-epg'),
+                  controller: _epg,
+                  label: '节目单地址（可选）',
+                  hint: 'XMLTV / XMLTV.gz',
+                  helper: '留空时会读取 M3U 文件头中的节目单地址。',
+                  keyboardType: TextInputType.url,
+                  enabled: !_saving,
                 ),
               ),
+              if (_error != null)
+                Padding(
+                  padding: const EdgeInsets.only(top: 16),
+                  child: XpNotice(
+                    title: '保存未完成',
+                    description: _error!,
+                    tone: XpTone.error,
+                  ),
+                ),
             ],
           ),
         ),
-        actions: [
-          FocusTraversalOrder(
-            order: _cancelOrder,
-            child: XTextButton(
-              focusNode: _cancelFocus,
-              text: AppLocalizations.of(context)!.cancel,
-              onArrowUp: () => _pickFocus.requestFocus(),
-              onPressed: () => Navigator.of(context).pop(),
-            ),
-          ),
-          FocusTraversalOrder(
-            order: _okOrder,
-            child: XTextButton(
-              focusNode: _okFocus,
-              text: widget.isNew
-                  ? AppLocalizations.of(context)!.add
-                  : AppLocalizations.of(context)!.save,
-              type: XTextButtonType.primary,
-              onPressed: _onSubmit,
-            ),
-          ),
-        ],
       ),
     );
   }

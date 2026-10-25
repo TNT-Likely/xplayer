@@ -1,0 +1,100 @@
+{
+  "version": "1.0.0",
+  "primaryDirection": "A",
+  "preservedDirections": [
+    "B",
+    "C"
+  ],
+  "confirmedOn": "2026-10-25",
+  "preview": "https://xplayer-design-studio-oct25.ivory-fox-4792.chatgpt.site",
+  "sourceCommit": "f85733a91d12fc4eee85fac712cca16d11c4e6c3",
+  "figma": {
+    "fileKey": "g3InwuNMSszxmeHHWGKd2R",
+    "url": "https://www.figma.com/design/g3InwuNMSszxmeHHWGKd2R",
+    "status": "complete",
+    "primaryFrames": 74,
+    "coreFrames": 32,
+    "boundaryFrames": 42,
+    "mapping": "figma/state.json",
+    "retainedAlternatives": "B/C 概念与原有 HTML"
+  },
+  "prototype": {
+    "entry": "prototype/index.html",
+    "standalone": "prototype/preview.html",
+    "styles": [
+      "nocturne",
+      "paper",
+      "signal"
+    ],
+    "devices": [
+      "phone",
+      "ipad",
+      "desktop",
+      "tv"
+    ],
+    "pages": [
+      "home",
+      "channels",
+      "guide",
+      "favorites",
+      "sources",
+      "remote",
+      "settings"
+    ],
+    "scenarios": 21,
+    "resources": "prototype/resources.html"
+  },
+  "icons": {
+    "count": 28,
+    "folder": "assets/icons",
+    "size": 24,
+    "stroke": 1.65
+  },
+  "imagery": [
+    {
+      "name": "forest",
+      "path": "assets/imagery/forest.jpg",
+      "source": "https://images.unsplash.com/photo-1441974231531-c6227db76b6e",
+      "purpose": "设计演示素材",
+      "sha256": "e0680194f777d1ff2a8e927317acd516fdcc760f1a18062159cf246d418f4ccc"
+    },
+    {
+      "name": "mountain",
+      "path": "assets/imagery/mountain.jpg",
+      "source": "https://images.unsplash.com/photo-1464822759023-fed622ff2c3b",
+      "purpose": "设计演示素材",
+      "sha256": "0ce66375d676f9c6ef6d79f17b55da31f4bac69c2a0a29f9a7fbfad39087fea3"
+    },
+    {
+      "name": "ocean",
+      "path": "assets/imagery/ocean.jpg",
+      "source": "https://images.unsplash.com/photo-1518837695005-2083093ee35b",
+      "purpose": "设计演示素材",
+      "sha256": "d0ce8cb316687641b925fe8cbe26cc8c2fe8e65f4e2ff83a26de7c3a34a4a6f1"
+    },
+    {
+      "name": "city",
+      "path": "assets/imagery/city.jpg",
+      "source": "https://images.unsplash.com/photo-1519501025264-65ba15a82390",
+      "purpose": "设计演示素材",
+      "sha256": "1b12238a3c14988ef54ed5088d8e8af740d3db2767143a7083a4465dcb3246dd"
+    },
+    {
+      "name": "sport",
+      "path": "assets/imagery/sport.jpg",
+      "source": "https://images.unsplash.com/photo-1574629810360-7efbbe195018",
+      "purpose": "设计演示素材",
+      "sha256": "afe3e0844cd20bcbb1d7eec9c38bb640dfbc92f9c0ccf48ba46b4b93d4d9efe0"
+    }
+  ],
+  "workspace": {
+    "branch": "feature/xplayer-design-resources",
+    "isolated": true
+  },
+  "validation": "QA.md",
+  "package": {
+    "file": "xplayer-design-resources-v1.zip",
+    "entry": "xplayer-v1/prototype/index.html",
+    "resources": "xplayer-v1/prototype/resources.html"
+  }
+}

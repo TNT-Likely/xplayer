@@ -1,0 +1,28 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+  <meta name="theme-color" content="#f2f3ef"><meta name="description" content="XPlayer 四端交互设计实验室。探索静夜、留白和信号三种设计方向。">
+  <title>XPlayer — 四端设计实验室</title>
+  <link rel="stylesheet" href="studio.css">
+</head>
+<body>
+  <header class="studio-header"><a class="studio-brand" href="./"><span class="brand-symbol">x<span>▶</span></span><b>XPlayer</b><span class="brand-divider"></span><span>Design Studio</span></a><div class="header-right"><span class="status-dot"></span><span>交互概念稿 · 01</span><a class="resources-link" href="resources.html">设计资源 ↗</a><button id="principles-button" class="text-button">设计思路 <span>↗</span></button></div></header>
+  <main class="studio-main">
+    <section class="intro"><div><div class="eyebrow">ONE PLAYER. EVERY SCREEN.</div><h1>一种 XPlayer，<span>四种观看方式。</span></h1><p>同一个熟悉的播放器，为每一块屏幕找到合适的表达。</p></div><div class="intro-side"><span>EXPLORE THE DIRECTIONS</span><span>03 视觉方向 <i>×</i> 04 设备形态</span></div></section>
+    <div class="directions" role="group" aria-label="视觉风格">
+      <button class="direction selected" data-style="nocturne" aria-pressed="true"><span class="direction-art nocturne-art"><i></i><i></i><i></i></span><span class="direction-copy"><span class="direction-name"><small>A</small><b>静夜</b><em>NOCTURNE</em><span class="recommended">主方案</span></span><span class="direction-desc">深松绿 × 薄荷 · 安静、沉浸、有呼吸感</span></span><span class="direction-check">↗</span></button>
+      <button class="direction" data-style="paper" aria-pressed="false"><span class="direction-art paper-art"><i></i><i></i><i></i></span><span class="direction-copy"><span class="direction-name"><small>B</small><b>留白</b><em>PAPER</em><span class="retained">保留</span></span><span class="direction-desc">暖白 × 钴蓝 · 清晰、轻盈、秩序感</span></span><span class="direction-check">↗</span></button>
+      <button class="direction" data-style="signal" aria-pressed="false"><span class="direction-art signal-art"><i></i><i></i><i></i></span><span class="direction-copy"><span class="direction-name"><small>C</small><b>信号</b><em>SIGNAL</em><span class="retained">保留</span></span><span class="direction-desc">石墨 × 琥珀 · 直接、紧凑、直播感</span></span><span class="direction-check">↗</span></button>
+    </div>
+    <section class="workspace" aria-label="设计预览">
+      <div class="workspace-toolbar"><div class="devices" role="group" aria-label="设备"><button data-device="phone">▯ <span>手机</span></button><button data-device="ipad">▭ <span>iPad</span></button><button data-device="desktop" class="selected">▱ <span>桌面</span></button><button data-device="tv">▣ <span>TV</span></button></div><div class="workspace-actions"><select id="page-select" aria-label="预览页面"><option value="home">首页</option><option value="channels">全部频道</option><option value="guide">节目单</option><option value="favorites">我的收藏</option><option value="sources">播放列表</option><option value="remote">手机遥控</option><option value="settings">设置</option><option value="player">播放状态</option></select><select id="state-select" aria-label="边界状态"></select><button id="overview-button" title="并排比较四端">四端总览</button><button id="standalone-button" title="在新窗口打开独立预览">独立预览 ↗</button></div></div>
+      <div class="preview-stage" id="preview-stage"><div class="frame-wrap" id="frame-wrap"><iframe id="app-frame" title="XPlayer 交互预览" src="preview.html?style=nocturne&device=desktop"></iframe></div></div>
+      <div class="preview-footer"><span><i class="status-dot"></i><span id="viewport-label">桌面 · 1440 × 960</span><span class="footer-sep">/</span><span id="scale-label">自适应缩放</span></span><span>示例频道与节目数据 · 支持点击、搜索、收藏及键盘操作</span><button id="copy-button">复制当前链接 ⤴</button></div>
+    </section>
+    <section class="device-notes" id="device-notes"><div class="note-index">DESIGNED FOR<br><b id="note-device">DESKTOP</b></div><div><b id="note-title">把空间留给效率</b><p id="note-body">常驻侧栏、即时搜索、多列频道和完整节目单。鼠标与键盘都能快速到达内容。</p></div><div class="note-shortcut" id="note-shortcut"><kbd>/</kbd> 搜索 <kbd>Esc</kbd> 返回 <kbd>Space</kbd> 播放</div></section>
+    <section class="principles" id="principles"><div class="principles-intro"><span class="eyebrow">THE DESIGN PRINCIPLE</span><h2>熟悉的体验，<br>合适的布局。</h2><p>建议复用设计语言和组件，再按输入方式与观看距离适配布局。比例是设计取舍，不是代码复用率。</p><div class="reuse-meter"><span></span><i></i></div><div class="meter-legend"><span>约 70% 共同语言</span><span>约 30% 场景适配</span></div></div><div class="principles-table"><div><b>维度</b><b>保持一致</b><b>因端而变</b></div><div><span>品牌与组件</span><span>颜色、字形、图标、频道卡片、播放状态</span><span>字号、间距、触控区域和内容密度</span></div><div><span>信息结构</span><span>首页、频道、节目单、收藏、播放列表</span><span>底部导航 / 窄侧栏 / 完整侧栏 / TV 导航</span></div><div><span>观看体验</span><span>播放、收藏、音轨、清晰度、节目进度</span><span>手机全屏 / iPad 双栏 / 桌面浮窗 / TV 沉浸</span></div><div><span>输入方式</span><span>明确的状态反馈、可预测的返回路径</span><span>手势触控 / 鼠标键盘 / 遥控器方向键</span></div></div></section>
+    <footer class="studio-bottom"><span>XPLAYER / DESIGN EXPLORATION 2026</span><span>A 主方案已确认 · B/C 作为备选保留。</span></footer>
+  </main><div id="studio-toast" class="studio-toast" role="status"></div>
+  <script src="states.js"></script><script src="studio.js"></script>
+</body></html>

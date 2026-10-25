@@ -2,18 +2,18 @@ import 'dart:io';
 import 'package:flutter/foundation.dart' show kDebugMode;
 
 import 'package:flutter/material.dart';
+import 'package:xplayer_ui/xplayer_ui.dart';
 import 'package:cached_network_image/cached_network_image.dart';
-import 'package:xplayer/presentation/widgets/bg_wrapper.dart';
 import 'package:flutter/services.dart';
 import 'package:xplayer/data/models/channel_model.dart';
 import 'package:xplayer/data/models/programme_model.dart';
 import 'package:xplayer/presentation/widgets/player_actions_widget.dart';
 import 'package:xplayer/presentation/widgets/player_dialogs.dart';
 import 'package:xplayer/presentation/widgets/operation_hint_dialog.dart';
-import 'package:xplayer/shared/components/x_text_button.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:xplayer/providers/media_provider.dart';
 import 'package:xplayer/providers/global_provider.dart';
+import 'package:xplayer/providers/remote_provider.dart';
 import 'package:xplayer/utils/logger_util.dart';
 import 'package:xplayer/utils/hls_probe.dart';
 import 'package:xplayer/services/player/stall_detector.dart';
@@ -53,9 +53,12 @@ class PlayerScreen extends StatefulWidget {
 class _PlayerScreenState extends State<PlayerScreen>
     with WidgetsBindingObserver {
   late XPlayerBackend _backend;
+  RemoteProvider? _remote;
   bool _hasBackend = false; // _backend 是否已赋值(首次加载前为 false,避免对 late 字段读前初始化)
   bool _controlsVisible = false;
+  Route<dynamic>? _controlsRoute;
   final FocusNode _focusNode = FocusNode();
+  final FocusNode _retryFocusNode = FocusNode();
   late Channel _channel;
   late int _currentIndex;
   late List<Channel> _channels;
@@ -178,6 +181,8 @@ class _PlayerScreenState extends State<PlayerScreen>
   void initState() {
     super.initState();
     WidgetsBinding.instance.addObserver(this);
+    _remote = context.read<RemoteProvider>();
+    _remote!.playPauseHandler = _remotePlayPause;
     final mediaProvider = Provider.of<MediaProvider>(context, listen: false);
     _isTv = Provider.of<GlobalProvider>(context, listen: false).isTV;
 
@@ -279,8 +284,28 @@ class _PlayerScreenState extends State<PlayerScreen>
     }
   }
 
+  void _remotePlayPause() {
+    if (!_hasBackend || !mounted) return;
+    if (_playState == PlayState.failed) {
+      _initializePlayer();
+      return;
+    }
+    final playing =
+        _backend.notifier.value.isPlaying ||
+        _backend.notifier.value.isBuffering;
+    _pauseIntended = playing;
+    if (playing) {
+      _backend.pause();
+    } else {
+      _backend.play();
+    }
+    setState(() {});
+  }
+
   @override
   void dispose() {
+    if (_remote?.playPauseHandler == _remotePlayPause)
+      _remote!.playPauseHandler = null;
     ++_loadToken;
     _retryTimer?.cancel();
     _bufferingTimer?.cancel();
@@ -299,6 +324,7 @@ class _PlayerScreenState extends State<PlayerScreen>
     useNativeEngine.removeListener(_onRenderModeChanged);
     WidgetsBinding.instance.removeObserver(this);
     _focusNode.dispose();
+    _retryFocusNode.dispose();
     _infoScroll.dispose();
     _infoFocus.dispose();
     FocusManager.instance.removeListener(_resetAutoCloseOnFocus);
@@ -477,8 +503,35 @@ class _PlayerScreenState extends State<PlayerScreen>
       });
     } else {
       Logger.error('播放视频失败(重试 $_retryTimes 次仍失败): ${_channel.name} | $_sourceLink');
-      setState(() {
-        _playState = PlayState.failed;
+      _showPlaybackFailure();
+    }
+  }
+
+  void _showPlaybackFailure() {
+    _retryTimer?.cancel();
+    _bufferingTimer?.cancel();
+    _stableTimer?.cancel();
+    _bufShowTimer?.cancel();
+    _bufHideTimer?.cancel();
+    cancelAutoCloseTimer();
+    _pauseIntended = true;
+    setState(() => _playState = PlayState.failed);
+    _updateWakelock(false);
+    if (_isTv) {
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (mounted && _playState == PlayState.failed) {
+          _retryFocusNode.requestFocus();
+        }
+      });
+    }
+    if (_hasBackend) {
+      unawaited(_backend.pause().catchError((Object _) {}));
+    }
+    // 只移除播放控制栏，避免异步失败误关用户刚打开的来源或频道面板。
+    final route = _controlsRoute;
+    if (route != null) {
+      scheduleMicrotask(() {
+        if (mounted && route.isActive) route.navigator?.removeRoute(route);
       });
     }
   }
@@ -560,9 +613,7 @@ class _PlayerScreenState extends State<PlayerScreen>
     } else {
       Logger.error('播放视频失败(卡死重连超限): ${_channel.name} | $_sourceLink');
       LogStore.instance.e('player', '✖ 卡死重连 3 次仍未恢复[$kind] $snap');
-      setState(() {
-        _playState = PlayState.failed;
-      });
+      _showPlaybackFailure();
     }
   }
 
@@ -585,6 +636,7 @@ class _PlayerScreenState extends State<PlayerScreen>
 
   void _listenToVideoController() {
     if (!_hasBackend || !mounted) return;
+    if (_playState == PlayState.failed) return;
     final value = _backend.notifier.value;
     _updateWakelock(value.isPlaying && !value.hasError);
 
@@ -617,9 +669,7 @@ class _PlayerScreenState extends State<PlayerScreen>
             } else {
               // 长缓冲重试已达上限,不再无限重载,直接标记失败
               Logger.error('播放视频失败(长时间缓冲超限): ${_channel.name} | $_sourceLink');
-              setState(() {
-                _playState = PlayState.failed;
-              });
+              _showPlaybackFailure();
             }
           }
           _isHandlingBuffering = false;
@@ -705,6 +755,12 @@ class _PlayerScreenState extends State<PlayerScreen>
 
   void _toggleControlsVisibility() {
     if (_inPip) return; // PiP 小窗里不弹操作栏
+    if (!_hasBackend ||
+        _playState == PlayState.failed ||
+        _playState == PlayState.loading ||
+        _playState == PlayState.retrying) {
+      return;
+    }
     if (_controlsVisible) {
       cancelAutoCloseTimer();
       Navigator.of(context).pop();
@@ -795,6 +851,7 @@ class _PlayerScreenState extends State<PlayerScreen>
       transitionDuration: const Duration(milliseconds: 200),
       pageBuilder: (BuildContext buildContext, Animation<double> animation,
           Animation<double> secondaryAnimation) {
+        _controlsRoute = ModalRoute.of(buildContext);
         final mediaProvider =
             Provider.of<MediaProvider>(context, listen: false);
 
@@ -866,6 +923,7 @@ class _PlayerScreenState extends State<PlayerScreen>
       FocusManager.instance.removeListener(_resetAutoCloseOnFocus);
       // 同上:不 setState,关闭控制条时不触发整页重建
       _controlsVisible = false;
+      _controlsRoute = null;
     });
   }
 
@@ -939,6 +997,19 @@ class _PlayerScreenState extends State<PlayerScreen>
   }
 
   void _handleKeyPress(RawKeyEvent event) {
+    if (_playState == PlayState.failed && const [
+      LogicalKeyboardKey.select,
+      LogicalKeyboardKey.contextMenu,
+      LogicalKeyboardKey.enter,
+      LogicalKeyboardKey.numpadEnter,
+      LogicalKeyboardKey.space,
+      LogicalKeyboardKey.arrowLeft,
+      LogicalKeyboardKey.arrowRight,
+      LogicalKeyboardKey.arrowUp,
+      LogicalKeyboardKey.arrowDown,
+    ].contains(event.logicalKey)) {
+      return;
+    }
     // 数字键选台:遥控器数字键累积输入频道号
     if (event is RawKeyDownEvent) {
       final lbl = event.logicalKey.keyLabel;
@@ -1363,62 +1434,12 @@ class _PlayerScreenState extends State<PlayerScreen>
     );
   }
 
-  Widget _buildLoadingView() {
-    final l = AppLocalizations.of(context)!;
-    final retryAttempt = _retryTimes > 0 ? _retryTimes : _bufferingRetryTimes;
-    final status =
-        retryAttempt > 0 ? l.reloadingAttempt(retryAttempt) : l.loading;
-    final logo = _channel.logo;
-    final title = _channel.name.isNotEmpty ? _channel.name : _channel.id;
-    return Center(
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          Container(
-            width: 96,
-            height: 96,
-            decoration: BoxDecoration(
-              color: Colors.white.withOpacity(0.06),
-              borderRadius: BorderRadius.circular(20),
-              border: Border.all(color: Colors.white.withOpacity(0.10)),
-            ),
-            clipBehavior: Clip.antiAlias,
-            alignment: Alignment.center,
-            child: (logo != null && logo.isNotEmpty)
-                ? Padding(
-                    padding: const EdgeInsets.all(14),
-                    child: CachedNetworkImage(
-                      imageUrl: logo,
-                      fit: BoxFit.contain,
-                      errorWidget: (_, __, ___) => const Icon(Icons.live_tv,
-                          color: Colors.white54, size: 40),
-                    ),
-                  )
-                : const Icon(Icons.live_tv, color: Colors.white54, size: 40),
-          ),
-          const SizedBox(height: 18),
-          Text(
-            title,
-            maxLines: 1,
-            overflow: TextOverflow.ellipsis,
-            style: const TextStyle(
-                color: Colors.white, fontSize: 18, fontWeight: FontWeight.w600),
-          ),
-          const SizedBox(height: 22),
-          const SizedBox(
-            width: 26,
-            height: 26,
-            child: CircularProgressIndicator(strokeWidth: 2.4),
-          ),
-          const SizedBox(height: 14),
-          Text(
-            status,
-            style: const TextStyle(color: Colors.white70, fontSize: 13),
-          ),
-        ],
-      ),
-    );
-  }
+  Widget _buildLoadingView() => XpPlayerStatusView(
+    phase: XpPlaybackPhase.connecting,
+    channelName: _channel.name,
+    onCancel: _handleBack,
+    onSwitchChannel: () => _showChannelSelectWidget(context),
+  );
 
   void _setSurfaceFullscreen() {
     if (!mounted) return;
@@ -1434,7 +1455,9 @@ class _PlayerScreenState extends State<PlayerScreen>
 
   void _setSurfaceMini() {
     final media = MediaQuery.of(context);
-    final rect = miniVideoRect(media.size, media.padding);
+    final theme = XpTheme.of(context);
+    final headerHeight = miniHeaderHeight(media.textScaler, bodySize: theme.bodySize, smallSize: theme.smallSize);
+    final rect = miniVideoRect(media.size, media.padding, headerHeight: headerHeight);
     _backend.setSurfaceBounds(rect, media.devicePixelRatio);
   }
 
@@ -1447,7 +1470,8 @@ class _PlayerScreenState extends State<PlayerScreen>
     }
     final v = _backend.notifier.value;
     final mini = Provider.of<MiniPlayerController>(context, listen: false);
-    if (miniPlayerOnExit.value && _hasBackend && v.isPlaying && !v.hasError) {
+    if (miniPlayerOnExit.value && _hasBackend &&
+        _playState != PlayState.failed && v.isPlaying && !v.hasError) {
       _handedOff = true;
       _setSurfaceMini();
       mini.enterMini(_backend, _channel, widget.favoriteChannels);
@@ -1501,78 +1525,71 @@ class _PlayerScreenState extends State<PlayerScreen>
                   !(_backend.notifier.value.isInitialized &&
                       _backend.notifier.value.aspectRatio > 0))
                 Positioned.fill(
-                  child: BgWrapper(child: const SizedBox.shrink()),
+                  child: ColoredBox(color: XpTheme.of(context).palette.background),
                 ),
-              Center(
-                child: Stack(
-                  fit: StackFit.loose,
-                  children: [
-                    if (_playState == PlayState.failed)
-                      Center(
-                        child: Column(
-                          mainAxisAlignment: MainAxisAlignment.center,
-                          children: [
-                            const Icon(
-                              Icons.cloud_off,
-                              color: Colors.white,
-                              size: 80,
-                            ),
-                            const SizedBox(height: 12),
-                            Text(
-                              AppLocalizations.of(context)!.loadingFailed,
-                              style: const TextStyle(
-                                  color: Colors.white, fontSize: 16),
-                            ),
-                            const SizedBox(height: 20),
-                            Row(
-                              mainAxisAlignment: MainAxisAlignment.center,
-                              children: [
-                                XTextButton(
-                                  text: AppLocalizations.of(context)!.retry,
-                                  type: XTextButtonType.primary,
-                                  onPressed: () {
-                                    _initializePlayer();
-                                  },
-                                ),
-                                const SizedBox(width: 16),
-                                XTextButton(
-                                  text: AppLocalizations.of(context)!.back,
-                                  onPressed: () => Navigator.of(context).pop(),
-                                ),
-                              ],
-                            ),
-                          ],
-                        ),
-                      )
-                    else if (_playState == PlayState.loading ||
-                        _playState == PlayState.retrying)
-                      _buildLoadingView()
-                    else if (_backend.notifier.value.isInitialized &&
-                        _backend.notifier.value.aspectRatio > 0)
-                      _backend.buildView()
-                    else
-                      // 控制器尚未就绪时显示加载,避免渲染未初始化播放器导致黑屏空白
-                      _buildLoadingView(),
-                    if (_playState == PlayState.buffering)
-                      Positioned.fill(
-                        child: Center(
-                          child: Column(
-                            mainAxisAlignment: MainAxisAlignment.center,
-                            children: [
-                              const CircularProgressIndicator(
-                                color: Colors.white,
-                              ),
-                              Text(
-                                AppLocalizations.of(context)!.buffering,
-                                style: const TextStyle(color: Colors.white),
-                              ),
-                            ],
-                          ),
-                        ),
-                      ),
-                  ],
+              if (_playState == PlayState.failed)
+                XpPlayerStatusView(
+                  phase: XpPlaybackPhase.error,
+                  channelName: _channel.name,
+                  onRetry: _initializePlayer,
+                  retryFocusNode: _retryFocusNode,
+                  onSwitchSource: _channel.source.length > 1
+                      ? () => _showSourceSwitcher(context)
+                      : null,
+                  onSwitchChannel: () => _showChannelSelectWidget(context),
+                )
+              else if (_playState == PlayState.loading ||
+                  _playState == PlayState.retrying)
+                _buildLoadingView()
+              else if (_backend.notifier.value.isInitialized)
+                if (_backend.notifier.value.size.isEmpty &&
+                    _audioTracks.isNotEmpty)
+                  XpPlayerStatusView(
+                    phase: XpPlaybackPhase.audioOnly,
+                    channelName: _channel.name,
+                    paused: _pauseIntended,
+                    onToggleAudio: () {
+                      final playing = !_pauseIntended;
+                      _pauseIntended = playing;
+                      if (playing) {
+                        _backend.pause();
+                      } else {
+                        _backend.play();
+                      }
+                      setState(() {});
+                    },
+                    onSwitchChannel: () => _showChannelSelectWidget(context),
+                  )
+                else
+                  _backend.buildView()
+              else
+                _buildLoadingView(),
+              if (_playState == PlayState.buffering)
+                XpPlayerStatusView(
+                  phase: XpPlaybackPhase.buffering,
+                  channelName: _channel.name,
+                  onRetry: _initializePlayer,
+                  onSwitchChannel: () => _showChannelSelectWidget(context),
+                ),
+              Positioned(
+                left: 12,
+                top: MediaQuery.paddingOf(context).top + 12,
+                child: XpIconButton(
+                  icon: XpSymbol.back,
+                  label: '返回频道',
+                  onPressed: _handleBack,
                 ),
               ),
+              if (_playState == PlayState.failed)
+                Positioned(
+                  right: 12,
+                  top: MediaQuery.paddingOf(context).top + 12,
+                  child: XpIconButton(
+                    icon: XpSymbol.info,
+                    label: '播放诊断',
+                    onPressed: () => _showStreamInfoSheet(context),
+                  ),
+                ),
               // 切台信息浮层(OSD):台标 + 频道名 + 当前/下一节目
               if (_zapOsdVisible)
                 Positioned(

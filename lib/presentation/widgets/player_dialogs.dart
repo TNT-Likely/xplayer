@@ -7,7 +7,7 @@ import 'package:xplayer/presentation/widgets/channel_source_widget.dart';
 import 'package:xplayer/presentation/widgets/quality_selector_widget.dart';
 import 'package:xplayer/presentation/widgets/audio_track_selector_widget.dart';
 import 'package:xplayer/services/player/x_player_backend.dart';
-import 'package:xplayer/shared/components/x_text_button.dart';
+import 'package:xplayer_ui/xplayer_ui.dart';
 import 'package:xplayer/localization/app_localizations.dart';
 import 'package:xplayer/services/sleep_timer.dart';
 import 'package:xplayer/utils/hls_probe.dart';
@@ -34,7 +34,7 @@ class PlayerDialogs {
                 ? MediaQuery.of(context).size.width * 0.9
                 : max(280, MediaQuery.of(context).size.width * 0.85),
             height: MediaQuery.of(context).size.height,
-            color: const Color.fromRGBO(0, 0, 0, 0.55),
+            color: XpTheme.of(context).palette.background.withValues(alpha: .96),
             child: ChannelSelectorWidget(
               currentChannel: selectedChannel,
               // 切台+关闭由调用方(player._showChannelSelectWidget)负责,
@@ -46,9 +46,10 @@ class PlayerDialogs {
       },
       transitionBuilder: (_, anim, __, child) {
         return SlideTransition(
-          position:
-              Tween(begin: const Offset(-1.0, 0.0), end: const Offset(0.0, 0.0))
-                  .animate(anim),
+          position: Tween(
+            begin: const Offset(-1.0, 0.0),
+            end: const Offset(0.0, 0.0),
+          ).animate(anim),
           child: child,
         );
       },
@@ -63,40 +64,14 @@ class PlayerDialogs {
     String link,
     Future<void> Function(String link) onSourceSwitch,
   ) {
-    showGeneralDialog(
-      context: context,
-      barrierLabel: "Barrier",
-      barrierDismissible: true,
-      barrierColor: Colors.transparent,
-      transitionDuration: const Duration(milliseconds: 200),
-      pageBuilder: (_, __, ___) {
-        return Align(
-          alignment: Alignment.centerRight,
-          child: Container(
-            width: max(200, MediaQuery.of(context).size.width * 0.3),
-            height: MediaQuery.of(context).size.height * 1.0,
-            decoration: const BoxDecoration(
-              color: Color.fromRGBO(48, 48, 48, 0.86),
-            ),
-            // SafeArea:竖屏时不被状态栏/刘海遮挡
-            child: SafeArea(
-              child: ChannelSourceWidget(
-                channel: channel,
-                link: link,
-                onSourceSwitch: onSourceSwitch,
-              ),
-            ),
-          ),
-        );
-      },
-      transitionBuilder: (_, anim, __, child) {
-        return SlideTransition(
-          position:
-              Tween(begin: const Offset(1.0, 0.0), end: const Offset(0.0, 0.0))
-                  .animate(anim),
-          child: child,
-        );
-      },
+    _rightSheet(
+      context,
+      ChannelSourceWidget(
+        channel: channel,
+        link: link,
+        onSourceSwitch: onSourceSwitch,
+      ),
+      title: AppLocalizations.of(context)!.sourceSwitch,
     );
   }
 
@@ -107,63 +82,76 @@ class PlayerDialogs {
     String? currentUrl,
     OnQualitySelectCallback onSelect,
   ) {
-    showGeneralDialog(
-      context: context,
-      barrierLabel: "Barrier",
-      barrierDismissible: true,
-      barrierColor: Colors.transparent,
-      transitionDuration: const Duration(milliseconds: 200),
-      pageBuilder: (_, __, ___) {
-        return Align(
-          alignment: Alignment.centerRight,
-          child: Container(
-            width: max(220, MediaQuery.of(context).size.width * 0.3),
-            height: MediaQuery.of(context).size.height * 1.0,
-            decoration: const BoxDecoration(
-              color: Color.fromRGBO(48, 48, 48, 0.86),
-            ),
-            child: QualitySelectorWidget(
-              variants: variants,
-              currentUrl: currentUrl,
-              onSelect: onSelect,
-            ),
-          ),
-        );
-      },
-      transitionBuilder: (_, anim, __, child) {
-        return SlideTransition(
-          position:
-              Tween(begin: const Offset(1.0, 0.0), end: const Offset(0.0, 0.0))
-                  .animate(anim),
-          child: child,
-        );
-      },
+    _rightSheet(
+      context,
+      QualitySelectorWidget(
+        variants: variants,
+        currentUrl: currentUrl,
+        onSelect: onSelect,
+      ),
+      title: AppLocalizations.of(context)!.quality,
     );
   }
 
   /// 通用右侧浮层容器(睡眠/音轨复用)。
-  static void _rightSheet(BuildContext context, Widget child) {
+  static void _rightSheet(
+    BuildContext context,
+    Widget child, {
+    required String title,
+  }) {
+    final theme = XpTheme.of(context);
     showGeneralDialog(
       context: context,
-      barrierLabel: "Barrier",
+      barrierLabel: '关闭$title',
       barrierDismissible: true,
-      barrierColor: Colors.transparent,
+      barrierColor: Colors.black.withValues(alpha: .35),
       transitionDuration: const Duration(milliseconds: 200),
-      pageBuilder: (_, __, ___) => Align(
-        alignment: Alignment.centerRight,
-        child: Container(
-          width: max(220, MediaQuery.of(context).size.width * 0.3),
-          height: MediaQuery.of(context).size.height,
-          decoration: const BoxDecoration(
-            color: Color.fromRGBO(48, 48, 48, 0.86),
+      pageBuilder: (ctx, __, ___) => SafeArea(
+        child: Padding(
+          padding: const EdgeInsets.all(16),
+          child: Align(
+            alignment: Alignment.centerRight,
+            child: ConstrainedBox(
+              constraints: BoxConstraints(maxWidth: theme.isTv ? 440 : 380),
+              child: Material(
+                color: Colors.transparent,
+                child: XpSurface(
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Row(
+                        children: [
+                          Expanded(
+                            child: Text(
+                              title,
+                              style: TextStyle(
+                                fontSize: theme.bodySize + 4,
+                                fontWeight: FontWeight.w500,
+                              ),
+                            ),
+                          ),
+                          XpIconButton(
+                            icon: XpSymbol.close,
+                            label: '关闭$title',
+                            onPressed: () => Navigator.pop(ctx),
+                          ),
+                        ],
+                      ),
+                      const SizedBox(height: 12),
+                      Flexible(child: child),
+                    ],
+                  ),
+                ),
+              ),
+            ),
           ),
-          child: child,
         ),
       ),
       transitionBuilder: (_, anim, __, child) => SlideTransition(
-        position:
-            Tween(begin: const Offset(1.0, 0.0), end: const Offset(0.0, 0.0))
-                .animate(anim),
+        position: Tween(
+          begin: const Offset(1.0, 0.0),
+          end: const Offset(0.0, 0.0),
+        ).animate(anim),
         child: child,
       ),
     );
@@ -184,35 +172,35 @@ class PlayerDialogs {
     ];
     _rightSheet(
       context,
-      Center(
-        child: SingleChildScrollView(
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: options.map((o) {
-              final selected = o.$2 == null
-                  ? !sleepTimer.isActive
-                  : (sleepTimer.isActive &&
+      SingleChildScrollView(
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: options.map((o) {
+            final selected = o.$2 == null
+                ? !sleepTimer.isActive
+                : (sleepTimer.isActive &&
                       sleepTimer.remaining != null &&
-                      (sleepTimer.remaining!.inMinutes - o.$2!.inMinutes).abs() <=
+                      (sleepTimer.remaining!.inMinutes - o.$2!.inMinutes)
+                              .abs() <=
                           1);
-              return Padding(
-                padding: const EdgeInsets.only(bottom: 8),
-                child: XTextButton(
-                  text: o.$1,
-                  size: XTextButtonSize.large,
-                  width: 180,
+            return Padding(
+              padding: const EdgeInsets.only(bottom: 8),
+              child: SizedBox(
+                width: double.infinity,
+                child: XpButton(
+                  label: o.$1,
                   autofocus: selected, // 打开即聚焦当前项
-                  textStyle: const TextStyle(fontSize: 13),
-                  type: selected
-                      ? XTextButtonType.primary
-                      : XTextButtonType.defaultType,
+                  variant: selected
+                      ? XpButtonVariant.primary
+                      : XpButtonVariant.secondary,
                   onPressed: () => onSelect(o.$2),
                 ),
-              );
-            }).toList(),
-          ),
+              ),
+            );
+          }).toList(),
         ),
       ),
+      title: AppLocalizations.of(context)!.sleepTimer,
     );
   }
 
@@ -225,6 +213,7 @@ class PlayerDialogs {
     _rightSheet(
       context,
       AudioTrackSelectorWidget(tracks: tracks, onSelect: onSelect),
+      title: AppLocalizations.of(context)!.audioTrack,
     );
   }
 }

@@ -1,0 +1,50 @@
+[
+  {
+    "device": "phone",
+    "normalAppRestart": true,
+    "selectedId": 3,
+    "playlists": [
+      {
+        "name": "局域网 IPTV",
+        "channels": 538
+      },
+      {
+        "name": "FLV 测试（虎牙 / B站）",
+        "channels": 2
+      }
+    ],
+    "flvFileMatches": true
+  },
+  {
+    "device": "ipad",
+    "normalAppRestart": true,
+    "selectedId": 3,
+    "playlists": [
+      {
+        "name": "局域网 IPTV",
+        "channels": 538
+      },
+      {
+        "name": "FLV 测试（虎牙 / B站）",
+        "channels": 2
+      }
+    ],
+    "flvFileMatches": true
+  },
+  {
+    "device": "tv",
+    "normalAppRestart": true,
+    "selectedId": 3,
+    "playlists": [
+      {
+        "name": "局域网 IPTV",
+        "channels": 538
+      },
+      {
+        "name": "FLV 测试（虎牙 / B站）",
+        "channels": 2
+      }
+    ],
+    "flvFileMatches": true
+  }
+]
