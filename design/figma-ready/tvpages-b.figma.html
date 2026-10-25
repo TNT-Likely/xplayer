@@ -1,0 +1,257 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>XPlayer · TV 子页面适配 — 4 方向</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Archivo:ital,wdth,wght@0,62..125,100..900&family=Manrope:wght@400;500;600;700;800&family=Barlow:wght@400;500;600;700&family=Chivo+Mono:wght@400;500;600;700&family=Doto:wght@400..900&family=Spline+Sans+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+* { margin:0; padding:0; box-sizing:border-box; }
+body { background:#15161A; color:#E9ECEF; font-family:'PingFang SC','Noto Sans SC',sans-serif; -webkit-font-smoothing:antialiased; padding:52px 48px 90px; }
+.head h1 { font-size:26px; font-weight:750; }
+.head h1 em { font-style:normal; color:#8A8F9C; font-weight:600; }
+.head p { margin-top:10px; font-size:14px; line-height:1.8; color:#9BA0AC; max-width:880px; }
+.head p b { color:#C9CDD6; font-weight:600; }
+.board-wrap { margin-top:44px; display:flex; flex-direction:column; gap:56px; max-width:1280px; }
+figure.tv-fig { display:flex; flex-direction:column; gap:14px; }
+figcaption { font-size:13px; color:#8A90A0; line-height:1.7; }
+figcaption b { color:#E9ECEF; font-weight:650; margin-right:10px; }
+.device { width:1105px; height:630px; overflow:hidden; border-radius:12px; padding:7px; background:#000; box-shadow:0 20px 50px rgba(0,0,0,.5), inset 0 0 0 1.5px #2C2F35; align-self:flex-start; }
+.surface { width:1920px; height:1080px; transform:scale(.569); transform-origin:0 0; border-radius:6px; overflow:hidden; position:relative; background:var(--bg); color:var(--tx); }
+.dir-a { --bg:#0A0C0B; --panel:#121614; --panel2:#171C19; --line:#232925; --line2:#2C342F; --tx:#F2F5F3; --tx2:#98A69D; --tx3:#5C685F; --acc:#00DC82; --acc-ink:#04150C; --live:#FF453A; --mono:'Spline Sans Mono',monospace; --radius:14px; font-family:'Archivo','PingFang SC','Noto Sans SC',sans-serif; }
+.dir-b { --bg:#0D1220; --panel:rgba(255,255,255,.055); --panel-solid:#151C2E; --line:rgba(255,255,255,.09); --line2:rgba(255,255,255,.14); --tx:#EEF2FB; --tx2:#8B94AD; --tx3:#5C6580; --acc:#FFB347; --acc-ink:#241503; --live:#FF453A; --mono:'Manrope',sans-serif; --radius:18px; font-family:'Manrope','PingFang SC','Noto Sans SC',sans-serif; }
+.dir-c { --bg:#0B0E11; --panel:#10151B; --panel2:#141B23; --line:#1B232D; --line2:#243040; --tx:#E8EDF2; --tx2:#7C8B99; --tx3:#4E5D6C; --acc:#3B9EFF; --acc-ink:#04121F; --live:#FF453A; --mono:'Chivo Mono',monospace; --radius:12px; font-family:'Barlow','PingFang SC','Noto Sans SC',sans-serif; }
+.dir-d { --bg:#08090C; --panel:#0F1116; --panel2:#14161D; --line:#1D2029; --line2:#272B37; --tx:#F4F4F6; --tx2:#8A8E9A; --tx3:#565B68; --acc:#F0568C; --acc-ink:#1B0710; --live:#FF453A; --mono:'Doto',monospace; --radius:7px; font-family:'Archivo','PingFang SC','Noto Sans SC',sans-serif; }
+.tv { width:1920px; height:1080px; display:flex; flex-direction:column; }
+.tvtop { height:100px; flex:none; display:flex; align-items:center; gap:22px; padding:0 90px; }
+.tvtop .t { font-size:30px; font-weight:750; }
+.tvtop .g { font-family:var(--mono); font-size:19px; color:var(--tx3); }
+.tvtop .grow { flex:1; }
+.tvtop .clock { font-family:var(--mono); font-size:22px; color:var(--tx2); }
+.tvhint { position:absolute; left:0; right:0; bottom:0; height:76px; display:flex; align-items:center; gap:34px; padding:0 90px; border-top:1px solid var(--line); background:rgba(0,0,0,.35); font-size:20px; color:var(--tx2); z-index:30; }
+.tvhint .k { display:inline-flex; align-items:center; gap:10px; }
+.tvhint .k i { font-style:normal; font-family:var(--mono); font-size:16px; border:1px solid var(--line2); border-radius:8px; padding:4px 10px; color:var(--tx); background:var(--panel); }
+.tvbody { flex:1; min-height:0; padding:10px 90px 100px; position:relative; }
+/* 搜索 */
+.tvs-input { display:flex; align-items:center; gap:16px; height:74px; border-radius:calc(var(--radius) + 6px); border:3px solid var(--acc); background:var(--panel); padding:0 26px; font-size:26px; color:var(--tx3); }
+.tvs-input b { color:var(--tx); font-weight:500; }
+.tvs-input .caret { width:3px; height:32px; background:var(--acc); display:inline-block; }
+.tvs-sec { display:flex; align-items:baseline; gap:14px; padding:30px 0 18px; }
+.tvs-sec h4 { font-size:26px; font-weight:700; }
+.tvs-sec .c { font-size:19px; color:var(--tx3); }
+.tvs-grid { display:flex; gap:26px; }
+.tvs-card { width:360px; flex:none; border-radius:var(--radius); border:1px solid var(--line); background:var(--panel); overflow:hidden; }
+.tvs-card .lg { height:150px; display:grid; place-items:center; background:var(--panel2); position:relative; }
+.tvs-card .lg .fv { position:absolute; top:14px; right:15px; color:var(--tx3); }
+.tvs-card .lg .fv.on { color:var(--acc); }
+.tvs-card .nm { padding:14px 18px 16px; font-size:21px; font-weight:650; }
+.tvs-card .pg { padding:0 18px 16px; font-size:16px; color:var(--tx3); margin-top:-8px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+.tvs-card.foc { transform:scale(1.05); border-color:var(--acc); box-shadow:0 0 0 3px var(--acc), 0 20px 60px color-mix(in srgb, var(--acc) 22%, transparent); position:relative; z-index:10; }
+.tvs-grp { display:flex; align-items:center; gap:14px; padding:16px 18px; border-radius:var(--radius); border:1px solid var(--line); background:var(--panel); }
+.tvs-grp .lg { width:52px; height:52px; border-radius:14px; display:grid; place-items:center; background:var(--panel2); color:var(--acc); }
+.tvs-grp .n { font-size:22px; font-weight:650; }
+.tvs-grp .c { font-size:16px; color:var(--tx3); margin-top:2px; }
+/* 设置 */
+.tvs-body { display:flex; gap:40px; height:100%; }
+.tvs-nav { width:560px; flex:none; border-right:1px solid var(--line); padding-right:40px; }
+.tvs-n { display:flex; align-items:center; gap:18px; height:88px; padding:0 26px; border-radius:var(--radius); font-size:26px; font-weight:600; color:var(--tx2); position:relative; }
+.tvs-n svg { width:30px; height:30px; }
+.tvs-n.on { background:var(--panel); color:var(--tx); outline:2px solid var(--line2); }
+.tvs-n.on::before { content:''; position:absolute; left:0; top:20px; bottom:20px; width:5px; border-radius:3px; background:var(--acc); }
+.tvs-det { flex:1; min-width:0; }
+.tvs-det h3 { font-size:32px; font-weight:750; }
+.tvs-row { display:flex; align-items:center; gap:18px; padding:24px 2px; border-bottom:1px solid var(--line); }
+.tvs-row .in { flex:1; }
+.tvs-row .in .n { font-size:24px; font-weight:600; }
+.tvs-row .in .p { font-size:18px; color:var(--tx3); margin-top:3px; }
+.tvs-row .v { font-size:22px; color:var(--tx2); display:flex; align-items:center; gap:10px; }
+.tvs-row .v::after { content:'›'; color:var(--tx3); }
+.tvs-sw { width:64px; height:38px; border-radius:20px; background:var(--acc); position:relative; flex:none; }
+.tvs-sw i { position:absolute; top:4px; right:4px; width:30px; height:30px; border-radius:50%; background:#fff; }
+.tvs-sw.off { background:var(--line2); }
+.tvs-sw.off i { right:auto; left:4px; }
+.tvs-swatch { display:flex; gap:14px; }
+.tvs-swatch i { width:38px; height:38px; border-radius:50%; border:3px solid transparent; }
+.tvs-swatch i.on { border-color:var(--tx); }
+/* EPG 时间轴 */
+.tve-body { flex:1; min-height:0; margin:0 90px 110px; border:1px solid var(--line); border-radius:18px; background:var(--panel); display:flex; flex-direction:column; overflow:hidden; position:relative; }
+.tve-hd { display:flex; height:64px; flex:none; border-bottom:1px solid var(--line); }
+.tve-hd .ch { width:280px; flex:none; padding-left:24px; font-size:17px; color:var(--tx3); display:flex; align-items:center; }
+.tve-hd .tl { flex:1; display:flex; }
+.tve-hd .tl span { width:280px; flex:none; font-family:var(--mono); font-size:17px; color:var(--tx3); border-left:1px solid var(--line); padding:20px 0 0 12px; }
+.tve-rows { flex:1; min-height:0; overflow:hidden; position:relative; }
+.tve-row { display:flex; height:128px; border-bottom:1px solid var(--line); }
+.tve-row:last-child { border-bottom:none; }
+.tve-row .ch { width:280px; flex:none; display:flex; align-items:center; gap:16px; padding:0 18px 0 24px; border-right:1px solid var(--line); }
+.tve-row .ch .lg { width:68px; height:68px; border-radius:14px; background:var(--panel2); border:1px solid var(--line); display:grid; place-items:center; flex:none; }
+.tve-row .ch .in .n { font-size:19px; font-weight:650; }
+.tve-row .ch .in .no { font-family:var(--mono); font-size:14px; color:var(--tx3); margin-top:3px; }
+.tve-blks { flex:1; display:flex; padding:16px 0; gap:8px; overflow:hidden; position:relative; }
+.tve-blk { flex:none; height:96px; border-radius:12px; background:var(--panel2); border:1px solid var(--line); padding:12px 16px 10px; position:relative; overflow:hidden; }
+.tve-blk .t { font-family:var(--mono); font-size:13px; color:var(--tx3); }
+.tve-blk .n { font-size:18px; font-weight:650; margin-top:5px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+.tve-blk.cut { border-radius:0 12px 12px 0; margin-left:-18px; opacity:.55; }
+.tve-blk.cur { background:color-mix(in srgb, var(--acc) 13%, transparent); border-color:color-mix(in srgb, var(--acc) 50%, transparent); }
+.tve-blk.cur .t { color:var(--acc); }
+.tve-blk.cur .prog { position:absolute; left:0; bottom:0; height:4px; background:var(--acc); }
+.tve-now { position:absolute; top:0; bottom:0; width:3px; background:var(--live); z-index:5; }
+.tve-now::before { content:''; position:absolute; top:-1px; left:50%; transform:translateX(-50%); width:11px; height:11px; border-radius:50%; background:var(--live); }
+</style>
+</head>
+<body>
+<div class="head">
+  <h1>TV 子页面适配 <em>· 搜索 / 设置 / EPG · 4 方向</em></h1>
+  <p>十英尺界面上的三个关键子页面：<b>搜索</b>大输入框为焦点起点，结果以大卡网格呈现；<b>设置</b>左右双栏，焦点在分组列，右侧详情随焦点切换；<b>EPG</b> 全屏频道指南——频道列 + 节目块按时长占宽 + 红色当前时刻线，遥控器左右即可跨频道浏览节目。手机与 Pad 形态见各方向文件与 <a href="pad-pages.html" style="color:#7AA2FF;text-decoration:none">pad-pages.html</a>。</p>
+</div>
+<div class="board-wrap">
+
+<figure class="tv-fig" data-dir="b">
+    <div class="device"><div class="surface dir-b">
+      <div class="tv">
+        <div class="tvtop">
+          <div class="t">搜索</div>
+          <div class="grow"></div>
+          <span class="clock">20:47</span>
+        </div>
+        <div class="tvbody">
+          <div class="tvs-input"><svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg><b>世预</b><span class="caret"></span><span style="margin-left:auto;font-size:17px">遥控器输入 · 手机遥控输入已连接</span></div>
+          <div class="tvs-sec"><h4>频道</h4><span class="c">3 个结果</span></div>
+          <div class="tvs-grid">
+            <div class="tvs-card foc"><div class="lg"><svg width="140" height="60" viewBox="0 0 140 60"><rect width="80" height="60" rx="8" fill="#1E2622"/><text x="40" y="38" text-anchor="middle" font-family="Archivo,sans-serif" font-weight="800" font-size="21" fill="#F2F5F3">CCTV</text><rect x="84" width="56" height="60" rx="8" fill="#00DC82"/><text x="112" y="40" text-anchor="middle" font-family="Archivo,sans-serif" font-weight="800" font-size="28" fill="#04150C">5</text></svg><span class="fv on"><svg width="22" height="22" viewBox="0 0 24 24" fill="currentColor"><path d="M12 21s-7.5-4.6-10-9.3C.5 8 2.6 4.5 6.2 4.5c2.2 0 3.9 1.2 4.8 3 .9-1.8 2.6-3 4.8-3 3.6 0 5.7 3.5 4.2 7.2C17.5 16.4 12 21 12 21z"/></svg></span></div><div class="nm">CCTV-5 体育</div><div class="pg">世预赛亚洲区 · 进行中</div></div>
+            <div class="tvs-card"><div class="lg"><svg width="150" height="60" viewBox="0 0 150 60"><rect width="80" height="60" rx="8" fill="#1E2622"/><text x="40" y="38" text-anchor="middle" font-family="Archivo,sans-serif" font-weight="800" font-size="21" fill="#F2F5F3">CCTV</text><rect x="84" width="66" height="60" rx="8" fill="#00DC82"/><text x="117" y="40" text-anchor="middle" font-family="Archivo,sans-serif" font-weight="800" font-size="28" fill="#04150C">5+</text></svg><span class="fv"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 20s-6.6-4-8.8-8.1C1.7 8.6 3.6 5.5 6.8 5.5c1.9 0 3.4 1 4.2 2.6.8-1.6 2.3-2.6 4.2-2.6 3.2 0 5.1 3.1 3.6 6.4C16.6 16 12 20 12 20z"/></svg></span></div><div class="nm">CCTV-5+ 体育赛事</div><div class="pg">CBA 总决赛 · 第 4 场</div></div>
+            <div class="tvs-card"><div class="lg"><svg width="150" height="60" viewBox="0 0 150 60"><rect width="70" height="60" rx="8" fill="#D6402C"/><text x="35" y="38" text-anchor="middle" font-family="'PingFang SC',sans-serif" font-weight="700" font-size="22" fill="#fff">体育</text><text x="84" y="38" font-family="'PingFang SC',sans-serif" font-weight="600" font-size="20" fill="#F2F5F3">频道</text></svg><span class="fv"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 20s-6.6-4-8.8-8.1C1.7 8.6 3.6 5.5 6.8 5.5c1.9 0 3.4 1 4.2 2.6.8-1.6 2.3-2.6 4.2-2.6 3.2 0 5.1 3.1 3.6 6.4C16.6 16 12 20 12 20z"/></svg></span></div><div class="nm">五星体育</div><div class="pg">赛事集锦</div></div>
+          </div>
+          <div class="tvs-sec"><h4>分组</h4><span class="c">1 个结果</span></div>
+          <div class="tvs-grp" style="width:560px"><div class="lg"><svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M13 2 4.5 13.5H11L10 22l8.5-11.5H12L13 2z"/></svg></div><div><div class="n">体育赛事</div><div class="c">74 个频道</div></div></div>
+        </div>
+        <div class="tvhint">
+          <span class="k"><i>OK</i>播放</span>
+          <span class="k"><i>◀ ▶</i>移动焦点</span>
+          <span class="k"><i>键盘</i>输入搜索词</span>
+          <span class="k"><i>BACK</i>清除 / 返回</span>
+        </div>
+      </div>
+    </div></div>
+    <figcaption><b>B · 暗夜客厅 · 搜索</b>大输入框为焦点起点 · 结果大卡网格 · 支持遥控器键盘与手机遥控输入</figcaption>
+  </figure>
+
+<figure class="tv-fig" data-dir="b">
+    <div class="device"><div class="surface dir-b">
+      <div class="tv">
+        <div class="tvtop">
+          <div class="t">设置</div>
+          <div class="grow"></div>
+          <span class="clock">20:47</span>
+        </div>
+        <div class="tvbody">
+          <div class="tvs-body">
+            <div class="tvs-nav">
+              <div class="tvs-n"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M13 2 4.5 13.5H11L10 22l8.5-11.5H12L13 2z"/></svg>播放</div>
+              <div class="tvs-n on"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="9"/><path d="M12 3v18M3 12h18" opacity=".5"/></svg>界面</div>
+              <div class="tvs-n"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="13" r="8"/><path d="M12 9v4l2.5 2.5M9 2h6"/></svg>定时</div>
+              <div class="tvs-n"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M4 7h16M4 12h16M4 17h10"/></svg>数据</div>
+              <div class="tvs-n"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="9"/><path d="M12 8h.01M12 11.5V16"/></svg>关于</div>
+            </div>
+            <div class="tvs-det">
+              <h3>界面</h3>
+              <div style="height:10px"></div>
+              <div class="tvs-row"><div class="in"><div class="n">主题色</div><div class="p">强调色驱动焦点、按钮、进度条；背景保持深色</div></div><span class="tvs-swatch"><i style="background:#00DC82" class="on"></i><i style="background:#2196F3"></i><i style="background:#00BCD4"></i><i style="background:#BA68C8"></i><i style="background:#E91E63"></i><i style="background:#F44336"></i></span></div>
+              <div class="tvs-row"><div class="in"><div class="n">语言</div></div><span class="v">中文</span></div>
+              <div class="tvs-row"><div class="in"><div class="n">默认清晰度</div></div><span class="v">1080P 及以上</span></div>
+              <div class="tvs-row"><div class="in"><div class="n">硬件解码</div><div class="p">视频走硬件视频平面，吃到电视 VPP / 超分</div></div><span class="tvs-sw"><i></i></span></div>
+              <div class="tvs-row"><div class="in"><div class="n">音频软解（FFmpeg）</div><div class="p">补齐 AC-3 / E-AC-3 / DTS 等编码</div></div><span class="tvs-sw"><i></i></span></div>
+            </div>
+          </div>
+        </div>
+        <div class="tvhint">
+          <span class="k"><i>◀ ▶</i>切换分组 / 详情</span>
+          <span class="k"><i>▲ ▼</i>移动</span>
+          <span class="k"><i>OK</i>修改</span>
+          <span class="k" style="margin-left:auto;color:var(--tx3)">焦点在分组列 · 右侧详情随焦点切换</span>
+        </div>
+      </div>
+    </div></div>
+    <figcaption><b>B · 暗夜客厅 · 设置</b>左右双栏：焦点在分组列（焦点条 + 面板底），右侧详情随焦点切换</figcaption>
+  </figure>
+
+<figure class="tv-fig" data-dir="b">
+    <div class="device"><div class="surface dir-b">
+      <div class="tv">
+        <div class="tvtop">
+          <div class="t">频道指南</div>
+          <div class="g">央视频道 · 48 个</div>
+          <div class="grow"></div>
+          <span class="clock">20:47 · 周二</span>
+        </div>
+        <div class="tve-body">
+          <div class="tve-hd">
+            <div class="ch">频道 / 节目单</div>
+            <div class="tl"><span>20:30</span><span>21:00</span><span>21:30</span><span>22:00</span></div>
+          </div>
+          <div class="tve-rows">
+            <div class="tve-now" style="left:420px"></div>
+            <div class="tve-row">
+              <div class="ch"><div class="lg"><svg width="52" height="22" viewBox="0 0 52 22"><rect width="52" height="22" rx="4" fill="#1E2622"/><text x="26" y="15.5" text-anchor="middle" font-family="Archivo,sans-serif" font-weight="800" font-size="12" fill="#F2F5F3">CCTV</text></svg></div><div class="in"><div class="n">CCTV-1 综合</div><div class="no">CH 01 · HD</div></div></div>
+              <div class="tve-blks">
+                <div class="tve-blk cut" style="width:130px"><span class="t">20:00</span><div class="n">晚间剧场《归途》</div></div>
+                <div class="tve-blk cur" style="width:280px"><span class="t">21:00 – 21:32</span><div class="n">新闻夜线</div></div>
+                <div class="tve-blk" style="width:280px"><span class="t">21:32 – 21:45</span><div class="n">天气预报</div></div>
+                <div class="tve-blk" style="width:200px"><span class="t">21:45</span><div class="n">体育世界</div></div>
+              </div>
+            </div>
+            <div class="tve-row">
+              <div class="ch"><div class="lg"><svg width="52" height="22" viewBox="0 0 52 22"><rect width="52" height="22" rx="4" fill="#1E2622"/><text x="26" y="15.5" text-anchor="middle" font-family="Archivo,sans-serif" font-weight="800" font-size="12" fill="#F2F5F3">CCTV</text></svg></div><div class="in"><div class="n">CCTV-5+ 赛事</div><div class="no">CH 04 · HD</div></div></div>
+              <div class="tve-blks">
+                <div class="tve-blk cut" style="width:82px"><span class="t">19:45</span><div class="n">世预赛上半场</div></div>
+                <div class="tve-blk cur" style="width:186px"><span class="t">20:45 – 21:05</span><div class="n">中场数据</div></div>
+                <div class="tve-blk" style="width:280px"><span class="t">21:05 – 22:50</span><div class="n">下半场 · 中国 vs 澳大利亚</div></div>
+              </div>
+            </div>
+            <div class="tve-row">
+              <div class="ch"><div class="lg"><svg width="52" height="22" viewBox="0 0 52 22"><rect width="52" height="22" rx="4" fill="#1E2622"/><text x="26" y="15.5" text-anchor="middle" font-family="Archivo,sans-serif" font-weight="800" font-size="12" fill="#F2F5F3">CCTV</text></svg></div><div class="in"><div class="n">CCTV-13 新闻</div><div class="no">CH 13 · HD</div></div></div>
+              <div class="tve-blks">
+                <div class="tve-blk cur" style="width:560px"><span class="t">20:00 – 22:00</span><div class="n">新闻直播间</div></div>
+                <div class="tve-blk" style="width:240px"><span class="t">22:00</span><div class="n">环球视线</div></div>
+              </div>
+            </div>
+            <div class="tve-row">
+              <div class="ch"><div class="lg"><svg width="52" height="22" viewBox="0 0 52 22"><rect width="52" height="22" rx="4" fill="#D6402C"/><text x="26" y="15.5" text-anchor="middle" font-family="'PingFang SC',sans-serif" font-weight="700" font-size="12" fill="#fff">湖南</text></svg></div><div class="in"><div class="n">湖南卫视</div><div class="no">CH 28 · HD</div></div></div>
+              <div class="tve-blks">
+                <div class="tve-blk cur" style="width:560px"><span class="t">20:20 – 22:00</span><div class="n">快乐大本营 · 暑期特辑</div></div>
+                <div class="tve-blk" style="width:240px"><span class="t">22:00</span><div class="n">晚间新闻</div></div>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="tvhint">
+          <span class="k"><i>OK</i>播放该节目</span>
+          <span class="k"><i>◀ ▶</i>时间轴</span>
+          <span class="k"><i>▲ ▼</i>换频道</span>
+          <span class="k"><i>GROUPS</i>切换分组</span>
+          <span class="k" style="margin-left:auto;color:var(--tx3)">红线 = 当前时刻</span>
+        </div>
+      </div>
+    </div></div>
+    <figcaption><b>B · 暗夜客厅 · EPG 节目单</b>全屏指南：频道列 + 节目块按时长占宽 + 当前时刻红线，遥控左右跨频道浏览</figcaption>
+  </figure>
+</div>
+
+<script>
+if (true) {
+  document.documentElement.classList.add('figma-mode');
+  const css = `
+    .head, figcaption { display:none !important; }
+    body { background:#0B0C10 !important; padding:64px !important; width:2640px !important; }
+    .board-wrap { display:flex !important; flex-wrap:wrap; gap:64px !important; padding:0 !important; max-width:none !important; }
+    .device { width:auto !important; height:auto !important; overflow:visible !important; box-shadow:none !important; }
+    .surface { transform:none !important; }
+  `;
+  const st = document.createElement('style');
+  st.textContent = css;
+  document.head.appendChild(st);
+}
+</script>
+</body>
+</html>

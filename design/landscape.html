@@ -1,0 +1,457 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>XPlayer · 手机横屏 — 播放器与首页</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Archivo:ital,wdth,wght@0,62..125,100..900&family=Manrope:wght@400;500;600;700;800&family=Barlow:wght@400;500;600;700&family=Chivo+Mono:wght@400;500;600;700&family=Doto:wght@400..900&family=Spline+Sans+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+* { margin:0; padding:0; box-sizing:border-box; }
+body { background:#15161A; color:#E9ECEF; font-family:'PingFang SC','Noto Sans SC',sans-serif; -webkit-font-smoothing:antialiased; padding:52px 48px 90px; }
+.head h1 { font-size:26px; font-weight:750; }
+.head h1 em { font-style:normal; color:#8A8F9C; font-weight:600; }
+.head p { margin-top:10px; font-size:14px; line-height:1.8; color:#9BA0AC; max-width:880px; }
+.head p b { color:#C9CDD6; font-weight:600; }
+.board-wrap { margin-top:44px; display:flex; flex-direction:column; gap:52px; max-width:1900px; }
+figure.ls-fig { display:flex; flex-direction:column; gap:14px; }
+figcaption { font-size:13px; color:#8A90A0; line-height:1.7; }
+figcaption b { color:#E9ECEF; font-weight:650; margin-right:10px; }
+.ldevice { width:876px; border-radius:46px; padding:12px; background:#000; box-shadow:0 20px 50px rgba(0,0,0,.5), inset 0 0 0 1.5px #2C2F35; align-self:flex-start; }
+.lscreen { width:852px; height:393px; border-radius:34px; overflow:hidden; position:relative; background:var(--bg); color:var(--tx); }
+.dir-a { --bg:#0A0C0B; --panel:#121614; --panel2:#171C19; --line:#232925; --line2:#2C342F; --tx:#F2F5F3; --tx2:#98A69D; --tx3:#5C685F; --acc:#00DC82; --acc-ink:#04150C; --live:#FF453A; --mono:'Spline Sans Mono',monospace; --radius:12px; font-family:'Archivo','PingFang SC','Noto Sans SC',sans-serif; }
+.dir-b { --bg:#0D1220; --panel:rgba(255,255,255,.055); --panel-solid:#151C2E; --line:rgba(255,255,255,.09); --line2:rgba(255,255,255,.14); --tx:#EEF2FB; --tx2:#8B94AD; --tx3:#5C6580; --acc:#FFB347; --acc-ink:#241503; --live:#FF453A; --mono:'Manrope',sans-serif; --radius:14px; font-family:'Manrope','PingFang SC','Noto Sans SC',sans-serif; }
+.dir-c { --bg:#0B0E11; --panel:#10151B; --panel2:#141B23; --line:#1B232D; --line2:#243040; --tx:#E8EDF2; --tx2:#7C8B99; --tx3:#4E5D6C; --acc:#3B9EFF; --acc-ink:#04121F; --live:#FF453A; --mono:'Chivo Mono',monospace; --radius:10px; font-family:'Barlow','PingFang SC','Noto Sans SC',sans-serif; }
+.dir-d { --bg:#08090C; --panel:#0F1116; --panel2:#14161D; --line:#1D2029; --line2:#272B37; --tx:#F4F4F6; --tx2:#8A8E9A; --tx3:#565B68; --acc:#F0568C; --acc-ink:#1B0710; --live:#FF453A; --mono:'Doto',monospace; --radius:6px; font-family:'Archivo','PingFang SC','Noto Sans SC',sans-serif; }
+/* 横屏播放器 */
+.lp-vid { position:absolute; inset:0; }
+.lp-vid svg { width:100%; height:100%; }
+.lp-grad { position:absolute; inset:0; background:linear-gradient(180deg, rgba(0,0,0,.6), rgba(0,0,0,0) 24%, rgba(0,0,0,0) 46%, rgba(0,0,0,.86)); }
+.lp-top { position:absolute; top:0; left:0; right:0; display:flex; align-items:center; gap:12px; padding:16px 24px 0; z-index:5; }
+.lp-back { width:40px; height:40px; border-radius:var(--radius); background:rgba(255,255,255,.1); backdrop-filter:blur(8px); display:grid; place-items:center; flex:none; }
+.lp-back svg { width:17px; height:17px; }
+.lp-logo { width:44px; height:30px; border-radius:7px; background:var(--panel2); border:1px solid var(--line2); display:grid; place-items:center; flex:none; }
+.lp-name { font-size:16px; font-weight:700; }
+.lp-g { font-size:12px; color:rgba(255,255,255,.5); margin-top:1px; }
+.lp-live { display:flex; align-items:center; gap:5px; font-family:var(--mono); font-size:10.5px; letter-spacing:.12em; font-weight:600; }
+.lp-live i { width:6px; height:6px; border-radius:50%; background:var(--live); }
+.lp-right { margin-left:auto; display:flex; align-items:center; gap:12px; }
+.lp-hd { font-family:var(--mono); font-size:10.5px; background:rgba(255,255,255,.12); border-radius:7px; padding:5px 8px; }
+.lp-clock { font-family:var(--mono); font-size:12px; color:rgba(255,255,255,.7); }
+.lp-bottom { position:absolute; left:0; right:0; bottom:0; padding:0 24px 18px; z-index:5; }
+.lp-titlerow { display:flex; align-items:baseline; gap:12px; }
+.lp-titlerow .t { font-size:15.5px; font-weight:700; }
+.lp-titlerow .r { font-family:var(--mono); font-size:11px; color:rgba(255,255,255,.5); }
+.lp-titlerow .chips { margin-left:auto; display:flex; gap:7px; }
+.lp-titlerow .chips span { font-size:11px; color:rgba(255,255,255,.75); background:rgba(255,255,255,.1); border-radius:7px; padding:5px 9px; }
+.lp-bar { margin-top:10px; height:4px; border-radius:2px; background:rgba(255,255,255,.16); position:relative; }
+.lp-bar .buf { position:absolute; inset:0 auto 0 0; width:82%; background:rgba(255,255,255,.26); border-radius:2px; }
+.lp-bar .cur { position:absolute; inset:0 auto 0 0; width:76%; background:var(--acc); border-radius:2px; }
+.lp-bar .thumb { position:absolute; top:50%; left:76%; width:12px; height:12px; border-radius:50%; background:#fff; transform:translate(-50%,-50%); box-shadow:0 0 0 4px color-mix(in srgb, var(--acc) 25%, transparent); }
+.lp-times { display:flex; justify-content:space-between; margin-top:6px; font-family:var(--mono); font-size:10.5px; color:rgba(255,255,255,.5); }
+.lp-ctrl { display:flex; align-items:center; margin-top:12px; }
+.lp-ctrl .ch { display:flex; flex-direction:column; align-items:center; gap:1px; width:56px; height:44px; justify-content:center; border-radius:var(--radius); background:rgba(255,255,255,.09); font-family:var(--mono); font-size:9px; color:rgba(255,255,255,.55); }
+.lp-ctrl .pp { width:52px; height:52px; border-radius:50%; background:#fff; color:#0A0C0B; display:grid; place-items:center; margin:0 14px; }
+.dir-b .lp-ctrl .pp, .dir-d .lp-ctrl .pp { background:var(--acc); color:var(--acc-ink); }
+.lp-ctrl .icons { margin-left:auto; display:flex; gap:6px; }
+.lp-ctrl .icons span { width:36px; height:36px; border-radius:var(--radius); background:rgba(255,255,255,.09); display:grid; place-items:center; color:rgba(255,255,255,.78); }
+.lp-ctrl .icons span.on { color:var(--acc); }
+.lp-ctrl .icons svg { width:15px; height:15px; }
+/* 横屏首页 */
+.lh-status { height:26px; flex:none; display:flex; align-items:center; justify-content:space-between; padding:6px 24px 0; font-size:12px; font-weight:650; font-family:var(--mono); }
+.lh-status .r { display:flex; gap:6px; align-items:center; }
+.lh-top { display:flex; align-items:center; gap:12px; padding:8px 24px 10px; }
+.lh-top .mark { font-weight:800; font-stretch:125%; letter-spacing:.12em; font-size:15px; }
+.lh-top .mark em { font-style:normal; color:var(--acc); }
+.lh-top .grow { flex:1; }
+.lh-top .ic { width:36px; height:36px; border-radius:var(--radius); border:1px solid var(--line); background:var(--panel); display:grid; place-items:center; color:var(--tx2); }
+.lh-top .ic svg { width:15px; height:15px; }
+.lh-chips { display:flex; gap:8px; padding:0 24px 10px; overflow:hidden; }
+.lh-chips span { flex:none; font-size:12px; padding:7px 13px; border-radius:99px; border:1px solid var(--line); background:var(--panel); color:var(--tx2); }
+.lh-chips span.on { background:var(--acc); border-color:var(--acc); color:var(--acc-ink); font-weight:650; }
+.lh-grid { display:grid; grid-template-columns:1fr 1fr 1fr 1fr; gap:10px; padding:0 24px; flex:1; min-height:0; overflow:hidden; align-content:start; }
+.lh-card { border-radius:var(--radius); border:1px solid var(--line); background:var(--panel); overflow:hidden; }
+.lh-card .lg { height:74px; display:grid; place-items:center; background:var(--panel2); position:relative; }
+.lh-card .lg .fv { position:absolute; top:7px; right:8px; color:var(--tx3); }
+.lh-card .lg .fv.on { color:var(--acc); }
+.lh-card .nm { padding:7px 10px 2px; font-size:12.5px; font-weight:650; display:flex; gap:6px; align-items:center; }
+.lh-card .nm .hd { margin-left:auto; font-family:var(--mono); font-size:8.5px; color:var(--tx3); border:1px solid var(--line2); border-radius:4px; padding:1px 4px; }
+.lh-card .pg { padding:0 10px 8px; font-size:10px; color:var(--tx3); white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+.lh-card.next { opacity:.5; }
+.lh-mini { margin:8px 24px 22px; flex:none; display:flex; align-items:center; gap:10px; border:1px solid var(--line2); background:var(--panel2); border-radius:var(--radius); padding:8px 10px; position:relative; overflow:hidden; }
+.lh-mini .bar { position:absolute; top:0; left:0; right:0; height:2px; background:var(--line); }
+.lh-mini .bar b { display:block; height:100%; width:76%; background:var(--acc); }
+.lh-mini .pp { width:30px; height:30px; border-radius:50%; background:var(--acc); color:var(--acc-ink); display:grid; place-items:center; flex:none; }
+.lh-mini .tt { flex:1; min-width:0; }
+.lh-mini .tt .n { font-size:12px; font-weight:650; }
+.lh-mini .tt .p { font-size:10px; color:var(--tx3); margin-top:1px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+</style>
+</head>
+<body>
+<div class="head">
+  <h1>手机横屏 <em>· 播放器全屏 + 首页宽网格 · 4 方向</em></h1>
+  <p>对应真实 App 的<b>横屏旋转</b>动作：<b>播放器横屏</b>为全屏视频 + 自动隐藏的 OSD 控制层（进度条、CH± 换台、收藏/列表/切源/音轨/投屏/退出全屏）；<b>首页横屏</b>网格加宽到 4 列，顶栏与迷你条随行。尺寸 852 × 393（iPhone 逻辑分辨率）。</p>
+</div>
+<div class="board-wrap">
+
+  <figure class="ls-fig" data-dir="a">
+    <div class="ldevice"><div class="lscreen dir-a lp-player">
+      <div class="lp-vid">
+        <svg viewBox="0 0 852 393" preserveAspectRatio="xMidYMid slice">
+          <defs>
+            <linearGradient id="la-bg" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#0F2233"/><stop offset="1" stop-color="#0A1520"/></linearGradient>
+            <linearGradient id="la-desk" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#132019"/><stop offset="1" stop-color="#0C130F"/></linearGradient>
+          </defs>
+          <rect width="852" height="393" fill="url(#la-bg)"/>
+          <rect x="60" y="70" width="14" height="150" rx="7" fill="#00DC82" opacity=".8"/><rect x="84" y="96" width="8" height="124" rx="4" fill="#00DC82" opacity=".28"/>
+          <circle cx="540" cy="150" r="84" fill="none" stroke="rgba(255,255,255,.13)" stroke-width="2"/>
+          <circle cx="540" cy="150" r="64" fill="none" stroke="rgba(0,220,130,.32)"/>
+          <rect x="478" y="108" width="124" height="86" rx="12" fill="rgba(255,255,255,.06)"/>
+          <rect x="498" y="128" width="56" height="8" rx="4" fill="rgba(255,255,255,.32)"/><rect x="498" y="146" width="86" height="6" rx="3" fill="rgba(255,255,255,.16)"/><rect x="498" y="160" width="72" height="6" rx="3" fill="rgba(255,255,255,.16)"/>
+          <g opacity=".45" fill="#0D1826"><rect x="700" y="110" width="34" height="160"/><rect x="742" y="80" width="44" height="190"/><rect x="794" y="126" width="30" height="144"/></g>
+          <g fill="#16283C"><rect x="706" y="124" width="5" height="5"/><rect x="714" y="140" width="5" height="5"/><rect x="752" y="94" width="5" height="5"/><rect x="762" y="116" width="5" height="5"/><rect x="800" y="140" width="5" height="5"/></g>
+          <path d="M0 262 Q426 224 852 258" stroke="rgba(255,255,255,.09)" fill="none"/>
+          <path d="M0 266 L852 260 L852 393 L0 393 Z" fill="url(#la-desk)"/>
+          <path d="M0 264 Q426 226 852 259" stroke="rgba(0,220,130,.45)" fill="none" stroke-width="2"/>
+        </svg>
+      </div>
+      <div class="lp-grad"></div>
+      <div class="lp-top">
+        <div class="lp-back"><svg viewBox="0 0 24 24" fill="none" stroke="#F2F5F3" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 5l-7 7 7 7"/></svg></div>
+        <div class="lp-logo"><svg width="34" height="16" viewBox="0 0 34 16"><rect width="34" height="16" rx="3.5" fill="#1E2622"/><text x="17" y="12" text-anchor="middle" font-family="Archivo,sans-serif" font-weight="800" font-size="9" fill="#F2F5F3">CCTV</text></svg></div>
+        <div><div class="lp-name">CCTV-1 综合</div><div class="lp-g">央视频道 · 中国主源</div></div>
+        <span class="lp-live"><i></i>LIVE</span>
+        <div class="lp-right"><span class="lp-hd">1080P</span><span class="lp-clock">20:47</span></div>
+      </div>
+      <div class="lp-bottom">
+        <div class="lp-titlerow">
+          <span class="t">晚间剧场 ·《归途》第 14 集</span>
+          <span class="r">下一档 21:00 新闻夜线</span>
+          <div class="chips"><span>音轨 · 中</span><span>画质 1080P</span><span>睡眠 45 分钟</span></div>
+        </div>
+        <div class="lp-bar"><span class="buf"></span><span class="cur"></span><span class="thumb"></span></div>
+        <div class="lp-times"><span>20:33</span><span>剩 13 分钟</span><span>21:00</span></div>
+        <div class="lp-ctrl">
+          <div class="ch"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 5l-7 7 7 7"/></svg><span>CH−</span></div>
+          <div class="pp"><svg width="18" height="22" viewBox="0 0 18 22" fill="currentColor"><rect width="5" height="22" rx="2"/><rect x="13" width="5" height="22" rx="2"/></svg></div>
+          <div class="ch"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 5l7 7-7 7"/></svg><span>CH+</span></div>
+          <div class="icons">
+            <span class="on" title="收藏"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 21s-7.5-4.6-10-9.3C.5 8 2.6 4.5 6.2 4.5c2.2 0 3.9 1.2 4.8 3 .9-1.8 2.6-3 4.8-3 3.6 0 5.7 3.5 4.2 7.2C17.5 16.4 12 21 12 21z"/></svg></span>
+            <span title="频道列表"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M4 6h16M4 12h16M4 18h9"/></svg></span>
+            <span title="切换源"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M7 8h10M17 8l-3.2-3.2M17 8l-3.2 3.2M17 16H7M7 16l3.2-3.2M7 16l3.2 3.2"/></svg></span>
+            <span title="投屏"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><rect x="3" y="5" width="18" height="13" rx="2"/><path d="M8 21h8"/></svg></span>
+            <span title="退出全屏"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 3H5a2 2 0 0 0-2 2v4M15 3h4a2 2 0 0 1 2 2v4M9 21H5a2 2 0 0 1-2-2v-4M15 21h4a2 2 0 0 0 2-2v-4"/></svg></span>
+          </div>
+        </div>
+      </div>
+    </div></div>
+    <figcaption><b>播放器横屏</b>全屏视频 + OSD：顶部频道信息 / 底部节目·进度·CH± 与常用动作；点按显隐</figcaption>
+  </figure>
+
+  <figure class="ls-fig" data-dir="a">
+    <div class="ldevice"><div class="lscreen dir-a lh-home">
+      <div class="lh-status"><span>20:47</span>
+        <span class="r">
+          <svg width="17" height="11" viewBox="0 0 17 11" fill="currentColor"><rect x="0" y="7" width="3" height="4" rx="1"/><rect x="4.5" y="5" width="3" height="6" rx="1"/><rect x="9" y="2.5" width="3" height="8.5" rx="1"/><rect x="13.5" y="0" width="3" height="11" rx="1"/></svg>
+          <svg width="25" height="12" viewBox="0 0 25 12"><rect x=".5" y=".5" width="21" height="11" rx="3.5" fill="none" stroke="rgba(255,255,255,.4)"/><rect x="2" y="2" width="16" height="8" rx="2" fill="#F2F5F3"/><path d="M23 4v4a2.2 2.2 0 0 0 0-4z" fill="rgba(255,255,255,.4)"/></svg>
+        </span>
+      </div>
+      <div class="lh-top">
+        <div class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M4 7h16M4 12h16M4 17h10"/></svg></div>
+        <div class="mark">X<em>PLAYER</em></div>
+        <div class="grow"></div>
+        <div class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg></div>
+        <div class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M4 6h16M7 12h10M10 18h4"/></svg></div>
+        <div class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 3l18 18"/><path d="M10.5 5.2A9.8 9.8 0 0 1 12 5c6.5 0 9 7 9 7a14.5 14.5 0 0 1-2.4 3.4M6.5 6.5A14.3 14.3 0 0 0 3 12s2.5 7 9 7a9.6 9.6 0 0 0 4.3-1"/></svg></div>
+        <div class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M13 2 4.5 13.5H11L10 22l8.5-11.5H12L13 2z"/></svg></div>
+      </div>
+      <div class="lh-chips"><span class="on">全部</span><span>央视</span><span>卫视</span><span>新闻</span><span>体育</span><span>电影</span><span>纪录</span><span>少儿</span><span>港澳台</span></div>
+      <div class="lh-grid">
+        <div class="lh-card"><div class="lg"><span class="fv on"><svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><path d="M12 21s-7.5-4.6-10-9.3C.5 8 2.6 4.5 6.2 4.5c2.2 0 3.9 1.2 4.8 3 .9-1.8 2.6-3 4.8-3 3.6 0 5.7 3.5 4.2 7.2C17.5 16.4 12 21 12 21z"/></svg></span><svg width="82" height="28" viewBox="0 0 82 28"><rect width="45" height="28" rx="5" fill="#1E2622"/><text x="22" y="18.5" text-anchor="middle" font-family="Archivo,sans-serif" font-weight="800" font-size="12" fill="#F2F5F3">CCTV</text><rect x="49" width="33" height="28" rx="5" fill="#00DC82"/><text x="65" y="20" text-anchor="middle" font-family="Archivo,sans-serif" font-weight="800" font-size="15" fill="#04150C">5+</text></svg></div><div class="nm">CCTV-5+ 体育赛事<span class="hd">HD</span></div><div class="pg">CBA 总决赛 · 第 4 场</div></div>
+        <div class="lh-card"><div class="lg"><span class="fv"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 20s-6.6-4-8.8-8.1C1.7 8.6 3.6 5.5 6.8 5.5c1.9 0 3.4 1 4.2 2.6.8-1.6 2.3-2.6 4.2-2.6 3.2 0 5.1 3.1 3.6 6.4C16.6 16 12 20 12 20z"/></svg></span><svg width="88" height="28" viewBox="0 0 88 28"><rect x="0" y="1" width="30" height="26" rx="6" fill="#D6402C"/><text x="15" y="19" text-anchor="middle" font-family="'PingFang SC',sans-serif" font-weight="700" font-size="13.5" fill="#fff">湖南</text><text x="38" y="19" font-family="'PingFang SC',sans-serif" font-weight="600" font-size="12.5" fill="#F2F5F3">卫视</text></svg></div><div class="nm">湖南卫视<span class="hd">HD</span></div><div class="pg">快乐大本营 · 暑期特辑</div></div>
+        <div class="lh-card"><div class="lg"><span class="fv"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 20s-6.6-4-8.8-8.1C1.7 8.6 3.6 5.5 6.8 5.5c1.9 0 3.4 1 4.2 2.6.8-1.6 2.3-2.6 4.2-2.6 3.2 0 5.1 3.1 3.6 6.4C16.6 16 12 20 12 20z"/></svg></span><svg width="88" height="28" viewBox="0 0 88 28"><rect x="0" y="1" width="30" height="26" rx="6" fill="#1D5FA8"/><text x="15" y="19" text-anchor="middle" font-family="'PingFang SC',sans-serif" font-weight="700" font-size="13.5" fill="#fff">东方</text><text x="38" y="19" font-family="'PingFang SC',sans-serif" font-weight="600" font-size="12.5" fill="#F2F5F3">卫视</text></svg></div><div class="nm">东方卫视<span class="hd">HD</span></div><div class="pg">东方新闻 · 夜间播报</div></div>
+        <div class="lh-card"><div class="lg"><span class="fv"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 20s-6.6-4-8.8-8.1C1.7 8.6 3.6 5.5 6.8 5.5c1.9 0 3.4 1 4.2 2.6.8-1.6 2.3-2.6 4.2-2.6 3.2 0 5.1 3.1 3.6 6.4C16.6 16 12 20 12 20z"/></svg></span><svg width="82" height="28" viewBox="0 0 82 28"><rect width="45" height="28" rx="5" fill="#1E2622"/><text x="22" y="18.5" text-anchor="middle" font-family="Archivo,sans-serif" font-weight="800" font-size="12" fill="#F2F5F3">CCTV</text><rect x="49" width="33" height="28" rx="5" fill="#C99A2E"/><text x="65" y="20" text-anchor="middle" font-family="Archivo,sans-serif" font-weight="800" font-size="15" fill="#1A1204">6</text></svg></div><div class="nm">CCTV-6 电影<span class="hd">HD</span></div><div class="pg">光影星播客</div></div>
+        <div class="lh-card next"><div class="lg"><svg width="82" height="28" viewBox="0 0 82 28"><rect width="45" height="28" rx="5" fill="#1E2622"/><text x="22" y="18.5" text-anchor="middle" font-family="Archivo,sans-serif" font-weight="800" font-size="12" fill="#F2F5F3">CCTV</text><rect x="49" width="33" height="28" rx="5" fill="#3E8E5A"/><text x="65" y="20" text-anchor="middle" font-family="Archivo,sans-serif" font-weight="800" font-size="15" fill="#06170D">9</text></svg></div><div class="nm">CCTV-9 纪录<span class="hd">HD</span></div><div class="pg">蓝色星球 · 深海</div></div>
+        <div class="lh-card next"><div class="lg"><svg width="88" height="28" viewBox="0 0 88 28"><rect x="0" y="1" width="30" height="26" rx="6" fill="#7A5CA8"/><text x="15" y="19" text-anchor="middle" font-family="'PingFang SC',sans-serif" font-weight="700" font-size="13.5" fill="#fff">浙江</text><text x="38" y="19" font-family="'PingFang SC',sans-serif" font-weight="600" font-size="12.5" fill="#F2F5F3">卫视</text></svg></div><div class="nm">浙江卫视<span class="hd">HD</span></div><div class="pg">中国好声音 · 盲选</div></div>
+        <div class="lh-card next"><div class="lg"><svg width="82" height="28" viewBox="0 0 82 28"><rect width="45" height="28" rx="5" fill="#1E2622"/><text x="22" y="18.5" text-anchor="middle" font-family="Archivo,sans-serif" font-weight="800" font-size="12" fill="#F2F5F3">CCTV</text><rect x="49" width="33" height="28" rx="5" fill="#1E2622"/><text x="65" y="20" text-anchor="middle" font-family="Archivo,sans-serif" font-weight="800" font-size="15" fill="#F2F5F3">13</text></svg></div><div class="nm">CCTV-13 新闻<span class="hd">HD</span></div><div class="pg">新闻直播间</div></div>
+        <div class="lh-card next"><div class="lg"><svg width="88" height="28" viewBox="0 0 88 28"><rect x="0" y="1" width="30" height="26" rx="6" fill="#2E7DA6"/><text x="15" y="19" text-anchor="middle" font-family="'PingFang SC',sans-serif" font-weight="700" font-size="13.5" fill="#fff">广东</text><text x="38" y="19" font-family="'PingFang SC',sans-serif" font-weight="600" font-size="12.5" fill="#F2F5F3">卫视</text></svg></div><div class="nm">广东卫视<span class="hd">HD</span></div><div class="pg">湾区之夜</div></div>
+      </div>
+      <div class="lh-mini">
+        <div class="bar"><b></b></div>
+        <div class="pp"><svg width="10" height="12" viewBox="0 0 12 14" fill="currentColor"><rect width="3.4" height="14" rx="1.2"/><rect x="8.6" width="3.4" height="14" rx="1.2"/></svg></div>
+        <div class="tt"><div class="n">CCTV-1 综合</div><div class="p">晚间剧场 ·《归途》第 14 集 · 剩 13 分钟</div></div>
+      </div>
+    </div></div>
+    <figcaption><b>首页横屏</b>4 列网格 + 完整顶栏（菜单/搜索/分组/隐藏/测速）+ 迷你播放条</figcaption>
+  </figure>
+  <figure class="ls-fig" data-dir="b">
+    <div class="ldevice"><div class="lscreen dir-b lp-player">
+      <div class="lp-vid">
+        <svg viewBox="0 0 852 393" preserveAspectRatio="xMidYMid slice">
+          <defs>
+            <linearGradient id="la-bg" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#0F2233"/><stop offset="1" stop-color="#0A1520"/></linearGradient>
+            <linearGradient id="la-desk" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#132019"/><stop offset="1" stop-color="#0C130F"/></linearGradient>
+          </defs>
+          <rect width="852" height="393" fill="url(#la-bg)"/>
+          <rect x="60" y="70" width="14" height="150" rx="7" fill="#00DC82" opacity=".8"/><rect x="84" y="96" width="8" height="124" rx="4" fill="#00DC82" opacity=".28"/>
+          <circle cx="540" cy="150" r="84" fill="none" stroke="rgba(255,255,255,.13)" stroke-width="2"/>
+          <circle cx="540" cy="150" r="64" fill="none" stroke="rgba(0,220,130,.32)"/>
+          <rect x="478" y="108" width="124" height="86" rx="12" fill="rgba(255,255,255,.06)"/>
+          <rect x="498" y="128" width="56" height="8" rx="4" fill="rgba(255,255,255,.32)"/><rect x="498" y="146" width="86" height="6" rx="3" fill="rgba(255,255,255,.16)"/><rect x="498" y="160" width="72" height="6" rx="3" fill="rgba(255,255,255,.16)"/>
+          <g opacity=".45" fill="#0D1826"><rect x="700" y="110" width="34" height="160"/><rect x="742" y="80" width="44" height="190"/><rect x="794" y="126" width="30" height="144"/></g>
+          <g fill="#16283C"><rect x="706" y="124" width="5" height="5"/><rect x="714" y="140" width="5" height="5"/><rect x="752" y="94" width="5" height="5"/><rect x="762" y="116" width="5" height="5"/><rect x="800" y="140" width="5" height="5"/></g>
+          <path d="M0 262 Q426 224 852 258" stroke="rgba(255,255,255,.09)" fill="none"/>
+          <path d="M0 266 L852 260 L852 393 L0 393 Z" fill="url(#la-desk)"/>
+          <path d="M0 264 Q426 226 852 259" stroke="rgba(0,220,130,.45)" fill="none" stroke-width="2"/>
+        </svg>
+      </div>
+      <div class="lp-grad"></div>
+      <div class="lp-top">
+        <div class="lp-back"><svg viewBox="0 0 24 24" fill="none" stroke="#F2F5F3" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 5l-7 7 7 7"/></svg></div>
+        <div class="lp-logo"><svg width="34" height="16" viewBox="0 0 34 16"><rect width="34" height="16" rx="3.5" fill="#1E2622"/><text x="17" y="12" text-anchor="middle" font-family="Archivo,sans-serif" font-weight="800" font-size="9" fill="#F2F5F3">CCTV</text></svg></div>
+        <div><div class="lp-name">CCTV-1 综合</div><div class="lp-g">央视频道 · 中国主源</div></div>
+        <span class="lp-live"><i></i>LIVE</span>
+        <div class="lp-right"><span class="lp-hd">1080P</span><span class="lp-clock">20:47</span></div>
+      </div>
+      <div class="lp-bottom">
+        <div class="lp-titlerow">
+          <span class="t">晚间剧场 ·《归途》第 14 集</span>
+          <span class="r">下一档 21:00 新闻夜线</span>
+          <div class="chips"><span>音轨 · 中</span><span>画质 1080P</span><span>睡眠 45 分钟</span></div>
+        </div>
+        <div class="lp-bar"><span class="buf"></span><span class="cur"></span><span class="thumb"></span></div>
+        <div class="lp-times"><span>20:33</span><span>剩 13 分钟</span><span>21:00</span></div>
+        <div class="lp-ctrl">
+          <div class="ch"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 5l-7 7 7 7"/></svg><span>CH−</span></div>
+          <div class="pp"><svg width="18" height="22" viewBox="0 0 18 22" fill="currentColor"><rect width="5" height="22" rx="2"/><rect x="13" width="5" height="22" rx="2"/></svg></div>
+          <div class="ch"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 5l7 7-7 7"/></svg><span>CH+</span></div>
+          <div class="icons">
+            <span class="on" title="收藏"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 21s-7.5-4.6-10-9.3C.5 8 2.6 4.5 6.2 4.5c2.2 0 3.9 1.2 4.8 3 .9-1.8 2.6-3 4.8-3 3.6 0 5.7 3.5 4.2 7.2C17.5 16.4 12 21 12 21z"/></svg></span>
+            <span title="频道列表"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M4 6h16M4 12h16M4 18h9"/></svg></span>
+            <span title="切换源"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M7 8h10M17 8l-3.2-3.2M17 8l-3.2 3.2M17 16H7M7 16l3.2-3.2M7 16l3.2 3.2"/></svg></span>
+            <span title="投屏"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><rect x="3" y="5" width="18" height="13" rx="2"/><path d="M8 21h8"/></svg></span>
+            <span title="退出全屏"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 3H5a2 2 0 0 0-2 2v4M15 3h4a2 2 0 0 1 2 2v4M9 21H5a2 2 0 0 1-2-2v-4M15 21h4a2 2 0 0 0 2-2v-4"/></svg></span>
+          </div>
+        </div>
+      </div>
+    </div></div>
+    <figcaption><b>B · 暗夜客厅 · 播放器横屏</b>全屏视频 + OSD：顶部频道信息 / 底部节目·进度·CH± 与常用动作；点按显隐</figcaption>
+  </figure>
+  <figure class="ls-fig" data-dir="b">
+    <div class="ldevice"><div class="lscreen dir-b lh-home">
+      <div class="lh-status"><span>20:47</span>
+        <span class="r">
+          <svg width="17" height="11" viewBox="0 0 17 11" fill="currentColor"><rect x="0" y="7" width="3" height="4" rx="1"/><rect x="4.5" y="5" width="3" height="6" rx="1"/><rect x="9" y="2.5" width="3" height="8.5" rx="1"/><rect x="13.5" y="0" width="3" height="11" rx="1"/></svg>
+          <svg width="25" height="12" viewBox="0 0 25 12"><rect x=".5" y=".5" width="21" height="11" rx="3.5" fill="none" stroke="rgba(255,255,255,.4)"/><rect x="2" y="2" width="16" height="8" rx="2" fill="#F2F5F3"/><path d="M23 4v4a2.2 2.2 0 0 0 0-4z" fill="rgba(255,255,255,.4)"/></svg>
+        </span>
+      </div>
+      <div class="lh-top">
+        <div class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M4 7h16M4 12h16M4 17h10"/></svg></div>
+        <div class="mark">X<em>PLAYER</em></div>
+        <div class="grow"></div>
+        <div class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg></div>
+        <div class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M4 6h16M7 12h10M10 18h4"/></svg></div>
+        <div class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 3l18 18"/><path d="M10.5 5.2A9.8 9.8 0 0 1 12 5c6.5 0 9 7 9 7a14.5 14.5 0 0 1-2.4 3.4M6.5 6.5A14.3 14.3 0 0 0 3 12s2.5 7 9 7a9.6 9.6 0 0 0 4.3-1"/></svg></div>
+        <div class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M13 2 4.5 13.5H11L10 22l8.5-11.5H12L13 2z"/></svg></div>
+      </div>
+      <div class="lh-chips"><span class="on">全部</span><span>央视</span><span>卫视</span><span>新闻</span><span>体育</span><span>电影</span><span>纪录</span><span>少儿</span><span>港澳台</span></div>
+      <div class="lh-grid">
+        <div class="lh-card"><div class="lg"><span class="fv on"><svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><path d="M12 21s-7.5-4.6-10-9.3C.5 8 2.6 4.5 6.2 4.5c2.2 0 3.9 1.2 4.8 3 .9-1.8 2.6-3 4.8-3 3.6 0 5.7 3.5 4.2 7.2C17.5 16.4 12 21 12 21z"/></svg></span><svg width="82" height="28" viewBox="0 0 82 28"><rect width="45" height="28" rx="5" fill="#1E2622"/><text x="22" y="18.5" text-anchor="middle" font-family="Archivo,sans-serif" font-weight="800" font-size="12" fill="#F2F5F3">CCTV</text><rect x="49" width="33" height="28" rx="5" fill="#00DC82"/><text x="65" y="20" text-anchor="middle" font-family="Archivo,sans-serif" font-weight="800" font-size="15" fill="#04150C">5+</text></svg></div><div class="nm">CCTV-5+ 体育赛事<span class="hd">HD</span></div><div class="pg">CBA 总决赛 · 第 4 场</div></div>
+        <div class="lh-card"><div class="lg"><span class="fv"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 20s-6.6-4-8.8-8.1C1.7 8.6 3.6 5.5 6.8 5.5c1.9 0 3.4 1 4.2 2.6.8-1.6 2.3-2.6 4.2-2.6 3.2 0 5.1 3.1 3.6 6.4C16.6 16 12 20 12 20z"/></svg></span><svg width="88" height="28" viewBox="0 0 88 28"><rect x="0" y="1" width="30" height="26" rx="6" fill="#D6402C"/><text x="15" y="19" text-anchor="middle" font-family="'PingFang SC',sans-serif" font-weight="700" font-size="13.5" fill="#fff">湖南</text><text x="38" y="19" font-family="'PingFang SC',sans-serif" font-weight="600" font-size="12.5" fill="#F2F5F3">卫视</text></svg></div><div class="nm">湖南卫视<span class="hd">HD</span></div><div class="pg">快乐大本营 · 暑期特辑</div></div>
+        <div class="lh-card"><div class="lg"><span class="fv"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 20s-6.6-4-8.8-8.1C1.7 8.6 3.6 5.5 6.8 5.5c1.9 0 3.4 1 4.2 2.6.8-1.6 2.3-2.6 4.2-2.6 3.2 0 5.1 3.1 3.6 6.4C16.6 16 12 20 12 20z"/></svg></span><svg width="88" height="28" viewBox="0 0 88 28"><rect x="0" y="1" width="30" height="26" rx="6" fill="#1D5FA8"/><text x="15" y="19" text-anchor="middle" font-family="'PingFang SC',sans-serif" font-weight="700" font-size="13.5" fill="#fff">东方</text><text x="38" y="19" font-family="'PingFang SC',sans-serif" font-weight="600" font-size="12.5" fill="#F2F5F3">卫视</text></svg></div><div class="nm">东方卫视<span class="hd">HD</span></div><div class="pg">东方新闻 · 夜间播报</div></div>
+        <div class="lh-card"><div class="lg"><span class="fv"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 20s-6.6-4-8.8-8.1C1.7 8.6 3.6 5.5 6.8 5.5c1.9 0 3.4 1 4.2 2.6.8-1.6 2.3-2.6 4.2-2.6 3.2 0 5.1 3.1 3.6 6.4C16.6 16 12 20 12 20z"/></svg></span><svg width="82" height="28" viewBox="0 0 82 28"><rect width="45" height="28" rx="5" fill="#1E2622"/><text x="22" y="18.5" text-anchor="middle" font-family="Archivo,sans-serif" font-weight="800" font-size="12" fill="#F2F5F3">CCTV</text><rect x="49" width="33" height="28" rx="5" fill="#C99A2E"/><text x="65" y="20" text-anchor="middle" font-family="Archivo,sans-serif" font-weight="800" font-size="15" fill="#1A1204">6</text></svg></div><div class="nm">CCTV-6 电影<span class="hd">HD</span></div><div class="pg">光影星播客</div></div>
+        <div class="lh-card next"><div class="lg"><svg width="82" height="28" viewBox="0 0 82 28"><rect width="45" height="28" rx="5" fill="#1E2622"/><text x="22" y="18.5" text-anchor="middle" font-family="Archivo,sans-serif" font-weight="800" font-size="12" fill="#F2F5F3">CCTV</text><rect x="49" width="33" height="28" rx="5" fill="#3E8E5A"/><text x="65" y="20" text-anchor="middle" font-family="Archivo,sans-serif" font-weight="800" font-size="15" fill="#06170D">9</text></svg></div><div class="nm">CCTV-9 纪录<span class="hd">HD</span></div><div class="pg">蓝色星球 · 深海</div></div>
+        <div class="lh-card next"><div class="lg"><svg width="88" height="28" viewBox="0 0 88 28"><rect x="0" y="1" width="30" height="26" rx="6" fill="#7A5CA8"/><text x="15" y="19" text-anchor="middle" font-family="'PingFang SC',sans-serif" font-weight="700" font-size="13.5" fill="#fff">浙江</text><text x="38" y="19" font-family="'PingFang SC',sans-serif" font-weight="600" font-size="12.5" fill="#F2F5F3">卫视</text></svg></div><div class="nm">浙江卫视<span class="hd">HD</span></div><div class="pg">中国好声音 · 盲选</div></div>
+        <div class="lh-card next"><div class="lg"><svg width="82" height="28" viewBox="0 0 82 28"><rect width="45" height="28" rx="5" fill="#1E2622"/><text x="22" y="18.5" text-anchor="middle" font-family="Archivo,sans-serif" font-weight="800" font-size="12" fill="#F2F5F3">CCTV</text><rect x="49" width="33" height="28" rx="5" fill="#1E2622"/><text x="65" y="20" text-anchor="middle" font-family="Archivo,sans-serif" font-weight="800" font-size="15" fill="#F2F5F3">13</text></svg></div><div class="nm">CCTV-13 新闻<span class="hd">HD</span></div><div class="pg">新闻直播间</div></div>
+        <div class="lh-card next"><div class="lg"><svg width="88" height="28" viewBox="0 0 88 28"><rect x="0" y="1" width="30" height="26" rx="6" fill="#2E7DA6"/><text x="15" y="19" text-anchor="middle" font-family="'PingFang SC',sans-serif" font-weight="700" font-size="13.5" fill="#fff">广东</text><text x="38" y="19" font-family="'PingFang SC',sans-serif" font-weight="600" font-size="12.5" fill="#F2F5F3">卫视</text></svg></div><div class="nm">广东卫视<span class="hd">HD</span></div><div class="pg">湾区之夜</div></div>
+      </div>
+      <div class="lh-mini">
+        <div class="bar"><b></b></div>
+        <div class="pp"><svg width="10" height="12" viewBox="0 0 12 14" fill="currentColor"><rect width="3.4" height="14" rx="1.2"/><rect x="8.6" width="3.4" height="14" rx="1.2"/></svg></div>
+        <div class="tt"><div class="n">CCTV-1 综合</div><div class="p">晚间剧场 ·《归途》第 14 集 · 剩 13 分钟</div></div>
+      </div>
+    </div></div>
+    <figcaption><b>B · 暗夜客厅 · 首页横屏</b>4 列网格 + 完整顶栏（菜单/搜索/分组/隐藏/测速）+ 迷你播放条</figcaption>
+  </figure>
+  <figure class="ls-fig" data-dir="c">
+    <div class="ldevice"><div class="lscreen dir-c lp-player">
+      <div class="lp-vid">
+        <svg viewBox="0 0 852 393" preserveAspectRatio="xMidYMid slice">
+          <defs>
+            <linearGradient id="la-bg" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#0F2233"/><stop offset="1" stop-color="#0A1520"/></linearGradient>
+            <linearGradient id="la-desk" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#132019"/><stop offset="1" stop-color="#0C130F"/></linearGradient>
+          </defs>
+          <rect width="852" height="393" fill="url(#la-bg)"/>
+          <rect x="60" y="70" width="14" height="150" rx="7" fill="#00DC82" opacity=".8"/><rect x="84" y="96" width="8" height="124" rx="4" fill="#00DC82" opacity=".28"/>
+          <circle cx="540" cy="150" r="84" fill="none" stroke="rgba(255,255,255,.13)" stroke-width="2"/>
+          <circle cx="540" cy="150" r="64" fill="none" stroke="rgba(0,220,130,.32)"/>
+          <rect x="478" y="108" width="124" height="86" rx="12" fill="rgba(255,255,255,.06)"/>
+          <rect x="498" y="128" width="56" height="8" rx="4" fill="rgba(255,255,255,.32)"/><rect x="498" y="146" width="86" height="6" rx="3" fill="rgba(255,255,255,.16)"/><rect x="498" y="160" width="72" height="6" rx="3" fill="rgba(255,255,255,.16)"/>
+          <g opacity=".45" fill="#0D1826"><rect x="700" y="110" width="34" height="160"/><rect x="742" y="80" width="44" height="190"/><rect x="794" y="126" width="30" height="144"/></g>
+          <g fill="#16283C"><rect x="706" y="124" width="5" height="5"/><rect x="714" y="140" width="5" height="5"/><rect x="752" y="94" width="5" height="5"/><rect x="762" y="116" width="5" height="5"/><rect x="800" y="140" width="5" height="5"/></g>
+          <path d="M0 262 Q426 224 852 258" stroke="rgba(255,255,255,.09)" fill="none"/>
+          <path d="M0 266 L852 260 L852 393 L0 393 Z" fill="url(#la-desk)"/>
+          <path d="M0 264 Q426 226 852 259" stroke="rgba(0,220,130,.45)" fill="none" stroke-width="2"/>
+        </svg>
+      </div>
+      <div class="lp-grad"></div>
+      <div class="lp-top">
+        <div class="lp-back"><svg viewBox="0 0 24 24" fill="none" stroke="#F2F5F3" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 5l-7 7 7 7"/></svg></div>
+        <div class="lp-logo"><svg width="34" height="16" viewBox="0 0 34 16"><rect width="34" height="16" rx="3.5" fill="#1E2622"/><text x="17" y="12" text-anchor="middle" font-family="Archivo,sans-serif" font-weight="800" font-size="9" fill="#F2F5F3">CCTV</text></svg></div>
+        <div><div class="lp-name">CCTV-1 综合</div><div class="lp-g">央视频道 · 中国主源</div></div>
+        <span class="lp-live"><i></i>LIVE</span>
+        <div class="lp-right"><span class="lp-hd">1080P</span><span class="lp-clock">20:47</span></div>
+      </div>
+      <div class="lp-bottom">
+        <div class="lp-titlerow">
+          <span class="t">晚间剧场 ·《归途》第 14 集</span>
+          <span class="r">下一档 21:00 新闻夜线</span>
+          <div class="chips"><span>音轨 · 中</span><span>画质 1080P</span><span>睡眠 45 分钟</span></div>
+        </div>
+        <div class="lp-bar"><span class="buf"></span><span class="cur"></span><span class="thumb"></span></div>
+        <div class="lp-times"><span>20:33</span><span>剩 13 分钟</span><span>21:00</span></div>
+        <div class="lp-ctrl">
+          <div class="ch"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 5l-7 7 7 7"/></svg><span>CH−</span></div>
+          <div class="pp"><svg width="18" height="22" viewBox="0 0 18 22" fill="currentColor"><rect width="5" height="22" rx="2"/><rect x="13" width="5" height="22" rx="2"/></svg></div>
+          <div class="ch"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 5l7 7-7 7"/></svg><span>CH+</span></div>
+          <div class="icons">
+            <span class="on" title="收藏"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 21s-7.5-4.6-10-9.3C.5 8 2.6 4.5 6.2 4.5c2.2 0 3.9 1.2 4.8 3 .9-1.8 2.6-3 4.8-3 3.6 0 5.7 3.5 4.2 7.2C17.5 16.4 12 21 12 21z"/></svg></span>
+            <span title="频道列表"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M4 6h16M4 12h16M4 18h9"/></svg></span>
+            <span title="切换源"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M7 8h10M17 8l-3.2-3.2M17 8l-3.2 3.2M17 16H7M7 16l3.2-3.2M7 16l3.2 3.2"/></svg></span>
+            <span title="投屏"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><rect x="3" y="5" width="18" height="13" rx="2"/><path d="M8 21h8"/></svg></span>
+            <span title="退出全屏"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 3H5a2 2 0 0 0-2 2v4M15 3h4a2 2 0 0 1 2 2v4M9 21H5a2 2 0 0 1-2-2v-4M15 21h4a2 2 0 0 0 2-2v-4"/></svg></span>
+          </div>
+        </div>
+      </div>
+    </div></div>
+    <figcaption><b>C · 频道指南 · 播放器横屏</b>全屏视频 + OSD：顶部频道信息 / 底部节目·进度·CH± 与常用动作；点按显隐</figcaption>
+  </figure>
+  <figure class="ls-fig" data-dir="c">
+    <div class="ldevice"><div class="lscreen dir-c lh-home">
+      <div class="lh-status"><span>20:47</span>
+        <span class="r">
+          <svg width="17" height="11" viewBox="0 0 17 11" fill="currentColor"><rect x="0" y="7" width="3" height="4" rx="1"/><rect x="4.5" y="5" width="3" height="6" rx="1"/><rect x="9" y="2.5" width="3" height="8.5" rx="1"/><rect x="13.5" y="0" width="3" height="11" rx="1"/></svg>
+          <svg width="25" height="12" viewBox="0 0 25 12"><rect x=".5" y=".5" width="21" height="11" rx="3.5" fill="none" stroke="rgba(255,255,255,.4)"/><rect x="2" y="2" width="16" height="8" rx="2" fill="#F2F5F3"/><path d="M23 4v4a2.2 2.2 0 0 0 0-4z" fill="rgba(255,255,255,.4)"/></svg>
+        </span>
+      </div>
+      <div class="lh-top">
+        <div class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M4 7h16M4 12h16M4 17h10"/></svg></div>
+        <div class="mark">X<em>PLAYER</em></div>
+        <div class="grow"></div>
+        <div class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg></div>
+        <div class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M4 6h16M7 12h10M10 18h4"/></svg></div>
+        <div class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 3l18 18"/><path d="M10.5 5.2A9.8 9.8 0 0 1 12 5c6.5 0 9 7 9 7a14.5 14.5 0 0 1-2.4 3.4M6.5 6.5A14.3 14.3 0 0 0 3 12s2.5 7 9 7a9.6 9.6 0 0 0 4.3-1"/></svg></div>
+        <div class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M13 2 4.5 13.5H11L10 22l8.5-11.5H12L13 2z"/></svg></div>
+      </div>
+      <div class="lh-chips"><span class="on">全部</span><span>央视</span><span>卫视</span><span>新闻</span><span>体育</span><span>电影</span><span>纪录</span><span>少儿</span><span>港澳台</span></div>
+      <div class="lh-grid">
+        <div class="lh-card"><div class="lg"><span class="fv on"><svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><path d="M12 21s-7.5-4.6-10-9.3C.5 8 2.6 4.5 6.2 4.5c2.2 0 3.9 1.2 4.8 3 .9-1.8 2.6-3 4.8-3 3.6 0 5.7 3.5 4.2 7.2C17.5 16.4 12 21 12 21z"/></svg></span><svg width="82" height="28" viewBox="0 0 82 28"><rect width="45" height="28" rx="5" fill="#1E2622"/><text x="22" y="18.5" text-anchor="middle" font-family="Archivo,sans-serif" font-weight="800" font-size="12" fill="#F2F5F3">CCTV</text><rect x="49" width="33" height="28" rx="5" fill="#00DC82"/><text x="65" y="20" text-anchor="middle" font-family="Archivo,sans-serif" font-weight="800" font-size="15" fill="#04150C">5+</text></svg></div><div class="nm">CCTV-5+ 体育赛事<span class="hd">HD</span></div><div class="pg">CBA 总决赛 · 第 4 场</div></div>
+        <div class="lh-card"><div class="lg"><span class="fv"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 20s-6.6-4-8.8-8.1C1.7 8.6 3.6 5.5 6.8 5.5c1.9 0 3.4 1 4.2 2.6.8-1.6 2.3-2.6 4.2-2.6 3.2 0 5.1 3.1 3.6 6.4C16.6 16 12 20 12 20z"/></svg></span><svg width="88" height="28" viewBox="0 0 88 28"><rect x="0" y="1" width="30" height="26" rx="6" fill="#D6402C"/><text x="15" y="19" text-anchor="middle" font-family="'PingFang SC',sans-serif" font-weight="700" font-size="13.5" fill="#fff">湖南</text><text x="38" y="19" font-family="'PingFang SC',sans-serif" font-weight="600" font-size="12.5" fill="#F2F5F3">卫视</text></svg></div><div class="nm">湖南卫视<span class="hd">HD</span></div><div class="pg">快乐大本营 · 暑期特辑</div></div>
+        <div class="lh-card"><div class="lg"><span class="fv"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 20s-6.6-4-8.8-8.1C1.7 8.6 3.6 5.5 6.8 5.5c1.9 0 3.4 1 4.2 2.6.8-1.6 2.3-2.6 4.2-2.6 3.2 0 5.1 3.1 3.6 6.4C16.6 16 12 20 12 20z"/></svg></span><svg width="88" height="28" viewBox="0 0 88 28"><rect x="0" y="1" width="30" height="26" rx="6" fill="#1D5FA8"/><text x="15" y="19" text-anchor="middle" font-family="'PingFang SC',sans-serif" font-weight="700" font-size="13.5" fill="#fff">东方</text><text x="38" y="19" font-family="'PingFang SC',sans-serif" font-weight="600" font-size="12.5" fill="#F2F5F3">卫视</text></svg></div><div class="nm">东方卫视<span class="hd">HD</span></div><div class="pg">东方新闻 · 夜间播报</div></div>
+        <div class="lh-card"><div class="lg"><span class="fv"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 20s-6.6-4-8.8-8.1C1.7 8.6 3.6 5.5 6.8 5.5c1.9 0 3.4 1 4.2 2.6.8-1.6 2.3-2.6 4.2-2.6 3.2 0 5.1 3.1 3.6 6.4C16.6 16 12 20 12 20z"/></svg></span><svg width="82" height="28" viewBox="0 0 82 28"><rect width="45" height="28" rx="5" fill="#1E2622"/><text x="22" y="18.5" text-anchor="middle" font-family="Archivo,sans-serif" font-weight="800" font-size="12" fill="#F2F5F3">CCTV</text><rect x="49" width="33" height="28" rx="5" fill="#C99A2E"/><text x="65" y="20" text-anchor="middle" font-family="Archivo,sans-serif" font-weight="800" font-size="15" fill="#1A1204">6</text></svg></div><div class="nm">CCTV-6 电影<span class="hd">HD</span></div><div class="pg">光影星播客</div></div>
+        <div class="lh-card next"><div class="lg"><svg width="82" height="28" viewBox="0 0 82 28"><rect width="45" height="28" rx="5" fill="#1E2622"/><text x="22" y="18.5" text-anchor="middle" font-family="Archivo,sans-serif" font-weight="800" font-size="12" fill="#F2F5F3">CCTV</text><rect x="49" width="33" height="28" rx="5" fill="#3E8E5A"/><text x="65" y="20" text-anchor="middle" font-family="Archivo,sans-serif" font-weight="800" font-size="15" fill="#06170D">9</text></svg></div><div class="nm">CCTV-9 纪录<span class="hd">HD</span></div><div class="pg">蓝色星球 · 深海</div></div>
+        <div class="lh-card next"><div class="lg"><svg width="88" height="28" viewBox="0 0 88 28"><rect x="0" y="1" width="30" height="26" rx="6" fill="#7A5CA8"/><text x="15" y="19" text-anchor="middle" font-family="'PingFang SC',sans-serif" font-weight="700" font-size="13.5" fill="#fff">浙江</text><text x="38" y="19" font-family="'PingFang SC',sans-serif" font-weight="600" font-size="12.5" fill="#F2F5F3">卫视</text></svg></div><div class="nm">浙江卫视<span class="hd">HD</span></div><div class="pg">中国好声音 · 盲选</div></div>
+        <div class="lh-card next"><div class="lg"><svg width="82" height="28" viewBox="0 0 82 28"><rect width="45" height="28" rx="5" fill="#1E2622"/><text x="22" y="18.5" text-anchor="middle" font-family="Archivo,sans-serif" font-weight="800" font-size="12" fill="#F2F5F3">CCTV</text><rect x="49" width="33" height="28" rx="5" fill="#1E2622"/><text x="65" y="20" text-anchor="middle" font-family="Archivo,sans-serif" font-weight="800" font-size="15" fill="#F2F5F3">13</text></svg></div><div class="nm">CCTV-13 新闻<span class="hd">HD</span></div><div class="pg">新闻直播间</div></div>
+        <div class="lh-card next"><div class="lg"><svg width="88" height="28" viewBox="0 0 88 28"><rect x="0" y="1" width="30" height="26" rx="6" fill="#2E7DA6"/><text x="15" y="19" text-anchor="middle" font-family="'PingFang SC',sans-serif" font-weight="700" font-size="13.5" fill="#fff">广东</text><text x="38" y="19" font-family="'PingFang SC',sans-serif" font-weight="600" font-size="12.5" fill="#F2F5F3">卫视</text></svg></div><div class="nm">广东卫视<span class="hd">HD</span></div><div class="pg">湾区之夜</div></div>
+      </div>
+      <div class="lh-mini">
+        <div class="bar"><b></b></div>
+        <div class="pp"><svg width="10" height="12" viewBox="0 0 12 14" fill="currentColor"><rect width="3.4" height="14" rx="1.2"/><rect x="8.6" width="3.4" height="14" rx="1.2"/></svg></div>
+        <div class="tt"><div class="n">CCTV-1 综合</div><div class="p">晚间剧场 ·《归途》第 14 集 · 剩 13 分钟</div></div>
+      </div>
+    </div></div>
+    <figcaption><b>C · 频道指南 · 首页横屏</b>4 列网格 + 完整顶栏（菜单/搜索/分组/隐藏/测速）+ 迷你播放条</figcaption>
+  </figure>
+  <figure class="ls-fig" data-dir="d">
+    <div class="ldevice"><div class="lscreen dir-d lp-player">
+      <div class="lp-vid">
+        <svg viewBox="0 0 852 393" preserveAspectRatio="xMidYMid slice">
+          <defs>
+            <linearGradient id="la-bg" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#0F2233"/><stop offset="1" stop-color="#0A1520"/></linearGradient>
+            <linearGradient id="la-desk" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#132019"/><stop offset="1" stop-color="#0C130F"/></linearGradient>
+          </defs>
+          <rect width="852" height="393" fill="url(#la-bg)"/>
+          <rect x="60" y="70" width="14" height="150" rx="7" fill="#00DC82" opacity=".8"/><rect x="84" y="96" width="8" height="124" rx="4" fill="#00DC82" opacity=".28"/>
+          <circle cx="540" cy="150" r="84" fill="none" stroke="rgba(255,255,255,.13)" stroke-width="2"/>
+          <circle cx="540" cy="150" r="64" fill="none" stroke="rgba(0,220,130,.32)"/>
+          <rect x="478" y="108" width="124" height="86" rx="12" fill="rgba(255,255,255,.06)"/>
+          <rect x="498" y="128" width="56" height="8" rx="4" fill="rgba(255,255,255,.32)"/><rect x="498" y="146" width="86" height="6" rx="3" fill="rgba(255,255,255,.16)"/><rect x="498" y="160" width="72" height="6" rx="3" fill="rgba(255,255,255,.16)"/>
+          <g opacity=".45" fill="#0D1826"><rect x="700" y="110" width="34" height="160"/><rect x="742" y="80" width="44" height="190"/><rect x="794" y="126" width="30" height="144"/></g>
+          <g fill="#16283C"><rect x="706" y="124" width="5" height="5"/><rect x="714" y="140" width="5" height="5"/><rect x="752" y="94" width="5" height="5"/><rect x="762" y="116" width="5" height="5"/><rect x="800" y="140" width="5" height="5"/></g>
+          <path d="M0 262 Q426 224 852 258" stroke="rgba(255,255,255,.09)" fill="none"/>
+          <path d="M0 266 L852 260 L852 393 L0 393 Z" fill="url(#la-desk)"/>
+          <path d="M0 264 Q426 226 852 259" stroke="rgba(0,220,130,.45)" fill="none" stroke-width="2"/>
+        </svg>
+      </div>
+      <div class="lp-grad"></div>
+      <div class="lp-top">
+        <div class="lp-back"><svg viewBox="0 0 24 24" fill="none" stroke="#F2F5F3" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 5l-7 7 7 7"/></svg></div>
+        <div class="lp-logo"><svg width="34" height="16" viewBox="0 0 34 16"><rect width="34" height="16" rx="3.5" fill="#1E2622"/><text x="17" y="12" text-anchor="middle" font-family="Archivo,sans-serif" font-weight="800" font-size="9" fill="#F2F5F3">CCTV</text></svg></div>
+        <div><div class="lp-name">CCTV-1 综合</div><div class="lp-g">央视频道 · 中国主源</div></div>
+        <span class="lp-live"><i></i>LIVE</span>
+        <div class="lp-right"><span class="lp-hd">1080P</span><span class="lp-clock">20:47</span></div>
+      </div>
+      <div class="lp-bottom">
+        <div class="lp-titlerow">
+          <span class="t">晚间剧场 ·《归途》第 14 集</span>
+          <span class="r">下一档 21:00 新闻夜线</span>
+          <div class="chips"><span>音轨 · 中</span><span>画质 1080P</span><span>睡眠 45 分钟</span></div>
+        </div>
+        <div class="lp-bar"><span class="buf"></span><span class="cur"></span><span class="thumb"></span></div>
+        <div class="lp-times"><span>20:33</span><span>剩 13 分钟</span><span>21:00</span></div>
+        <div class="lp-ctrl">
+          <div class="ch"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 5l-7 7 7 7"/></svg><span>CH−</span></div>
+          <div class="pp"><svg width="18" height="22" viewBox="0 0 18 22" fill="currentColor"><rect width="5" height="22" rx="2"/><rect x="13" width="5" height="22" rx="2"/></svg></div>
+          <div class="ch"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 5l7 7-7 7"/></svg><span>CH+</span></div>
+          <div class="icons">
+            <span class="on" title="收藏"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 21s-7.5-4.6-10-9.3C.5 8 2.6 4.5 6.2 4.5c2.2 0 3.9 1.2 4.8 3 .9-1.8 2.6-3 4.8-3 3.6 0 5.7 3.5 4.2 7.2C17.5 16.4 12 21 12 21z"/></svg></span>
+            <span title="频道列表"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M4 6h16M4 12h16M4 18h9"/></svg></span>
+            <span title="切换源"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M7 8h10M17 8l-3.2-3.2M17 8l-3.2 3.2M17 16H7M7 16l3.2-3.2M7 16l3.2 3.2"/></svg></span>
+            <span title="投屏"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><rect x="3" y="5" width="18" height="13" rx="2"/><path d="M8 21h8"/></svg></span>
+            <span title="退出全屏"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 3H5a2 2 0 0 0-2 2v4M15 3h4a2 2 0 0 1 2 2v4M9 21H5a2 2 0 0 1-2-2v-4M15 21h4a2 2 0 0 0 2-2v-4"/></svg></span>
+          </div>
+        </div>
+      </div>
+    </div></div>
+    <figcaption><b>D · 点阵 OSD · 播放器横屏</b>全屏视频 + OSD：顶部频道信息 / 底部节目·进度·CH± 与常用动作；点按显隐</figcaption>
+  </figure>
+  <figure class="ls-fig" data-dir="d">
+    <div class="ldevice"><div class="lscreen dir-d lh-home">
+      <div class="lh-status"><span>20:47</span>
+        <span class="r">
+          <svg width="17" height="11" viewBox="0 0 17 11" fill="currentColor"><rect x="0" y="7" width="3" height="4" rx="1"/><rect x="4.5" y="5" width="3" height="6" rx="1"/><rect x="9" y="2.5" width="3" height="8.5" rx="1"/><rect x="13.5" y="0" width="3" height="11" rx="1"/></svg>
+          <svg width="25" height="12" viewBox="0 0 25 12"><rect x=".5" y=".5" width="21" height="11" rx="3.5" fill="none" stroke="rgba(255,255,255,.4)"/><rect x="2" y="2" width="16" height="8" rx="2" fill="#F2F5F3"/><path d="M23 4v4a2.2 2.2 0 0 0 0-4z" fill="rgba(255,255,255,.4)"/></svg>
+        </span>
+      </div>
+      <div class="lh-top">
+        <div class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M4 7h16M4 12h16M4 17h10"/></svg></div>
+        <div class="mark">X<em>PLAYER</em></div>
+        <div class="grow"></div>
+        <div class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg></div>
+        <div class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M4 6h16M7 12h10M10 18h4"/></svg></div>
+        <div class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 3l18 18"/><path d="M10.5 5.2A9.8 9.8 0 0 1 12 5c6.5 0 9 7 9 7a14.5 14.5 0 0 1-2.4 3.4M6.5 6.5A14.3 14.3 0 0 0 3 12s2.5 7 9 7a9.6 9.6 0 0 0 4.3-1"/></svg></div>
+        <div class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M13 2 4.5 13.5H11L10 22l8.5-11.5H12L13 2z"/></svg></div>
+      </div>
+      <div class="lh-chips"><span class="on">全部</span><span>央视</span><span>卫视</span><span>新闻</span><span>体育</span><span>电影</span><span>纪录</span><span>少儿</span><span>港澳台</span></div>
+      <div class="lh-grid">
+        <div class="lh-card"><div class="lg"><span class="fv on"><svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><path d="M12 21s-7.5-4.6-10-9.3C.5 8 2.6 4.5 6.2 4.5c2.2 0 3.9 1.2 4.8 3 .9-1.8 2.6-3 4.8-3 3.6 0 5.7 3.5 4.2 7.2C17.5 16.4 12 21 12 21z"/></svg></span><svg width="82" height="28" viewBox="0 0 82 28"><rect width="45" height="28" rx="5" fill="#1E2622"/><text x="22" y="18.5" text-anchor="middle" font-family="Archivo,sans-serif" font-weight="800" font-size="12" fill="#F2F5F3">CCTV</text><rect x="49" width="33" height="28" rx="5" fill="#00DC82"/><text x="65" y="20" text-anchor="middle" font-family="Archivo,sans-serif" font-weight="800" font-size="15" fill="#04150C">5+</text></svg></div><div class="nm">CCTV-5+ 体育赛事<span class="hd">HD</span></div><div class="pg">CBA 总决赛 · 第 4 场</div></div>
+        <div class="lh-card"><div class="lg"><span class="fv"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 20s-6.6-4-8.8-8.1C1.7 8.6 3.6 5.5 6.8 5.5c1.9 0 3.4 1 4.2 2.6.8-1.6 2.3-2.6 4.2-2.6 3.2 0 5.1 3.1 3.6 6.4C16.6 16 12 20 12 20z"/></svg></span><svg width="88" height="28" viewBox="0 0 88 28"><rect x="0" y="1" width="30" height="26" rx="6" fill="#D6402C"/><text x="15" y="19" text-anchor="middle" font-family="'PingFang SC',sans-serif" font-weight="700" font-size="13.5" fill="#fff">湖南</text><text x="38" y="19" font-family="'PingFang SC',sans-serif" font-weight="600" font-size="12.5" fill="#F2F5F3">卫视</text></svg></div><div class="nm">湖南卫视<span class="hd">HD</span></div><div class="pg">快乐大本营 · 暑期特辑</div></div>
+        <div class="lh-card"><div class="lg"><span class="fv"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 20s-6.6-4-8.8-8.1C1.7 8.6 3.6 5.5 6.8 5.5c1.9 0 3.4 1 4.2 2.6.8-1.6 2.3-2.6 4.2-2.6 3.2 0 5.1 3.1 3.6 6.4C16.6 16 12 20 12 20z"/></svg></span><svg width="88" height="28" viewBox="0 0 88 28"><rect x="0" y="1" width="30" height="26" rx="6" fill="#1D5FA8"/><text x="15" y="19" text-anchor="middle" font-family="'PingFang SC',sans-serif" font-weight="700" font-size="13.5" fill="#fff">东方</text><text x="38" y="19" font-family="'PingFang SC',sans-serif" font-weight="600" font-size="12.5" fill="#F2F5F3">卫视</text></svg></div><div class="nm">东方卫视<span class="hd">HD</span></div><div class="pg">东方新闻 · 夜间播报</div></div>
+        <div class="lh-card"><div class="lg"><span class="fv"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 20s-6.6-4-8.8-8.1C1.7 8.6 3.6 5.5 6.8 5.5c1.9 0 3.4 1 4.2 2.6.8-1.6 2.3-2.6 4.2-2.6 3.2 0 5.1 3.1 3.6 6.4C16.6 16 12 20 12 20z"/></svg></span><svg width="82" height="28" viewBox="0 0 82 28"><rect width="45" height="28" rx="5" fill="#1E2622"/><text x="22" y="18.5" text-anchor="middle" font-family="Archivo,sans-serif" font-weight="800" font-size="12" fill="#F2F5F3">CCTV</text><rect x="49" width="33" height="28" rx="5" fill="#C99A2E"/><text x="65" y="20" text-anchor="middle" font-family="Archivo,sans-serif" font-weight="800" font-size="15" fill="#1A1204">6</text></svg></div><div class="nm">CCTV-6 电影<span class="hd">HD</span></div><div class="pg">光影星播客</div></div>
+        <div class="lh-card next"><div class="lg"><svg width="82" height="28" viewBox="0 0 82 28"><rect width="45" height="28" rx="5" fill="#1E2622"/><text x="22" y="18.5" text-anchor="middle" font-family="Archivo,sans-serif" font-weight="800" font-size="12" fill="#F2F5F3">CCTV</text><rect x="49" width="33" height="28" rx="5" fill="#3E8E5A"/><text x="65" y="20" text-anchor="middle" font-family="Archivo,sans-serif" font-weight="800" font-size="15" fill="#06170D">9</text></svg></div><div class="nm">CCTV-9 纪录<span class="hd">HD</span></div><div class="pg">蓝色星球 · 深海</div></div>
+        <div class="lh-card next"><div class="lg"><svg width="88" height="28" viewBox="0 0 88 28"><rect x="0" y="1" width="30" height="26" rx="6" fill="#7A5CA8"/><text x="15" y="19" text-anchor="middle" font-family="'PingFang SC',sans-serif" font-weight="700" font-size="13.5" fill="#fff">浙江</text><text x="38" y="19" font-family="'PingFang SC',sans-serif" font-weight="600" font-size="12.5" fill="#F2F5F3">卫视</text></svg></div><div class="nm">浙江卫视<span class="hd">HD</span></div><div class="pg">中国好声音 · 盲选</div></div>
+        <div class="lh-card next"><div class="lg"><svg width="82" height="28" viewBox="0 0 82 28"><rect width="45" height="28" rx="5" fill="#1E2622"/><text x="22" y="18.5" text-anchor="middle" font-family="Archivo,sans-serif" font-weight="800" font-size="12" fill="#F2F5F3">CCTV</text><rect x="49" width="33" height="28" rx="5" fill="#1E2622"/><text x="65" y="20" text-anchor="middle" font-family="Archivo,sans-serif" font-weight="800" font-size="15" fill="#F2F5F3">13</text></svg></div><div class="nm">CCTV-13 新闻<span class="hd">HD</span></div><div class="pg">新闻直播间</div></div>
+        <div class="lh-card next"><div class="lg"><svg width="88" height="28" viewBox="0 0 88 28"><rect x="0" y="1" width="30" height="26" rx="6" fill="#2E7DA6"/><text x="15" y="19" text-anchor="middle" font-family="'PingFang SC',sans-serif" font-weight="700" font-size="13.5" fill="#fff">广东</text><text x="38" y="19" font-family="'PingFang SC',sans-serif" font-weight="600" font-size="12.5" fill="#F2F5F3">卫视</text></svg></div><div class="nm">广东卫视<span class="hd">HD</span></div><div class="pg">湾区之夜</div></div>
+      </div>
+      <div class="lh-mini">
+        <div class="bar"><b></b></div>
+        <div class="pp"><svg width="10" height="12" viewBox="0 0 12 14" fill="currentColor"><rect width="3.4" height="14" rx="1.2"/><rect x="8.6" width="3.4" height="14" rx="1.2"/></svg></div>
+        <div class="tt"><div class="n">CCTV-1 综合</div><div class="p">晚间剧场 ·《归途》第 14 集 · 剩 13 分钟</div></div>
+      </div>
+    </div></div>
+    <figcaption><b>D · 点阵 OSD · 首页横屏</b>4 列网格 + 完整顶栏（菜单/搜索/分组/隐藏/测速）+ 迷你播放条</figcaption>
+  </figure>
+</div>
+</body>
+</html>

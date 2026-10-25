@@ -1,0 +1,538 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>XPlayer · Pad 横屏适配 — 4 方向对比</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Archivo:ital,wdth,wght@0,62..125,100..900&family=Manrope:wght@400;500;600;700;800&family=Barlow:wght@400;500;600;700&family=Chivo+Mono:wght@400;500;600;700&family=Doto:wght@400..900&family=Spline+Sans+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+* { margin:0; padding:0; box-sizing:border-box; }
+body { background:#15161A; color:#E9ECEF; font-family:'PingFang SC','Noto Sans SC','Helvetica Neue',sans-serif; -webkit-font-smoothing:antialiased; padding:52px 48px 90px; }
+.head h1 { font-size:26px; font-weight:750; }
+.head h1 em { font-style:normal; color:#8A8F9C; font-weight:600; }
+.head p { margin-top:10px; font-size:14px; line-height:1.8; color:#9BA0AC; max-width:860px; }
+.head p b { color:#C9CDD6; font-weight:600; }
+.board-wrap { margin-top:44px; display:flex; flex-direction:column; gap:56px; max-width:1240px; }
+figure.pad-fig { display:flex; flex-direction:column; gap:14px; }
+figcaption { font-size:13px; color:#8A90A0; line-height:1.7; }
+figcaption b { color:#E9ECEF; font-weight:650; margin-right:10px; }
+.device { width:838px; height:592px; overflow:hidden; border-radius:30px; padding:11px; background:#000; box-shadow:0 20px 50px rgba(0,0,0,.5), inset 0 0 0 1.5px #2C2F35; align-self:flex-start; }
+.surface { width:1194px; height:834px; transform:scale(.682); transform-origin:0 0; border-radius:20px; overflow:hidden; position:relative; background:var(--bg); color:var(--tx); }
+/* 每方向 tokens（与手机稿一致） */
+.dir-a { --bg:#0A0C0B; --panel:#121614; --panel2:#171C19; --line:#232925; --line2:#2C342F; --tx:#F2F5F3; --tx2:#98A69D; --tx3:#5C685F; --acc:#00DC82; --acc-ink:#04150C; --live:#FF453A; font-family:'Archivo','PingFang SC','Noto Sans SC',sans-serif; }
+.dir-b { --bg:#0D1220; --panel:rgba(255,255,255,.055); --panel-solid:#151C2E; --line:rgba(255,255,255,.09); --line2:rgba(255,255,255,.14); --tx:#EEF2FB; --tx2:#8B94AD; --tx3:#5C6580; --acc:#FFB347; --acc-ink:#241503; --live:#FF453A; font-family:'Manrope','PingFang SC','Noto Sans SC',sans-serif; }
+.dir-c { --bg:#0B0E11; --panel:#10151B; --panel2:#141B23; --line:#1B232D; --line2:#243040; --tx:#E8EDF2; --tx2:#7C8B99; --tx3:#4E5D6C; --acc:#3B9EFF; --acc-ink:#04121F; --live:#FF453A; font-family:'Barlow','PingFang SC','Noto Sans SC',sans-serif; }
+.dir-d { --bg:#08090C; --panel:#0F1116; --panel2:#14161D; --line:#1D2029; --line2:#272B37; --tx:#F4F4F6; --tx2:#8A8E9A; --tx3:#565B68; --acc:#F0568C; --acc2:#8C6CF0; --acc-ink:#1B0710; --live:#FF453A; font-family:'Archivo','PingFang SC','Noto Sans SC',sans-serif; }
+.pad { width:1194px; height:834px; display:flex; flex-direction:column; }
+.pstatus { height:34px; flex:none; display:flex; align-items:center; justify-content:space-between; padding:12px 30px 0; font-size:14px; font-weight:650; }
+.pstatus .r { display:flex; gap:8px; align-items:center; }
+.padhome { position:absolute; bottom:7px; left:50%; transform:translateX(-50%); width:150px; height:5px; border-radius:3px; background:rgba(255,255,255,.75); z-index:60; }
+.mono-a { font-family:'Spline Sans Mono',monospace; } .mono-c { font-family:'Chivo Mono',monospace; } .doto { font-family:'Doto',monospace; font-weight:700; }
+</style>
+</head>
+<body>
+<div class="head">
+  <h1>Pad 横屏适配 <em>· 1194 × 834 · 4 方向对比</em></h1>
+  <p>平板不是放大的手机：空间多了，信息组织就得换结构。四个方向各自的 pad 策略——<b>A</b> 右栏成为「正在播放 + 节目单」控制台；<b>B</b> 继续观看升为大幅海报主场；<b>C</b> 直接展开完整 EPG 时间轴（它的天然形态）；<b>D</b> 右栏常驻点阵 OSD 面板。点击 <a href="index.html" style="color:#7AA2FF;text-decoration:none">索引页</a> 回总览，TV 端见 <a href="tv.html" style="color:#7AA2FF;text-decoration:none">tv.html</a>。</p>
+</div>
+<div class="board-wrap">
+
+<style>
+/* --- A pad --- */
+.a-topbar { height:64px; flex:none; display:flex; align-items:center; gap:16px; padding:0 30px 8px; }
+.a-topbar .wm { font-weight:800; font-stretch:125%; letter-spacing:.14em; font-size:19px; }
+.a-topbar .wm em { font-style:normal; color:var(--acc); }
+.a-topbar .grow { flex:1; }
+.a-tbicon { width:44px; height:44px; border-radius:13px; border:1px solid var(--line); background:var(--panel); display:grid; place-items:center; color:var(--tx2); }
+.a-tbicon svg { width:19px; height:19px; }
+.a-body { flex:1; min-height:0; display:flex; gap:24px; padding:6px 30px 0; }
+.a-main { flex:1; min-width:0; display:flex; flex-direction:column; }
+.a-hero2 { border-radius:18px; overflow:hidden; border:1px solid var(--line2); background:var(--panel); }
+.a-hero2 .pic { height:252px; position:relative; }
+.a-hero2 .pic svg { width:100%; height:100%; display:block; }
+.a-hero2 .lv { position:absolute; top:14px; left:14px; display:flex; align-items:center; gap:6px; background:rgba(10,12,11,.78); border-radius:9px; padding:6px 10px 6px 8px; font-family:'Spline Sans Mono',monospace; font-size:11.5px; letter-spacing:.12em; }
+.a-hero2 .lv i { width:7px; height:7px; border-radius:50%; background:var(--live); }
+.a-hero2 .hd { position:absolute; top:14px; right:14px; font-family:'Spline Sans Mono',monospace; font-size:11.5px; background:rgba(10,12,11,.78); border-radius:9px; padding:6px 9px; }
+.a-hero2 .meta { padding:13px 16px 14px; }
+.a-hero2 .row1 { display:flex; align-items:baseline; gap:12px; }
+.a-hero2 .row1 .ch { font-size:20px; font-weight:750; }
+.a-hero2 .row1 .src { font-size:12.5px; color:var(--tx3); }
+.a-hero2 .row1 .grow { flex:1; }
+.a-hero2 .pg { margin-top:3px; font-size:14.5px; color:var(--tx2); }
+.a-hero2 .bar { margin-top:11px; height:4px; border-radius:2px; background:var(--line); position:relative; }
+.a-hero2 .bar b { position:absolute; inset:0 auto 0 0; width:76%; background:var(--acc); border-radius:2px; }
+.a-hero2 .times { display:flex; justify-content:space-between; margin-top:7px; font-family:'Spline Sans Mono',monospace; font-size:11px; color:var(--tx3); }
+.a-chips2 { display:flex; gap:9px; padding:14px 0 10px; overflow:hidden; }
+.a-chips2 span { flex:none; font-size:13.5px; padding:8px 16px; border-radius:99px; border:1px solid var(--line); color:var(--tx2); background:var(--panel); }
+.a-chips2 span.on { background:var(--acc); border-color:var(--acc); color:var(--acc-ink); font-weight:650; }
+.a-grid2 { display:grid; grid-template-columns:1fr 1fr 1fr; gap:12px; flex:1; min-height:0; overflow:hidden; align-content:start; }
+.a-gcard { border-radius:14px; border:1px solid var(--line); background:var(--panel); overflow:hidden; }
+.a-gcard .lg { height:86px; display:grid; place-items:center; background:var(--panel2); position:relative; }
+.a-gcard .lg .fv { position:absolute; top:9px; right:10px; color:var(--tx3); }
+.a-gcard .lg .fv.on { color:var(--acc); }
+.a-gcard .nm { padding:9px 12px 3px; font-size:14px; font-weight:650; }
+.a-gcard .pg { padding:0 12px 10px; font-size:11.5px; color:var(--tx3); white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+.a-rail { width:330px; flex:none; display:flex; flex-direction:column; gap:12px; }
+.a-now { border:1px solid var(--line2); border-radius:16px; background:var(--panel2); overflow:hidden; }
+.a-now .th { height:118px; }
+.a-now .th svg { width:100%; height:100%; display:block; }
+.a-now .in { padding:11px 13px 13px; }
+.a-now .in .n { font-size:15.5px; font-weight:700; }
+.a-now .in .p { font-size:12.5px; color:var(--tx2); margin-top:2px; }
+.a-now .in .bar { margin-top:9px; height:3px; border-radius:2px; background:var(--line); position:relative; }
+.a-now .in .bar b { position:absolute; inset:0 auto 0 0; width:76%; background:var(--acc); }
+.a-acts { display:flex; gap:8px; }
+.a-acts span { flex:1; display:flex; align-items:center; justify-content:center; gap:6px; height:40px; border-radius:11px; border:1px solid var(--line); background:var(--panel); font-size:12px; color:var(--tx2); }
+.a-acts span.on { color:var(--acc); border-color:rgba(0,220,130,.4); }
+.a-epg { border:1px solid var(--line); border-radius:16px; background:var(--panel); padding:12px 14px 6px; flex:1; min-height:0; }
+.a-epg h5 { font-size:13px; color:var(--tx2); font-weight:650; display:flex; }
+.a-epg h5 span { margin-left:auto; font-family:'Spline Sans Mono',monospace; font-size:10.5px; color:var(--tx3); }
+.a-epg .r { display:flex; align-items:center; gap:12px; padding:11px 2px; border-bottom:1px solid var(--line); }
+.a-epg .r:last-child { border-bottom:none; }
+.a-epg .r .t { font-family:'Spline Sans Mono',monospace; font-size:12px; color:var(--tx3); width:44px; }
+.a-epg .r .n { flex:1; font-size:13.5px; font-weight:550; }
+.a-epg .r .s { font-size:10.5px; }
+.a-epg .r.cur .t { color:var(--acc); }
+.a-epg .r.cur .s { color:var(--acc); }
+.a-epg .r .s { color:var(--tx3); }
+</style>
+
+  <figure class="pad-fig">
+    <div class="device"><div class="surface dir-a">
+      <div class="pad">
+        <div class="pstatus mono-a"><span>20:47</span>
+          <span class="r">
+            <svg width="18" height="12" viewBox="0 0 18 12" fill="currentColor"><path d="M9 9.6a1.5 1.5 0 1 0 0 3 1.5 1.5 0 0 0 0-3zM5.6 8.9 4.3 10.2a6.7 6.7 0 0 1 9.4 0l-1.3-1.3a4.8 4.8 0 0 0-6.8 0zM9 5.2c-2.2 0-4.3.9-5.8 2.4l1.3 1.3A8.2 8.2 0 0 1 9 6.6c1.8 0 3.5.7 4.5 2.3l1.3-1.3A8.2 8.2 0 0 0 9 5.2z"/></svg>
+            <svg width="27" height="13" viewBox="0 0 27 13"><rect x=".5" y=".5" width="23" height="12" rx="4" fill="none" stroke="rgba(255,255,255,.4)"/><rect x="2" y="2" width="18" height="9" rx="2.5" fill="#F2F5F3"/><path d="M25 4.5v4a2.4 2.4 0 0 0 0-4z" fill="rgba(255,255,255,.4)"/></svg>
+          </span>
+        </div>
+        <div class="a-topbar">
+          <div class="a-tbicon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M4 7h16M4 12h16M4 17h10"/></svg></div>
+          <div class="wm">X<em>PLAYER</em></div>
+          <div class="grow"></div>
+          <div class="a-tbicon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg></div>
+          <div class="a-tbicon"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M4 6h16M7 12h10M10 18h4"/></svg></div>
+          <div class="a-tbicon"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 3l18 18"/><path d="M10.5 5.2A9.8 9.8 0 0 1 12 5c6.5 0 9 7 9 7a14.5 14.5 0 0 1-2.4 3.4M6.5 6.5A14.3 14.3 0 0 0 3 12s2.5 7 9 7a9.6 9.6 0 0 0 4.3-1"/></svg></div>
+          <div class="a-tbicon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M13 2 4.5 13.5H11L10 22l8.5-11.5H12L13 2z"/></svg></div>
+        </div>
+        <div class="a-body">
+          <div class="a-main">
+            <div class="a-hero2">
+              <div class="pic">
+                <svg viewBox="0 0 640 252" preserveAspectRatio="xMidYMid slice">
+                  <defs><linearGradient id="pa-bg" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#0F2233"/><stop offset="1" stop-color="#0A1520"/></linearGradient>
+                  <linearGradient id="pa-desk" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#132019"/><stop offset="1" stop-color="#0C130F"/></linearGradient></defs>
+                  <rect width="640" height="252" fill="url(#pa-bg)"/>
+                  <rect x="46" y="34" width="13" height="128" rx="6.5" fill="#00DC82" opacity=".85"/><rect x="68" y="54" width="7" height="108" rx="3.5" fill="#00DC82" opacity=".3"/>
+                  <circle cx="404" cy="96" r="66" fill="none" stroke="rgba(255,255,255,.14)" stroke-width="2"/><circle cx="404" cy="96" r="50" fill="none" stroke="rgba(0,220,130,.35)"/>
+                  <rect x="362" y="66" width="84" height="60" rx="10" fill="rgba(255,255,255,.07)"/>
+                  <rect x="374" y="79" width="38" height="6" rx="3" fill="rgba(255,255,255,.35)"/><rect x="374" y="92" width="58" height="5" rx="2.5" fill="rgba(255,255,255,.18)"/><rect x="374" y="103" width="48" height="5" rx="2.5" fill="rgba(255,255,255,.18)"/>
+                  <g opacity=".5" fill="#0D1826"><rect x="520" y="66" width="22" height="92"/><rect x="548" y="48" width="30" height="110"/><rect x="584" y="78" width="20" height="80"/></g>
+                  <g fill="#16283C"><rect x="524" y="74" width="4" height="4"/><rect x="530" y="84" width="4" height="4"/><rect x="556" y="58" width="4" height="4"/><rect x="564" y="72" width="4" height="4"/><rect x="588" y="88" width="4" height="4"/></g>
+                  <path d="M0 172 Q320 142 640 168" stroke="rgba(255,255,255,.1)" fill="none"/>
+                  <path d="M0 175 L640 170 L640 252 L0 252 Z" fill="url(#pa-desk)"/>
+                  <path d="M0 173 Q320 144 640 169" stroke="rgba(0,220,130,.5)" fill="none" stroke-width="2"/>
+                </svg>
+                <span class="lv"><i></i>LIVE</span><span class="hd">1080P</span>
+              </div>
+              <div class="meta">
+                <div class="row1"><span class="ch">CCTV-1 综合</span><span class="src">央视频道 · 中国主源</span><span class="grow"></span></div>
+                <div class="pg">晚间剧场 ·《归途》第 14 集 · 剩 13 分钟，下一档 21:00 新闻夜线</div>
+                <div class="bar"><b></b></div>
+                <div class="times"><span>20:06</span><span>21:00</span></div>
+              </div>
+            </div>
+            <div class="a-chips2"><span class="on">全部</span><span>央视</span><span>卫视</span><span>新闻</span><span>体育</span><span>电影</span><span>纪录</span><span>少儿</span></div>
+            <div class="a-grid2">
+              <div class="a-gcard"><div class="lg"><span class="fv on"><svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M12 21s-7.5-4.6-10-9.3C.5 8 2.6 4.5 6.2 4.5c2.2 0 3.9 1.2 4.8 3 .9-1.8 2.6-3 4.8-3 3.6 0 5.7 3.5 4.2 7.2C17.5 16.4 12 21 12 21z"/></svg></span><svg width="96" height="34" viewBox="0 0 96 34"><rect width="52" height="34" rx="6" fill="#1E2622"/><text x="26" y="22" text-anchor="middle" font-family="Archivo,sans-serif" font-weight="800" font-size="14" fill="#F2F5F3">CCTV</text><rect x="56" width="40" height="34" rx="6" fill="#00DC82"/><text x="76" y="24" text-anchor="middle" font-family="Archivo,sans-serif" font-weight="800" font-size="18" fill="#04150C">5+</text></svg></div><div class="nm">CCTV-5+ 体育赛事</div><div class="pg">CBA 总决赛 · 第 4 场</div></div>
+              <div class="a-gcard"><div class="lg"><span class="fv"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 20s-6.6-4-8.8-8.1C1.7 8.6 3.6 5.5 6.8 5.5c1.9 0 3.4 1 4.2 2.6.8-1.6 2.3-2.6 4.2-2.6 3.2 0 5.1 3.1 3.6 6.4C16.6 16 12 20 12 20z"/></svg></span><svg width="106" height="34" viewBox="0 0 106 34"><rect x="0" y="2" width="34" height="30" rx="7" fill="#D6402C"/><text x="17" y="23" text-anchor="middle" font-family="'PingFang SC',sans-serif" font-weight="700" font-size="16" fill="#fff">湖南</text><text x="42" y="23" font-family="'PingFang SC',sans-serif" font-weight="600" font-size="15" fill="#F2F5F3">卫视</text></svg></div><div class="nm">湖南卫视</div><div class="pg">快乐大本营 · 暑期特辑</div></div>
+              <div class="a-gcard"><div class="lg"><span class="fv"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 20s-6.6-4-8.8-8.1C1.7 8.6 3.6 5.5 6.8 5.5c1.9 0 3.4 1 4.2 2.6.8-1.6 2.3-2.6 4.2-2.6 3.2 0 5.1 3.1 3.6 6.4C16.6 16 12 20 12 20z"/></svg></span><svg width="106" height="34" viewBox="0 0 106 34"><rect x="0" y="2" width="34" height="30" rx="7" fill="#1D5FA8"/><text x="17" y="23" text-anchor="middle" font-family="'PingFang SC',sans-serif" font-weight="700" font-size="16" fill="#fff">东方</text><text x="42" y="23" font-family="'PingFang SC',sans-serif" font-weight="600" font-size="15" fill="#F2F5F3">卫视</text></svg></div><div class="nm">东方卫视</div><div class="pg">东方新闻 · 夜间播报</div></div>
+              <div class="a-gcard"><div class="lg"><span class="fv"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 20s-6.6-4-8.8-8.1C1.7 8.6 3.6 5.5 6.8 5.5c1.9 0 3.4 1 4.2 2.6.8-1.6 2.3-2.6 4.2-2.6 3.2 0 5.1 3.1 3.6 6.4C16.6 16 12 20 12 20z"/></svg></span><svg width="96" height="34" viewBox="0 0 96 34"><rect width="52" height="34" rx="6" fill="#1E2622"/><text x="26" y="22" text-anchor="middle" font-family="Archivo,sans-serif" font-weight="800" font-size="14" fill="#F2F5F3">CCTV</text><rect x="56" width="40" height="34" rx="6" fill="#C99A2E"/><text x="76" y="24" text-anchor="middle" font-family="Archivo,sans-serif" font-weight="800" font-size="18" fill="#1A1204">6</text></svg></div><div class="nm">CCTV-6 电影</div><div class="pg">光影星播客</div></div>
+              <div class="a-gcard"><div class="lg"><span class="fv"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 20s-6.6-4-8.8-8.1C1.7 8.6 3.6 5.5 6.8 5.5c1.9 0 3.4 1 4.2 2.6.8-1.6 2.3-2.6 4.2-2.6 3.2 0 5.1 3.1 3.6 6.4C16.6 16 12 20 12 20z"/></svg></span><svg width="96" height="34" viewBox="0 0 96 34"><rect width="52" height="34" rx="6" fill="#1E2622"/><text x="26" y="22" text-anchor="middle" font-family="Archivo,sans-serif" font-weight="800" font-size="14" fill="#F2F5F3">CCTV</text><rect x="56" width="40" height="34" rx="6" fill="#3E8E5A"/><text x="76" y="24" text-anchor="middle" font-family="Archivo,sans-serif" font-weight="800" font-size="18" fill="#06170D">9</text></svg></div><div class="nm">CCTV-9 纪录</div><div class="pg">蓝色星球 · 深海</div></div>
+              <div class="a-gcard"><div class="lg"><span class="fv"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 20s-6.6-4-8.8-8.1C1.7 8.6 3.6 5.5 6.8 5.5c1.9 0 3.4 1 4.2 2.6.8-1.6 2.3-2.6 4.2-2.6 3.2 0 5.1 3.1 3.6 6.4C16.6 16 12 20 12 20z"/></svg></span><svg width="96" height="34" viewBox="0 0 96 34"><rect width="52" height="34" rx="6" fill="#1E2622"/><text x="26" y="22" text-anchor="middle" font-family="Archivo,sans-serif" font-weight="800" font-size="14" fill="#F2F5F3">CCTV</text><rect x="56" width="40" height="34" rx="6" fill="#1E2622"/><text x="76" y="24" text-anchor="middle" font-family="Archivo,sans-serif" font-weight="800" font-size="18" fill="#F2F5F3">13</text></svg></div><div class="nm">CCTV-13 新闻</div><div class="pg">新闻直播间</div></div>
+            </div>
+          </div>
+          <aside class="a-rail">
+            <div class="a-now">
+              <div class="th"><svg viewBox="0 0 330 118" preserveAspectRatio="xMidYMid slice"><rect width="330" height="118" fill="#0F2233"/><rect x="18" y="20" width="8" height="66" rx="4" fill="#00DC82" opacity=".8"/><circle cx="200" cy="52" r="30" fill="none" stroke="rgba(255,255,255,.14)"/><rect x="180" y="38" width="40" height="28" rx="6" fill="rgba(255,255,255,.08)"/><path d="M0 82 Q165 68 330 80" stroke="rgba(255,255,255,.1)" fill="none"/><path d="M0 84 L330 80 L330 118 L0 118 Z" fill="#0C130F"/><path d="M0 82 Q165 68 330 80" stroke="rgba(0,220,130,.5)" fill="none"/></svg></div>
+              <div class="in"><div class="n">CCTV-1 综合</div><div class="p">晚间剧场 ·《归途》第 14 集</div><div class="bar"><b></b></div></div>
+            </div>
+            <div class="a-acts">
+              <span class="on"><svg width="13" height="13" viewBox="0 0 24 24" fill="currentColor"><path d="M12 21s-7.5-4.6-10-9.3C.5 8 2.6 4.5 6.2 4.5c2.2 0 3.9 1.2 4.8 3 .9-1.8 2.6-3 4.8-3 3.6 0 5.7 3.5 4.2 7.2C17.5 16.4 12 21 12 21z"/></svg>已收藏</span>
+              <span><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><rect x="3" y="4" width="18" height="17" rx="3"/><path d="M3 9h18M8 2v4M16 2v4"/></svg>节目单</span>
+              <span class="mono-a">1080P</span>
+            </div>
+            <div class="a-epg">
+              <h5>节目单 · 央视频道<span>EPG</span></h5>
+              <div class="r cur"><span class="t">20:06</span><span class="n">晚间剧场《归途》第 14 集</span><span class="s">播至 76%</span></div>
+              <div class="r"><span class="t">21:00</span><span class="n">新闻夜线</span><span class="s">30 分钟</span></div>
+              <div class="r"><span class="t">21:32</span><span class="n">天气预报</span><span class="s">8 分钟</span></div>
+              <div class="r"><span class="t">21:45</span><span class="n">体育世界</span><span class="s">45 分钟</span></div>
+              <div class="r"><span class="t">22:30</span><span class="n">晚间报告</span><span class="s">次日 00:00 结束</span></div>
+            </div>
+          </aside>
+        </div>
+      </div>
+      <div class="padhome"></div>
+    </div></div>
+    <figcaption><b>A · ON AIR 演播室</b>右侧成为「正在播放 + 节目单」控制台，左侧大直播卡 + 3 列网格；信息密度和手机同构，两栏互不抢占。</figcaption>
+  </figure>
+
+<style>
+/* --- B pad --- */
+.b-top2 { height:66px; flex:none; display:flex; align-items:center; gap:14px; padding:0 34px 10px; }
+.b-logo2 { display:flex; align-items:center; gap:9px; font-weight:800; font-size:19px; }
+.b-logo2 i { width:11px; height:11px; border-radius:3.5px; background:var(--acc); transform:rotate(45deg); }
+.b-logo2 em { font-style:normal; color:var(--acc); }
+.b-top2 .grow { flex:1; }
+.b-search2 { width:300px; display:flex; align-items:center; gap:9px; height:42px; border-radius:21px; background:var(--panel); border:1px solid var(--line); padding:0 14px; color:var(--tx3); font-size:13.5px; }
+.b-search2 svg { width:16px; height:16px; }
+.b-tbicon { width:42px; height:42px; border-radius:14px; background:var(--panel); border:1px solid var(--line); display:grid; place-items:center; color:var(--tx2); }
+.b-tbicon svg { width:18px; height:18px; }
+.b-body2 { flex:1; min-height:0; display:flex; gap:26px; padding:4px 34px 0; position:relative; }
+.b-sec2 { display:flex; align-items:baseline; gap:10px; padding:0 0 12px; }
+.b-sec2 h4 { font-size:17px; font-weight:750; }
+.b-sec2 .c { font-size:12px; color:var(--tx3); }
+.b-sec2 .more { margin-left:auto; font-size:13px; color:var(--tx2); }
+.b-hero3 { width:560px; flex:none; }
+.b-hero3 .poster { height:315px; border-radius:22px; overflow:hidden; position:relative; border:1px solid rgba(255,179,71,.35); box-shadow:0 0 60px rgba(255,179,71,.14); }
+.b-hero3 .poster svg { width:100%; height:100%; display:block; }
+.b-hero3 .lv { position:absolute; top:14px; left:14px; display:flex; align-items:center; gap:6px; background:rgba(13,18,32,.82); border-radius:8px; padding:6px 10px 6px 8px; font-size:11px; font-weight:800; letter-spacing:.1em; }
+.b-hero3 .lv i { width:6px; height:6px; border-radius:50%; background:var(--live); }
+.b-hero3 .hd { position:absolute; top:14px; right:14px; font-size:11px; font-weight:800; background:rgba(13,18,32,.82); border-radius:8px; padding:6px 9px; }
+.b-hero3 .in { padding:14px 4px 0; }
+.b-hero3 .in .n { font-size:19px; font-weight:750; }
+.b-hero3 .in .p { font-size:13.5px; color:var(--tx2); margin-top:3px; }
+.b-hero3 .in .bar { margin-top:11px; height:4px; border-radius:2px; background:rgba(255,255,255,.1); position:relative; }
+.b-hero3 .in .bar b { position:absolute; inset:0 auto 0 0; width:76%; background:var(--acc); border-radius:2px; }
+.b-hero3 .in .times { display:flex; justify-content:space-between; margin-top:7px; font-size:11.5px; color:var(--tx3); font-variant-numeric:tabular-nums; }
+.b-right { flex:1; min-width:0; display:flex; flex-direction:column; }
+.b-grid2 { display:grid; grid-template-columns:1fr 1fr; gap:12px; flex:1; min-height:0; overflow:hidden; align-content:start; }
+.b-pcard { border-radius:15px; overflow:hidden; background:var(--panel); border:1px solid var(--line); }
+.b-pcard .pic { height:132px; display:grid; place-items:center; position:relative; background:var(--panel-solid); }
+.b-pcard .pic .lv { position:absolute; top:9px; left:9px; width:7px; height:7px; border-radius:50%; background:var(--live); }
+.b-pcard .pic .fv { position:absolute; top:9px; right:10px; color:var(--tx3); }
+.b-pcard .pic .fv.on { color:var(--acc); }
+.b-pcard .nm { padding:10px 12px 12px; font-size:13px; font-weight:650; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+.b-mini2 { position:absolute; left:50%; bottom:26px; transform:translateX(-50%); width:600px; display:flex; align-items:center; gap:12px; background:rgba(21,28,46,.85); backdrop-filter:blur(18px); border:1px solid var(--line2); border-radius:20px; padding:11px 14px; box-shadow:0 14px 40px rgba(0,0,0,.45); z-index:20; }
+.b-mini2 .eq { display:flex; align-items:flex-end; gap:2.5px; height:18px; }
+.b-mini2 .eq i { width:3.5px; border-radius:2px; background:var(--acc); }
+.b-mini2 .eq i:nth-child(1){height:7px} .b-mini2 .eq i:nth-child(2){height:16px} .b-mini2 .eq i:nth-child(3){height:10px} .b-mini2 .eq i:nth-child(4){height:17px}
+.b-mini2 .tt { flex:1; }
+.b-mini2 .tt .n { font-size:14px; font-weight:700; }
+.b-mini2 .tt .p { font-size:11.5px; color:var(--tx3); margin-top:1px; }
+.b-mini2 .pp { width:38px; height:38px; border-radius:50%; background:var(--acc); color:var(--acc-ink); display:grid; place-items:center; flex:none; }
+.b-glow3 { position:absolute; top:-160px; left:-120px; width:640px; height:640px; border-radius:50%; background:radial-gradient(circle, rgba(255,179,71,.14), transparent 62%); pointer-events:none; }
+</style>
+
+  <figure class="pad-fig">
+    <div class="device"><div class="surface dir-b">
+      <div class="pad" style="position:relative">
+        <div class="b-glow3"></div>
+        <div class="pstatus"><span>20:47</span>
+          <span class="r">
+            <svg width="18" height="12" viewBox="0 0 18 12" fill="currentColor"><path d="M9 9.6a1.5 1.5 0 1 0 0 3 1.5 1.5 0 0 0 0-3zM5.6 8.9 4.3 10.2a6.7 6.7 0 0 1 9.4 0l-1.3-1.3a4.8 4.8 0 0 0-6.8 0zM9 5.2c-2.2 0-4.3.9-5.8 2.4l1.3 1.3A8.2 8.2 0 0 1 9 6.6c1.8 0 3.5.7 4.5 2.3l1.3-1.3A8.2 8.2 0 0 0 9 5.2z"/></svg>
+            <svg width="27" height="13" viewBox="0 0 27 13"><rect x=".5" y=".5" width="23" height="12" rx="4" fill="none" stroke="rgba(255,255,255,.4)"/><rect x="2" y="2" width="18" height="9" rx="2.5" fill="#EEF2FB"/><path d="M25 4.5v4a2.4 2.4 0 0 0 0-4z" fill="rgba(255,255,255,.4)"/></svg>
+          </span>
+        </div>
+        <div class="b-top2">
+          <div class="b-logo2"><i></i>X<em>Player</em></div>
+          <div class="grow"></div>
+          <div class="b-search2"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg>搜索频道 · 分组</div>
+          <div class="b-tbicon"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M4 6h16M7 12h10M10 18h4"/></svg></div>
+          <div class="b-tbicon"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 3l18 18"/><path d="M10.5 5.2A9.8 9.8 0 0 1 12 5c6.5 0 9 7 9 7a14.5 14.5 0 0 1-2.4 3.4M6.5 6.5A14.3 14.3 0 0 0 3 12s2.5 7 9 7a9.6 9.6 0 0 0 4.3-1"/></svg></div>
+          <div class="b-tbicon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M13 2 4.5 13.5H11L10 22l8.5-11.5H12L13 2z"/></svg></div>
+          <div class="b-tbicon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M4 7h16M4 12h16M4 17h10"/></svg></div>
+        </div>
+        <div class="b-body2">
+          <div class="b-hero3">
+            <div class="b-sec2"><h4>继续观看</h4><span class="c">上次看到 20:33</span></div>
+            <div class="poster">
+              <svg viewBox="0 0 560 315" preserveAspectRatio="xMidYMid slice">
+                <defs><linearGradient id="pbh" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#13233E"/><stop offset="1" stop-color="#0C1524"/></linearGradient></defs>
+                <rect width="560" height="315" fill="url(#pbh)"/>
+                <rect x="52" y="60" width="14" height="160" rx="7" fill="#FFB347" opacity=".8"/><rect x="76" y="84" width="8" height="136" rx="4" fill="#FFB347" opacity=".26"/>
+                <circle cx="356" cy="132" r="78" fill="none" stroke="rgba(255,255,255,.14)" stroke-width="2"/>
+                <rect x="312" y="98" width="88" height="68" rx="10" fill="rgba(255,255,255,.07)"/>
+                <rect x="326" y="112" width="40" height="7" rx="3.5" fill="rgba(255,255,255,.3)"/><rect x="326" y="127" width="62" height="6" rx="3" fill="rgba(255,255,255,.15)"/><rect x="326" y="140" width="52" height="6" rx="3" fill="rgba(255,255,255,.15)"/>
+                <g opacity=".45" fill="#0D1826"><rect x="470" y="90" width="24" height="140"/><rect x="500" y="70" width="30" height="160"/></g>
+                <path d="M0 232 Q280 204 560 228" stroke="rgba(255,255,255,.1)" fill="none"/>
+                <path d="M0 235 L560 230 L560 315 L0 315 Z" fill="#101827"/>
+                <path d="M0 233 Q280 205 560 229" stroke="rgba(255,179,71,.5)" fill="none" stroke-width="2"/>
+              </svg>
+              <span class="lv"><i></i>LIVE</span><span class="hd">HD</span>
+            </div>
+            <div class="in">
+              <div class="n">CCTV-1 综合 · 晚间剧场</div>
+              <div class="p">《归途》第 14 集 · 剩 13 分钟</div>
+              <div class="bar"><b></b></div>
+              <div class="times"><span>20:06</span><span>21:00</span></div>
+            </div>
+          </div>
+          <div class="b-right">
+            <div class="b-sec2"><h4>全部频道</h4><span class="c">1284 个</span><span class="more">管理</span></div>
+            <div class="b-grid2">
+              <div class="b-pcard"><div class="pic"><span class="lv"></span><span class="fv on"><svg width="15" height="15" viewBox="0 0 24 24" fill="currentColor"><path d="M12 21s-7.5-4.6-10-9.3C.5 8 2.6 4.5 6.2 4.5c2.2 0 3.9 1.2 4.8 3 .9-1.8 2.6-3 4.8-3 3.6 0 5.7 3.5 4.2 7.2C17.5 16.4 12 21 12 21z"/></svg></span><svg width="72" height="28" viewBox="0 0 72 28"><rect width="38" height="28" rx="5" fill="#1E2622"/><text x="19" y="19" text-anchor="middle" font-family="Manrope,sans-serif" font-weight="800" font-size="11" fill="#EEF2FB">CCTV</text><rect x="42" width="30" height="28" rx="5" fill="#00DC82"/><text x="57" y="20" text-anchor="middle" font-family="Manrope,sans-serif" font-weight="800" font-size="14" fill="#04150C">1</text></svg></div><div class="nm">CCTV-1 综合</div></div>
+              <div class="b-pcard"><div class="pic"><span class="lv"></span><span class="fv"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 20s-6.6-4-8.8-8.1C1.7 8.6 3.6 5.5 6.8 5.5c1.9 0 3.4 1 4.2 2.6.8-1.6 2.3-2.6 4.2-2.6 3.2 0 5.1 3.1 3.6 6.4C16.6 16 12 20 12 20z"/></svg></span><svg width="80" height="28" viewBox="0 0 80 28"><rect x="0" y="0" width="38" height="28" rx="5" fill="#D6402C"/><text x="19" y="19" text-anchor="middle" font-family="'PingFang SC',sans-serif" font-weight="700" font-size="13" fill="#fff">湖南</text><text x="44" y="19" font-family="'PingFang SC',sans-serif" font-weight="600" font-size="12" fill="#EEF2FB">卫视</text></svg></div><div class="nm">湖南卫视</div></div>
+              <div class="b-pcard"><div class="pic"><span class="lv"></span><span class="fv"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 20s-6.6-4-8.8-8.1C1.7 8.6 3.6 5.5 6.8 5.5c1.9 0 3.4 1 4.2 2.6.8-1.6 2.3-2.6 4.2-2.6 3.2 0 5.1 3.1 3.6 6.4C16.6 16 12 20 12 20z"/></svg></span><svg width="80" height="28" viewBox="0 0 80 28"><rect x="0" y="0" width="38" height="28" rx="5" fill="#1D5FA8"/><text x="19" y="19" text-anchor="middle" font-family="'PingFang SC',sans-serif" font-weight="700" font-size="13" fill="#fff">东方</text><text x="44" y="19" font-family="'PingFang SC',sans-serif" font-weight="600" font-size="12" fill="#EEF2FB">卫视</text></svg></div><div class="nm">东方卫视</div></div>
+              <div class="b-pcard"><div class="pic"><span class="lv"></span><span class="fv"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 20s-6.6-4-8.8-8.1C1.7 8.6 3.6 5.5 6.8 5.5c1.9 0 3.4 1 4.2 2.6.8-1.6 2.3-2.6 4.2-2.6 3.2 0 5.1 3.1 3.6 6.4C16.6 16 12 20 12 20z"/></svg></span><svg width="72" height="28" viewBox="0 0 72 28"><rect width="38" height="28" rx="5" fill="#1E2622"/><text x="19" y="19" text-anchor="middle" font-family="Manrope,sans-serif" font-weight="800" font-size="11" fill="#EEF2FB">CCTV</text><rect x="42" width="30" height="28" rx="5" fill="#C99A2E"/><text x="57" y="20" text-anchor="middle" font-family="Manrope,sans-serif" font-weight="800" font-size="14" fill="#1A1204">6</text></svg></div><div class="nm">CCTV-6 电影</div></div>
+              <div class="b-pcard" style="opacity:.55"><div class="pic"><span class="lv"></span><svg width="72" height="28" viewBox="0 0 72 28"><rect width="38" height="28" rx="5" fill="#1E2622"/><text x="19" y="19" text-anchor="middle" font-family="Manrope,sans-serif" font-weight="800" font-size="11" fill="#EEF2FB">CCTV</text><rect x="42" width="30" height="28" rx="5" fill="#3E8E5A"/><text x="57" y="20" text-anchor="middle" font-family="Manrope,sans-serif" font-weight="800" font-size="14" fill="#06170D">9</text></svg></div><div class="nm">CCTV-9 纪录</div></div>
+              <div class="b-pcard" style="opacity:.55"><div class="pic"><span class="lv"></span><svg width="80" height="28" viewBox="0 0 80 28"><rect x="0" y="0" width="38" height="28" rx="5" fill="#7A5CA8"/><text x="19" y="19" text-anchor="middle" font-family="'PingFang SC',sans-serif" font-weight="700" font-size="13" fill="#fff">浙江</text><text x="44" y="19" font-family="'PingFang SC',sans-serif" font-weight="600" font-size="12" fill="#EEF2FB">卫视</text></svg></div><div class="nm">浙江卫视</div></div>
+            </div>
+          </div>
+        </div>
+        <div class="b-mini2">
+          <div class="eq"><i></i><i></i><i></i><i></i></div>
+          <div class="tt"><div class="n">CCTV-1 综合</div><div class="p">晚间剧场 ·《归途》第 14 集</div></div>
+          <div class="pp"><svg width="12" height="14" viewBox="0 0 12 14" fill="currentColor"><rect width="3.4" height="14" rx="1.2"/><rect x="8.6" width="3.4" height="14" rx="1.2"/></svg></div>
+        </div>
+      </div>
+      <div class="padhome"></div>
+    </div></div>
+    <figcaption><b>B · 暗夜客厅</b>继续观看升为大幅海报主场（光晕随画幅放大），右侧 2 列海报网格，底部悬浮玻璃迷你条。</figcaption>
+  </figure>
+
+<style>
+/* --- C pad --- */
+.c-top2 { height:60px; flex:none; display:flex; align-items:center; gap:12px; padding:0 30px 8px; }
+.c-src2 { display:flex; align-items:center; gap:8px; height:40px; padding:0 14px; border:1px solid var(--line); background:var(--panel); border-radius:11px; font-size:13.5px; font-weight:600; }
+.c-src2 i { width:8px; height:8px; border-radius:2.5px; background:var(--acc); }
+.c-src2 .caret { width:0; height:0; border:4.5px solid transparent; border-top-color:var(--tx3); margin-top:4px; }
+.c-top2 .grow { flex:1; }
+.c-clock2 { font-family:'Chivo Mono',monospace; font-size:14px; color:var(--tx2); }
+.c-tbicon { width:40px; height:40px; border-radius:11px; border:1px solid var(--line); background:var(--panel); display:grid; place-items:center; color:var(--tx2); }
+.c-tbicon svg { width:17px; height:17px; }
+.c-chips2 { display:flex; gap:8px; padding:2px 30px 12px; overflow:hidden; }
+.c-chips2 span { flex:none; display:flex; align-items:center; gap:7px; font-size:13px; padding:7px 13px; border-radius:9px; border:1px solid var(--line); background:var(--panel); color:var(--tx2); }
+.c-chips2 span b { font-family:'Chivo Mono',monospace; font-size:10.5px; color:var(--tx3); font-weight:500; }
+.c-chips2 span.on { border-color:var(--acc); background:rgba(59,158,255,.12); color:var(--acc); }
+.c-epg2 { flex:1; min-height:0; margin:0 30px 30px; border:1px solid var(--line); border-radius:16px; background:var(--panel); display:flex; flex-direction:column; overflow:hidden; position:relative; }
+.c-epg2 .hd { display:flex; align-items:center; height:46px; flex:none; border-bottom:1px solid var(--line); }
+.c-epg2 .hd .ch { width:210px; flex:none; padding-left:16px; font-size:12px; color:var(--tx3); }
+.c-epg2 .hd .tl { flex:1; display:flex; }
+.c-epg2 .hd .tl span { width:220px; flex:none; font-family:'Chivo Mono',monospace; font-size:12px; color:var(--tx3); border-left:1px solid var(--line); padding:14px 0 0 10px; height:46px; }
+.c-epg2 .rows { flex:1; min-height:0; overflow:hidden; position:relative; }
+.c-erow { display:flex; height:98px; border-bottom:1px solid var(--line); }
+.c-erow:last-child { border-bottom:none; }
+.c-erow .ch { width:210px; flex:none; display:flex; align-items:center; gap:11px; padding:0 12px 0 16px; border-right:1px solid var(--line); }
+.c-erow .ch .lg { width:52px; height:52px; border-radius:11px; background:var(--panel2); border:1px solid var(--line); display:grid; place-items:center; flex:none; }
+.c-erow .ch .in { min-width:0; }
+.c-erow .ch .in .n { font-size:14px; font-weight:650; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+.c-erow .ch .in .no { font-family:'Chivo Mono',monospace; font-size:10.5px; color:var(--tx3); margin-top:2px; }
+.c-erow .blocks { flex:1; display:flex; padding:12px 0; gap:6px; overflow:hidden; position:relative; }
+.c-blk { flex:none; height:74px; border-radius:10px; background:var(--panel2); border:1px solid var(--line); padding:9px 12px 8px; position:relative; overflow:hidden; }
+.c-blk .t { font-family:'Chivo Mono',monospace; font-size:10px; color:var(--tx3); }
+.c-blk .n { font-size:13px; font-weight:650; margin-top:3px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+.c-blk .cut { border-radius:0 10px 10px 0; margin-left:-14px; opacity:.55; }
+.c-blk.cur { background:rgba(59,158,255,.13); border-color:rgba(59,158,255,.5); }
+.c-blk.cur .t { color:var(--acc); }
+.c-blk.cur .prog { position:absolute; left:0; bottom:0; height:3px; background:var(--acc); border-radius:0 2px 0 3px; }
+.c-nowline { position:absolute; top:0; bottom:0; width:2px; background:var(--live); z-index:5; }
+.c-nowline::before { content:''; position:absolute; top:-1px; left:50%; transform:translateX(-50%); width:8px; height:8px; border-radius:50%; background:var(--live); }
+</style>
+
+  <figure class="pad-fig">
+    <div class="device"><div class="surface dir-c">
+      <div class="pad">
+        <div class="pstatus"><span>20:47</span>
+          <span class="r">
+            <svg width="18" height="12" viewBox="0 0 18 12" fill="currentColor"><path d="M9 9.6a1.5 1.5 0 1 0 0 3 1.5 1.5 0 0 0 0-3zM5.6 8.9 4.3 10.2a6.7 6.7 0 0 1 9.4 0l-1.3-1.3a4.8 4.8 0 0 0-6.8 0zM9 5.2c-2.2 0-4.3.9-5.8 2.4l1.3 1.3A8.2 8.2 0 0 1 9 6.6c1.8 0 3.5.7 4.5 2.3l1.3-1.3A8.2 8.2 0 0 0 9 5.2z"/></svg>
+            <svg width="27" height="13" viewBox="0 0 27 13"><rect x=".5" y=".5" width="23" height="12" rx="4" fill="none" stroke="rgba(255,255,255,.4)"/><rect x="2" y="2" width="18" height="9" rx="2.5" fill="#E8EDF2"/><path d="M25 4.5v4a2.4 2.4 0 0 0 0-4z" fill="rgba(255,255,255,.4)"/></svg>
+          </span>
+        </div>
+        <div class="c-top2">
+          <div class="c-src2"><i></i>中国主源<span class="caret"></span></div>
+          <div class="grow"></div>
+          <span class="c-clock2">20:47 · 周二</span>
+          <div class="c-tbicon"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M4 6h16M7 12h10M10 18h4"/></svg></div>
+          <div class="c-tbicon"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 3l18 18"/><path d="M10.5 5.2A9.8 9.8 0 0 1 12 5c6.5 0 9 7 9 7a14.5 14.5 0 0 1-2.4 3.4M6.5 6.5A14.3 14.3 0 0 0 3 12s2.5 7 9 7a9.6 9.6 0 0 0 4.3-1"/></svg></div>
+          <div class="c-tbicon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg></div>
+          <div class="c-tbicon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M13 2 4.5 13.5H11L10 22l8.5-11.5H12L13 2z"/></svg></div>
+        </div>
+        <div class="c-chips2">
+          <span class="on">全部 <b>1284</b></span><span>央视 <b>48</b></span><span>卫视 <b>62</b></span><span>新闻 <b>86</b></span><span>体育 <b>74</b></span><span>电影 <b>113</b></span><span>纪录 <b>41</b></span><span>少儿 <b>38</b></span>
+        </div>
+        <div class="c-epg2">
+          <div class="hd">
+            <div class="ch">频道 / 节目单</div>
+            <div class="tl"><span>20:30</span><span>21:00</span><span>21:30</span><span>22:00</span></div>
+          </div>
+          <div class="rows">
+            <div class="c-nowline" style="left:325px"></div>
+            <div class="c-erow">
+              <div class="ch"><div class="lg"><svg width="40" height="17" viewBox="0 0 40 17"><rect width="40" height="17" rx="3.5" fill="#1E2622"/><text x="20" y="12.5" text-anchor="middle" font-family="Barlow,sans-serif" font-weight="700" font-size="10" fill="#E8EDF2">CCTV</text></svg></div><div class="in"><div class="n">CCTV-1 综合</div><div class="no">CH 01 · HD</div></div></div>
+              <div class="blocks">
+                <div class="c-blk cut" style="width:104px"><span class="t">20:00</span><div class="n">晚间剧场《归途》</div><span class="prog" style="width:76%"></span></div>
+                <div class="c-blk cur" style="width:220px"><span class="t">21:00 – 21:32</span><div class="n">新闻夜线</div><span class="prog" style="width:0%"></span></div>
+                <div class="c-blk" style="width:220px"><span class="t">21:32 – 21:45</span><div class="n">天气预报</div></div>
+                <div class="c-blk" style="width:180px"><span class="t">21:45</span><div class="n">体育世界</div></div>
+              </div>
+            </div>
+            <div class="c-erow">
+              <div class="ch"><div class="lg"><svg width="40" height="17" viewBox="0 0 40 17"><rect width="40" height="17" rx="3.5" fill="#1E2622"/><text x="20" y="12.5" text-anchor="middle" font-family="Barlow,sans-serif" font-weight="700" font-size="10" fill="#E8EDF2">CCTV</text></svg></div><div class="in"><div class="n">CCTV-5+ 赛事</div><div class="no">CH 04 · HD</div></div></div>
+              <div class="blocks">
+                <div class="c-blk cut" style="width:66px"><span class="t">19:45</span><div class="n">世预赛上半场</div></div>
+                <div class="c-blk cur" style="width:146px"><span class="t">20:45 – 21:05</span><div class="n">中场数据</div><span class="prog" style="width:13%"></span></div>
+                <div class="c-blk" style="width:220px"><span class="t">21:05 – 22:50</span><div class="n">下半场 · 中国 vs 澳大利亚</div></div>
+              </div>
+            </div>
+            <div class="c-erow">
+              <div class="ch"><div class="lg"><svg width="40" height="17" viewBox="0 0 40 17"><rect width="40" height="17" rx="3.5" fill="#1E2622"/><text x="20" y="12.5" text-anchor="middle" font-family="Barlow,sans-serif" font-weight="700" font-size="10" fill="#E8EDF2">CCTV</text></svg></div><div class="in"><div class="n">CCTV-13 新闻</div><div class="no">CH 13 · HD</div></div></div>
+              <div class="blocks">
+                <div class="c-blk cur" style="width:440px"><span class="t">20:00 – 22:00</span><div class="n">新闻直播间</div><span class="prog" style="width:39%"></span></div>
+                <div class="c-blk" style="width:200px"><span class="t">22:00</span><div class="n">环球视线</div></div>
+              </div>
+            </div>
+            <div class="c-erow">
+              <div class="ch"><div class="lg"><svg width="40" height="17" viewBox="0 0 40 17"><rect width="40" height="17" rx="3.5" fill="#C99A2E"/><text x="20" y="12.5" text-anchor="middle" font-family="Barlow,sans-serif" font-weight="700" font-size="10" fill="#1A1204">C6</text></svg></div><div class="in"><div class="n">CCTV-6 电影</div><div class="no">CH 05 · HD</div></div></div>
+              <div class="blocks">
+                <div class="c-blk cut" style="width:293px"><span class="t">19:55</span><div class="n">光影星播客</div></div>
+                <div class="c-blk" style="width:220px"><span class="t">21:10 – 23:00</span><div class="n">深夜影院《城市之光》</div></div>
+              </div>
+            </div>
+            <div class="c-erow">
+              <div class="ch"><div class="lg"><svg width="40" height="17" viewBox="0 0 40 17"><rect width="40" height="17" rx="3.5" fill="#D6402C"/><text x="20" y="12.5" text-anchor="middle" font-family="'PingFang SC',sans-serif" font-weight="700" font-size="10" fill="#fff">湖南</text></svg></div><div class="in"><div class="n">湖南卫视</div><div class="no">CH 28 · HD</div></div></div>
+              <div class="blocks">
+                <div class="c-blk cur" style="width:440px"><span class="t">20:20 – 22:00</span><div class="n">快乐大本营 · 暑期特辑</div><span class="prog" style="width:24%"></span></div>
+                <div class="c-blk" style="width:200px"><span class="t">22:00</span><div class="n">晚间新闻</div></div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="padhome"></div>
+    </div></div>
+    <figcaption><b>C · 频道指南</b>pad 上直接展开完整 EPG 时间轴：频道列 + 节目块（宽度=时长）+ 红色当前时刻线——C 方向的天然形态。</figcaption>
+  </figure>
+
+<style>
+/* --- D pad --- */
+.d-top2 { height:60px; flex:none; display:flex; align-items:center; gap:14px; padding:0 30px 8px; }
+.d-top2 .mark { font-family:'Doto',monospace; font-weight:900; font-size:23px; letter-spacing:.06em; }
+.d-top2 .mark em { font-style:normal; color:var(--acc); }
+.d-top2 .grow { flex:1; }
+.d-tbicon { width:42px; height:42px; border-radius:5px; border:1px solid var(--line); background:var(--panel); display:grid; place-items:center; color:var(--tx2); }
+.d-tbicon svg { width:18px; height:18px; }
+.d-ticker2 { flex:none; display:flex; border-top:1px solid var(--line); border-bottom:1px solid var(--line); background:var(--panel); height:38px; overflow:hidden; }
+.d-ticker2 .tag { flex:none; display:flex; align-items:center; gap:8px; padding:0 14px; border-right:1px solid var(--line); font-family:'Doto',monospace; font-weight:900; font-size:14px; letter-spacing:.1em; color:var(--acc); }
+.d-ticker2 .tag i { width:6px; height:6px; border-radius:50%; background:var(--live); }
+.d-ticker2 .strip { flex:1; display:flex; align-items:center; overflow:hidden; }
+.d-ticker2 .strip span { white-space:nowrap; font-family:'Doto',monospace; font-weight:600; font-size:13px; letter-spacing:.05em; color:var(--tx2); }
+@media (prefers-reduced-motion: no-preference) { .d-ticker2 .strip span { animation:dtick 30s linear infinite; } }
+@keyframes dtick { from { transform:translateX(0); } to { transform:translateX(-50%); } }
+.d-body2 { flex:1; min-height:0; display:flex; gap:20px; padding:14px 30px 0; }
+.d-grid2 { flex:1; min-width:0; display:grid; grid-template-columns:1fr 1fr 1fr 1fr; gap:10px; align-content:start; overflow:hidden; }
+.d-cell2 { border:1px solid var(--line); background:var(--panel); border-radius:7px; overflow:hidden; position:relative; }
+.d-cell2 .pic { height:104px; display:grid; place-items:center; background:var(--panel2); position:relative; }
+.d-cell2 .pic::after { content:''; position:absolute; inset:0; background:repeating-linear-gradient(0deg, transparent 0 3px, rgba(255,255,255,.015) 3px 4px); }
+.d-cell2 .num { position:absolute; top:7px; left:8px; font-family:'Doto',monospace; font-weight:800; font-size:13px; color:var(--tx3); }
+.d-cell2 .fv { position:absolute; top:7px; right:8px; color:var(--tx3); }
+.d-cell2 .fv.on { color:var(--acc); }
+.d-cell2 .nm { padding:8px 10px 10px; font-size:12px; font-weight:600; color:var(--tx2); white-space:nowrap; overflow:hidden; text-overflow:ellipsis; border-top:1px solid var(--line); }
+.d-cell2.cur { border-color:var(--acc); box-shadow:0 0 0 1px var(--acc), 0 0 26px rgba(240,86,140,.2); }
+.d-cell2.cur .num { color:var(--acc); }
+.d-rail2 { width:300px; flex:none; display:flex; flex-direction:column; gap:12px; }
+.d-osd2 { border:1px solid var(--line2); background:var(--panel); border-radius:10px; padding:16px 18px 14px; }
+.d-osd2 .lb { font-family:'Doto',monospace; font-weight:800; font-size:12px; letter-spacing:.18em; color:var(--tx3); }
+.d-osd2 .big { font-family:'Doto',monospace; font-weight:900; font-size:96px; line-height:1; margin-top:6px; color:var(--tx); text-shadow:0 0 30px rgba(240,86,140,.3); }
+.d-osd2 .nm { font-size:17px; font-weight:750; margin-top:8px; }
+.d-osd2 .lv { display:inline-flex; align-items:center; gap:6px; margin-top:6px; font-family:'Doto',monospace; font-weight:800; font-size:11px; letter-spacing:.16em; color:var(--acc); }
+.d-osd2 .lv i { width:6px; height:6px; border-radius:50%; background:var(--live); }
+.d-osd2 .pg { font-size:13px; color:var(--tx2); margin-top:10px; }
+.d-osd2 .bar { margin-top:9px; height:4px; background:rgba(255,255,255,.12); border-radius:2px; position:relative; }
+.d-osd2 .bar b { position:absolute; inset:0 auto 0 0; width:76%; background:var(--acc); border-radius:2px; }
+.d-osd2 .nx { margin-top:9px; font-family:'Doto',monospace; font-weight:600; font-size:11px; letter-spacing:.05em; color:var(--tx3); }
+.d-clock2 { border:1px solid var(--line); background:var(--panel); border-radius:10px; padding:12px 18px 14px; }
+.d-clock2 .t { font-family:'Doto',monospace; font-weight:800; font-size:38px; letter-spacing:.04em; }
+.d-clock2 .t em { font-style:normal; color:var(--acc); }
+.d-clock2 .d { font-size:11.5px; color:var(--tx3); margin-top:3px; font-family:'Doto',monospace; font-weight:600; letter-spacing:.1em; }
+.d-bar2 { flex:none; margin:12px 30px 26px; display:flex; align-items:center; border:1px solid var(--line2); background:var(--panel); border-radius:8px; overflow:hidden; height:64px; }
+.d-bar2 .side { flex:1; display:flex; align-items:center; justify-content:center; gap:8px; font-family:'Doto',monospace; font-weight:800; font-size:13px; color:var(--tx2); }
+.d-bar2 .side span { font-family:'PingFang SC','Noto Sans SC',sans-serif; font-size:11px; color:var(--tx3); }
+.d-bar2 .mid { flex:none; width:120px; border-left:1px solid var(--line); border-right:1px solid var(--line); display:flex; align-items:center; justify-content:center; gap:10px; }
+.d-bar2 .pp { width:38px; height:38px; border-radius:7px; background:var(--acc); color:var(--acc-ink); display:grid; place-items:center; }
+.d-bar2 .now { font-family:'Doto',monospace; font-weight:800; font-size:13px; letter-spacing:.1em; color:var(--acc); }
+</style>
+
+  <figure class="pad-fig">
+    <div class="device"><div class="surface dir-d">
+      <div class="pad">
+        <div class="pstatus"><span>20:47</span>
+          <span class="r">
+            <svg width="18" height="12" viewBox="0 0 18 12" fill="currentColor"><path d="M9 9.6a1.5 1.5 0 1 0 0 3 1.5 1.5 0 0 0 0-3zM5.6 8.9 4.3 10.2a6.7 6.7 0 0 1 9.4 0l-1.3-1.3a4.8 4.8 0 0 0-6.8 0zM9 5.2c-2.2 0-4.3.9-5.8 2.4l1.3 1.3A8.2 8.2 0 0 1 9 6.6c1.8 0 3.5.7 4.5 2.3l1.3-1.3A8.2 8.2 0 0 0 9 5.2z"/></svg>
+            <svg width="27" height="13" viewBox="0 0 27 13"><rect x=".5" y=".5" width="23" height="12" rx="4" fill="none" stroke="rgba(255,255,255,.4)"/><rect x="2" y="2" width="18" height="9" rx="2.5" fill="#F4F4F6"/><path d="M25 4.5v4a2.4 2.4 0 0 0 0-4z" fill="rgba(255,255,255,.4)"/></svg>
+          </span>
+        </div>
+        <div class="d-top2">
+          <div class="d-tbicon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M4 7h16M4 12h16M4 17h10"/></svg></div>
+          <div class="mark">X<em>PLAYER</em></div>
+          <div class="grow"></div>
+          <div class="d-tbicon"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M4 6h16M7 12h10M10 18h4"/></svg></div>
+          <div class="d-tbicon"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 3l18 18"/><path d="M10.5 5.2A9.8 9.8 0 0 1 12 5c6.5 0 9 7 9 7a14.5 14.5 0 0 1-2.4 3.4M6.5 6.5A14.3 14.3 0 0 0 3 12s2.5 7 9 7a9.6 9.6 0 0 0 4.3-1"/></svg></div>
+          <div class="d-tbicon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg></div>
+          <div class="d-tbicon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M13 2 4.5 13.5H11L10 22l8.5-11.5H12L13 2z"/></svg></div>
+        </div>
+        <div class="d-ticker2">
+          <span class="tag"><i></i>NOW</span>
+          <div class="strip"><span>20:47 晚间剧场《归途》第 14 集 · CCTV-1&nbsp;&nbsp;&nbsp;·&nbsp;&nbsp;&nbsp;20:50 世预赛半场数据 · CCTV-5+&nbsp;&nbsp;&nbsp;·&nbsp;&nbsp;&nbsp;21:00 新闻夜线 · CCTV-13&nbsp;&nbsp;&nbsp;·&nbsp;&nbsp;&nbsp;21:32 天气预报&nbsp;&nbsp;&nbsp;·&nbsp;&nbsp;&nbsp;21:45 体育世界&nbsp;&nbsp;&nbsp;·&nbsp;&nbsp;&nbsp;20:47 晚间剧场《归途》第 14 集 · CCTV-1&nbsp;&nbsp;&nbsp;·&nbsp;&nbsp;&nbsp;20:50 世预赛半场数据 · CCTV-5+&nbsp;&nbsp;&nbsp;·&nbsp;&nbsp;&nbsp;21:00 新闻夜线 · CCTV-13&nbsp;&nbsp;&nbsp;·&nbsp;&nbsp;&nbsp;21:32 天气预报&nbsp;&nbsp;&nbsp;·&nbsp;&nbsp;&nbsp;21:45 体育世界</span></div>
+        </div>
+        <div class="d-body2">
+          <div class="d-grid2">
+            <div class="d-cell2 cur"><span class="num">01</span><span class="fv on"><svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><path d="M12 21s-7.5-4.6-10-9.3C.5 8 2.6 4.5 6.2 4.5c2.2 0 3.9 1.2 4.8 3 .9-1.8 2.6-3 4.8-3 3.6 0 5.7 3.5 4.2 7.2C17.5 16.4 12 21 12 21z"/></svg></span><div class="pic"><svg width="62" height="27" viewBox="0 0 62 27"><rect width="33" height="27" rx="4" fill="#1E2622"/><text x="16.5" y="18.5" text-anchor="middle" font-family="Archivo,sans-serif" font-weight="800" font-size="11" fill="#F4F4F6">CCTV</text><rect x="37" width="25" height="27" rx="4" fill="#00DC82"/><text x="49.5" y="19.5" text-anchor="middle" font-family="Archivo,sans-serif" font-weight="800" font-size="14" fill="#04150C">1</text></svg></div><div class="nm">CCTV-1 综合</div></div>
+            <div class="d-cell2"><span class="num">05</span><div class="pic"><svg width="62" height="27" viewBox="0 0 62 27"><rect width="33" height="27" rx="4" fill="#1E2622"/><text x="16.5" y="18.5" text-anchor="middle" font-family="Archivo,sans-serif" font-weight="800" font-size="11" fill="#F4F4F6">CCTV</text><rect x="37" width="25" height="27" rx="4" fill="#3E8E5A"/><text x="49.5" y="19.5" text-anchor="middle" font-family="Archivo,sans-serif" font-weight="800" font-size="14" fill="#06170D">5</text></svg></div><div class="nm">CCTV-5 体育</div></div>
+            <div class="d-cell2"><span class="num">13</span><div class="pic"><svg width="62" height="27" viewBox="0 0 62 27"><rect width="33" height="27" rx="4" fill="#1E2622"/><text x="16.5" y="18.5" text-anchor="middle" font-family="Archivo,sans-serif" font-weight="800" font-size="11" fill="#F4F4F6">CCTV</text><rect x="37" width="25" height="27" rx="4" fill="#C99A2E"/><text x="49.5" y="19.5" text-anchor="middle" font-family="Archivo,sans-serif" font-weight="800" font-size="14" fill="#1A1204">13</text></svg></div><div class="nm">CCTV-13 新闻</div></div>
+            <div class="d-cell2"><span class="num">28</span><div class="pic"><svg width="62" height="27" viewBox="0 0 62 27"><rect width="27" height="27" rx="4" fill="#D6402C"/><text x="13.5" y="18.5" text-anchor="middle" font-family="'PingFang SC',sans-serif" font-weight="700" font-size="12" fill="#fff">湖南</text><text x="34" y="18.5" font-family="'PingFang SC',sans-serif" font-weight="600" font-size="11" fill="#F4F4F6">卫视</text></svg></div><div class="nm">湖南卫视</div></div>
+            <div class="d-cell2"><span class="num">29</span><div class="pic"><svg width="62" height="27" viewBox="0 0 62 27"><rect width="27" height="27" rx="4" fill="#1D5FA8"/><text x="13.5" y="18.5" text-anchor="middle" font-family="'PingFang SC',sans-serif" font-weight="700" font-size="12" fill="#fff">东方</text><text x="34" y="18.5" font-family="'PingFang SC',sans-serif" font-weight="600" font-size="11" fill="#F4F4F6">卫视</text></svg></div><div class="nm">东方卫视</div></div>
+            <div class="d-cell2"><span class="num">06</span><div class="pic"><svg width="62" height="27" viewBox="0 0 62 27"><rect width="33" height="27" rx="4" fill="#1E2622"/><text x="16.5" y="18.5" text-anchor="middle" font-family="Archivo,sans-serif" font-weight="800" font-size="11" fill="#F4F4F6">CCTV</text><rect x="37" width="25" height="27" rx="4" fill="#C99A2E"/><text x="49.5" y="19.5" text-anchor="middle" font-family="Archivo,sans-serif" font-weight="800" font-size="14" fill="#1A1204">6</text></svg></div><div class="nm">CCTV-6 电影</div></div>
+            <div class="d-cell2" style="opacity:.45"><span class="num">09</span><div class="pic"><svg width="62" height="27" viewBox="0 0 62 27"><rect width="33" height="27" rx="4" fill="#1E2622"/><text x="16.5" y="18.5" text-anchor="middle" font-family="Archivo,sans-serif" font-weight="800" font-size="11" fill="#F4F4F6">CCTV</text><rect x="37" width="25" height="27" rx="4" fill="#3E8E5A"/><text x="49.5" y="19.5" text-anchor="middle" font-family="Archivo,sans-serif" font-weight="800" font-size="14" fill="#06170D">9</text></svg></div><div class="nm">CCTV-9 纪录</div></div>
+            <div class="d-cell2" style="opacity:.45"><span class="num">22</span><div class="pic"><svg width="62" height="27" viewBox="0 0 62 27"><rect width="27" height="27" rx="4" fill="#7A5CA8"/><text x="13.5" y="18.5" text-anchor="middle" font-family="'PingFang SC',sans-serif" font-weight="700" font-size="12" fill="#fff">浙江</text><text x="34" y="18.5" font-family="'PingFang SC',sans-serif" font-weight="600" font-size="11" fill="#F4F4F6">卫视</text></svg></div><div class="nm">浙江卫视</div></div>
+          </div>
+          <aside class="d-rail2">
+            <div class="d-osd2">
+              <div class="lb">NOW PLAYING</div>
+              <div class="big">01</div>
+              <div class="nm">CCTV-1 综合</div>
+              <div class="lv"><i></i>LIVE</div>
+              <div class="pg">晚间剧场 ·《归途》第 14 集</div>
+              <div class="bar"><b></b></div>
+              <div class="nx">NEXT 21:00 新闻夜线 · 21:32 天气预报</div>
+            </div>
+            <div class="d-clock2">
+              <div class="t">20<em>:</em>47</div>
+              <div class="d">TUE · 中国主源 · 1284 CH</div>
+            </div>
+          </aside>
+        </div>
+        <div class="d-bar2">
+          <div class="side"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M15 5l-7 7 7 7"/></svg><span>上一个频道</span></div>
+          <div class="mid"><div class="pp"><svg width="12" height="14" viewBox="0 0 12 14" fill="currentColor"><rect width="3.4" height="14" rx="1.2"/><rect x="8.6" width="3.4" height="14" rx="1.2"/></svg></div><span class="now">CH 01</span></div>
+          <div class="side"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M9 5l7 7-7 7"/></svg><span>下一个频道</span></div>
+        </div>
+      </div>
+      <div class="padhome"></div>
+    </div></div>
+    <figcaption><b>D · 点阵 OSD</b>右栏常驻点阵 OSD 面板（大号 01 + 时钟），跑马灯加宽为全宽 NOW 条，4 列格子网格。</figcaption>
+  </figure>
+
+</div>
+
+<script>
+/* figma=1 干净导出模式：隐藏工作台外壳，屏幕按画布排布，取消缩放 */
+if (new URLSearchParams(location.search).has('figma')) {
+  document.documentElement.classList.add('figma-mode');
+  const css = `
+    .deck-head, .pghead, .head, .note, figcaption, .deck-meta { display:none !important; }
+    body { background:#0B0C10 !important; padding:64px !important; width:2600px !important; }
+    .deck, .deck.small, .board-wrap { display:flex !important; flex-wrap:wrap; gap:56px !important; padding:0 !important; max-width:none !important; }
+    .phone, .device, .mdev { width:auto !important; height:auto !important; overflow:visible !important; box-shadow:none !important; }
+    .mscr, .surface { transform:none !important; }
+  `;
+  const st = document.createElement('style');
+  st.textContent = css;
+  document.head.appendChild(st);
+}
+</script>
+</body>
+</html>
