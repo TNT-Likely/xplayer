@@ -22,7 +22,11 @@ XPlayer 的本地 Flutter 播放兼容包，集中管理源地址、请求头、
 
 HTTP(S) 使用浏览器兼容的默认 User-Agent，显式请求头优先；libmpv 网络超时默认为 15 秒，缓存保留在内存中。对没有外置音轨/字幕或共享状态的复用 HLS master，先在有界预算内选择一条变体，避免逐一探测全部码率；软解恢复可选择低带宽变体。`PlaybackConfiguration` 可调整时间预算、关闭变体预选或保留恢复时的原画质。
 
-iOS 在准备媒体前配置并激活系统音频会话。共享会话通过串行引用计数管理，只有最后一个播放器释放后才停用，避免并发加载或小窗交接时关闭其他播放器的会话。生产播放默认使用系统音频输出；显式的 `audioOutputDriver: 'null'` 仅用于无音频输出的解码验证。
+iOS 在准备媒体前配置并激活系统音频会话，恢复播放时重新激活，以处理会话被系统中断或其他插件停用的情况。共享会话通过串行引用计数管理，只有最后一个播放器释放后才停用，避免并发加载或小窗交接时关闭其他播放器的会话。生产播放默认使用系统音频输出；显式的 `audioOutputDriver: 'null'` 仅用于无音频输出的解码验证。模拟器 AudioUnit 构建方法见 [原生适配器说明](../native/README.md)。
+
+诊断中的 `audioSampleFormat` 表示解码后的音频，`audioOutputDriver` / `audioOutputParams` 则表示实际打开的音频输出。两者不能混为一谈。`firstFrameMs`、`audioOutputMs`、`manifestReadyMs`、`initializedMs` 可帮助区分网络、解码、画面和声音的启动耗时。设备音频输出失败时会跳过使用同一输出驱动的软解重试，直接尝试其他平台后端。
+
+宿主可通过 `pausePlaybackWhenHidden(platform)` 选择后台策略：Android/iOS 切后台暂停，桌面窗口被遮挡或隐藏时保持音频播放。Android 宿主在音频开始推进时提供 `systemMediaVolume`、`systemMediaVolumeMax` 和 `systemMediaMuted`，辅助区分系统低音量与解码/输出错误。
 
 频道测速使用同一套请求头上下文，能够识别无后缀 HLS 并沿重定向后的路径继续探测分片，拒绝 HTTP 200 的 HTML 错误页面。源属性以 JSON 对象保存，兼容读取旧字符串格式，避免请求头中的逗号、冒号在缓存或同步后丢失。
 

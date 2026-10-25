@@ -22,6 +22,14 @@ Darwin 原生库适配器基于上游 1.1.4，Android 基于 1.3.8，Windows 基
 
 `tool/check_decoder_compatibility.py` 校验实际音频解码参数、视频解码参数和至少一秒的时钟推进，进程超时单独标记失败。`.github/workflows/playback-compatibility.yml` 在 macOS、Windows、Linux 运行此矩阵，并在 Windows 构建应用以检查 CMake / ANGLE 集成；不能用这份配置代替尚未执行的 CI 结果。
 
-`tool/playback_device_probe.dart` 额外验证 Flutter 渲染首帧、自动与强制软解两种模式。Android 测试使用单独应用 ID `.playbackprobe`，不覆盖用户播放器；测试静音，结果保存在应用支持目录的 `codec_probe.json`。iOS 模拟器的上游 libmpv 构建不含可用的音频输出驱动，解码/渲染检查需显式使用 `PLAYBACK_PROBE_NULL_AUDIO=true`，此结果不能代表扬声器或真实设备音频输出验证。生产默认始终使用系统音频输出。
+`tool/playback_device_probe.dart` 额外验证 Flutter 渲染首帧、自动与强制软解两种模式。Android 测试使用单独应用 ID `.playbackprobe`，结果保存在应用支持目录的 `codec_probe.json`。无界面解码测试仍可显式使用 `PLAYBACK_PROBE_NULL_AUDIO=true`，但该结果不代表系统音频输出验证。
+
+### iPhone / iPad 模拟器音频
+
+上游 v0.6.0 的模拟器切片没有启用 AudioUnit，视频可能正常而无声，随后还会触发无效的软解重试。本地 `ios/build_simulator_audio.py` 重新编译同版本 mpv 0.36.0 的模拟器切片，启用 AudioUnit、保留 libass / uchardet / OpenGL，并应用上游的 Objective-C 构建与共享音频会话补丁。FFmpeg 完整解码库和 iOS 真机切片保持固定版本；不使用 null audio 掩盖输出问题。
+
+首次 iOS 构建额外需要 Python 3.10+、`pkg-config` 和 Xcode。脚本校验所有下载源码/头文件/补丁的 SHA-256，在插件 `.cache/` 下创建固定版本的 Meson/Ninja 环境，生成 arm64 与 x86_64 模拟器库后才替换目标切片。CocoaPods 执行 Make 时自动完成；后续使用缓存。修改构建脚本或重新解压框架后会重新构建。生成物不提交 Git。
+
+`tool/application_playback_probe.dart` 使用应用的实际后端工厂和回退顺序，默认开启声音。libmpv 必须有实际输出驱动、输出 PCM 参数和非零音量；Android 原生后端必须收到音频播放位置推进回调。配置 `testPauseResume: true` 可验证直播暂停恢复。短样本不应启用该选项，以免将正常播放结束误判为恢复失败。
 
 原生库版本升级时，更新清单、各平台适配器中的固定值并重新运行矩阵。Windows 解压目录使用 SHA-256 标记，避免复用旧的裁剪 DLL；所有平台不应切回 `default` 构建来缩小包体。

@@ -91,4 +91,36 @@ dart --packages=.dart_tool/package_config.json tool/probe_decoder.dart \
 
 media_kit、media_kit_video、audio_session 与 Linux 插件使用精确版本，避免包独立解析依赖时静默切换关键实现。升级这些依赖需显式修改 pubspec 并重跑矩阵。
 
+## 系统声音输出验收
+
+解码器给出 `audioSampleFormat` 不等于扬声器输出已启动。应用探针 `tool/application_playback_probe.dart` 使用宿主的真实后端工厂，检查 libmpv 的 `audioOutputDriver`、`audioOutputParams`、非静音状态与非零音量；Android 原生后端检查 `onAudioPositionAdvancing` 回调。每个用例落盘检查点，整个批次结束后标记 `complete: true`，避免测试中断时丢失已完成结果。
+
+配置示例：
+
+```json
+{"sources":[{"name":"受测直播","url":"http://example.test/live.m3u8","expectAudio":true,"expectVideo":true,"testPauseResume":true,"minPlaybackSeconds":8}]}
+```
+
+`minPlaybackSeconds` 默认为 2，可设置 2～10 秒；短文件不要启用 `testPauseResume`，避免将正常播完误判为恢复失败。直播时间戳可能倒跳，探针累计连续的向前增量，忽略倒跳和异常大跳；Android 暂停恢复还检查实际渲染帧数，而非仅依赖时间轴数值。
+
+```sh
+flutter run -d DEVICE -t tool/playback_device_probe.dart \
+  --dart-define=PLAYBACK_PROBE_APPLICATION=true \
+  --dart-define=PLAYBACK_PROBE_CONFIG=http://HOST:PORT/config.json
+```
+
+这条命令在宿主仓库根目录执行。Android 测试 APK 使用 `.playbackprobe`；Apple 建议创建专用模拟器、macOS 使用独立 bundle ID，保留用户数据。桌面渲染验收应让窗口可见；被遮挡或隐藏的窗口可能暂停帧调度，不应冒充播放器解码失败。
+
+macOS 可进一步检查系统混音后的 PCM 能量，无需保存音频或截图：
+
+```sh
+swiftc -parse-as-library packages/xplayer_player/tool/system_audio_meter.swift \
+  -o /tmp/xplayer-audio-meter
+/tmp/xplayer-audio-meter
+```
+
+需要 macOS 13+ 以及已授予的“屏幕与系统音频录制”权限；工具会先检查权限，不会主动弹出授权请求。先停止所有测试播放器测静音基线，再逐端单独播放同一个已知有声源。每次采样 12 秒，记录采样数、峰值、RMS 与 dBFS。全局混音模式下应关闭其他有声应用；不能将别的应用或提示音当作受测播放器通过。可提供 PID 限定 macOS 应用，但应核对系统的音频进程归属。
+
+该检查证明系统输出中存在非静音 PCM，不替代物理扬声器音质、蓝牙/HDMI 路由、多声道或口型同步验证。2026-10-25 的音频补测结果见 [验收记录](../validation/2026-10-25-audio-acceptance.json)。
+
 更新 `native_builds.json` 后同步 Darwin Makefile、Windows CMake；Android直接读取清单。核对来源与许可证，运行 pin 测试、完整矩阵和应用构建。不要通过换回裁剪构建缩小包体，否则 TrueHD 等会再次缺失。库升级与行为修改尽量分开提交，保留旧版本报告作为对照；必要时回滚到上一组完整且已验证的固定资产。

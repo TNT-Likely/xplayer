@@ -117,6 +117,10 @@ class _PlaybackProbeState extends State<_PlaybackProbe> {
                   'hlsSelection': diag['hlsSelection'],
                   'durationMs': value.duration.inMilliseconds,
                   'elapsedMs': watch.elapsedMilliseconds,
+                  'audioOutputDriver': diag['audioOutputDriver'],
+                  'audioOutputParams': diag['audioOutputParams'],
+                  'audioOutputMs': diag['audioOutputMs'],
+                  'firstFrameMs': diag['firstFrameMs'],
                 });
                 break;
               }

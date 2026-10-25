@@ -64,6 +64,7 @@ class MediaKitBackend implements XPlayerBackend {
   Completer<void>? _ready;
   bool _disposed = false;
   bool _started = false;
+  final _startupWatch = Stopwatch();
 
   @override
   ValueListenable<XPlayerValue> get notifier => _notifier;
@@ -100,6 +101,7 @@ class MediaKitBackend implements XPlayerBackend {
     if (_disposed || _started) throw StateError('Backend already used');
     configuration.validate();
     _started = true;
+    _startupWatch.start();
     // Lazy initialization lets errors (e.g. missing Linux libmpv) take the
     // normal playback failure path instead of preventing application startup.
     mk.MediaKit.ensureInitialized();
@@ -156,6 +158,7 @@ class MediaKitBackend implements XPlayerBackend {
             _diagnostics.value = {
               ..._diagnostics.value,
               'firstFrameRendered': true,
+              'firstFrameMs': _startupWatch.elapsedMilliseconds,
             };
           }
         },
@@ -260,6 +263,27 @@ class MediaKitBackend implements XPlayerBackend {
       await _video!.platform.future;
       if (_disposed) throw StateError('Playback cancelled');
       final native = player.platform as mk.NativePlayer;
+      // Decoder parameters alone do not prove that a speaker output opened.
+      // Keep output, mute and volume visible across pause/resume and rerouting.
+      for (final property in {
+        'current-ao': 'audioOutputDriver',
+        'audio-out-params': 'audioOutputParams',
+        'audio-device': 'audioDevice',
+        'mute': 'muted',
+        'volume': 'volume',
+      }.entries) {
+        await native.observeProperty(property.key, (value) async {
+          if (_disposed) return;
+          _diagnostics.value = {
+            ..._diagnostics.value,
+            property.value: value,
+            if (property.key == 'audio-out-params' &&
+                value.isNotEmpty &&
+                !_diagnostics.value.containsKey('audioOutputMs'))
+              'audioOutputMs': _startupWatch.elapsedMilliseconds,
+          };
+        });
+      }
       // Overseas HLS connections can exceed media_kit's five-second default.
       // Keep the live cache in memory rather than requiring a writable native
       // cache directory, which may be absent in sandboxed applications.
@@ -279,6 +303,7 @@ class MediaKitBackend implements XPlayerBackend {
               timeout: configuration.hlsProbeTimeout,
             )
           : source;
+      final manifestReadyMs = _startupWatch.elapsedMilliseconds;
       if (_disposed) throw StateError('Playback cancelled');
       if (source.format == StreamFormat.hls) {
         await native.setProperty('demuxer-lavf-analyzeduration', '1');
@@ -286,6 +311,7 @@ class MediaKitBackend implements XPlayerBackend {
       _diagnostics.value = {
         ..._diagnostics.value,
         'initializationStage': 'open',
+        'manifestReadyMs': manifestReadyMs,
         'hlsRenditionSelected': prepared.url != source.url,
         if (prepared.url != source.url)
           'hlsSelection':
@@ -315,17 +341,26 @@ class MediaKitBackend implements XPlayerBackend {
     await Future.wait([
       open(),
       _ready!.future,
-    ]).timeout(configuration.initializationTimeout);
+    ], eagerError: true).timeout(configuration.initializationTimeout);
     if (!_disposed) {
       _diagnostics.value = {
         ..._diagnostics.value,
         'initializationStage': 'ready',
+        'initializedMs': _startupWatch.elapsedMilliseconds,
       };
     }
   }
 
   @override
-  Future<void> play() async => _player?.play();
+  Future<void> play() async {
+    if (_disposed) return;
+    if (_audioSessionLease != null) {
+      await _appleAudioSession.reactivate();
+      if (_disposed) return;
+    }
+    await _player?.play();
+  }
+
   @override
   Future<void> pause() async => _player?.pause();
   @override

@@ -25,6 +25,15 @@ class AudioSessionCoordinator {
       }),
     );
   });
+
+  /// A phone call or another plugin can deactivate the shared session while a
+  /// player still owns its lease. Restore it before resuming, without adding
+  /// another owner or racing the last release.
+  Future<bool> reactivate() => _serialize(() async {
+    if (_users == 0) return false;
+    await activate();
+    return true;
+  });
 }
 
 class AudioSessionLease {

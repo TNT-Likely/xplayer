@@ -2,6 +2,18 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:xplayer_player/playback.dart';
 
 void main() {
+  test('desktop occlusion preserves audio; mobile backgrounding pauses', () {
+    for (final platform in [
+      PlaybackPlatform.macos,
+      PlaybackPlatform.windows,
+      PlaybackPlatform.linux,
+    ]) {
+      expect(pausePlaybackWhenHidden(platform), isFalse);
+    }
+    for (final platform in [PlaybackPlatform.android, PlaybackPlatform.ios]) {
+      expect(pausePlaybackWhenHidden(platform), isTrue);
+    }
+  });
   PlaybackPlan plan(
     PlaybackPlatform platform,
     String url, {
@@ -89,6 +101,33 @@ void main() {
       PlayerBackendKind.mediaKit,
       PlayerBackendKind.mediaKitSoftware,
     ]);
+  });
+  test('audio output failures skip the identical software audio output', () {
+    final p = plan(PlaybackPlatform.ios, 'http://test/live.m3u8');
+    expect(
+      p.advance(
+        errorDescription:
+            'Bad state: Could not open/initialize audio device -> no sound.',
+      ),
+      isTrue,
+    );
+    expect(p.current, PlayerBackendKind.videoPlayer);
+    expect(p.advance(), isFalse);
+  });
+  test('audio output failure still reaches the Android native audio sink', () {
+    final p = plan(PlaybackPlatform.android, 'http://test/live.flv');
+    expect(
+      p.advance(
+        errorDescription: 'Could not open/initialize audio device -> no sound.',
+      ),
+      isTrue,
+    );
+    expect(p.current, PlayerBackendKind.native);
+  });
+  test('video decoder failures retain the software recovery path', () {
+    final p = plan(PlaybackPlatform.ios, 'http://test/live.m3u8');
+    expect(p.advance(errorDescription: 'Video decoder failed'), isTrue);
+    expect(p.current, PlayerBackendKind.mediaKitSoftware);
   });
   test('AVPlayer live positions cannot trigger reconnect loops', () {
     expect(positionIsProgressSignal(isAndroid: false), isFalse);

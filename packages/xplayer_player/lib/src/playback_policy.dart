@@ -4,6 +4,11 @@ enum PlayerBackendKind { videoPlayer, native, mediaKit, mediaKitSoftware }
 
 enum PlaybackPlatform { android, ios, macos, windows, linux }
 
+/// Desktop occlusion/minimization is not a request to stop the audio. Mobile
+/// and TV backgrounding still pauses playback when leaving the application.
+bool pausePlaybackWhenHidden(PlaybackPlatform platform) =>
+    platform == PlaybackPlatform.android || platform == PlaybackPlatform.ios;
+
 /// Try each engine once per source before bounded reconnects on the last one.
 class PlaybackPlan {
   PlaybackPlan({
@@ -15,9 +20,24 @@ class PlaybackPlan {
   final List<PlayerBackendKind> engines;
   int _index = 0;
   PlayerBackendKind get current => engines[_index];
-  bool advance() {
-    if (_index + 1 >= engines.length) return false;
-    _index++;
+  bool advance({String? errorDescription}) {
+    final audioOutputFailed =
+        errorDescription != null &&
+        errorDescription.contains('Could not open/initialize audio device');
+    var next = _index + 1;
+    // Software video decoding uses the same audio output. Reopening it cannot
+    // repair a missing/failed audio device and adds another startup delay.
+    if (audioOutputFailed &&
+        (current == PlayerBackendKind.mediaKit ||
+            current == PlayerBackendKind.mediaKitSoftware)) {
+      while (next < engines.length &&
+          (engines[next] == PlayerBackendKind.mediaKit ||
+              engines[next] == PlayerBackendKind.mediaKitSoftware)) {
+        next++;
+      }
+    }
+    if (next >= engines.length) return false;
+    _index = next;
     return true;
   }
 

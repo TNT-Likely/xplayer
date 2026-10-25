@@ -10,7 +10,18 @@
       "version": "v0.6.0",
       "flavor": "full",
       "url": "https://github.com/media-kit/libmpv-darwin-build/releases/download/v0.6.0/libmpv-xcframeworks_v0.6.0_ios-universal-video-full.tar.gz",
-      "sha256": "652047297624170bfd172ef25a99e49603c032d189a1761335edcb36db55b7ee"
+      "sha256": "652047297624170bfd172ef25a99e49603c032d189a1761335edcb36db55b7ee",
+      "simulator_audio": {
+        "mpv_version": "0.36.0",
+        "architectures": [
+          "arm64",
+          "x86_64"
+        ],
+        "output": "AudioUnit",
+        "recipe": "media_kit_libs_ios_video/ios/build_simulator_audio.py",
+        "recipe_sha256": "2288ec5261cc08ea1f01cc478ed5b740947a690f88e1005891f126a618fe76f1",
+        "note": "Only simulator mpv is rebuilt; pinned full FFmpeg/frameworks and the device slice are retained."
+      }
     }
   },
   "android": {

@@ -1,4 +1,4 @@
-all: Frameworks/*.xcframework Frameworks/.symlinks
+all: Frameworks/*.xcframework Frameworks/.symlinks .cache/simulator-audio.stamp
 
 MPV_XCFRAMEWORKS_VERSION=v0.6.0
 MPV_XCFRAMEWORKS_SHA256SUM=652047297624170bfd172ef25a99e49603c032d189a1761335edcb36db55b7ee
@@ -30,6 +30,10 @@ Frameworks/.symlinks: Frameworks/*.xcframework
 	sh create_framework_symlinks.sh Frameworks/Mpv.xcframework Frameworks/.symlinks/mpv
 
 .PHONY: clean
+.cache/simulator-audio.stamp: Frameworks/*.xcframework build_simulator_audio.py
+	python3 build_simulator_audio.py
+	touch $@
+
 clean:
 	rm -rf .cache
 	rm -f ./Headers/mpv/*.h

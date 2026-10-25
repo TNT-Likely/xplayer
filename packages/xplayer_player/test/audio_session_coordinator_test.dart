@@ -3,6 +3,53 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:xplayer_player/xplayer_player.dart';
 
 void main() {
+  test(
+    'resume restores an interrupted session without leaking an owner',
+    () async {
+      var activations = 0;
+      var deactivations = 0;
+      final coordinator = AudioSessionCoordinator(
+        activate: () async {
+          activations++;
+        },
+        deactivate: () async {
+          deactivations++;
+        },
+      );
+      expect(await coordinator.reactivate(), isFalse);
+      final lease = await coordinator.acquire();
+      expect(await coordinator.reactivate(), isTrue);
+      await lease.release();
+      expect(activations, 2);
+      expect(deactivations, 1);
+      expect(await coordinator.reactivate(), isFalse);
+    },
+  );
+  test('resume waits for the previous release and new acquisition', () async {
+    final gate = Completer<void>();
+    final events = <String>[];
+    final coordinator = AudioSessionCoordinator(
+      activate: () async {
+        events.add('activate');
+      },
+      deactivate: () async {
+        events.add('deactivate');
+        await gate.future;
+      },
+    );
+    final first = await coordinator.acquire();
+    final released = first.release();
+    final second = coordinator.acquire();
+    final resumed = coordinator.reactivate();
+    await Future<void>.delayed(Duration.zero);
+    expect(events, ['activate', 'deactivate']);
+    gate.complete();
+    await released;
+    final lease = await second;
+    expect(await resumed, isTrue);
+    expect(events, ['activate', 'deactivate', 'activate', 'activate']);
+    await lease.release();
+  });
   test('concurrent duplicate releases share one deactivation future', () async {
     final gate = Completer<void>();
     var releases = 0;
