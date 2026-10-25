@@ -6,6 +6,7 @@ import json
 import os
 from pathlib import Path
 import platform
+import re
 import shutil
 import subprocess
 import sys
@@ -123,7 +124,7 @@ def main():
     dart = args.dart or dart_binary()
     for entry in entries:
         command = [dart, f"--packages={package_configuration()}",
-                   "tool/probe_decoder.dart", f"--libmpv={library}"]
+                   "tool/probe_decoder.dart", f"--libmpv={library}", "--diagnose-errors"]
         if entry.get("expectAudio", True):
             command.append("--require-audio")
         if entry.get("expectVideo", True):
@@ -136,6 +137,13 @@ def main():
             result = records[-1] if records else {"decoded": False, "error": "No decoder result"}
             result["name"] = entry["name"]
             result["passed"] = completed.returncode == 0 and result.get("decoded") is True
+            result["processExitCode"] = completed.returncode
+            if not result["passed"]:
+                diagnostic = completed.stderr
+                if not records:
+                    diagnostic += '\n' + completed.stdout
+                result["processDiagnostic"] = re.sub(
+                    r'(?:https?|rtmps?|rtsp)://\S+', '[source URL]', diagnostic[-6000:])
         except subprocess.TimeoutExpired:
             result = {"name": entry["name"], "passed": False, "error": "ProcessTimeout"}
         results.append(result)
