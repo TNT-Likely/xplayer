@@ -37,3 +37,11 @@ Android 使用日志 `QA_FAILURE_STAGE failed` / `sources` 作为宿主 `adb exe
 - [TV 换源面板](screenshots/player-sources-tv.png)
 
 正常版专用手机、iPad 和 TV 已重新构建安装。TV 使用带窗口的 `XPlayer_V3_UI_TV`，保留局域网与 FLV 两份测试列表，结束时留在正常应用首页。
+
+## 模拟器遥控面板输入补测
+
+后续用户反馈右侧方向键面板无响应。检查到该 AVD 虽然 `hw.dPad=yes`，但 `hw.keyboard=no`；设备当时只有 gpio-keys 和框架虚拟输入，缺少模拟硬件键盘。直接注入的 ADB / Flutter 按键可以工作，不能据此推断模拟器面板的输入链路可用。
+
+已将这台专用 AVD 的 `hw.keyboard` 改为 `yes` 并冷启动，保留用户数据。系统随后识别到 `qwerty2` 硬件输入，包含 KEYBOARD / ALPHAKEY / DPAD。直接点击 Extended Controls 的向下按钮，实际取得 Linux `EV_KEY KEY_DOWN`；再点击圆盘中央，正常应用从首页进入“全部频道”。该补测使用模拟器界面按钮，未用 ADB 代替按键；ADB 只读取输入事件和截图。
+
+右侧圆盘为方向键遥控器：箭头移动焦点，中央确认。TV 配置维持 `hw.screen=no-touch`，不把电视画面当作触屏。
