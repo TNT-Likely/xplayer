@@ -24,19 +24,25 @@ class XpPlayerStatusView extends StatelessWidget {
     if (phase == XpPlaybackPhase.playing || phase == XpPlaybackPhase.paused) {
       return const SizedBox.shrink();
     }
+    if (phase == XpPlaybackPhase.connecting ||
+        phase == XpPlaybackPhase.buffering) {
+      final theme = XpTheme.of(context);
+      return IgnorePointer(
+        child: Center(
+          child: SizedBox.square(
+            dimension: theme.isTv ? 36 : 28,
+            child: CircularProgressIndicator(
+              value: theme.reduceMotion ? .75 : null,
+              strokeWidth: 2.5,
+              color: Colors.white,
+              semanticsLabel:
+                  phase == XpPlaybackPhase.buffering ? '正在缓冲' : '正在连接频道',
+            ),
+          ),
+        ),
+      );
+    }
     final (title, copy, label, icon) = switch (phase) {
-      XpPlaybackPhase.connecting => (
-          '正在连接频道',
-          detail ?? '$channelName · 首次打开可能需要一点时间。可以取消连接，或换一个频道。',
-          '取消连接',
-          XpSymbol.sync
-        ),
-      XpPlaybackPhase.buffering => (
-          '正在缓冲',
-          '保留最后一帧；持续缓冲时可以重连或换台。',
-          '重新连接',
-          XpSymbol.sync
-        ),
       XpPlaybackPhase.error => (
           '这个频道暂时无法播放',
           detail ?? '连接已中断；已停止自动重试。可以重连或切换频道。',

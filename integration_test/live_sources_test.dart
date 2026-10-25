@@ -20,6 +20,7 @@ void main() {
   final binding = IntegrationTestWidgetsFlutterBinding.ensureInitialized();
   const device = String.fromEnvironment('QA_DEVICE', defaultValue: 'phone');
   const configUrl = String.fromEnvironment('QA_STREAM_CONFIG');
+  const audioHoldSeconds = int.fromEnvironment('QA_AUDIO_HOLD_SECONDS');
   testWidgets('真实主播放器的 FLV、平台请求上下文与原生视频输出', (tester) async {
     expect(configUrl, isNotEmpty);
     final client = HttpClient()
@@ -152,6 +153,16 @@ void main() {
         'elapsedMs': watch.elapsedMilliseconds,
       };
       results.add(result);
+      if (audioHoldSeconds > 0 && ready) {
+        // 留出系统 PCM 采样窗口；解码轨道存在不能替代实际声音输出检查。
+        debugPrint('QA_AUDIO_READY $name');
+        final end = DateTime.now().add(
+          const Duration(seconds: audioHoldSeconds),
+        );
+        while (DateTime.now().isBefore(end)) {
+          await tester.pump(const Duration(milliseconds: 200));
+        }
+      }
       await binding.takeScreenshot('$device-live-$name');
       await tester.tap(find.byTooltip('返回频道'));
       expect(
