@@ -1,0 +1,38 @@
+[
+  {
+    "key": "aHome",
+    "width": 3508,
+    "bytes": 2103941,
+    "screens": 4
+  },
+  {
+    "key": "aPhone",
+    "width": 1370,
+    "bytes": 1789372,
+    "screens": 6
+  },
+  {
+    "key": "aDesktop",
+    "width": 3028,
+    "bytes": 2195516,
+    "screens": 6
+  },
+  {
+    "key": "aPlayer",
+    "width": 3508,
+    "bytes": 2749563,
+    "screens": 4
+  },
+  {
+    "key": "bHome",
+    "width": 3508,
+    "bytes": 2077020,
+    "screens": 4
+  },
+  {
+    "key": "cHome",
+    "width": 3508,
+    "bytes": 2087173,
+    "screens": 4
+  }
+]

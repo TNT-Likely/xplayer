@@ -1,0 +1,97 @@
+{
+  "createdNodeIds": [
+    "3:4",
+    "3:5"
+  ],
+  "mutatedNodeIds": [
+    "0:1"
+  ],
+  "pages": {
+    "00 · 导览、基础与组件": "0:1",
+    "10 · A 静夜 · 主方案": "3:4",
+    "20 · B C · 保留备选": "3:5"
+  },
+  "collections": {
+    "nocturne": "VariableCollectionId:3:6",
+    "paper": "VariableCollectionId:3:27",
+    "signal": "VariableCollectionId:3:48",
+    "metrics": "VariableCollectionId:3:69"
+  },
+  "variables": {
+    "nocturne": {
+      "color/bg": "VariableID:3:17",
+      "color/surface": "VariableID:3:18",
+      "color/raised": "VariableID:3:19",
+      "color/border": "VariableID:3:20",
+      "color/fg": "VariableID:3:21",
+      "color/muted": "VariableID:3:22",
+      "color/quiet": "VariableID:3:23",
+      "color/accent": "VariableID:3:24",
+      "color/accent-ink": "VariableID:3:25",
+      "color/accent-wash": "VariableID:3:26"
+    },
+    "paper": {
+      "color/bg": "VariableID:3:38",
+      "color/surface": "VariableID:3:39",
+      "color/raised": "VariableID:3:40",
+      "color/border": "VariableID:3:41",
+      "color/fg": "VariableID:3:42",
+      "color/muted": "VariableID:3:43",
+      "color/quiet": "VariableID:3:44",
+      "color/accent": "VariableID:3:45",
+      "color/accent-ink": "VariableID:3:46",
+      "color/accent-wash": "VariableID:3:47"
+    },
+    "signal": {
+      "color/bg": "VariableID:3:59",
+      "color/surface": "VariableID:3:60",
+      "color/raised": "VariableID:3:61",
+      "color/border": "VariableID:3:62",
+      "color/fg": "VariableID:3:63",
+      "color/muted": "VariableID:3:64",
+      "color/quiet": "VariableID:3:65",
+      "color/accent": "VariableID:3:66",
+      "color/accent-ink": "VariableID:3:67",
+      "color/accent-wash": "VariableID:3:68"
+    },
+    "metrics": {
+      "space/4": "VariableID:3:70",
+      "space/8": "VariableID:3:71",
+      "space/12": "VariableID:3:72",
+      "space/16": "VariableID:3:73",
+      "space/20": "VariableID:3:74",
+      "space/24": "VariableID:3:75",
+      "space/28": "VariableID:3:76",
+      "space/32": "VariableID:3:77",
+      "space/36": "VariableID:3:78",
+      "space/44": "VariableID:3:79",
+      "space/48": "VariableID:3:80",
+      "space/60": "VariableID:3:81",
+      "space/84": "VariableID:3:82",
+      "radius/3": "VariableID:3:83",
+      "radius/7": "VariableID:3:84",
+      "radius/8": "VariableID:3:85",
+      "radius/9": "VariableID:3:86",
+      "radius/12": "VariableID:3:87",
+      "radius/14": "VariableID:3:88",
+      "radius/16": "VariableID:3:89",
+      "radius/18": "VariableID:3:90"
+    }
+  },
+  "styles": {
+    "Caption": "S:f7280c1b8c692697cb8add54cf4265df7f84ba36,",
+    "Metadata": "S:d25c7df0ee81baa8c2637087199c00d3bfb5c1a6,",
+    "Body": "S:2f82e2468b73557bd7dd7ab44512396e895b93f1,",
+    "Label": "S:1ed4a9f7024193386f4a5aec1047f8d67029c9c3,",
+    "Section": "S:63a5694cd2a330e1e989372368bec06ff26b6ed0,",
+    "Title": "S:8c24e0ff0f5081188b954101849ada2d4af36613,",
+    "Hero": "S:6e325a48a20bbea461f963c52c2d14e4fdb9c311,",
+    "TV": "S:bb198bc40d809b2bdd7d1f8ee75caee181345017,"
+  },
+  "collectionCount": 4,
+  "variableCount": 81,
+  "fontMapping": {
+    "latin": "Inter",
+    "cjk": "Noto Sans SC"
+  }
+}

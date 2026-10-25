@@ -1,0 +1,51 @@
+<!doctype html><html lang="zh-CN"><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>XPlayer · README</title><style>html{color-scheme:dark;background:#0f1915;color:#edf2e9;font:14px/1.85 -apple-system,BlinkMacSystemFont,"PingFang SC",sans-serif}body{max-width:1100px;margin:40px auto;padding:0 24px}a{color:#b5e6bb}pre{white-space:pre-wrap;overflow-wrap:anywhere;font:inherit;background:#14211b;border:1px solid #29382e;border-radius:14px;padding:28px;margin-top:24px}</style><a href="../resources.html">← 返回设计资源库</a><pre># XPlayer 设计资源 v1
+
+2026-10-25 确认：**A「静夜」为主方案，补齐四端核心页面与边界状态；B「留白」、C「信号」保留原有概念与 HTML。**
+
+[在线交互稿](https://xplayer-design-studio-oct25.ivory-fox-4792.chatgpt.site) · [资源入口](https://xplayer-design-studio-oct25.ivory-fox-4792.chatgpt.site/resources.html) · [Figma 资源库](https://www.figma.com/design/g3InwuNMSszxmeHHWGKd2R)
+
+## 收录范围
+
+- A：手机、iPad、桌面、TV，每端首页、全部频道、节目单、收藏、播放列表、遥控、设置、播放器，共 **32 个核心画板**。
+- A：手机 21 个代表边界状态，以及 iPad、桌面、TV 各 7 个 EPG 状态，共 **42 个边界画板**。合计 **74 个 A 方案画板**。
+- HTML：21 类边界场景均可切换四端，带状态链接可以复制；包含搜索、收藏、列表、EPG 配置、重试、播放器、迷你播放器与遥控演示。
+- B/C：保留原有三风格原型、主题变量和首页概念快照；Figma 各有一张概念索引卡，不扩充完整页面或边界状态。
+- 设计资源：81 个变量、8 个共享文字样式、4 类主题组件集、尺寸与标签动作组件、28 个 SVG 图标、5 张示例图片。
+
+## 本地预览
+
+在独立工作区根目录执行：
+
+```sh
+python3 -m http.server 4319 --bind 127.0.0.1 --directory design/xplayer-v1
+```
+
+打开 `http://127.0.0.1:4319/prototype/`。无需框架安装。HTML 使用本地示例图片；频道、节目、播放画面、连接与同步均为演示数据。
+
+## 资源目录
+
+| 资源 | 路径 | 用途 |
+| --- | --- | --- |
+| 交互实验室 | `prototype/index.html` | 切换风格、四端、页面与边界状态 |
+| 独立页面 | `prototype/preview.html` | `style`、`device`、`page`、`state` 查询参数定位 |
+| 资源入口 | `prototype/resources.html` | 预览、Figma、下载和规范入口 |
+| 设计规范 | `DESIGN.md` | 视觉、四端布局、字体与复用原则 |
+| 组件规范 | `COMPONENTS.md` | 组件属性、状态和输入行为 |
+| 边界矩阵 | `EDGE-CASES.md` | 判定、展示、恢复、组合优先级 |
+| 设计变量 | `tokens/` | JSON 与 CSS 原始变量 |
+| SVG 图标 / 图片 | `assets/` | 28 个矢量图标与 5 张示例图 |
+| 截图 | `screenshots/` | 原型与最终 Figma 的代表截图 |
+| 可重复导入源 | `figma-ready/` | 28 个补充状态的静态 HTML 源 |
+| 几何源 | `figma/geometry/` | A 四端核心及边界的结构与计算样式 |
+| Figma 映射 | `figma/state.json` | 74 个画板、页面、组件、变量与链接 |
+| 验证记录 | `QA.md` | 已验证内容与原型限制 |
+| 清单 | `manifest.json` | 来源、范围、版本和交付入口 |
+
+## 维护规则
+
+1. A 是后续实现基线；共享颜色、图标、数据结构和控制语义，按输入方式适配布局，不以固定代码复用率为目标。
+2. HTML 是交互行为的来源；Figma 保存可编辑设计和核心导航跳转。部分精细 EPG 画板使用固定位置保留时间比例，核心布局保留 Auto Layout 与组件实例。
+3. Figma 的英文字体使用 Inter，中文共享样式使用 Noto Sans SC；HTML 的系统中文字体与 Figma 回退字体字面宽度存在差异，Georgia 在 Figma 中替换为 Lora Italic。
+4. `tools/extract-assets.mjs` 可重新提取变量、图标；不要用它生成的初始清单覆盖已完成的 Figma 映射。
+5. 资源存放于 `feature/xplayer-design-resources` 独立 worktree，不包含 Flutter 页面实现或现有 AppTokens 迁移。
+</pre></html>

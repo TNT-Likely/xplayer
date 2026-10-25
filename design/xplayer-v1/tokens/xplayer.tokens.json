@@ -1,0 +1,148 @@
+{
+  "version": "1.0.0",
+  "confirmedOn": "2026-10-25",
+  "primaryTheme": "nocturne",
+  "sourceOfTruth": "经用户确认的 HTML 交互设计稿",
+  "themes": {
+    "nocturne": {
+      "name": "A · 静夜",
+      "status": "primary",
+      "values": {
+        "bg": "#0f1915",
+        "surface": "#14211b",
+        "raised": "#1b2a22",
+        "border": "#29382e",
+        "fg": "#edf2e9",
+        "muted": "#8d9c8d",
+        "quiet": "#627566",
+        "accent": "#b5e6bb",
+        "accent-ink": "#17371e",
+        "accent-wash": "#b5e6bb13",
+        "radius": "16px",
+        "sidebar": "216px",
+        "header": "76px"
+      }
+    },
+    "paper": {
+      "name": "B · 留白",
+      "status": "retained-alternative",
+      "values": {
+        "bg": "#f6f4ed",
+        "surface": "#fffef9",
+        "raised": "#ecebe3",
+        "border": "#dfdfd5",
+        "fg": "#263531",
+        "muted": "#849087",
+        "quiet": "#9fa79d",
+        "accent": "#3567cd",
+        "accent-ink": "#fff",
+        "accent-wash": "#3567cd0c",
+        "radius": "9px",
+        "sidebar": "216px",
+        "header": "76px"
+      }
+    },
+    "signal": {
+      "name": "C · 信号",
+      "status": "retained-alternative",
+      "values": {
+        "bg": "#181b1b",
+        "surface": "#202525",
+        "raised": "#2a3030",
+        "border": "#39403d",
+        "fg": "#f0f1e8",
+        "muted": "#9aaba1",
+        "quiet": "#71857a",
+        "accent": "#efb25b",
+        "accent-ink": "#30210a",
+        "accent-wash": "#efb25b12",
+        "radius": "3px",
+        "sidebar": "216px",
+        "header": "76px"
+      }
+    }
+  },
+  "spacing": [
+    4,
+    8,
+    12,
+    16,
+    20,
+    24,
+    28,
+    32,
+    36,
+    44,
+    48,
+    60,
+    84
+  ],
+  "typography": {
+    "web": [
+      "Inter",
+      "-apple-system",
+      "BlinkMacSystemFont",
+      "PingFang SC",
+      "Microsoft YaHei",
+      "sans-serif"
+    ],
+    "figma": {
+      "latin": "Inter",
+      "cjk": "Noto Sans SC",
+      "note": "Figma 云端未提供 PingFang SC，中文采用 Noto Sans SC；布局以 HTML 为准。"
+    },
+    "roles": {
+      "pageTitle": {
+        "phone": 27,
+        "ipad": 29,
+        "desktop": 29,
+        "tv": 39
+      },
+      "sectionTitle": {
+        "phone": 18,
+        "ipad": 18,
+        "desktop": 18,
+        "tv": 28
+      },
+      "heroTitle": {
+        "phone": 39,
+        "ipad": 37,
+        "desktop": 44,
+        "tv": 65
+      }
+    }
+  },
+  "devices": {
+    "phone": {
+      "width": 390,
+      "height": 844,
+      "navigation": "bottom",
+      "touchTarget": 44
+    },
+    "ipad": {
+      "width": 1194,
+      "height": 834,
+      "navigation": "rail",
+      "sidebar": 82
+    },
+    "desktop": {
+      "width": 1440,
+      "height": 960,
+      "navigation": "sidebar",
+      "sidebar": 216
+    },
+    "tv": {
+      "width": 1920,
+      "height": 1080,
+      "navigation": "top",
+      "focusRing": 4,
+      "focusOffset": 5
+    }
+  },
+  "motion": {
+    "fast": 150,
+    "normal": 200,
+    "imageHover": 500,
+    "reducedMotion": true
+  }
+}
