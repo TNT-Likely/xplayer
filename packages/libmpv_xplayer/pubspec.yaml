@@ -1,0 +1,35 @@
+name: libmpv_xplayer
+description: Complete libmpv native assets for XPlayer on Android, iOS, macOS and Windows, with pinned builds, AudioUnit and EGL compatibility.
+version: 0.1.0-beta.1
+repository: https://github.com/TNT-Likely/xplayer/tree/main/packages/libmpv_xplayer
+homepage: https://github.com/TNT-Likely/xplayer
+issue_tracker: https://github.com/TNT-Likely/xplayer/issues
+publish_to: https://pub.dev
+resolution: workspace
+
+environment:
+  sdk: '>=3.11.0 <4.0.0'
+  flutter: '>=3.41.0'
+
+dependencies:
+  flutter:
+    sdk: flutter
+  media_kit_libs_linux: '>=1.2.1 <1.3.0'
+
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+  flutter_lints: ^2.0.0
+
+flutter:
+  plugin:
+    platforms:
+      android:
+        package: com.tntlikely.libmpv_xplayer
+        pluginClass: LibmpvXplayerPlugin
+      ios:
+        pluginClass: LibmpvXplayerPlugin
+      macos:
+        pluginClass: LibmpvXplayerPlugin
+      windows:
+        pluginClass: LibmpvXplayerPluginCApi

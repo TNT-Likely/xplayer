@@ -2,6 +2,8 @@
 
 import 'dart:async';
 import 'dart:io';
+import 'dart:convert';
+import 'package:xplayer_player/playback.dart';
 import 'package:xplayer/data/models/channel_model.dart';
 import 'package:xplayer/data/models/channel_test_result.dart';
 
@@ -11,12 +13,12 @@ class ChannelTestService {
 
   bool _isCancelled = false; // 取消标志
 
-  /// 测试频道延时（通过真正加载视频流）
+  /// 网络首包延时与清单/分片可用性，不代表设备已成功解码。
   /// 返回：延迟毫秒数，null 表示失败
   /// 抛出 TimeoutException 表示超时
-  Future<int?> testLatency(String url) async {
+  Future<int?> testLatency(String url, {Map<String, String> attributes = const {}}) async {
     final stopwatch = Stopwatch()..start();
-    await _probe(url, 0);
+    await _probe(PlaybackSource.parse(url, attributes: attributes), 0);
     stopwatch.stop();
     return stopwatch.elapsedMilliseconds;
   }
@@ -24,47 +26,51 @@ class ChannelTestService {
   /// 递归探测一个地址是否真的可播。
   /// HLS(.m3u8)清单只证明「清单在」,不证明「能播」;因此向下找真正的
   /// 媒体分片/子清单再探(depth 限制 master→media→segment)。
-  Future<void> _probe(String url, int depth) async {
-    final uri = Uri.parse(url);
+  Future<void> _probe(PlaybackSource source, int depth) async {
+    final uri = Uri.parse(source.url);
     final httpClient = HttpClient();
     httpClient.connectionTimeout = _testTimeout;
+    httpClient.userAgent = source.headers.entries
+        .where((e) => e.key.toLowerCase() == 'user-agent').firstOrNull?.value ?? 'XPlayer';
     httpClient.badCertificateCallback = (cert, host, port) => true;
 
     Uri? nextHls;
     try {
       final request = await httpClient.getUrl(uri).timeout(_testTimeout);
+      source.headers.forEach((key, value) => request.headers.set(key, value));
       final response = await request.close().timeout(_testTimeout);
 
-      if (response.statusCode < 200 || response.statusCode >= 400) {
+      if (response.statusCode < 200 || response.statusCode >= 300) {
         throw Exception('HTTP ${response.statusCode}');
       }
 
-      final isHls = url.toLowerCase().contains('.m3u8');
-      if (isHls && depth < 2) {
-        // 读取清单文本(最多 64KB),找第一个子项(变体清单或分片)
-        final buf = StringBuffer();
-        await for (final chunk in response.timeout(_testTimeout)) {
-          buf.write(String.fromCharCodes(chunk));
-          if (buf.length > 65536) break;
+      final data = <int>[];
+      bool? isHls = source.format == StreamFormat.hls ||
+          (response.headers.contentType?.mimeType.contains('mpegurl') ?? false) ? true : null;
+      await for (final chunk in response.timeout(_testTimeout)) {
+        data.addAll(chunk.take(65536 - data.length));
+        if (isHls == null && data.length >= 7) {
+          isHls = utf8.decode(data.take(32).toList(), allowMalformed: true)
+              .replaceFirst('\uFEFF', '').trimLeft().startsWith('#EXTM3U');
         }
-        final text = buf.toString();
-        if (text.contains('#EXTM3U')) {
-          nextHls = _firstHlsUri(text, uri);
-          if (nextHls == null) {
-            throw Exception('空清单'); // 清单里没有任何可播放分片
-          }
+        if (data.length >= 65536 || (isHls == false && data.length >= 1024)) break;
+      }
+      if (data.isEmpty) throw Exception('No data');
+      final text = utf8.decode(data, allowMalformed: true).replaceFirst('\uFEFF', '').trimLeft();
+      final lower = text.toLowerCase();
+      if (lower.startsWith('<html') || lower.startsWith('<!doctype html') ||
+          response.headers.contentType?.mimeType == 'application/json') {
+        throw Exception('Response is not media');
+      }
+      if (isHls == true) {
+        if (!text.startsWith('#EXTM3U')) throw Exception('Invalid HLS playlist');
+        if (depth >= 3) throw Exception('HLS nesting limit');
+        var effectiveUri = uri;
+        for (final redirect in response.redirects) {
+          effectiveUri = effectiveUri.resolveUri(redirect.location);
         }
-        // 非标准清单但能读到内容 → 视为可用(nextHls 为 null,不再下钻)
-      } else {
-        // 直链媒体或已到分片层:确认能读到真实字节
-        int bytesRead = 0;
-        await for (final chunk in response.timeout(_testTimeout)) {
-          bytesRead += chunk.length;
-          if (bytesRead >= 1024) break;
-        }
-        if (bytesRead == 0) {
-          throw Exception('No data');
-        }
+        nextHls = _firstHlsUri(text, effectiveUri);
+        if (nextHls == null) throw Exception('Empty HLS playlist');
       }
     } finally {
       httpClient.close(force: true);
@@ -72,7 +78,7 @@ class ChannelTestService {
 
     // 下钻探测分片/子清单(在外层连接已关闭后进行)
     if (nextHls != null) {
-      await _probe(nextHls.toString(), depth + 1);
+      await _probe(source.withUrl(nextHls.toString()), depth + 1);
     }
   }
 
@@ -109,7 +115,7 @@ class ChannelTestService {
     // 多源频道:任一源可用即整体可播;最多测前 3 个源以控制耗时
     for (final src in channel.source.take(3)) {
       try {
-        final latency = await testLatency(src.link);
+        final latency = await testLatency(src.link, attributes: src.attributes);
         return ChannelTestResult(
           latency: latency,
           status: TestStatus.success,

@@ -1,0 +1,117 @@
+{
+  "passed": 5,
+  "total": 5,
+  "results": [
+    {
+      "source": "/browser.flv",
+      "hlsRenditionSelected": false,
+      "decoded": true,
+      "videoDecoded": true,
+      "audioDecoded": true,
+      "elapsedMs": 1322,
+      "width": 160,
+      "height": 96,
+      "video": [
+        "h264"
+      ],
+      "audio": [
+        "aac"
+      ],
+      "sampleRate": 48000,
+      "channels": 1,
+      "durationMs": 4167,
+      "decoderErrorCount": 0,
+      "errors": [],
+      "name": "browser-agent-redirect-flv",
+      "passed": true
+    },
+    {
+      "source": "/redirect/master.m3u8",
+      "hlsRenditionSelected": true,
+      "decoded": true,
+      "videoDecoded": true,
+      "audioDecoded": true,
+      "elapsedMs": 1197,
+      "width": 160,
+      "height": 96,
+      "video": [
+        "h264"
+      ],
+      "audio": [
+        "aac"
+      ],
+      "sampleRate": 48000,
+      "channels": 1,
+      "durationMs": 4010,
+      "decoderErrorCount": 0,
+      "errors": [],
+      "name": "signed-hls-master-redirect",
+      "passed": true
+    },
+    {
+      "source": "/recovery/master.m3u8",
+      "hlsRenditionSelected": true,
+      "decoded": true,
+      "videoDecoded": true,
+      "audioDecoded": true,
+      "elapsedMs": 1211,
+      "width": 160,
+      "height": 96,
+      "video": [
+        "h264"
+      ],
+      "audio": [
+        "aac"
+      ],
+      "sampleRate": 48000,
+      "channels": 1,
+      "durationMs": 4010,
+      "decoderErrorCount": 0,
+      "errors": [],
+      "name": "lower-bandwidth-recovery",
+      "passed": true
+    },
+    {
+      "source": "/slow.flv",
+      "hlsRenditionSelected": false,
+      "decoded": true,
+      "videoDecoded": true,
+      "audioDecoded": true,
+      "elapsedMs": 8073,
+      "width": 160,
+      "height": 96,
+      "video": [
+        "h264"
+      ],
+      "audio": [
+        "aac"
+      ],
+      "sampleRate": 48000,
+      "channels": 1,
+      "durationMs": 4167,
+      "decoderErrorCount": 0,
+      "errors": [],
+      "name": "slow-first-byte",
+      "passed": true
+    },
+    {
+      "source": "/forbidden.flv",
+      "hlsRenditionSelected": false,
+      "httpStatus": 403,
+      "decoded": false,
+      "error": "StateError",
+      "stage": "ready",
+      "width": null,
+      "height": null,
+      "audioReady": false,
+      "playing": false,
+      "buffering": true,
+      "decoderErrorCount": 1,
+      "errors": [
+        "Failed to open [source URL]"
+      ],
+      "name": "http-403-classification",
+      "passed": true
+    }
+  ]
+}

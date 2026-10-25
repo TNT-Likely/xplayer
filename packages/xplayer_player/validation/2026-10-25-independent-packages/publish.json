@@ -1,0 +1,74 @@
+{
+  "commit": "a842f6c8c50dd9fff9ab082383667aed562031a2",
+  "verificationRequested": true,
+  "buildPlatform": null,
+  "sourceDirty": true,
+  "resolution": "latest",
+  "packages": [
+    {
+      "name": "libmpv_xplayer",
+      "version": "0.1.0-beta.1",
+      "archive": "libmpv_xplayer-0.1.0-beta.1.tar.gz",
+      "sha256": "9a18c69a942e9bb2b3df6e6813d267b2f6ccd6694a0f36384df62d04635dc8ae"
+    },
+    {
+      "name": "xplayer_player",
+      "version": "0.1.0-beta.1",
+      "archive": "xplayer_player-0.1.0-beta.1.tar.gz",
+      "sha256": "385def3a800e0ae91136443df27364db8b80eea71cc00ff4c9a9515fe36b08e3"
+    }
+  ],
+  "checks": [
+    {
+      "name": "resolve-external-workspace",
+      "exitCode": 0,
+      "log": "resolve-external-workspace.log"
+    },
+    {
+      "name": "resolve-standalone-example",
+      "exitCode": 0,
+      "log": "resolve-standalone-example.log"
+    },
+    {
+      "name": "libmpv_xplayer-publish-dry-run",
+      "exitCode": 0,
+      "log": "libmpv_xplayer-publish-dry-run.log"
+    },
+    {
+      "name": "libmpv_xplayer-analyze",
+      "exitCode": 0,
+      "log": "libmpv_xplayer-analyze.log"
+    },
+    {
+      "name": "libmpv_xplayer-tests",
+      "exitCode": 0,
+      "log": "libmpv_xplayer-tests.log"
+    },
+    {
+      "name": "xplayer_player-publish-dry-run",
+      "exitCode": 0,
+      "log": "xplayer_player-publish-dry-run.log"
+    },
+    {
+      "name": "xplayer_player-analyze",
+      "exitCode": 0,
+      "log": "xplayer_player-analyze.log"
+    },
+    {
+      "name": "xplayer_player-tests",
+      "exitCode": 0,
+      "log": "xplayer_player-tests.log"
+    },
+    {
+      "name": "standalone-example-analyze",
+      "exitCode": 0,
+      "log": "standalone-example-analyze.log"
+    },
+    {
+      "name": "standalone-example-test",
+      "exitCode": 0,
+      "log": "standalone-example-test.log"
+    }
+  ],
+  "passed": true
+}

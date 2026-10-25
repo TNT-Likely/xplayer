@@ -33,6 +33,12 @@ env:
   FLUTTER_VERSION: "3.41.9"
 
 jobs:
+  player-quality:
+    name: Player package release gate
+    uses: ./.github/workflows/playback-compatibility.yml
+    permissions:
+      contents: read
+
   android:
     name: Android (APK + AAB)
     runs-on: ubuntu-latest
@@ -541,6 +547,17 @@ jobs:
           if [ -n "$LATEST_XCODE" ]; then sudo xcode-select -s "$LATEST_XCODE"; fi
           xcodebuild -version
 
+      - name: Setup Python for native audio libraries
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.13"
+
+      - name: Ensure pkg-config for native audio libraries
+        run: |
+          if ! command -v pkg-config >/dev/null 2>&1; then
+            brew install pkg-config
+          fi
+
       - name: Setup Flutter
         uses: subosito/flutter-action@v2
         with:
@@ -769,7 +786,7 @@ jobs:
           echo "tag_name=$TAG_NAME" >> $GITHUB_OUTPUT
 
       - name: Install Linux build dependencies
-        run: sudo apt-get update && sudo apt-get install -y libgtk-3-dev
+        run: sudo apt-get update && sudo apt-get install -y libgtk-3-dev libmpv-dev mpv
 
       - name: Setup Flutter
         uses: subosito/flutter-action@v2
@@ -814,7 +831,7 @@ jobs:
   release:
     name: Create GitHub Release
     runs-on: ubuntu-latest
-    needs: [android, windows, macos, ios, linux]
+    needs: [player-quality, android, windows, macos, ios, linux]
     steps:
       - name: Checkout
         uses: actions/checkout@v4

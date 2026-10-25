@@ -1,0 +1,221 @@
+name: Playback decoder compatibility
+
+on:
+  pull_request:
+    paths:
+      - 'packages/**'
+      - 'tool/**'
+      - 'pubspec.*'
+      - 'android/**'
+      - 'ios/**'
+      - 'macos/**'
+      - 'linux/**'
+      - 'windows/**'
+      - 'lib/services/player/**'
+      - 'test/player/**'
+      - '.github/workflows/playback-compatibility.yml'
+  push:
+    paths:
+      - 'packages/**'
+      - 'tool/**'
+      - 'pubspec.*'
+      - 'android/**'
+      - 'ios/**'
+      - 'macos/**'
+      - 'linux/**'
+      - 'windows/**'
+      - 'lib/services/player/**'
+      - 'test/player/**'
+      - '.github/workflows/playback-compatibility.yml'
+  workflow_call:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.event.pull_request.head.repo.full_name || github.repository }}-${{ github.head_ref || github.ref_name }}
+  cancel-in-progress: true
+
+jobs:
+  decoders:
+    defaults:
+      run:
+        working-directory: packages/xplayer_player
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, macos-latest, windows-latest]
+    runs-on: ${{ matrix.os }}
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.13'
+      - uses: subosito/flutter-action@v2
+        with:
+          flutter-version: '3.41.9'
+          cache: true
+      - name: Install Linux native decoder
+        if: runner.os == 'Linux'
+        run: sudo apt-get update && sudo apt-get install -y libmpv-dev
+      - run: flutter pub get
+      - name: Check native build contracts
+        run: flutter test ../libmpv_xplayer/test
+      - name: Install fixture encoder
+        run: python -m pip install imageio-ffmpeg==0.6.0
+      - name: Generate codec fixtures
+        shell: bash
+        run: |
+          FFMPEG_BIN=$(python -c 'import imageio_ffmpeg; print(imageio_ffmpeg.get_ffmpeg_exe())')
+          python tool/generate_playback_fixtures.py --output "${RUNNER_TEMP}/codec-fixtures" --ffmpeg "$FFMPEG_BIN"
+      - name: Compile the native probe once for isolated per-fixture checks
+        shell: bash
+        run: dart compile exe tool/probe_decoder.dart -o "${RUNNER_TEMP}/decoder-probe.exe"
+      - name: Verify audio and video decoding
+        id: decode
+        shell: bash
+        run: python tool/check_decoder_compatibility.py --fixtures "${RUNNER_TEMP}/codec-fixtures" --report "${RUNNER_TEMP}/decoder-report.json" --probe-executable "${RUNNER_TEMP}/decoder-probe.exe" --native-log
+      - name: Verify HTTP and HLS playback regressions
+        if: ${{ !cancelled() && (success() || steps.decode.outcome == 'failure') }}
+        shell: bash
+        run: python tool/check_stream_transport.py --fixtures "${RUNNER_TEMP}/codec-fixtures" --report "${RUNNER_TEMP}/transport-report.json" --probe-executable "${RUNNER_TEMP}/decoder-probe.exe" --native-log
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: decoder-report-${{ runner.os }}
+          path: |
+            ${{ runner.temp }}/decoder-report.json
+            ${{ runner.temp }}/transport-report.json
+
+  application:
+    runs-on: windows-latest
+    timeout-minutes: 25
+    steps:
+      - uses: actions/checkout@v4
+      - uses: subosito/flutter-action@v2
+        with:
+          flutter-version: '3.41.9'
+          cache: true
+      - run: flutter pub get
+      - name: Check host integration
+        run: flutter test
+      - name: Build Windows native integration
+        run: flutter build windows --debug
+
+  distribution:
+    name: Independent packages (${{ matrix.platform }})
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - os: ubuntu-latest
+            platform: linux
+          - os: windows-latest
+            platform: windows
+          - os: macos-latest
+            platform: macos
+          - os: macos-latest
+            platform: ios
+    runs-on: ${{ matrix.os }}
+    timeout-minutes: 35
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.13'
+      - uses: subosito/flutter-action@v2
+        with:
+          flutter-version: '3.41.9'
+          cache: true
+      - name: Prepare Linux desktop libraries
+        if: runner.os == 'Linux'
+        run: sudo apt-get update && sudo apt-get install -y libmpv-dev libgtk-3-dev ninja-build pkg-config
+      - name: Verify artifact boundaries and deterministic archives
+        run: python -m unittest discover -s tool -p test_package_player.py
+      - name: Check player source formatting
+        run: dart format --output=none --set-exit-if-changed packages/libmpv_xplayer/lib packages/libmpv_xplayer/test packages/xplayer_player/lib packages/xplayer_player/test packages/xplayer_player/example/lib packages/xplayer_player/example/test
+      - name: Validate packages outside the repository and build a fresh host
+        shell: bash
+        run: python tool/package_player.py --output "${RUNNER_TEMP}/player-packages" --verify --build "${{ matrix.platform }}" --keep-staging
+      - name: Verify actual Apple video and audio output from the external packages
+        if: runner.os == 'macOS'
+        shell: bash
+        run: |
+          python -m pip install imageio-ffmpeg==0.6.0
+          FFMPEG_BIN=$(python -c 'import imageio_ffmpeg; print(imageio_ffmpeg.get_ffmpeg_exe())')
+          python packages/xplayer_player/tool/generate_playback_fixtures.py --output "${RUNNER_TEMP}/device-fixtures" --ffmpeg "$FFMPEG_BIN"
+          python tool/verify_darwin_distribution.py --platform "${{ matrix.platform }}" --packages "${RUNNER_TEMP}/player-packages" --fixtures "${RUNNER_TEMP}/device-fixtures"
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: player-packages-${{ matrix.platform }}
+          path: ${{ runner.temp }}/player-packages/*
+
+  minimum-dependencies:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.13'
+      - uses: subosito/flutter-action@v2
+        with:
+          flutter-version: '3.41.9'
+          cache: true
+      - name: Verify declared minimum dependency bounds
+        run: python tool/package_player.py --output "${RUNNER_TEMP}/minimum-packages" --verify --resolution lowest
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: player-minimum-dependencies
+          path: ${{ runner.temp }}/minimum-packages/*
+
+  android-device:
+    runs-on: ubuntu-latest
+    timeout-minutes: 35
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.13'
+      - uses: actions/setup-java@v4
+        with:
+          distribution: zulu
+          java-version: '17'
+      - uses: subosito/flutter-action@v2
+        with:
+          flutter-version: '3.41.9'
+          cache: true
+      - name: Resolve workspace and encode fixtures
+        shell: bash
+        run: |
+          flutter pub get
+          python -m pip install imageio-ffmpeg==0.6.0
+          FFMPEG_BIN=$(python -c 'import imageio_ffmpeg; print(imageio_ffmpeg.get_ffmpeg_exe())')
+          python packages/xplayer_player/tool/generate_playback_fixtures.py --output "${RUNNER_TEMP}/device-fixtures" --ffmpeg "$FFMPEG_BIN"
+      - name: Enable KVM
+        run: |
+          echo 'KERNEL=="kvm", GROUP="kvm", MODE="0666", OPTIONS+="static_node=kvm"' | sudo tee /etc/udev/rules.d/99-kvm4all.rules
+          sudo udevadm control --reload-rules
+          sudo udevadm trigger --name-match=kvm
+      - name: Play the complete independent package matrix on Android
+        uses: reactivecircus/android-emulator-runner@v2
+        with:
+          api-level: 35
+          target: google_apis
+          arch: x86_64
+          disable-animations: true
+          emulator-options: -no-window -gpu swiftshader_indirect -noaudio -no-boot-anim -camera-back none
+          script: python packages/xplayer_player/tool/run_device_validation.py --platform android --device emulator-5554 --fixtures "${{ runner.temp }}/device-fixtures" --report "${{ runner.temp }}/android-codecs.json"
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: player-android-device
+          path: |
+            ${{ runner.temp }}/android-codecs.json
+            ${{ runner.temp }}/android-codecs.html
+            ${{ runner.temp }}/android-codecs.log
+            ${{ runner.temp }}/android-codecs.device.log

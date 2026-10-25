@@ -1,0 +1,13 @@
+**/Frameworks/
+**/.cache/
+**/build/
+**/.gradle/
+.dart_tool/
+pubspec.lock
+pubspec_overrides.yaml
+**/local.properties
+**/Pods/
+**/.symlinks/
+**/xcuserdata/
+**/*.log
+**/Headers/

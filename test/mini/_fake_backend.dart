@@ -13,7 +13,9 @@ class FakeBackend implements XPlayerBackend {
   @override
   ValueListenable<Map<String, dynamic>>? get diagnostics => null;
   @override
-  Future<void> initialize(String url) async {}
+  Future<void> initialize(String url, {
+    Map<String, String> headers = const {},
+  }) async {}
   @override
   Future<void> play() async {}
   @override

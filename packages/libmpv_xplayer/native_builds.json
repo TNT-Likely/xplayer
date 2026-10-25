@@ -1,0 +1,73 @@
+{
+  "darwin": {
+    "macos": {
+      "version": "v0.6.0",
+      "flavor": "full",
+      "url": "https://github.com/media-kit/libmpv-darwin-build/releases/download/v0.6.0/libmpv-xcframeworks_v0.6.0_macos-universal-video-full.tar.gz",
+      "sha256": "20c5add312f4cdb2a9cbf589fcf4495973575db3d90a140747c331690156364e"
+    },
+    "ios": {
+      "version": "v0.6.0",
+      "flavor": "full",
+      "url": "https://github.com/media-kit/libmpv-darwin-build/releases/download/v0.6.0/libmpv-xcframeworks_v0.6.0_ios-universal-video-full.tar.gz",
+      "sha256": "652047297624170bfd172ef25a99e49603c032d189a1761335edcb36db55b7ee",
+      "simulator_audio": {
+        "mpv_version": "0.36.0",
+        "architectures": [
+          "arm64",
+          "x86_64"
+        ],
+        "output": "AudioUnit",
+        "recipe": "ios/build_simulator_audio.py",
+        "recipe_sha256": "2288ec5261cc08ea1f01cc478ed5b740947a690f88e1005891f126a618fe76f1",
+        "note": "Only simulator mpv is rebuilt; pinned full FFmpeg/frameworks and the device slice are retained."
+      }
+    }
+  },
+  "android": {
+    "version": "v1.1.11",
+    "artifacts": [
+      {
+        "name": "full-arm64-v8a.jar",
+        "url": "https://github.com/media-kit/libmpv-android-video-build/releases/download/v1.1.11/full-arm64-v8a.jar",
+        "sha256": "cdb54c5cf24725623ca717bbbd6d991031d625a377460bd128f19c2dffe189bd"
+      },
+      {
+        "name": "full-armeabi-v7a.jar",
+        "url": "https://github.com/media-kit/libmpv-android-video-build/releases/download/v1.1.11/full-armeabi-v7a.jar",
+        "sha256": "b658f2ff91169f8dad0e09e0240ebe200bb3df999da5712f8fab96ad11a4fbec"
+      },
+      {
+        "name": "full-x86.jar",
+        "url": "https://github.com/media-kit/libmpv-android-video-build/releases/download/v1.1.11/full-x86.jar",
+        "sha256": "8b3b84e54ec09bb79972095dc04bcaf651294da4e73b1e7c3251055fd8a2b901"
+      },
+      {
+        "name": "full-x86_64.jar",
+        "url": "https://github.com/media-kit/libmpv-android-video-build/releases/download/v1.1.11/full-x86_64.jar",
+        "sha256": "848936cfd7333077f21759adaca4a9e1a5647891da2e42ab211c5bdc30f4535d"
+      }
+    ]
+  },
+  "windows": {
+    "version": "2026-10-25-baa3e11d42",
+    "arch": "x86_64",
+    "flavor": "lgpl-full",
+    "name": "mpv-dev-lgpl-x86_64-20261025-git-baa3e11d42.7z",
+    "url": "https://github.com/zhongfly/mpv-winbuild/releases/download/2026-10-25-baa3e11d42/mpv-dev-lgpl-x86_64-20261025-git-baa3e11d42.7z",
+    "sha256": "89f170d8eb6594a3cd6ffbf75e7d412995aba0107f8297deb3c6ec026d67191a",
+    "source": "https://github.com/zhongfly/mpv-winbuild",
+    "angle": {
+      "url": "https://github.com/alexmercerind/flutter-windows-ANGLE-OpenGL-ES/releases/download/v1.0.1/ANGLE.7z",
+      "sha256": "cc5911bb15d596fd5a2b362613ad35b7093b427117269a7359054a65746a5f9a"
+    }
+  },
+  "darwin_renderer": {
+    "source": "https://pub.dev/packages/media_kit_video/versions/2.0.1",
+    "version": "2.0.1",
+    "license": "MIT",
+    "headersVersion": "v0.36.0",
+    "headersSha256": "29abc44f8ebee013bb2f9fe14d80b30db19b534c679056e4851ceadf5a5e8bf6",
+    "note": "Native Swift texture bridge is packaged here; its registration does not rely on legacy media_kit_libs package detection."
+  }
+}

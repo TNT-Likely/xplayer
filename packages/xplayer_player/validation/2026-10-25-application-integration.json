@@ -1,0 +1,1047 @@
+{
+  "date": "2026-10-25",
+  "scope": "Host backend factory/fallback verification on Android TV API 36 ARM64 emulator; native/texture output and time progression, not speaker/HDMI validation.",
+  "tests": {
+    "independentPackagePassed": 97,
+    "hostPassed": 163,
+    "nativeMacosCodecPassed": 18,
+    "localHttpHlsRegressionsPassed": 5,
+    "preUiRollbackHostPassed": 168
+  },
+  "initialImpeller": {
+    "platform": "android",
+    "passed": 3,
+    "total": 5,
+    "results": [
+      {
+        "name": "CCTV-4 overseas",
+        "passed": true,
+        "attempts": [
+          {
+            "engine": "native",
+            "passed": false,
+            "error": "TimeoutException: Output or clock did not progress",
+            "diagnostics": {
+              "bandwidthBps": 2400000,
+              "bufferedMs": 1642,
+              "renderedFrames": 38,
+              "videoDecoder": "c2.goldfish.h264.decoder",
+              "videoHardware": true,
+              "frameRate": -1.0,
+              "isHdr": false,
+              "videoMime": "video/avc",
+              "videoWidth": 1280,
+              "videoHeight": 720,
+              "videoBitrate": null,
+              "audioDecoder": "c2.android.aac.decoder",
+              "ffmpeg": false,
+              "audioMime": "audio/mp4a-latm",
+              "audioSampleRate": 48000,
+              "audioChannels": 2,
+              "audioBitrate": null,
+              "rebufferCount": 1
+            },
+            "elapsedMs": 34826
+          },
+          {
+            "engine": "videoPlayer",
+            "passed": true,
+            "elapsedMs": 14731,
+            "width": 1280.0,
+            "height": 720.0,
+            "audio": null,
+            "video": null,
+            "renderedFrames": null,
+            "positionMs": 20245
+          }
+        ]
+      },
+      {
+        "name": "CCTV-6 upstream notice",
+        "passed": true,
+        "attempts": [
+          {
+            "engine": "mediaKit",
+            "passed": false,
+            "error": "Bad state: Error opening/initializing the selected video_out (--vo) device.",
+            "diagnostics": {
+              "engine": "libmpv",
+              "decodeMode": "auto",
+              "initializationStage": "ready",
+              "hlsRenditionSelected": false,
+              "videoMime": "h264",
+              "audioMime": "aac",
+              "videoDecoder": null,
+              "audioDecoder": null,
+              "videoHardware": false,
+              "pixelFormat": "yuv420p",
+              "audioSampleFormat": "floatp",
+              "audioSampleRate": 44100,
+              "audioChannels": 2,
+              "firstFrameRendered": true,
+              "fatalPlaybackError": "Error opening/initializing the VO window."
+            },
+            "elapsedMs": 2216
+          },
+          {
+            "engine": "mediaKitSoftware",
+            "passed": false,
+            "error": "Bad state: Error opening/initializing the selected video_out (--vo) device.",
+            "diagnostics": {
+              "engine": "libmpv",
+              "decodeMode": "software",
+              "initializationStage": "ready",
+              "hlsRenditionSelected": false,
+              "videoMime": "h264",
+              "audioMime": "aac",
+              "videoDecoder": null,
+              "audioDecoder": null,
+              "videoHardware": false,
+              "pixelFormat": "yuv420p",
+              "audioSampleFormat": "floatp",
+              "audioSampleRate": 44100,
+              "audioChannels": 2,
+              "firstFrameRendered": true,
+              "fatalPlaybackError": "Error opening/initializing the VO window."
+            },
+            "elapsedMs": 2244
+          },
+          {
+            "engine": "native",
+            "passed": true,
+            "elapsedMs": 4547,
+            "width": 1920.0,
+            "height": 1080.0,
+            "audio": "audio/mp4a-latm",
+            "video": "video/avc",
+            "renderedFrames": 67,
+            "positionMs": 2145
+          }
+        ]
+      },
+      {
+        "name": "TVBS",
+        "passed": false,
+        "attempts": [
+          {
+            "engine": "native",
+            "passed": false,
+            "error": "TimeoutException after 0:00:20.000000: Future not completed",
+            "diagnostics": {
+              "bandwidthBps": 11284343,
+              "bufferedMs": 1294,
+              "renderedFrames": 0
+            },
+            "elapsedMs": 20010
+          },
+          {
+            "engine": "videoPlayer",
+            "passed": false,
+            "error": "TimeoutException after 0:00:22.000000: Future not completed",
+            "diagnostics": null,
+            "elapsedMs": 22003
+          },
+          {
+            "engine": "mediaKit",
+            "passed": false,
+            "error": "TimeoutException after 0:00:20.000000: Future not completed",
+            "diagnostics": {
+              "engine": "libmpv",
+              "decodeMode": "auto",
+              "initializationStage": "decoder",
+              "hlsRenditionSelected": true,
+              "hlsSelection": "highestBandwidth"
+            },
+            "elapsedMs": 20027
+          },
+          {
+            "engine": "mediaKitSoftware",
+            "passed": false,
+            "error": "Bad state: Error opening/initializing the selected video_out (--vo) device.",
+            "diagnostics": {
+              "engine": "libmpv",
+              "decodeMode": "software",
+              "initializationStage": "ready",
+              "hlsRenditionSelected": true,
+              "hlsSelection": "lowerBandwidth",
+              "videoMime": "h264",
+              "audioMime": "aac",
+              "videoDecoder": null,
+              "audioDecoder": null,
+              "audioSampleFormat": "floatp",
+              "audioSampleRate": 44100,
+              "audioChannels": 2,
+              "videoHardware": false,
+              "pixelFormat": "yuv420p",
+              "firstFrameRendered": true,
+              "fatalPlaybackError": "Error opening/initializing the VO window."
+            },
+            "elapsedMs": 10394
+          }
+        ]
+      },
+      {
+        "name": "h264-truehd-5.1.mkv",
+        "passed": true,
+        "attempts": [
+          {
+            "engine": "mediaKit",
+            "passed": false,
+            "error": "Bad state: Error opening/initializing the selected video_out (--vo) device.",
+            "diagnostics": {
+              "engine": "libmpv",
+              "decodeMode": "auto",
+              "initializationStage": "ready",
+              "hlsRenditionSelected": false,
+              "videoMime": "h264",
+              "audioMime": "truehd",
+              "videoDecoder": null,
+              "audioDecoder": null,
+              "videoHardware": false,
+              "pixelFormat": "yuv420p",
+              "audioSampleFormat": "s32",
+              "audioSampleRate": 48000,
+              "audioChannels": 6,
+              "firstFrameRendered": true,
+              "fatalPlaybackError": "Error opening/initializing the VO window."
+            },
+            "elapsedMs": 209
+          },
+          {
+            "engine": "mediaKitSoftware",
+            "passed": false,
+            "error": "Bad state: Error opening/initializing the selected video_out (--vo) device.",
+            "diagnostics": {
+              "engine": "libmpv",
+              "decodeMode": "software",
+              "initializationStage": "ready",
+              "hlsRenditionSelected": false,
+              "videoMime": "h264",
+              "audioMime": "truehd",
+              "videoDecoder": null,
+              "audioDecoder": null,
+              "videoHardware": false,
+              "pixelFormat": "yuv420p",
+              "audioSampleFormat": "s32",
+              "audioSampleRate": 48000,
+              "audioChannels": 6,
+              "firstFrameRendered": true,
+              "fatalPlaybackError": "Error opening/initializing the VO window."
+            },
+            "elapsedMs": 187
+          },
+          {
+            "engine": "native",
+            "passed": true,
+            "elapsedMs": 2555,
+            "width": 160.0,
+            "height": 96.0,
+            "audio": "audio/true-hd",
+            "video": "video/avc",
+            "renderedFrames": 26,
+            "positionMs": 2084
+          }
+        ]
+      },
+      {
+        "name": "hevc-main10-eac3.mkv",
+        "passed": false,
+        "attempts": [
+          {
+            "engine": "mediaKit",
+            "passed": false,
+            "error": "Bad state: Error opening/initializing the selected video_out (--vo) device.",
+            "diagnostics": {
+              "engine": "libmpv",
+              "decodeMode": "auto",
+              "initializationStage": "ready",
+              "hlsRenditionSelected": false,
+              "videoMime": "hevc",
+              "audioMime": "eac3",
+              "videoDecoder": null,
+              "audioDecoder": null,
+              "videoHardware": false,
+              "pixelFormat": "yuv420p10",
+              "audioSampleFormat": "floatp",
+              "audioSampleRate": 48000,
+              "audioChannels": 1,
+              "firstFrameRendered": true,
+              "fatalPlaybackError": "Error opening/initializing the VO window."
+            },
+            "elapsedMs": 174
+          },
+          {
+            "engine": "mediaKitSoftware",
+            "passed": false,
+            "error": "Bad state: Error opening/initializing the selected video_out (--vo) device.",
+            "diagnostics": {
+              "engine": "libmpv",
+              "decodeMode": "software",
+              "initializationStage": "ready",
+              "hlsRenditionSelected": false,
+              "videoMime": "hevc",
+              "audioMime": "eac3",
+              "videoDecoder": null,
+              "audioDecoder": null,
+              "videoHardware": false,
+              "pixelFormat": "yuv420p10",
+              "audioSampleFormat": "floatp",
+              "audioSampleRate": 48000,
+              "audioChannels": 1,
+              "firstFrameRendered": true,
+              "fatalPlaybackError": "Error opening/initializing the VO window."
+            },
+            "elapsedMs": 138
+          },
+          {
+            "engine": "native",
+            "passed": false,
+            "error": "Bad state: ERROR_CODE_DECODING_FAILED: MediaCodecVideoRenderer error, index=0, format=Format(1, null, video/x-matroska, video/hevc, hvc1.2.4.L30.90, -1, und, [160, 96, -1.0, null], [-1, -1]), format_supported=NO_EXCEEDS_CAPABILITIES",
+            "diagnostics": {
+              "bandwidthBps": 19039030,
+              "videoDecoder": "c2.goldfish.hevc.decoder",
+              "videoHardware": true,
+              "frameRate": -1.0,
+              "isHdr": false,
+              "videoMime": "video/hevc",
+              "videoWidth": 160,
+              "videoHeight": 96,
+              "videoBitrate": null,
+              "audioDecoder": "ffmpegLavc60.3.100-eac3",
+              "ffmpeg": true,
+              "audioMime": "audio/eac3",
+              "audioSampleRate": 48000,
+              "audioChannels": 1,
+              "audioBitrate": null
+            },
+            "elapsedMs": 110
+          },
+          {
+            "engine": "videoPlayer",
+            "passed": false,
+            "error": "PlatformException(VideoError, Video player had error androidx.media3.exoplayer.ExoPlaybackException: MediaCodecVideoRenderer error, index=0, format=Format(1, null, video/x-matroska, video/hevc, hvc1.2.4.L30.90, -1, und, [160, 96, -1.0, null], [-1, -1]), format_supported=NO_EXCEEDS_CAPABILITIES, null, null)",
+            "diagnostics": null,
+            "elapsedMs": 79
+          }
+        ]
+      }
+    ]
+  },
+  "skiaComparison": {
+    "platform": "android",
+    "passed": 3,
+    "total": 5,
+    "results": [
+      {
+        "name": "CCTV-4 overseas",
+        "passed": true,
+        "attempts": [
+          {
+            "engine": "native",
+            "passed": false,
+            "error": "TimeoutException after 0:00:20.000000: Future not completed",
+            "diagnostics": {
+              "bandwidthBps": 2400000,
+              "bufferedMs": 1080,
+              "renderedFrames": 1,
+              "videoDecoder": "c2.goldfish.h264.decoder",
+              "videoHardware": true,
+              "frameRate": -1.0,
+              "isHdr": false,
+              "videoMime": "video/avc",
+              "videoWidth": 1280,
+              "videoHeight": 720,
+              "videoBitrate": null,
+              "audioDecoder": "c2.android.aac.decoder",
+              "ffmpeg": false,
+              "audioMime": "audio/mp4a-latm",
+              "audioSampleRate": 48000,
+              "audioChannels": 2,
+              "audioBitrate": null
+            },
+            "elapsedMs": 20149
+          },
+          {
+            "engine": "videoPlayer",
+            "passed": true,
+            "elapsedMs": 11212,
+            "width": 1280.0,
+            "height": 720.0,
+            "audio": null,
+            "video": null,
+            "renderedFrames": null,
+            "positionMs": 15451
+          }
+        ]
+      },
+      {
+        "name": "CCTV-6 upstream notice",
+        "passed": true,
+        "attempts": [
+          {
+            "engine": "mediaKit",
+            "passed": false,
+            "error": "Bad state: Error opening/initializing the selected video_out (--vo) device.",
+            "diagnostics": {
+              "engine": "libmpv",
+              "decodeMode": "auto",
+              "initializationStage": "ready",
+              "hlsRenditionSelected": false,
+              "videoMime": "h264",
+              "audioMime": "aac",
+              "videoDecoder": null,
+              "audioDecoder": null,
+              "videoHardware": false,
+              "pixelFormat": "yuv420p",
+              "audioSampleFormat": "floatp",
+              "audioSampleRate": 44100,
+              "audioChannels": 2,
+              "firstFrameRendered": true,
+              "fatalPlaybackError": "Error opening/initializing the VO window."
+            },
+            "elapsedMs": 2254
+          },
+          {
+            "engine": "mediaKitSoftware",
+            "passed": false,
+            "error": "Bad state: Error opening/initializing the selected video_out (--vo) device.",
+            "diagnostics": {
+              "engine": "libmpv",
+              "decodeMode": "software",
+              "initializationStage": "ready",
+              "hlsRenditionSelected": false,
+              "videoMime": "h264",
+              "audioMime": "aac",
+              "videoDecoder": null,
+              "audioDecoder": null,
+              "videoHardware": false,
+              "pixelFormat": "yuv420p",
+              "audioSampleFormat": "floatp",
+              "audioSampleRate": 44100,
+              "audioChannels": 2,
+              "firstFrameRendered": true,
+              "fatalPlaybackError": "Error opening/initializing the VO window."
+            },
+            "elapsedMs": 2199
+          },
+          {
+            "engine": "native",
+            "passed": true,
+            "elapsedMs": 5025,
+            "width": 1920.0,
+            "height": 1080.0,
+            "audio": "audio/mp4a-latm",
+            "video": "video/avc",
+            "renderedFrames": 76,
+            "positionMs": 2446
+          }
+        ]
+      },
+      {
+        "name": "TVBS",
+        "passed": false,
+        "attempts": [
+          {
+            "engine": "native",
+            "passed": false,
+            "error": "TimeoutException: Output or clock did not progress",
+            "diagnostics": {
+              "bandwidthBps": 9831042,
+              "bufferedMs": 727,
+              "renderedFrames": 9,
+              "videoDecoder": "c2.goldfish.h264.decoder",
+              "videoHardware": true,
+              "frameRate": -1.0,
+              "isHdr": false,
+              "videoMime": "video/avc",
+              "videoWidth": 1920,
+              "videoHeight": 1080,
+              "videoBitrate": 2890800,
+              "audioDecoder": "c2.android.aac.decoder",
+              "ffmpeg": false,
+              "audioMime": "audio/mp4a-latm",
+              "audioSampleRate": 44100,
+              "audioChannels": 2,
+              "audioBitrate": null,
+              "rebufferCount": 1
+            },
+            "elapsedMs": 32263
+          },
+          {
+            "engine": "videoPlayer",
+            "passed": false,
+            "error": "TimeoutException after 0:00:22.000000: Future not completed",
+            "diagnostics": null,
+            "elapsedMs": 22020
+          },
+          {
+            "engine": "mediaKit",
+            "passed": false,
+            "error": "TimeoutException: Output or clock did not progress",
+            "diagnostics": {
+              "engine": "libmpv",
+              "decodeMode": "auto",
+              "initializationStage": "ready",
+              "hlsRenditionSelected": true,
+              "hlsSelection": "highestBandwidth",
+              "videoMime": "h264",
+              "audioMime": "aac",
+              "videoDecoder": null,
+              "audioDecoder": null,
+              "audioSampleFormat": "floatp",
+              "audioSampleRate": 44100,
+              "audioChannels": 2
+            },
+            "elapsedMs": 35009
+          },
+          {
+            "engine": "mediaKitSoftware",
+            "passed": false,
+            "error": "Bad state: Error opening/initializing the selected video_out (--vo) device.",
+            "diagnostics": {
+              "engine": "libmpv",
+              "decodeMode": "software",
+              "initializationStage": "ready",
+              "hlsRenditionSelected": true,
+              "hlsSelection": "lowerBandwidth",
+              "videoMime": "h264",
+              "audioMime": "aac",
+              "videoDecoder": null,
+              "audioDecoder": null,
+              "audioSampleFormat": "floatp",
+              "audioSampleRate": 44100,
+              "audioChannels": 2,
+              "videoHardware": false,
+              "pixelFormat": "yuv420p",
+              "firstFrameRendered": true,
+              "fatalPlaybackError": "Error opening/initializing the VO window."
+            },
+            "elapsedMs": 19514
+          }
+        ]
+      },
+      {
+        "name": "h264-truehd-5.1.mkv",
+        "passed": true,
+        "attempts": [
+          {
+            "engine": "mediaKit",
+            "passed": false,
+            "error": "Bad state: Error opening/initializing the selected video_out (--vo) device.",
+            "diagnostics": {
+              "engine": "libmpv",
+              "decodeMode": "auto",
+              "initializationStage": "ready",
+              "hlsRenditionSelected": false,
+              "videoMime": "h264",
+              "audioMime": "truehd",
+              "videoDecoder": null,
+              "audioDecoder": null,
+              "videoHardware": false,
+              "pixelFormat": "yuv420p",
+              "audioSampleFormat": "s32",
+              "audioSampleRate": 48000,
+              "audioChannels": 6,
+              "firstFrameRendered": true,
+              "fatalPlaybackError": "Error opening/initializing the VO window."
+            },
+            "elapsedMs": 144
+          },
+          {
+            "engine": "mediaKitSoftware",
+            "passed": false,
+            "error": "Bad state: Error opening/initializing the selected video_out (--vo) device.",
+            "diagnostics": {
+              "engine": "libmpv",
+              "decodeMode": "software",
+              "initializationStage": "ready",
+              "hlsRenditionSelected": false,
+              "videoMime": "h264",
+              "audioMime": "truehd",
+              "videoDecoder": null,
+              "audioDecoder": null,
+              "videoHardware": false,
+              "pixelFormat": "yuv420p",
+              "audioSampleFormat": "s32",
+              "audioSampleRate": 48000,
+              "audioChannels": 6,
+              "firstFrameRendered": true,
+              "fatalPlaybackError": "Error opening/initializing the VO window."
+            },
+            "elapsedMs": 151
+          },
+          {
+            "engine": "native",
+            "passed": true,
+            "elapsedMs": 2545,
+            "width": 160.0,
+            "height": 96.0,
+            "audio": "audio/true-hd",
+            "video": "video/avc",
+            "renderedFrames": 28,
+            "positionMs": 2225
+          }
+        ]
+      },
+      {
+        "name": "hevc-main10-eac3.mkv",
+        "passed": false,
+        "attempts": [
+          {
+            "engine": "mediaKit",
+            "passed": false,
+            "error": "Bad state: Error opening/initializing the selected video_out (--vo) device.",
+            "diagnostics": {
+              "engine": "libmpv",
+              "decodeMode": "auto",
+              "initializationStage": "ready",
+              "hlsRenditionSelected": false,
+              "videoMime": "hevc",
+              "audioMime": "eac3",
+              "videoDecoder": null,
+              "audioDecoder": null,
+              "videoHardware": false,
+              "pixelFormat": "yuv420p10",
+              "audioSampleFormat": "floatp",
+              "audioSampleRate": 48000,
+              "audioChannels": 1,
+              "firstFrameRendered": true,
+              "fatalPlaybackError": "Error opening/initializing the VO window."
+            },
+            "elapsedMs": 173
+          },
+          {
+            "engine": "mediaKitSoftware",
+            "passed": false,
+            "error": "Bad state: Error opening/initializing the selected video_out (--vo) device.",
+            "diagnostics": {
+              "engine": "libmpv",
+              "decodeMode": "software",
+              "initializationStage": "ready",
+              "hlsRenditionSelected": false,
+              "videoMime": "hevc",
+              "audioMime": "eac3",
+              "videoDecoder": null,
+              "audioDecoder": null,
+              "videoHardware": false,
+              "pixelFormat": "yuv420p10",
+              "audioSampleFormat": "floatp",
+              "audioSampleRate": 48000,
+              "audioChannels": 1,
+              "firstFrameRendered": true,
+              "fatalPlaybackError": "Error opening/initializing the VO window."
+            },
+            "elapsedMs": 141
+          },
+          {
+            "engine": "native",
+            "passed": false,
+            "error": "Bad state: ERROR_CODE_DECODING_FAILED: MediaCodecVideoRenderer error, index=0, format=Format(1, null, video/x-matroska, video/hevc, hvc1.2.4.L30.90, -1, und, [160, 96, -1.0, null], [-1, -1]), format_supported=NO_EXCEEDS_CAPABILITIES",
+            "diagnostics": {
+              "bandwidthBps": 25088000,
+              "videoDecoder": "c2.goldfish.hevc.decoder",
+              "videoHardware": true,
+              "frameRate": -1.0,
+              "isHdr": false,
+              "videoMime": "video/hevc",
+              "videoWidth": 160,
+              "videoHeight": 96,
+              "videoBitrate": null,
+              "audioDecoder": "ffmpegLavc60.3.100-eac3",
+              "ffmpeg": true,
+              "audioMime": "audio/eac3",
+              "audioSampleRate": 48000,
+              "audioChannels": 1,
+              "audioBitrate": null
+            },
+            "elapsedMs": 93
+          },
+          {
+            "engine": "videoPlayer",
+            "passed": false,
+            "error": "PlatformException(VideoError, Video player had error androidx.media3.exoplayer.ExoPlaybackException: MediaCodecVideoRenderer error, index=0, format=Format(1, null, video/x-matroska, video/hevc, hvc1.2.4.L30.90, -1, und, [160, 96, -1.0, null], [-1, -1]), format_supported=NO_EXCEEDS_CAPABILITIES, null, null)",
+            "diagnostics": null,
+            "elapsedMs": 67
+          }
+        ]
+      }
+    ]
+  },
+  "supportedHostGpuMode": {
+    "platform": "android",
+    "passed": 4,
+    "total": 5,
+    "results": [
+      {
+        "name": "CCTV-4 overseas",
+        "passed": true,
+        "attempts": [
+          {
+            "engine": "native",
+            "passed": false,
+            "error": "TimeoutException after 0:00:20.000000: Future not completed",
+            "diagnostics": {
+              "bandwidthBps": 2400000,
+              "bufferedMs": 1200,
+              "renderedFrames": 1,
+              "videoDecoder": "c2.goldfish.h264.decoder",
+              "videoHardware": true,
+              "frameRate": -1.0,
+              "isHdr": false,
+              "videoMime": "video/avc",
+              "videoWidth": 1280,
+              "videoHeight": 720,
+              "videoBitrate": null,
+              "audioDecoder": "c2.android.aac.decoder",
+              "ffmpeg": false,
+              "audioMime": "audio/mp4a-latm",
+              "audioSampleRate": 48000,
+              "audioChannels": 2,
+              "audioBitrate": null
+            },
+            "elapsedMs": 20329
+          },
+          {
+            "engine": "videoPlayer",
+            "passed": true,
+            "elapsedMs": 13674,
+            "width": 1280.0,
+            "height": 720.0,
+            "audio": null,
+            "video": null,
+            "renderedFrames": null,
+            "positionMs": 19942
+          }
+        ]
+      },
+      {
+        "name": "CCTV-6 upstream notice",
+        "passed": true,
+        "attempts": [
+          {
+            "engine": "mediaKit",
+            "passed": false,
+            "error": "Bad state: Error opening/initializing the selected video_out (--vo) device.",
+            "diagnostics": {
+              "engine": "libmpv",
+              "decodeMode": "auto",
+              "initializationStage": "ready",
+              "hlsRenditionSelected": false,
+              "videoMime": "h264",
+              "audioMime": "aac",
+              "videoDecoder": null,
+              "audioDecoder": null,
+              "videoHardware": false,
+              "pixelFormat": "yuv420p",
+              "audioSampleFormat": "floatp",
+              "audioSampleRate": 44100,
+              "audioChannels": 2,
+              "firstFrameRendered": true,
+              "fatalPlaybackError": "Error opening/initializing the VO window."
+            },
+            "elapsedMs": 2572
+          },
+          {
+            "engine": "mediaKitSoftware",
+            "passed": false,
+            "error": "Bad state: Error opening/initializing the selected video_out (--vo) device.",
+            "diagnostics": {
+              "engine": "libmpv",
+              "decodeMode": "software",
+              "initializationStage": "ready",
+              "hlsRenditionSelected": false,
+              "videoMime": "h264",
+              "audioMime": "aac",
+              "videoDecoder": null,
+              "audioDecoder": null,
+              "videoHardware": false,
+              "pixelFormat": "yuv420p",
+              "audioSampleFormat": "floatp",
+              "audioSampleRate": 44100,
+              "audioChannels": 2,
+              "firstFrameRendered": true,
+              "fatalPlaybackError": "Error opening/initializing the VO window."
+            },
+            "elapsedMs": 2031
+          },
+          {
+            "engine": "native",
+            "passed": true,
+            "elapsedMs": 4548,
+            "width": 1920.0,
+            "height": 1080.0,
+            "audio": "audio/mp4a-latm",
+            "video": "video/avc",
+            "renderedFrames": 63,
+            "positionMs": 2019
+          }
+        ]
+      },
+      {
+        "name": "TVBS",
+        "passed": true,
+        "attempts": [
+          {
+            "engine": "native",
+            "passed": false,
+            "error": "TimeoutException: Output or clock did not progress",
+            "diagnostics": {
+              "bandwidthBps": 9996870,
+              "bufferedMs": 1385,
+              "renderedFrames": 43,
+              "videoDecoder": "c2.goldfish.h264.decoder",
+              "videoHardware": true,
+              "frameRate": -1.0,
+              "isHdr": false,
+              "videoMime": "video/avc",
+              "videoWidth": 1920,
+              "videoHeight": 1080,
+              "videoBitrate": 2890800,
+              "audioDecoder": "c2.android.aac.decoder",
+              "ffmpeg": false,
+              "audioMime": "audio/mp4a-latm",
+              "audioSampleRate": 44100,
+              "audioChannels": 2,
+              "audioBitrate": null,
+              "rebufferCount": 1
+            },
+            "elapsedMs": 24129
+          },
+          {
+            "engine": "videoPlayer",
+            "passed": true,
+            "elapsedMs": 4819,
+            "width": 1920.0,
+            "height": 1080.0,
+            "audio": null,
+            "video": null,
+            "renderedFrames": null,
+            "positionMs": 42118
+          }
+        ]
+      },
+      {
+        "name": "h264-truehd-5.1.mkv",
+        "passed": true,
+        "attempts": [
+          {
+            "engine": "mediaKit",
+            "passed": false,
+            "error": "Bad state: Error opening/initializing the selected video_out (--vo) device.",
+            "diagnostics": {
+              "engine": "libmpv",
+              "decodeMode": "auto",
+              "initializationStage": "ready",
+              "hlsRenditionSelected": false,
+              "videoMime": "h264",
+              "audioMime": "truehd",
+              "videoDecoder": null,
+              "audioDecoder": null,
+              "videoHardware": false,
+              "pixelFormat": "yuv420p",
+              "audioSampleFormat": "s32",
+              "audioSampleRate": 48000,
+              "audioChannels": 6,
+              "firstFrameRendered": true,
+              "fatalPlaybackError": "Error opening/initializing the VO window."
+            },
+            "elapsedMs": 157
+          },
+          {
+            "engine": "mediaKitSoftware",
+            "passed": false,
+            "error": "Bad state: Error opening/initializing the selected video_out (--vo) device.",
+            "diagnostics": {
+              "engine": "libmpv",
+              "decodeMode": "software",
+              "initializationStage": "ready",
+              "hlsRenditionSelected": false,
+              "videoMime": "h264",
+              "audioMime": "truehd",
+              "videoDecoder": null,
+              "audioDecoder": null,
+              "videoHardware": false,
+              "pixelFormat": "yuv420p",
+              "audioSampleFormat": "s32",
+              "audioSampleRate": 48000,
+              "audioChannels": 6,
+              "firstFrameRendered": true,
+              "fatalPlaybackError": "Error opening/initializing the VO window."
+            },
+            "elapsedMs": 163
+          },
+          {
+            "engine": "native",
+            "passed": true,
+            "elapsedMs": 2613,
+            "width": 160.0,
+            "height": 96.0,
+            "audio": "audio/true-hd",
+            "video": "video/avc",
+            "renderedFrames": 28,
+            "positionMs": 2263
+          }
+        ]
+      },
+      {
+        "name": "hevc-main10-eac3.mkv",
+        "passed": false,
+        "attempts": [
+          {
+            "engine": "mediaKit",
+            "passed": false,
+            "error": "Bad state: Error opening/initializing the selected video_out (--vo) device.",
+            "diagnostics": {
+              "engine": "libmpv",
+              "decodeMode": "auto",
+              "initializationStage": "ready",
+              "hlsRenditionSelected": false,
+              "videoMime": "hevc",
+              "audioMime": "eac3",
+              "videoDecoder": null,
+              "audioDecoder": null,
+              "videoHardware": false,
+              "pixelFormat": "yuv420p10",
+              "audioSampleFormat": "floatp",
+              "audioSampleRate": 48000,
+              "audioChannels": 1,
+              "firstFrameRendered": true,
+              "fatalPlaybackError": "Error opening/initializing the VO window."
+            },
+            "elapsedMs": 156
+          },
+          {
+            "engine": "mediaKitSoftware",
+            "passed": false,
+            "error": "Bad state: Error opening/initializing the selected video_out (--vo) device.",
+            "diagnostics": {
+              "engine": "libmpv",
+              "decodeMode": "software",
+              "initializationStage": "ready",
+              "hlsRenditionSelected": false,
+              "videoMime": "hevc",
+              "audioMime": "eac3",
+              "videoDecoder": null,
+              "audioDecoder": null,
+              "videoHardware": false,
+              "pixelFormat": "yuv420p10",
+              "audioSampleFormat": "floatp",
+              "audioSampleRate": 48000,
+              "audioChannels": 1,
+              "firstFrameRendered": true,
+              "fatalPlaybackError": "Error opening/initializing the VO window."
+            },
+            "elapsedMs": 132
+          },
+          {
+            "engine": "native",
+            "passed": false,
+            "error": "Bad state: ERROR_CODE_DECODING_FAILED: MediaCodecVideoRenderer error, index=0, format=Format(1, null, video/x-matroska, video/hevc, hvc1.2.4.L30.90, -1, und, [160, 96, -1.0, null], [-1, -1]), format_supported=NO_EXCEEDS_CAPABILITIES",
+            "diagnostics": {
+              "bandwidthBps": 17135128,
+              "videoDecoder": "c2.goldfish.hevc.decoder",
+              "videoHardware": true,
+              "frameRate": -1.0,
+              "isHdr": false,
+              "videoMime": "video/hevc",
+              "videoWidth": 160,
+              "videoHeight": 96,
+              "videoBitrate": null,
+              "audioDecoder": "ffmpegLavc60.3.100-eac3",
+              "ffmpeg": true,
+              "audioMime": "audio/eac3",
+              "audioSampleRate": 48000,
+              "audioChannels": 1,
+              "audioBitrate": null
+            },
+            "elapsedMs": 61
+          },
+          {
+            "engine": "videoPlayer",
+            "passed": false,
+            "error": "PlatformException(VideoError, Video player had error androidx.media3.exoplayer.ExoPlaybackException: MediaCodecVideoRenderer error, index=0, format=Format(1, null, video/x-matroska, video/hevc, hvc1.2.4.L30.90, -1, und, [160, 96, -1.0, null], [-1, -1]), format_supported=NO_EXCEEDS_CAPABILITIES, null, null)",
+            "diagnostics": null,
+            "elapsedMs": 47
+          }
+        ]
+      }
+    ]
+  },
+  "shortStartupBufferExperiment": {
+    "platform": "android",
+    "passed": 1,
+    "total": 1,
+    "results": [
+      {
+        "name": "TVBS",
+        "passed": true,
+        "attempts": [
+          {
+            "engine": "native",
+            "passed": false,
+            "error": "TimeoutException: Output or clock did not progress",
+            "diagnostics": {
+              "bandwidthBps": 2400000,
+              "bufferedMs": 1647,
+              "renderedFrames": 33,
+              "videoDecoder": "c2.goldfish.h264.decoder",
+              "videoHardware": true,
+              "frameRate": -1.0,
+              "isHdr": false,
+              "videoMime": "video/avc",
+              "videoWidth": 1920,
+              "videoHeight": 1080,
+              "videoBitrate": 1240800,
+              "audioDecoder": "c2.android.aac.decoder",
+              "ffmpeg": false,
+              "audioMime": "audio/mp4a-latm",
+              "audioSampleRate": 44100,
+              "audioChannels": 2,
+              "audioBitrate": null,
+              "rebufferCount": 1
+            },
+            "elapsedMs": 28389
+          },
+          {
+            "engine": "videoPlayer",
+            "passed": true,
+            "elapsedMs": 4501,
+            "width": 1920.0,
+            "height": 1080.0,
+            "audio": null,
+            "video": null,
+            "renderedFrames": null,
+            "positionMs": 36086
+          }
+        ]
+      }
+    ]
+  },
+  "conclusions": [
+    "CCTV-4 overseas and TVBS both played through the Android system video_player fallback. Native SurfaceView startup/buffering was inconsistent on this network.",
+    "CCTV-6 resolves to a 16.8 second upstream overload notice; successful rendering does not restore its broadcast.",
+    "TrueHD 5.1 sample passed the host native path with H.264 video, a true-hd audio track and rendered-frame/clock progression.",
+    "HEVC Main10/E-AC-3 did not pass this TV emulator host run: libmpv reports an EGL context failure and system backends do not recover it. Do not infer all-device compatibility from decoder-only results.",
+    "Switching Flutter from Impeller to Skia did not remove the EGL failure. No global renderer opt-out is shipped.",
+    "Reducing initial native playback buffering from 1500ms to 1000ms allowed native TVBS frames but still rebuffered and did not improve total fallback time. The original 1500ms/5000ms startup/rebuffer settings are retained.",
+    "BufferProfile values are now sent over the host/native boundary to prevent Dart/Kotlin tuning drift. Native fallbacks remain compatible with old callers."
+  ],
+  "earlierNotificationAudit": "The older Android 40/40 decoder report includes the upstream waitUntilFirstFrameRendered signal, which may complete on video-parameter changes. That report does not by itself prove successful GPU presentation. This stricter host run retains fatal output failures instead of counting metadata as visible playback.",
+  "builds": {
+    "android": "ARM64 debug APK",
+    "ios": "device debug, unsigned",
+    "macos": "debug, unsigned"
+  },
+  "notValidated": [
+    "Physical device audio routes and long-duration playback.",
+    "Windows and Linux execution; independent decoder CI and Windows host build configured."
+  ],
+  "baseMain": "0b2018c6ed760efc4aa0388e11765fe60303e1a2",
+  "uiRollback": "The current playback branch is rebased onto the reverted main; none of the ON AIR application UI changes are included. Device runs in this record predate that rebase; current host tests and builds are checked separately.",
+  "verificationAfterUiRollback": {
+    "independentPackageAnalysis": "No issues found",
+    "hostPlaybackAnalysis": "No issues found",
+    "hostTestsPassed": 163,
+    "packageTestsPassed": 97
+  }
+}

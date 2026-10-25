@@ -1,0 +1,585 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="color-scheme" content="light">
+<meta name="description" content="XPlayer 2026年10月25日播放器验收：四端128项播放检查、声音输出、TrueHD等编码样本，以及未通过原因。">
+<title>XPlayer · 播放器声音与兼容性验收报告</title>
+<style>
+:root{--bg:#f5f6f8;--paper:#fff;--text:#182334;--muted:#637080;--line:#e3e7ec;--green:#187259;--green-bg:#e9f6ef;--orange:#9a4c12;--orange-bg:#fff0df;--blue:#285bc7;--nav:230px}
+*{box-sizing:border-box}html{scroll-behavior:smooth;scroll-padding-top:28px}body{margin:0;background:var(--bg);color:var(--text);font-family:-apple-system,BlinkMacSystemFont,"Segoe UI","PingFang SC","Microsoft YaHei",sans-serif;font-size:15px;line-height:1.8}a{color:var(--blue);text-decoration:none}a:hover{text-decoration:underline}button,input,select{font:inherit}button,a,input,select,[tabindex]{-webkit-tap-highlight-color:transparent}button:focus-visible,a:focus-visible,input:focus-visible,select:focus-visible,[tabindex]:focus-visible{outline:3px solid #6c92df;outline-offset:3px}button{cursor:pointer}button:disabled{cursor:default}p{margin:0 0 16px}strong{font-weight:650}code{font:13px ui-monospace,SFMono-Regular,Consolas,monospace;background:#f0f2f6;padding:2px 5px;border-radius:4px;overflow-wrap:anywhere}ul{padding-left:22px;margin:12px 0 20px}li{padding:3px 0}h1,h2,h3{line-height:1.35;letter-spacing:-.025em}h3{font-size:18px;margin:30px 0 14px}h2{font-size:24px;margin:0}h1{font-size:clamp(30px,3.5vw,46px);margin:20px 0 18px;font-weight:730;max-width:650px}::selection{background:#d7eddf}
+.sidebar{position:fixed;inset:0 auto 0 0;width:var(--nav);padding:34px 22px;background:#fff;border-right:1px solid var(--line);display:flex;flex-direction:column;z-index:5}.brand{font-size:20px;font-weight:750;letter-spacing:-.04em;color:var(--text);display:flex;align-items:center;gap:10px}.brand-mark{width:30px;height:30px;background:var(--text);border-radius:9px;display:grid;place-items:center;color:#c9f0d2;font-size:14px}.side-label{font-size:11px;letter-spacing:.13em;color:var(--muted);margin:8px 0 34px 40px}.nav{display:grid;gap:5px}.nav a{display:flex;align-items:center;gap:12px;padding:9px 12px;border-radius:8px;color:var(--muted);font-size:14px;white-space:nowrap}.nav a span{font:11px ui-monospace,monospace;opacity:.6}.nav a:hover{background:#f5f7fa;color:var(--text);text-decoration:none}.nav a.active{background:var(--green-bg);color:var(--green);font-weight:650}.side-footer{margin-top:auto;padding-top:24px;font-size:12px;color:var(--muted);line-height:1.8}.side-footer b{color:var(--text);font-weight:600}.main{margin-left:var(--nav);max-width:calc(1220px + var(--nav));padding:40px 48px 64px}.topbar{display:flex;justify-content:space-between;align-items:center;gap:12px;margin-bottom:34px;color:var(--muted);font-size:12px}.topbar .dot{width:6px;height:6px;background:var(--green);display:inline-block;border-radius:50%;margin-right:7px}.print-button{border:1px solid #d4dae3;background:#fff;color:var(--text);padding:7px 14px;border-radius:7px;font-size:12px}.print-button:hover{background:#edf2f0}.eyebrow{display:inline-flex;gap:9px;align-items:center;font-size:12px;font-weight:650;letter-spacing:.06em;color:var(--green)}.eyebrow:before{content:"";width:22px;height:2px;background:var(--green)}.hero{padding-bottom:30px}.hero-description{max-width:760px;color:var(--muted);font-size:15px;line-height:1.9;margin:0}.hero-links{margin-top:20px;display:flex;gap:20px;font-size:13px}.hero-links a{font-weight:600}.metrics{display:grid;grid-template-columns:repeat(4,1fr);gap:14px;margin:0 0 32px}.metric{border:1px solid var(--line);border-radius:12px;background:#fff;padding:20px 22px;min-width:0}.metric-label{font-size:12px;color:var(--muted);margin-bottom:10px}.metric-value{font-size:32px;line-height:1.25;font-weight:720;letter-spacing:-.045em;white-space:nowrap}.metric-value span{font-size:17px;color:var(--muted);font-weight:450;letter-spacing:0}.metric-note{font-size:11px;color:var(--muted);margin-top:9px}.metric:first-child{border-color:#bbdacb;background:#f5fbf7}.metric:first-child .metric-value{color:var(--green)}.report-section{background:var(--paper);border:1px solid var(--line);border-radius:14px;margin-bottom:22px;padding:30px 32px;scroll-margin-top:24px}.section-title{display:flex;align-items:center;gap:13px;margin-bottom:24px}.section-no{font:12px ui-monospace,monospace;color:var(--green);width:28px;height:28px;display:grid;place-items:center;background:var(--green-bg);border-radius:7px;flex:none}.section-body> :last-child{margin-bottom:0}#overview .section-body>p:first-child{font-size:18px;line-height:1.9}#overview li{padding:5px 0}.table-scroll{overflow-x:auto;width:100%;margin:20px 0;border:1px solid var(--line);border-radius:9px;overscroll-behavior-x:contain}table{border-collapse:collapse;width:100%;font-size:13px;line-height:1.75;text-align:left}th{background:#f5f7f9;color:var(--muted);font-weight:600;font-size:12px}th,td{padding:13px 15px;border-bottom:1px solid var(--line);vertical-align:top}th{white-space:nowrap}tbody tr:last-child td{border-bottom:0}tbody tr:hover{background:#fafbf9}#fixes table{min-width:660px}#fixes th:first-child{width:25%}#fixes th:nth-child(2){width:36%}#failures table{min-width:670px}#failures th:first-child{width:23%}#failures th:nth-child(2){width:22%}#devices table{min-width:620px}#audio table{min-width:570px}#codecs table{min-width:600px}#codecs th:first-child{width:44%}.status{display:inline-flex;align-items:center;gap:6px;white-space:nowrap;font-size:12px;font-weight:600}.status:before{font-size:11px}.status.pass{color:var(--green)}.status.pass:before{content:"✓"}.status.fail{color:var(--orange)}.status.fail:before{content:"!";font-weight:800}.tag{font-size:10px;padding:2px 7px;border-radius:5px;font-weight:550;white-space:nowrap}.tag.pending{background:var(--orange-bg);color:var(--orange)}.tag.pass{background:var(--green-bg);color:var(--green)}.device-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:20px}.device-card{background:#fbfcfd;border:1px solid var(--line);border-radius:10px;padding:16px;min-width:0}.device-top{display:flex;justify-content:space-between;align-items:center;gap:6px;font-size:14px;font-weight:650;flex-wrap:wrap}.device-score{font-size:29px;font-weight:700;line-height:1.4;margin-top:15px;letter-spacing:-.03em}.device-score span{font-size:14px;color:var(--muted);font-weight:450}.meter{height:5px;background:#e6e9ee;border-radius:4px;overflow:hidden;margin:11px 0 13px}.meter span{display:block;height:100%;background:#428b70;border-radius:4px}.device-card p{font-size:11px;color:var(--muted);line-height:1.65;margin:0}.filters{display:grid;grid-template-columns:minmax(180px,1fr) 150px auto;align-items:end;gap:12px;background:#f5f7f9;border-radius:10px;padding:16px;margin-top:20px}label,.filter-label{display:block;font-size:11px;color:var(--muted);font-weight:600;margin-bottom:6px}input,select{width:100%;height:40px;border:1px solid #cdd5df;border-radius:6px;background:#fff;color:var(--text);padding:8px 10px;font-size:12px}input::placeholder{color:#7a8493}select{padding-right:22px}.segmented{display:flex;height:40px;padding:3px;border:1px solid #cdd5df;border-radius:6px;background:#fff;gap:3px}.segmented button{background:transparent;color:var(--muted);border:0;border-radius:4px;padding:4px 12px;font-size:12px;white-space:nowrap}.segmented button[aria-pressed=true]{background:var(--text);color:white}.result-count{font-size:12px;color:var(--muted);margin:12px 0}#matrixTable{min-width:640px}#matrixTable th:first-child{width:45%}#matrixTable td:first-child{font-weight:500}#matrixTable td,#matrixTable th{padding-top:11px;padding-bottom:11px}.selected-platform{background:#edf5f0}#matrixTable tr:hover .selected-platform{background:#e5f0e8}.empty-state{padding:30px 16px;text-align:center;color:var(--muted);background:#f7f8fa;border-radius:8px}.footer{padding:18px 3px 0;color:var(--muted);font-size:12px;display:flex;justify-content:space-between;gap:16px}.footer a{color:var(--muted)}[hidden]{display:none!important}
+@media(min-width:1600px){.main{margin-left:calc(var(--nav) + (100vw - 1600px)/3)}}
+@media(max-width:1200px){:root{--nav:200px}.sidebar{padding:26px 16px}.main{padding:30px 28px 50px}.report-section{padding:26px}.metrics{gap:10px}.metric{padding:17px}.metric-value{font-size:28px}.device-grid{grid-template-columns:repeat(2,1fr)}.device-top{flex-wrap:nowrap}.filters{grid-template-columns:1fr 140px}.filters>div:last-child{grid-column:1/-1}.segmented{width:max-content}}
+@media(max-width:800px){:root{--nav:0px}.sidebar{position:sticky;top:0;width:100%;height:auto;padding:12px 18px 9px;border-right:0;border-bottom:1px solid var(--line);gap:10px}.brand{font-size:16px}.brand-mark{width:25px;height:25px;border-radius:7px;font-size:11px}.side-label,.side-footer{display:none}.nav{display:flex;gap:4px;overflow:auto;padding-bottom:3px;scrollbar-width:thin}.nav a{padding:5px 9px;font-size:12px}.nav a span{display:none}.main{margin:0;padding:24px 20px 42px}.topbar{margin-bottom:26px}.hero{padding-bottom:25px}h1{font-size:34px;margin-top:17px}.hero-description{font-size:14px}.metrics{grid-template-columns:repeat(2,1fr);margin-bottom:22px}.metric{padding:17px}.report-section{padding:22px;margin-bottom:16px;scroll-margin-top:116px}.section-title{margin-bottom:20px}h2{font-size:21px}.section-body{font-size:14px}.footer{flex-direction:column;gap:4px}html{scroll-padding-top:120px}}
+@media(max-width:480px){.main{padding:22px 14px 35px}.sidebar{padding-left:14px;padding-right:14px}h1{font-size:29px}.topbar{font-size:11px}.topbar .topbar-note{max-width:210px}.hero-links{font-size:12px;gap:18px}.metrics{gap:9px}.metric{padding:14px}.metric-value{font-size:27px}.metric-value span{font-size:14px}.metric-note{font-size:10px}.report-section{padding:20px 16px}.device-card{padding:13px}.device-top{flex-wrap:wrap}.device-score{font-size:27px}.filters{grid-template-columns:1fr;padding:13px}.filters>div:last-child{grid-column:auto}.segmented{width:100%}.segmented button{flex:1}.section-title{gap:9px}h2{font-size:20px}#overview .section-body>p:first-child{font-size:16px}}
+@media(prefers-reduced-motion:reduce){html{scroll-behavior:auto}}
+@media print{body{background:#fff;color:#000;font-size:10pt}.sidebar,.topbar,.hero-links,.filters,.result-count,.empty-state,.footer{display:none!important}.main{margin:0;max-width:none;padding:0}.hero{padding-bottom:15px}h1{font-size:26pt}.metrics{grid-template-columns:repeat(4,1fr);margin-bottom:15px;gap:8px}.metric{padding:12px}.metric-value{font-size:24pt}.report-section{border:0;border-top:1px solid #ccc;border-radius:0;padding:20px 0;margin:0;break-inside:auto}.section-title{break-after:avoid}.device-grid{grid-template-columns:repeat(4,1fr)}.device-card{padding:10px}.table-scroll{overflow:visible!important;border:0;border-radius:0}table{min-width:0!important;font-size:9pt}th,td{padding:8px!important}thead{display:table-header-group}tr{break-inside:avoid}#matrixTable tr[hidden]{display:table-row!important}.selected-platform{background:transparent}a{color:inherit;text-decoration:none}.section-body p{orphans:3;widows:3}.status.pass,.status.fail{color:#000}.status.pass:before{content:"✓"}.status.fail:before{content:"!"}.hero-description{max-width:none}h2{font-size:17pt}h3{font-size:13pt}@page{size:A4;margin:15mm}}
+</style>
+</head>
+<body>
+<aside class="sidebar" aria-label="报告导航"><a class="brand" href="#top"><span class="brand-mark" aria-hidden="true">▶</span>XPlayer</a><div class="side-label">PLAYBACK ACCEPTANCE</div><nav class="nav" aria-label="章节"><a href="#overview" class="active" aria-current="location"><span>01</span>验收结论</a><a href="#fixes"><span>02</span>本轮修复</a><a href="#devices"><span>03</span>设备表现</a><a href="#codecs"><span>04</span>编码兼容</a><a href="#failures"><span>05</span>失败原因</a><a href="#audio"><span>06</span>声音与速度</a><a href="#matrix"><span>07</span>全部播放记录</a><a href="#next"><span>08</span>待验证范围</a><a href="#references"><span>09</span>技术资料</a></nav><div class="side-footer"><b>2026.10.25</b><br>声音补测 · 应用接入复测<br>单文件报告，可离线阅读</div></aside>
+<main class="main" id="top">
+<div class="topbar"><span class="topbar-note"><span class="dot" aria-hidden="true"></span>2026 年 10 月 25 日 · 验收记录</span><button type="button" id="printButton" class="print-button" title="打印完整报告，包含全部 32 项记录" hidden>打印 / 保存 PDF</button></div>
+<header class="hero"><p style="padding:14px 18px;border:1px solid #bbdacb;border-radius:9px;background:#f5fbf7"><strong>后续补测：Android MLP 渲染失败已修复。</strong> <a href="2026-10-25-common-formats.html">查看 36 组样本、五个环境的最新报告 →</a>。本页保留原验收时刻的结果。</p><div class="eyebrow">声音与兼容性 · 四端复测</div><h1>播放器验收报告</h1><p class="hero-description">主要无声问题已修复，四端正式应用均检出系统音频输出。这里汇总本轮修复、直播与编码样本结果，以及仍需处理的问题。</p><div class="hero-links"><a href="#failures">查看失败原因 ↗</a><a href="#matrix">浏览全部播放记录 ↗</a></div></header>
+<div class="metrics" aria-label="本轮关键结果"><div class="metric"><div class="metric-label">播放检查通过</div><div class="metric-value">112<span> / 128</span></div><div class="metric-note">通过率 87.5% · 16 次未通过</div></div><div class="metric"><div class="metric-label">正式应用系统音频输出</div><div class="metric-value">4<span> / 4 端</span></div><div class="metric-note">逐端采集 12 秒系统混音</div></div><div class="metric"><div class="metric-label">CCTV-3 源 1 启动等待</div><div class="metric-value">4–6<span> 秒</span></div><div class="metric-note">本次正式应用观察值</div></div><div class="metric"><div class="metric-label">代码回归测试通过</div><div class="metric-value">273<span> 项</span></div><div class="metric-note">包含独立包 103 项</div></div></div>
+<section id="overview" class="report-section"><div class="section-title"><span class="section-no">01</span><h2>验收结论</h2></div><div class="section-body"><p><strong>主要无声问题已修复，正式应用四端都检出了系统音频输出；本轮 128 次播放检查中，112 次通过、16 次未通过。</strong></p>
+<ul>
+<li><strong>已修复</strong>：iPhone/iPad 模拟器缺少声音输出、macOS 窗口被遮挡后误暂停；同时减少首播时的重复探流和无效回退。</li>
+<li><strong>已验证</strong>：TrueHD 5.1 样本四端通过；10 组编码样本在 iPhone、iPad、macOS 全部通过，Android 通过 9 组。</li>
+<li><strong>仍有问题</strong>：部分直播地址供数不稳定，Android 模拟器还存在图形输出和 MLP 播放限制。</li>
+<li><strong>速度现状</strong>：<strong>CCTV-3 源 1，正式应用本次约需 4～6 秒准备并启动播放</strong>，仍有等待时间。</li>
+</ul>
+</div></section>
+<section id="fixes" class="report-section"><div class="section-title"><span class="section-no">02</span><h2>这次修好了什么</h2></div><div class="section-body"><div class="table-scroll" tabindex="0" role="region" aria-label="这次修好了什么表格，可横向滚动"><table>
+<thead>
+<tr>
+<th>问题</th>
+<th>处理方式</th>
+<th>复核结果</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>iPhone/iPad 模拟器有解码能力，却没有可用的声音出口</td>
+<td>补齐 AudioUnit，也就是系统声音输出驱动</td>
+<td>两个模拟器均检出非静音音频；编码样本全部通过</td>
+</tr>
+<tr>
+<td>macOS 窗口被遮挡或隐藏后没有声音</td>
+<td>修正桌面后台策略，保留 Android/iOS 的后台暂停行为</td>
+<td>隐藏 macOS 窗口后，播放状态仍为“正在播放”，系统混音中仍有音频</td>
+</tr>
+<tr>
+<td>Android 模拟器声音明显偏轻</td>
+<td>测试时将媒体音量从 5/15 调至 12/15，并补充系统音量和静音诊断</td>
+<td>复测音频信号增强；应用保留设备本身的音量设置</td>
+</tr>
+<tr>
+<td>首播等待中有重复工作</td>
+<td>播放准备完成后再补画质信息，已有轨道信息时减少额外探流；音频设备失败时跳过使用同一输出的软解重试</td>
+<td>已接入应用；尚未进行严格的整体提速百分比对照</td>
+</tr>
+</tbody></table></div>
+<p>声音恢复时也会重新激活 iOS 音频会话，相关自动化测试覆盖了恢复播放、并发释放和失败后的恢复。</p>
+</div></section>
+<section id="devices" class="report-section"><div class="section-title"><span class="section-no">03</span><h2>四个环境的表现</h2></div><div class="section-body"><div class="device-grid"><div class="device-card"><div class="device-top"><span>Android</span><span class="tag pending">7 项未通过</span></div><div class="device-score">25<span> / 32</span></div><div class="meter" role="img" aria-label="Android 通过 25 项，共 32 项"><span style="width:78.125%"></span></div><p>Pixel 10 · API 36 · ARM64 模拟器</p></div><div class="device-card"><div class="device-top"><span>iPhone</span><span class="tag pending">3 项未通过</span></div><div class="device-score">29<span> / 32</span></div><div class="meter" role="img" aria-label="iPhone 通过 29 项，共 32 项"><span style="width:90.625%"></span></div><p>iPhone 17 Pro · iOS 26.5 模拟器</p></div><div class="device-card"><div class="device-top"><span>iPad</span><span class="tag pending">3 项未通过</span></div><div class="device-score">29<span> / 32</span></div><div class="meter" role="img" aria-label="iPad 通过 29 项，共 32 项"><span style="width:90.625%"></span></div><p>iPad Air 11″ M4 · iOS 26.5 模拟器</p></div><div class="device-card"><div class="device-top"><span>macOS</span><span class="tag pending">3 项未通过</span></div><div class="device-score">29<span> / 32</span></div><div class="meter" role="img" aria-label="macOS 通过 29 项，共 32 项"><span style="width:90.625%"></span></div><p>macOS 27.0 · ARM64 桌面应用</p></div></div><div class="table-scroll" tabindex="0" role="region" aria-label="四个环境的表现表格，可横向滚动"><table>
+<thead>
+<tr>
+<th>环境</th>
+<th>本轮使用的设备</th>
+<th align="right">通过 / 总数</th>
+<th align="right">未通过</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>Android</td>
+<td>Pixel 10，API 36，ARM64 模拟器</td>
+<td align="right">25 / 32</td>
+<td align="right">7</td>
+</tr>
+<tr>
+<td>iPhone</td>
+<td>iPhone 17 Pro，iOS 26.5 模拟器</td>
+<td align="right">29 / 32</td>
+<td align="right">3</td>
+</tr>
+<tr>
+<td>iPad</td>
+<td>iPad Air 11 英寸 M4，iOS 26.5 模拟器</td>
+<td align="right">29 / 32</td>
+<td align="right">3</td>
+</tr>
+<tr>
+<td>macOS</td>
+<td>macOS 27.0，ARM64 桌面应用</td>
+<td align="right">29 / 32</td>
+<td align="right">3</td>
+</tr>
+<tr>
+<td><strong>合计</strong></td>
+<td><strong>四个环境</strong></td>
+<td align="right"><strong>112 / 128</strong></td>
+<td align="right"><strong>16</strong></td>
+</tr>
+</tbody></table></div>
+<p>每端的 32 项由 <strong>21 条直播地址 + 10 组编码样本 + 1 次 CCTV-3 源 1 切台后复测</strong>组成。</p>
+<p>此外，<strong>273 项代码回归测试全部通过，其中包含独立包的 103 项测试</strong>；本轮修改涉及的核心、后端与探针静态检查无问题，Android、iOS 模拟器和 macOS 的调试构建完成。</p>
+<p>“通过”表示本次用例达到播放检查条件，包含画面/音频输出状态与播放进度；直播用例还检查暂停后恢复。短编码样本检查播放，不执行暂停恢复。它们都是短时用例，长期连续直播仍需另测。</p>
+</div></section>
+<section id="codecs" class="report-section"><div class="section-title"><span class="section-no">04</span><h2>TrueHD 与编码兼容</h2></div><div class="section-body"><p style="padding:14px 18px;border:1px solid #bbdacb;border-radius:9px;background:#f5fbf7"><strong>后续补测：Android MLP 渲染失败已修复。</strong> <a href="2026-10-25-common-formats.html">查看 36 组样本、五个环境的最新报告 →</a>。本页保留原验收时刻的结果。</p><p>下面是本轮 10 组具体样本的结果。“H.264 + AAC”表示视频使用 H.264、声音使用 AAC；最后的 FLV、TS、MKV 等是文件或流的封装格式。</p>
+<div class="table-scroll" tabindex="0" role="region" aria-label="TrueHD 与编码兼容表格，可横向滚动"><table>
+<thead>
+<tr>
+<th>音视频样本</th>
+<th>Android</th>
+<th>iPhone</th>
+<th>iPad</th>
+<th>macOS</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>H.264 + AAC / FLV</td>
+<td><span class="status pass">通过</span></td>
+<td><span class="status pass">通过</span></td>
+<td><span class="status pass">通过</span></td>
+<td><span class="status pass">通过</span></td>
+</tr>
+<tr>
+<td>H.264 + MP2 / TS</td>
+<td><span class="status pass">通过</span></td>
+<td><span class="status pass">通过</span></td>
+<td><span class="status pass">通过</span></td>
+<td><span class="status pass">通过</span></td>
+</tr>
+<tr>
+<td>H.264 + AC-3 / TS</td>
+<td><span class="status pass">通过</span></td>
+<td><span class="status pass">通过</span></td>
+<td><span class="status pass">通过</span></td>
+<td><span class="status pass">通过</span></td>
+</tr>
+<tr>
+<td>H.264 + TrueHD 5.1 / MKV</td>
+<td><span class="status pass">通过</span></td>
+<td><span class="status pass">通过</span></td>
+<td><span class="status pass">通过</span></td>
+<td><span class="status pass">通过</span></td>
+</tr>
+<tr>
+<td>H.264 + MLP / MKV</td>
+<td><span class="status fail">未通过</span></td>
+<td><span class="status pass">通过</span></td>
+<td><span class="status pass">通过</span></td>
+<td><span class="status pass">通过</span></td>
+</tr>
+<tr>
+<td>HEVC + E-AC-3 / MKV</td>
+<td><span class="status pass">通过</span></td>
+<td><span class="status pass">通过</span></td>
+<td><span class="status pass">通过</span></td>
+<td><span class="status pass">通过</span></td>
+</tr>
+<tr>
+<td>H.264 + DTS / MKV</td>
+<td><span class="status pass">通过</span></td>
+<td><span class="status pass">通过</span></td>
+<td><span class="status pass">通过</span></td>
+<td><span class="status pass">通过</span></td>
+</tr>
+<tr>
+<td>H.264 + FLAC / MKV</td>
+<td><span class="status pass">通过</span></td>
+<td><span class="status pass">通过</span></td>
+<td><span class="status pass">通过</span></td>
+<td><span class="status pass">通过</span></td>
+</tr>
+<tr>
+<td>H.264 + ALAC / MOV</td>
+<td><span class="status pass">通过</span></td>
+<td><span class="status pass">通过</span></td>
+<td><span class="status pass">通过</span></td>
+<td><span class="status pass">通过</span></td>
+</tr>
+<tr>
+<td>VP9 + Opus / WebM</td>
+<td><span class="status pass">通过</span></td>
+<td><span class="status pass">通过</span></td>
+<td><span class="status pass">通过</span></td>
+<td><span class="status pass">通过</span></td>
+</tr>
+</tbody></table></div>
+<p><strong>TrueHD 5.1 已通过本轮四端样本检查。</strong> 这里验证了该样本的解码、播放和音频输出状态；测试中的系统混音为立体声。真实 5.1 扬声器输出、HDMI 原码透传、Dolby Atmos 尚未验收。</p>
+<p>合成编码样本的画面为 160×96，用于检查格式是否能解码和播放。高分辨率、高帧率、其他编码档位与设备性能需要各自的用例。</p>
+</div></section>
+<section id="failures" class="report-section"><div class="section-title"><span class="section-no">05</span><h2>未通过项目与原因</h2></div><div class="section-body"><p>下表中的样本编号用于区分同一频道的不同播放地址，结论对应本次测试的具体地址与时间。</p>
+<div class="table-scroll" tabindex="0" role="region" aria-label="未通过项目与原因表格，可横向滚动"><table>
+<thead>
+<tr>
+<th>未通过项目</th>
+<th>未通过环境</th>
+<th>本轮看到的现象与判断</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>CCTV-2 · 样本 6</td>
+<td>Android</td>
+<td>两个系统播放路径暂停后未恢复，兼容播放路径又遇到图形输出初始化失败</td>
+</tr>
+<tr>
+<td>CCTV-4 · 样本 10</td>
+<td>四端</td>
+<td>超时或播放进度不推进；独立 FFmpeg 检查也超时，源或传输链路供数不足/时间轴异常仍需处理</td>
+</tr>
+<tr>
+<td>CCTV-5 · 样本 11</td>
+<td>iPhone、iPad、macOS</td>
+<td>播放进度不推进或系统播放器报错；独立 FFmpeg 检查同样超时。Android 本轮通过</td>
+</tr>
+<tr>
+<td>CCTV-6 · 样本 13</td>
+<td>Android、macOS</td>
+<td>Android 打开源超时/失败；macOS 记录到 HTTP 404 和连接失败。iPhone、iPad 本轮通过</td>
+</tr>
+<tr>
+<td>CCTV-11 · 样本 20</td>
+<td>Android</td>
+<td>暂停后未恢复，兼容播放路径图形输出初始化失败</td>
+</tr>
+<tr>
+<td>TVBS · 样本 51</td>
+<td>Android、iPhone、iPad</td>
+<td>打开超时或播放进度不推进，Android 还出现图形输出失败。macOS 本轮通过</td>
+</tr>
+<tr>
+<td>台视 · 样本 53</td>
+<td>Android</td>
+<td>兼容播放路径图形输出失败，系统播放路径初始化超时</td>
+</tr>
+<tr>
+<td>H.264 + MLP · 编码样本</td>
+<td>Android</td>
+<td>兼容播放路径图形输出失败，系统播放路径进度未推进；其他三端通过</td>
+</tr>
+</tbody></table></div>
+<p>对 CCTV-4 样本 10、CCTV-5 样本 11、TVBS 样本 51，另做了独立 FFmpeg 检查：均未能在 35 秒内取得要求的 6 秒音频。因此，当前证据不能将这些失败单独归因于应用解码器。独立检查与应用矩阵的执行时间、播放路径不同，表中保留各次实际结果。</p>
+<p>Android 模拟器存在 EGL/OpenGL 图形输出限制，影响了部分兼容播放路径。试验过的 MediaCodec 直接输出仍出现黑屏，未设为默认路径。这部分仍需继续解决，不能标记为全部兼容。</p>
+<h3>虎牙列表的情况</h3>
+<p>本轮声音补测再次抽查了你提供列表中的“虎牙英雄联盟赛事”“kRYST4L”“托马斯CzH”三条地址，<strong>均返回 HTTP 404 和 HTML 错误页，未取得视频数据</strong>。</p>
+<p>有效的凤凰台 HTTP-FLV 源和 FLV 编码样本已参与播放验证。虎牙这三条地址需要取得可用视频响应后，才能继续验证真实直播；目前这三条检查未计入上面的 128 项。</p>
+</div></section>
+<section id="audio" class="report-section"><div class="section-title"><span class="section-no">06</span><h2>声音与速度怎么测</h2></div><div class="section-body"><h3>声音：检查到了系统真正输出的音频数据</h3>
+<p>先关闭测试播放器，采集 12 秒静音基线；随后逐端在正式应用中播放 CCTV-3 源 1，其他测试播放器保持停止，每端采集 12 秒系统混音。</p>
+<div class="table-scroll" tabindex="0" role="region" aria-label="声音与速度怎么测表格，可横向滚动"><table>
+<thead>
+<tr>
+<th>检查对象</th>
+<th>结果</th>
+<th>补充说明</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>静音基线</td>
+<td>无音频信号</td>
+<td>用于对照</td>
+</tr>
+<tr>
+<td>iPhone 正式应用</td>
+<td>检出非静音音频</td>
+<td>系统声音出口已工作</td>
+</tr>
+<tr>
+<td>iPad 正式应用</td>
+<td>检出非静音音频</td>
+<td>系统声音出口已工作</td>
+</tr>
+<tr>
+<td>Android 正式应用</td>
+<td>检出非静音音频</td>
+<td>媒体音量 5/15 时偏轻，播放中调至 12/15 后，采样的音频信号增强</td>
+</tr>
+<tr>
+<td>macOS 正式应用</td>
+<td>检出非静音音频</td>
+<td>窗口隐藏后仍在播放并有音频</td>
+</tr>
+</tbody></table></div>
+<p>Android 音量对照来自同一直播源的相邻时段，节目内容不同，不用于精确计算音量增益。</p>
+<p>这证明系统混音中确实有声音数据。本轮没有用人工听音来判断扬声器音质，也没有完成蓝牙、HDMI、多声道和口型同步验证。</p>
+<h3>速度：CCTV-3 源 1 仍有 4～6 秒等待</h3>
+<ul>
+<li>CCTV-3 源 1：正式应用本次约需 <strong>4～6 秒</strong>准备并启动播放。</li>
+<li>部分国内 HLS 源：原生检查约 <strong>0.5～1.4 秒</strong>返回首帧信号。</li>
+<li>两者的计时口径和播放地址不同，不能直接用于计算提速比例。</li>
+</ul>
+<p>本轮消除了部分额外探流和无效重试，但没有做同一节目、同一带宽下的严格性能对照，因此不提供“整体快了多少倍”的结论。</p>
+</div></section>
+<section id="matrix" class="report-section"><div class="section-title"><span class="section-no">07</span><h2>完整播放记录</h2></div><div class="section-body"><p>每一行是一个用例，四个结果对应四个环境。切台后复测也独立计数。</p>
+<div class="filters" id="matrixFilters" hidden>
+  <div class="filter-search"><label for="search">搜索用例</label><input id="search" type="search" placeholder="频道、编码或格式，例如 CCTV、TrueHD" autocomplete="off"></div>
+  <div><label for="platform">查看平台</label><select id="platform"><option value="all">全部平台</option><option value="android">Android</option><option value="iphone">iPhone</option><option value="ipad">iPad</option><option value="macos">macOS</option></select></div>
+  <div><span class="filter-label" id="statusLabel">播放结果</span><div class="segmented" role="group" aria-labelledby="statusLabel"><button type="button" data-status="all" aria-pressed="true">全部</button><button type="button" data-status="failed" aria-pressed="false">有未通过</button></div></div>
+</div><p class="result-count" id="resultCount" role="status" aria-live="polite">共 32 项用例，8 项至少一个平台未通过。</p><div class="table-scroll matrix-scroll" tabindex="0" role="region" aria-label="完整播放记录表格，可横向滚动"><table id="matrixTable">
+<thead>
+<tr>
+<th>序号与用例</th>
+<th>Android</th>
+<th>iPhone</th>
+<th>iPad</th>
+<th>macOS</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>1. CCTV-3 源1</td>
+<td><span class="status pass">通过</span></td>
+<td><span class="status pass">通过</span></td>
+<td><span class="status pass">通过</span></td>
+<td><span class="status pass">通过</span></td>
+</tr>
+<tr>
+<td>2. CCTV-3 样本7</td>
+<td><span class="status pass">通过</span></td>
+<td><span class="status pass">通过</span></td>
+<td><span class="status pass">通过</span></td>
+<td><span class="status pass">通过</span></td>
+</tr>
+<tr>
+<td>3. CCTV-1 样本2</td>
+<td><span class="status pass">通过</span></td>
+<td><span class="status pass">通过</span></td>
+<td><span class="status pass">通过</span></td>
+<td><span class="status pass">通过</span></td>
+</tr>
+<tr>
+<td>4. CCTV-2 样本5</td>
+<td><span class="status pass">通过</span></td>
+<td><span class="status pass">通过</span></td>
+<td><span class="status pass">通过</span></td>
+<td><span class="status pass">通过</span></td>
+</tr>
+<tr>
+<td>5. CCTV-2 样本6</td>
+<td><span class="status fail">未通过</span></td>
+<td><span class="status pass">通过</span></td>
+<td><span class="status pass">通过</span></td>
+<td><span class="status pass">通过</span></td>
+</tr>
+<tr>
+<td>6. CCTV-4 样本10</td>
+<td><span class="status fail">未通过</span></td>
+<td><span class="status fail">未通过</span></td>
+<td><span class="status fail">未通过</span></td>
+<td><span class="status fail">未通过</span></td>
+</tr>
+<tr>
+<td>7. CCTV-5 样本11</td>
+<td><span class="status pass">通过</span></td>
+<td><span class="status fail">未通过</span></td>
+<td><span class="status fail">未通过</span></td>
+<td><span class="status fail">未通过</span></td>
+</tr>
+<tr>
+<td>8. CCTV-6 样本13</td>
+<td><span class="status fail">未通过</span></td>
+<td><span class="status pass">通过</span></td>
+<td><span class="status pass">通过</span></td>
+<td><span class="status fail">未通过</span></td>
+</tr>
+<tr>
+<td>9. CCTV-11 样本20</td>
+<td><span class="status fail">未通过</span></td>
+<td><span class="status pass">通过</span></td>
+<td><span class="status pass">通过</span></td>
+<td><span class="status pass">通过</span></td>
+</tr>
+<tr>
+<td>10. CCTV-12 样本22</td>
+<td><span class="status pass">通过</span></td>
+<td><span class="status pass">通过</span></td>
+<td><span class="status pass">通过</span></td>
+<td><span class="status pass">通过</span></td>
+</tr>
+<tr>
+<td>11. CCTV-13 样本25</td>
+<td><span class="status pass">通过</span></td>
+<td><span class="status pass">通过</span></td>
+<td><span class="status pass">通过</span></td>
+<td><span class="status pass">通过</span></td>
+</tr>
+<tr>
+<td>12. 浙江卫视 样本31</td>
+<td><span class="status pass">通过</span></td>
+<td><span class="status pass">通过</span></td>
+<td><span class="status pass">通过</span></td>
+<td><span class="status pass">通过</span></td>
+</tr>
+<tr>
+<td>13. 浙江卫视 样本32</td>
+<td><span class="status pass">通过</span></td>
+<td><span class="status pass">通过</span></td>
+<td><span class="status pass">通过</span></td>
+<td><span class="status pass">通过</span></td>
+</tr>
+<tr>
+<td>14. 深圳卫视 样本37</td>
+<td><span class="status pass">通过</span></td>
+<td><span class="status pass">通过</span></td>
+<td><span class="status pass">通过</span></td>
+<td><span class="status pass">通过</span></td>
+</tr>
+<tr>
+<td>15. 河南卫视 样本40</td>
+<td><span class="status pass">通过</span></td>
+<td><span class="status pass">通过</span></td>
+<td><span class="status pass">通过</span></td>
+<td><span class="status pass">通过</span></td>
+</tr>
+<tr>
+<td>16. 内蒙古卫视 样本45</td>
+<td><span class="status pass">通过</span></td>
+<td><span class="status pass">通过</span></td>
+<td><span class="status pass">通过</span></td>
+<td><span class="status pass">通过</span></td>
+</tr>
+<tr>
+<td>17. 新疆卫视 样本46</td>
+<td><span class="status pass">通过</span></td>
+<td><span class="status pass">通过</span></td>
+<td><span class="status pass">通过</span></td>
+<td><span class="status pass">通过</span></td>
+</tr>
+<tr>
+<td>18. 凤凰卫视资讯台 样本49</td>
+<td><span class="status pass">通过</span></td>
+<td><span class="status pass">通过</span></td>
+<td><span class="status pass">通过</span></td>
+<td><span class="status pass">通过</span></td>
+</tr>
+<tr>
+<td>19. TVBS 样本51</td>
+<td><span class="status fail">未通过</span></td>
+<td><span class="status fail">未通过</span></td>
+<td><span class="status fail">未通过</span></td>
+<td><span class="status pass">通过</span></td>
+</tr>
+<tr>
+<td>20. 中天新闻 样本52</td>
+<td><span class="status pass">通过</span></td>
+<td><span class="status pass">通过</span></td>
+<td><span class="status pass">通过</span></td>
+<td><span class="status pass">通过</span></td>
+</tr>
+<tr>
+<td>21. 台视 样本53</td>
+<td><span class="status fail">未通过</span></td>
+<td><span class="status pass">通过</span></td>
+<td><span class="status pass">通过</span></td>
+<td><span class="status pass">通过</span></td>
+</tr>
+<tr>
+<td>22. 编码样本：H.264 + AAC / FLV</td>
+<td><span class="status pass">通过</span></td>
+<td><span class="status pass">通过</span></td>
+<td><span class="status pass">通过</span></td>
+<td><span class="status pass">通过</span></td>
+</tr>
+<tr>
+<td>23. 编码样本：H.264 + MP2 / TS</td>
+<td><span class="status pass">通过</span></td>
+<td><span class="status pass">通过</span></td>
+<td><span class="status pass">通过</span></td>
+<td><span class="status pass">通过</span></td>
+</tr>
+<tr>
+<td>24. 编码样本：H.264 + AC-3 / TS</td>
+<td><span class="status pass">通过</span></td>
+<td><span class="status pass">通过</span></td>
+<td><span class="status pass">通过</span></td>
+<td><span class="status pass">通过</span></td>
+</tr>
+<tr>
+<td>25. 编码样本：H.264 + TrueHD 5.1 / MKV</td>
+<td><span class="status pass">通过</span></td>
+<td><span class="status pass">通过</span></td>
+<td><span class="status pass">通过</span></td>
+<td><span class="status pass">通过</span></td>
+</tr>
+<tr>
+<td>26. 编码样本：H.264 + MLP / MKV</td>
+<td><span class="status fail">未通过</span></td>
+<td><span class="status pass">通过</span></td>
+<td><span class="status pass">通过</span></td>
+<td><span class="status pass">通过</span></td>
+</tr>
+<tr>
+<td>27. 编码样本：HEVC + E-AC-3 / MKV</td>
+<td><span class="status pass">通过</span></td>
+<td><span class="status pass">通过</span></td>
+<td><span class="status pass">通过</span></td>
+<td><span class="status pass">通过</span></td>
+</tr>
+<tr>
+<td>28. 编码样本：H.264 + DTS / MKV</td>
+<td><span class="status pass">通过</span></td>
+<td><span class="status pass">通过</span></td>
+<td><span class="status pass">通过</span></td>
+<td><span class="status pass">通过</span></td>
+</tr>
+<tr>
+<td>29. 编码样本：H.264 + FLAC / MKV</td>
+<td><span class="status pass">通过</span></td>
+<td><span class="status pass">通过</span></td>
+<td><span class="status pass">通过</span></td>
+<td><span class="status pass">通过</span></td>
+</tr>
+<tr>
+<td>30. 编码样本：H.264 + ALAC / MOV</td>
+<td><span class="status pass">通过</span></td>
+<td><span class="status pass">通过</span></td>
+<td><span class="status pass">通过</span></td>
+<td><span class="status pass">通过</span></td>
+</tr>
+<tr>
+<td>31. 编码样本：VP9 + Opus / WebM</td>
+<td><span class="status pass">通过</span></td>
+<td><span class="status pass">通过</span></td>
+<td><span class="status pass">通过</span></td>
+<td><span class="status pass">通过</span></td>
+</tr>
+<tr>
+<td>32. CCTV-3 源1 切台后复测</td>
+<td><span class="status pass">通过</span></td>
+<td><span class="status pass">通过</span></td>
+<td><span class="status pass">通过</span></td>
+<td><span class="status pass">通过</span></td>
+</tr>
+</tbody></table></div>
+<p class="empty-state" id="emptyState" hidden>没有符合条件的记录，试试其他关键词或筛选条件。</p><noscript><p>启用 JavaScript 后可以筛选；完整记录已全部显示在上方。</p></noscript></div></section>
+<section id="next" class="report-section"><div class="section-title"><span class="section-no">08</span><h2>还需要验证什么</h2></div><div class="section-body"><ul>
+<li>本轮 Android、iPhone、iPad 使用模拟器，macOS 使用桌面应用；真实 Android 手机/TV、iPhone/iPad、Windows 和 Linux 的运行验收仍待完成。</li>
+<li>Android 模拟器的图形输出及 MLP 失败，需要继续排查。</li>
+<li>失败直播地址应使用当前有效的清单、分片和授权复测；返回 404 的虎牙代理地址需要先恢复有效响应。</li>
+<li>30 分钟、2 小时等长期直播，断网恢复、蓝牙/HDMI 路由和真实多声道输出尚未完成本轮验收。</li>
+</ul>
+<p>测试实例已清理。修复按“独立包 → 应用接入”的顺序提交：<code>f3642ec</code>、<code>9d80a54</code>。</p>
+</div></section>
+<section id="references" class="report-section"><div class="section-title"><span class="section-no">09</span><h2>技术资料与更正</h2></div><div class="section-body"><p>本页可以离线阅读。以下文件保留完整的开发说明和原始证据，与 HTML 放在同一文档目录内。</p><p><a href="2026-10-25-audio-acceptance.md">阅读 Markdown 版</a></p><ul>
+<li><a href="2026-10-25-audio-acceptance.json">原始 JSON：逐项耗时、播放路径与错误</a></li>
+<li><a href="../doc/TESTING.md">测试运行方式与排障说明</a></li>
+<li><a href="../doc/COMPATIBILITY.md">格式和设备兼容边界</a></li>
+</ul>
+<p>本报告以逐项结果为依据，已更正原 JSON 摘要的一处归类错误：macOS 的 TVBS 样本 51 通过，第三个未通过项为 CCTV-6 样本 13。原始逐项结果与通过数量均未修改。</p>
+</div></section>
+<footer class="footer"><span>XPlayer · 2026.10.25 验收记录</span><span>样本结果与原始记录逐项对应 · <a href="#top">回到顶部 ↑</a></span></footer>
+</main>
+<script>
+(function(){
+  'use strict';
+  var rows=Array.from(document.querySelectorAll('#matrixTable tbody tr'));
+  var keys=['android','iphone','ipad','macos'];
+  var names={all:'全部平台',android:'Android',iphone:'iPhone',ipad:'iPad',macos:'macOS'};
+  var search=document.getElementById('search');
+  var platform=document.getElementById('platform');
+  var buttons=Array.from(document.querySelectorAll('[data-status]'));
+  var mode='all';
+  rows.forEach(function(row){row.dataset.search=row.cells[0].textContent.toLocaleLowerCase();});
+  function failed(row,key){return key==='all'?Array.from(row.cells).slice(1).some(function(c){return c.textContent.trim()==='未通过';}):row.cells[keys.indexOf(key)+1].textContent.trim()==='未通过';}
+  function update(){
+    var query=search.value.trim().toLocaleLowerCase();var key=platform.value;var visible=0;var failures=0;
+    rows.forEach(function(row){var bad=failed(row,key);var show=row.dataset.search.includes(query)&&(mode==='all'||bad);row.hidden=!show;if(show){visible++;if(bad)failures++;}});
+    document.querySelectorAll('#matrixTable tr').forEach(function(row){Array.from(row.cells).forEach(function(cell,index){cell.classList.toggle('selected-platform',key!=='all'&&index===keys.indexOf(key)+1);});});
+    buttons.forEach(function(button){button.setAttribute('aria-pressed',String(button.dataset.status===mode));});
+    var suffix=key==='all'?'至少一个平台未通过':'在 '+names[key]+' 未通过';
+    document.getElementById('resultCount').textContent='显示 '+visible+' / '+rows.length+' 项 · '+failures+' 项'+suffix+'。';
+    document.getElementById('emptyState').hidden=visible!==0;
+  }
+  buttons.forEach(function(button){button.addEventListener('click',function(){mode=button.dataset.status;update();});});
+  search.addEventListener('input',update);platform.addEventListener('change',update);
+  document.getElementById('matrixFilters').hidden=false;
+  var printButton=document.getElementById('printButton');printButton.hidden=false;printButton.addEventListener('click',function(){window.print();});
+  update();
+  if('IntersectionObserver' in window){var links=Array.from(document.querySelectorAll('.nav a'));var observer=new IntersectionObserver(function(entries){entries.forEach(function(entry){if(entry.isIntersecting){links.forEach(function(link){var active=link.getAttribute('href')==='#'+entry.target.id;link.classList.toggle('active',active);if(active)link.setAttribute('aria-current','location');else link.removeAttribute('aria-current');});}});},{rootMargin:'-15% 0px -65% 0px',threshold:0});document.querySelectorAll('.report-section').forEach(function(section){observer.observe(section);});}
+})();
+</script>
+</body>
+</html>
