@@ -541,6 +541,17 @@ jobs:
           if [ -n "$LATEST_XCODE" ]; then sudo xcode-select -s "$LATEST_XCODE"; fi
           xcodebuild -version
 
+      - name: Setup Python for native audio libraries
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.13"
+
+      - name: Ensure pkg-config for native audio libraries
+        run: |
+          if ! command -v pkg-config >/dev/null 2>&1; then
+            brew install pkg-config
+          fi
+
       - name: Setup Flutter
         uses: subosito/flutter-action@v2
         with:

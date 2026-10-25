@@ -1,6 +1,7 @@
 package com.tntlikely.xplayer
 
 import android.content.Context
+import android.media.AudioManager
 import android.os.Handler
 import android.os.Looper
 import android.view.SurfaceHolder
@@ -216,6 +217,23 @@ class NativeVideoEngine(
         })
         // 透出真实音频解码器名(确认是否走了 FFmpeg 软解):ffmpeg 前缀 = 软解。
         p.addAnalyticsListener(object : AnalyticsListener {
+            override fun onAudioPositionAdvancing(
+                eventTime: AnalyticsListener.EventTime,
+                playoutStartSystemTimeMs: Long
+            ) {
+                val audio = context.getSystemService(Context.AUDIO_SERVICE) as AudioManager
+                emit(mapOf("event" to "stats", "audioOutputStarted" to true,
+                    "volume" to p.volume, "muted" to (p.volume == 0f),
+                    "systemMediaVolume" to audio.getStreamVolume(AudioManager.STREAM_MUSIC),
+                    "systemMediaVolumeMax" to audio.getStreamMaxVolume(AudioManager.STREAM_MUSIC),
+                    "systemMediaMuted" to audio.isStreamMute(AudioManager.STREAM_MUSIC)))
+            }
+            override fun onAudioSinkError(
+                eventTime: AnalyticsListener.EventTime, audioSinkError: Exception
+            ) {
+                emit(mapOf("event" to "stats",
+                    "audioOutputError" to (audioSinkError.message ?: audioSinkError.javaClass.simpleName)))
+            }
             override fun onAudioDecoderInitialized(
                 eventTime: AnalyticsListener.EventTime,
                 decoderName: String,

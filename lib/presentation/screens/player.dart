@@ -135,8 +135,7 @@ class _PlayerScreenState extends State<PlayerScreen>
         : source.withUrl(_qualityOverrideUrl!);
   }
 
-  PlaybackPlan _newPlaybackPlan() => PlaybackPlan(
-    platform: Platform.isAndroid
+  PlaybackPlatform get _playbackPlatform => Platform.isAndroid
         ? PlaybackPlatform.android
         : Platform.isIOS
         ? PlaybackPlatform.ios
@@ -144,7 +143,10 @@ class _PlayerScreenState extends State<PlayerScreen>
         ? PlaybackPlatform.macos
         : Platform.isWindows
         ? PlaybackPlatform.windows
-        : PlaybackPlatform.linux,
+        : PlaybackPlatform.linux;
+
+  PlaybackPlan _newPlaybackPlan() => PlaybackPlan(
+    platform: _playbackPlatform,
     source: _playSource,
     nativeEnabled: useNativeEngine.value,
   );
@@ -266,8 +268,8 @@ class _PlayerScreenState extends State<PlayerScreen>
         _pauseIntended = false;
         _backend.play();
       }
-    } else if (state == AppLifecycleState.paused ||
-        state == AppLifecycleState.hidden) {
+    } else if (pausePlaybackWhenHidden(_playbackPlatform) &&
+        (state == AppLifecycleState.paused || state == AppLifecycleState.hidden)) {
       // 切后台(如 TV 按 HOME 退桌面)→ 暂停,避免退到后台还在出声;回前台再恢复。
       if (_backend.notifier.value.isPlaying) {
         _resumeAfterBg = true;
@@ -385,15 +387,6 @@ class _PlayerScreenState extends State<PlayerScreen>
     // 同时推到诊断中心「ExoPlayer 应用内日志」(电视也能看)。
     // 播放地址 + 设备端探流(各轨道真实编码)写入日志中心
     LogStore.instance.i('player', '▶ 播放: $_playUrl');
-    const MethodChannel('diag/logcat')
-        .invokeMethod<Map>('probeStream', {'url': _playUrl}).then((m) {
-      if (m != null && mounted && token == _loadToken) {
-        final info = Map<String, dynamic>.from(m);
-        // 原生引擎的 Format 回调(diag)是 HLS 的权威来源,优先;probeStream 仅填补空缺。
-        setState(() => _streamInfo = {...info, ..._streamInfo});
-        LogStore.instance.i('probe', '🎵 流信息: $info');
-      }
-    }).catchError((_) => null);
 
     try {
       final backend = _backend = _createBackend();
@@ -406,7 +399,6 @@ class _PlayerScreenState extends State<PlayerScreen>
       _backend.diagnostics?.addListener(_onBackendDiag);
 
       final source = _playSource;
-      _maybeProbeHls();
       LogStore.instance.i(
         'player',
         '播放内核: ${_playbackPlan!.current.name}, 格式: ${source.format.name}',
@@ -417,6 +409,19 @@ class _PlayerScreenState extends State<PlayerScreen>
       if (token != _loadToken || !mounted) return; // 已被新加载取代,丢弃
       await backend.play();
       if (token != _loadToken || !mounted) return;
+      // 播放准备完成后再补画质信息,避免初始连接时多个探测器争抢同一个源。
+      _maybeProbeHls();
+      if (backend.diagnostics == null) {
+        const MethodChannel('diag/logcat')
+            .invokeMethod<Map>('probeStream', {'url': _playUrl}).then((m) {
+          if (m != null && mounted && token == _loadToken) {
+            final info = Map<String, dynamic>.from(m);
+            // 原生引擎的 Format 回调(diag)是 HLS 的权威来源,优先;probeStream 仅填补空缺。
+            setState(() => _streamInfo = {...info, ..._streamInfo});
+            LogStore.instance.i('probe', '🎵 流信息: $info');
+          }
+        }).catchError((_) => null);
+      }
       setState(() {
         // 初始化成功后更新状态为 playing
         _playState = PlayState.playing;
@@ -439,7 +444,7 @@ class _PlayerScreenState extends State<PlayerScreen>
       Logger.warning('播放器初始化失败(将重试): $e');
       if (!_isHandlingError) {
         _isHandlingError = true;
-        _handleLoadError();
+        _handleLoadError(errorDescription: '$e');
       }
     }
   }
@@ -447,11 +452,11 @@ class _PlayerScreenState extends State<PlayerScreen>
   /// 加载/播放错误统一处理:[_retryTimes] 上限内重载,超限停在失败页。
   /// 关键:重试不重置计数(成功初始化但播放失败的源不会无限循环),
   /// 因此最终一定能到失败页,而不是一直"加载中"。
-  void _handleLoadError() {
+  void _handleLoadError({String? errorDescription}) {
     if (!mounted) return;
     // Initialization and runtime errors share this path. Never retry the
     // same incompatible decoder three times before trying another engine.
-    if (_playbackPlan?.advance() ?? false) {
+    if (_playbackPlan?.advance(errorDescription: errorDescription) ?? false) {
       LogStore.instance.w('player', '切换播放内核: ${_playbackPlan!.current.name}');
       setState(() => _playState = PlayState.retrying);
       _retryTimer?.cancel();
@@ -683,7 +688,7 @@ class _PlayerScreenState extends State<PlayerScreen>
       // 每次错误只处理一次,避免监听器重复触发导致计数瞬间打满/并发重载
       if (!_isHandlingError) {
         _isHandlingError = true;
-        _handleLoadError();
+        _handleLoadError(errorDescription: value.errorDescription);
       }
     } else if (!value.isPlaying &&
         !value.isBuffering &&

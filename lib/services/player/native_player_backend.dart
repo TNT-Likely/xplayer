@@ -95,7 +95,7 @@ class NativePlayerBackend implements XPlayerBackend {
         },
       }),
       _ready!.future,
-    ]).timeout(const Duration(seconds: 20));
+    ], eagerError: true).timeout(const Duration(seconds: 20));
   }
 
   void _onEvent(dynamic e) {

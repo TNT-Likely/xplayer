@@ -3,4 +3,5 @@ export 'package:xplayer_player/playback.dart'
         PlaybackPlan,
         PlaybackPlatform,
         PlayerBackendKind,
+        pausePlaybackWhenHidden,
         positionIsProgressSignal;

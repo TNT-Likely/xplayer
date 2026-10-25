@@ -47,6 +47,21 @@ class _ApplicationProbeState extends State<_ApplicationProbe> {
                     .join(),
               )
               as Map;
+      final directory = await getApplicationSupportDirectory();
+      Future<void> checkpoint({required bool complete}) async {
+        await File('${directory.path}/application_probe.json').writeAsString(
+          jsonEncode({
+            'probeVersion': 2,
+            'platform': Platform.operatingSystem,
+            'complete': complete,
+            'passed': results.where((r) => r['passed'] == true).length,
+            'total': results.length,
+            'results': results,
+          }),
+          flush: true,
+        );
+      }
+
       final platform = Platform.isAndroid
           ? PlaybackPlatform.android
           : Platform.isIOS
@@ -86,7 +101,12 @@ class _ApplicationProbeState extends State<_ApplicationProbe> {
                 .timeout(const Duration(seconds: 22));
             await backend.setSurfaceBounds(null, 1);
             await backend.play();
-            Duration? start;
+            Duration? previousPosition;
+            var forwardProgress = Duration.zero;
+            final playingWatch = Stopwatch()..start();
+            final minimumPlayback = Duration(
+              seconds: (entry['minPlaybackSeconds'] as int? ?? 2).clamp(2, 10),
+            );
             final deadline = DateTime.now().add(const Duration(seconds: 15));
             while (DateTime.now().isBefore(deadline)) {
               final value = backend.notifier.value;
@@ -96,7 +116,14 @@ class _ApplicationProbeState extends State<_ApplicationProbe> {
                 throw StateError(value.errorDescription ?? 'Playback error');
               }
               if (value.isPlaying && !value.isBuffering) {
-                start ??= value.position;
+                if (previousPosition != null) {
+                  final delta = value.position - previousPosition;
+                  if (delta > Duration.zero &&
+                      delta < const Duration(seconds: 2)) {
+                    forwardProgress += delta;
+                  }
+                }
+                previousPosition = value.position;
               }
               final videoReady =
                   entry['expectVideo'] == false ||
@@ -108,12 +135,19 @@ class _ApplicationProbeState extends State<_ApplicationProbe> {
               final audioReady =
                   entry['expectAudio'] == false ||
                   (backend is MediaKitBackend
-                      ? diag['audioSampleFormat'] != null
+                      ? diag['audioSampleFormat'] != null &&
+                            '${diag['audioOutputDriver'] ?? ''}'.isNotEmpty &&
+                            diag['audioOutputDriver'] != 'null' &&
+                            '${diag['audioOutputParams'] ?? ''}'.isNotEmpty &&
+                            diag['muted'] != 'yes' &&
+                            (double.tryParse('${diag['volume']}') ?? 0) > 0
+                      : backend is NativePlayerBackend
+                      ? diag['audioOutputStarted'] == true
                       : (await backend.getAudioTracks()).isNotEmpty);
               if (videoReady &&
                   audioReady &&
-                  start != null &&
-                  value.position - start >= const Duration(seconds: 2)) {
+                  playingWatch.elapsed >= minimumPlayback &&
+                  forwardProgress >= minimumPlayback) {
                 result['passed'] = true;
                 attempt.addAll({
                   'passed': true,
@@ -124,7 +158,30 @@ class _ApplicationProbeState extends State<_ApplicationProbe> {
                   'video': diag['videoMime'],
                   'renderedFrames': diag['renderedFrames'],
                   'positionMs': value.position.inMilliseconds,
+                  'diagnostics': Map<String, dynamic>.of(diag),
                 });
+                if (entry['testPauseResume'] == true) {
+                  // Reuse the same engine/audio session through a pause cycle.
+                  await backend.pause();
+                  await Future<void>.delayed(const Duration(milliseconds: 400));
+                  final resumePosition = backend.notifier.value.position;
+                  final resumeFrames =
+                      backend.diagnostics?.value['renderedFrames'] as num?;
+                  await backend.play();
+                  await Future<void>.delayed(const Duration(seconds: 3));
+                  final resumed = backend.notifier.value;
+                  if (resumed.hasError ||
+                      !resumed.isPlaying ||
+                      (backend is NativePlayerBackend
+                          ? (backend.diagnostics?.value['renderedFrames']
+                                        as num? ??
+                                    0) <=
+                                (resumeFrames ?? 0)
+                          : resumed.position == resumePosition)) {
+                    throw StateError('Pause/resume did not restore playback');
+                  }
+                  attempt['pauseResumePassed'] = true;
+                }
                 break;
               }
               await Future<void>.delayed(const Duration(milliseconds: 100));
@@ -133,6 +190,7 @@ class _ApplicationProbeState extends State<_ApplicationProbe> {
               throw TimeoutException('Output or clock did not progress');
             }
           } catch (error) {
+            result['passed'] = false;
             attempt.addAll({
               'passed': false,
               'error': redactPlaybackLog('$error'),
@@ -141,26 +199,32 @@ class _ApplicationProbeState extends State<_ApplicationProbe> {
             });
           } finally {
             if (mounted) setState(() => _backend = null);
-            await WidgetsBinding.instance.endOfFrame;
+            WidgetsBinding.instance.ensureVisualUpdate();
+            // An occluded desktop window may suspend frames. A test must still
+            // release its audio device rather than waiting forever here.
+            await WidgetsBinding.instance.endOfFrame.timeout(
+              const Duration(seconds: 2),
+              onTimeout: () {},
+            );
             await backend.dispose();
           }
           attempts.add(attempt);
-        } while (result['passed'] != true && plan.advance());
+        } while (result['passed'] != true &&
+            plan.advance(errorDescription: attempts.last['error'] as String?));
         results.add(result);
+        await checkpoint(complete: false);
         // ignore: avoid_print
         print('XPLAYER_APPLICATION_PROBE ${jsonEncode(result)}');
       }
       if (results.isEmpty) throw StateError('No matching sources');
       final report = {
+        'probeVersion': 2,
         'platform': Platform.operatingSystem,
         'passed': results.where((r) => r['passed'] == true).length,
         'total': results.length,
         'results': results,
       };
-      final directory = await getApplicationSupportDirectory();
-      await File(
-        '${directory.path}/application_probe.json',
-      ).writeAsString(jsonEncode(report));
+      await checkpoint(complete: true);
       setState(
         () => _status = 'Completed: ${report['passed']}/${report['total']}',
       );

@@ -90,6 +90,36 @@ void main() {
     },
   );
   test(
+    'prepare errors are not held behind a pending platform load call',
+    () async {
+      final load = Completer<void>();
+      messenger.setMockMethodCallHandler(methods, (call) async {
+        calls.add(call);
+        if (call.method == 'load') await load.future;
+        return null;
+      });
+      final backend = NativePlayerBackend();
+      final result = expectLater(
+        backend
+            .initialize('http://test/live.m3u8')
+            .timeout(const Duration(milliseconds: 500)),
+        throwsA(isA<StateError>()),
+      );
+      await Future<void>.delayed(Duration.zero);
+      await emit({
+        'event': 'error',
+        'code': 'DECODING_FAILED',
+        'msg': 'Unsupported codec',
+      });
+      try {
+        await result;
+      } finally {
+        load.complete();
+        await backend.dispose();
+      }
+    },
+  );
+  test(
     'native HTTP status remains distinguishable from decoder failure',
     () async {
       final backend = NativePlayerBackend();
