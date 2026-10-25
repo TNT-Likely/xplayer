@@ -1,0 +1,8 @@
+**/Frameworks/
+**/.cache/
+**/build/
+**/.gradle/
+.pub/
+.dart_tool/
+pubspec.lock
+**/Headers/

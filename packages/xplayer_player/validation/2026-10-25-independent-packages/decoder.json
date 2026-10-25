@@ -1,0 +1,782 @@
+{
+  "platform": "Darwin",
+  "architecture": "arm64",
+  "passed": 36,
+  "total": 36,
+  "results": [
+    {
+      "source": "h264-aac.flv",
+      "hlsRenditionSelected": false,
+      "decoded": true,
+      "videoDecoded": true,
+      "audioDecoded": true,
+      "elapsedMs": 1181,
+      "width": 160,
+      "height": 96,
+      "video": [
+        "h264"
+      ],
+      "audio": [
+        "aac"
+      ],
+      "sampleRate": 48000,
+      "channels": 1,
+      "durationMs": 4167,
+      "decoderErrorCount": 0,
+      "name": "h264-aac.flv",
+      "passed": true
+    },
+    {
+      "source": "h264-aac.mp4",
+      "hlsRenditionSelected": false,
+      "decoded": true,
+      "videoDecoded": true,
+      "audioDecoded": true,
+      "elapsedMs": 1157,
+      "width": 640,
+      "height": 360,
+      "video": [
+        "h264"
+      ],
+      "audio": [
+        "aac"
+      ],
+      "sampleRate": 48000,
+      "channels": 1,
+      "durationMs": 4021,
+      "decoderErrorCount": 0,
+      "name": "h264-aac.mp4",
+      "passed": true
+    },
+    {
+      "source": "h264-high-aac-1080p.mp4",
+      "hlsRenditionSelected": false,
+      "decoded": true,
+      "videoDecoded": true,
+      "audioDecoded": true,
+      "elapsedMs": 1140,
+      "width": 1920,
+      "height": 1080,
+      "video": [
+        "h264"
+      ],
+      "audio": [
+        "aac"
+      ],
+      "sampleRate": 48000,
+      "channels": 1,
+      "durationMs": 4021,
+      "decoderErrorCount": 0,
+      "name": "h264-high-aac-1080p.mp4",
+      "passed": true
+    },
+    {
+      "source": "hevc-aac.mp4",
+      "hlsRenditionSelected": false,
+      "decoded": true,
+      "videoDecoded": true,
+      "audioDecoded": true,
+      "elapsedMs": 1190,
+      "width": 1280,
+      "height": 720,
+      "video": [
+        "hevc"
+      ],
+      "audio": [
+        "aac"
+      ],
+      "sampleRate": 48000,
+      "channels": 1,
+      "durationMs": 4021,
+      "decoderErrorCount": 0,
+      "name": "hevc-aac.mp4",
+      "passed": true
+    },
+    {
+      "source": "h264-mp3.flv",
+      "hlsRenditionSelected": false,
+      "decoded": true,
+      "videoDecoded": true,
+      "audioDecoded": true,
+      "elapsedMs": 1149,
+      "width": 160,
+      "height": 96,
+      "video": [
+        "h264"
+      ],
+      "audio": [
+        "mp3"
+      ],
+      "sampleRate": 48000,
+      "channels": 1,
+      "durationMs": 4167,
+      "decoderErrorCount": 0,
+      "name": "h264-mp3.flv",
+      "passed": true
+    },
+    {
+      "source": "h264-aac-latm.ts",
+      "hlsRenditionSelected": false,
+      "decoded": true,
+      "videoDecoded": true,
+      "audioDecoded": true,
+      "elapsedMs": 1227,
+      "width": 160,
+      "height": 96,
+      "video": [
+        "h264"
+      ],
+      "audio": [
+        "aac_latm"
+      ],
+      "sampleRate": 48000,
+      "channels": 1,
+      "durationMs": 4021,
+      "decoderErrorCount": 0,
+      "name": "h264-aac-latm.ts",
+      "passed": true
+    },
+    {
+      "source": "h264-ac3.ts",
+      "hlsRenditionSelected": false,
+      "decoded": true,
+      "videoDecoded": true,
+      "audioDecoded": true,
+      "elapsedMs": 1119,
+      "width": 160,
+      "height": 96,
+      "video": [
+        "h264"
+      ],
+      "audio": [
+        "ac3"
+      ],
+      "sampleRate": 48000,
+      "channels": 1,
+      "durationMs": 4005,
+      "decoderErrorCount": 0,
+      "name": "h264-ac3.ts",
+      "passed": true
+    },
+    {
+      "source": "hevc-eac3.mkv",
+      "hlsRenditionSelected": false,
+      "decoded": true,
+      "videoDecoded": true,
+      "audioDecoded": true,
+      "elapsedMs": 1120,
+      "width": 160,
+      "height": 96,
+      "video": [
+        "hevc"
+      ],
+      "audio": [
+        "eac3"
+      ],
+      "sampleRate": 48000,
+      "channels": 1,
+      "durationMs": 4000,
+      "decoderErrorCount": 0,
+      "name": "hevc-eac3.mkv",
+      "passed": true
+    },
+    {
+      "source": "hevc-main10-eac3.mkv",
+      "hlsRenditionSelected": false,
+      "decoded": true,
+      "videoDecoded": true,
+      "audioDecoded": true,
+      "elapsedMs": 1113,
+      "width": 160,
+      "height": 96,
+      "video": [
+        "hevc"
+      ],
+      "audio": [
+        "eac3"
+      ],
+      "sampleRate": 48000,
+      "channels": 1,
+      "durationMs": 4000,
+      "decoderErrorCount": 0,
+      "name": "hevc-main10-eac3.mkv",
+      "passed": true
+    },
+    {
+      "source": "vp9-opus.webm",
+      "hlsRenditionSelected": false,
+      "decoded": true,
+      "videoDecoded": true,
+      "audioDecoded": true,
+      "elapsedMs": 1143,
+      "width": 160,
+      "height": 96,
+      "video": [
+        "vp9"
+      ],
+      "audio": [
+        "opus"
+      ],
+      "sampleRate": 48000,
+      "channels": 1,
+      "durationMs": 4008,
+      "decoderErrorCount": 0,
+      "name": "vp9-opus.webm",
+      "passed": true
+    },
+    {
+      "source": "vp8-vorbis.webm",
+      "hlsRenditionSelected": false,
+      "decoded": true,
+      "videoDecoded": true,
+      "audioDecoded": true,
+      "elapsedMs": 1236,
+      "width": 160,
+      "height": 96,
+      "video": [
+        "vp8"
+      ],
+      "audio": [
+        "vorbis"
+      ],
+      "sampleRate": 48000,
+      "channels": 1,
+      "durationMs": 4003,
+      "decoderErrorCount": 0,
+      "name": "vp8-vorbis.webm",
+      "passed": true
+    },
+    {
+      "source": "av1-aac.mp4",
+      "hlsRenditionSelected": false,
+      "decoded": true,
+      "videoDecoded": true,
+      "audioDecoded": true,
+      "elapsedMs": 1201,
+      "width": 160,
+      "height": 96,
+      "video": [
+        "av1"
+      ],
+      "audio": [
+        "aac"
+      ],
+      "sampleRate": 48000,
+      "channels": 1,
+      "durationMs": 4021,
+      "decoderErrorCount": 0,
+      "name": "av1-aac.mp4",
+      "passed": true
+    },
+    {
+      "source": "h264-mp2.ts",
+      "hlsRenditionSelected": false,
+      "decoded": true,
+      "videoDecoded": true,
+      "audioDecoded": true,
+      "elapsedMs": 1117,
+      "width": 160,
+      "height": 96,
+      "video": [
+        "h264"
+      ],
+      "audio": [
+        "mp2"
+      ],
+      "sampleRate": 48000,
+      "channels": 1,
+      "durationMs": 4010,
+      "decoderErrorCount": 0,
+      "name": "h264-mp2.ts",
+      "passed": true
+    },
+    {
+      "source": "h264-dts.mkv",
+      "hlsRenditionSelected": false,
+      "decoded": true,
+      "videoDecoded": true,
+      "audioDecoded": true,
+      "elapsedMs": 1126,
+      "width": 160,
+      "height": 96,
+      "video": [
+        "h264"
+      ],
+      "audio": [
+        "dts"
+      ],
+      "sampleRate": 48000,
+      "channels": 1,
+      "durationMs": 4000,
+      "decoderErrorCount": 0,
+      "name": "h264-dts.mkv",
+      "passed": true
+    },
+    {
+      "source": "h264-truehd.mkv",
+      "hlsRenditionSelected": false,
+      "decoded": true,
+      "videoDecoded": true,
+      "audioDecoded": true,
+      "elapsedMs": 1293,
+      "width": 160,
+      "height": 96,
+      "video": [
+        "h264"
+      ],
+      "audio": [
+        "truehd"
+      ],
+      "sampleRate": 48000,
+      "channels": 1,
+      "durationMs": 4000,
+      "decoderErrorCount": 0,
+      "name": "h264-truehd.mkv",
+      "passed": true
+    },
+    {
+      "source": "h264-truehd-5.1.mkv",
+      "hlsRenditionSelected": false,
+      "decoded": true,
+      "videoDecoded": true,
+      "audioDecoded": true,
+      "elapsedMs": 1125,
+      "width": 160,
+      "height": 96,
+      "video": [
+        "h264"
+      ],
+      "audio": [
+        "truehd"
+      ],
+      "sampleRate": 48000,
+      "channels": 6,
+      "durationMs": 4000,
+      "decoderErrorCount": 0,
+      "name": "h264-truehd-5.1.mkv",
+      "passed": true
+    },
+    {
+      "source": "h264-mlp.mkv",
+      "hlsRenditionSelected": false,
+      "decoded": true,
+      "videoDecoded": true,
+      "audioDecoded": true,
+      "elapsedMs": 1166,
+      "width": 160,
+      "height": 96,
+      "video": [
+        "h264"
+      ],
+      "audio": [
+        "mlp"
+      ],
+      "sampleRate": 48000,
+      "channels": 1,
+      "durationMs": 4000,
+      "decoderErrorCount": 0,
+      "name": "h264-mlp.mkv",
+      "passed": true
+    },
+    {
+      "source": "h264-flac.mkv",
+      "hlsRenditionSelected": false,
+      "decoded": true,
+      "videoDecoded": true,
+      "audioDecoded": true,
+      "elapsedMs": 1155,
+      "width": 160,
+      "height": 96,
+      "video": [
+        "h264"
+      ],
+      "audio": [
+        "flac"
+      ],
+      "sampleRate": 48000,
+      "channels": 1,
+      "durationMs": 4000,
+      "decoderErrorCount": 0,
+      "name": "h264-flac.mkv",
+      "passed": true
+    },
+    {
+      "source": "h264-alac.mov",
+      "hlsRenditionSelected": false,
+      "decoded": true,
+      "videoDecoded": true,
+      "audioDecoded": true,
+      "elapsedMs": 1121,
+      "width": 160,
+      "height": 96,
+      "video": [
+        "h264"
+      ],
+      "audio": [
+        "alac"
+      ],
+      "sampleRate": 48000,
+      "channels": 1,
+      "durationMs": 4000,
+      "decoderErrorCount": 0,
+      "name": "h264-alac.mov",
+      "passed": true
+    },
+    {
+      "source": "mpeg2-mp2.ts",
+      "hlsRenditionSelected": false,
+      "decoded": true,
+      "videoDecoded": true,
+      "audioDecoded": true,
+      "elapsedMs": 1113,
+      "width": 160,
+      "height": 96,
+      "video": [
+        "mpeg2video"
+      ],
+      "audio": [
+        "mp2"
+      ],
+      "sampleRate": 48000,
+      "channels": 1,
+      "durationMs": 4010,
+      "decoderErrorCount": 0,
+      "name": "mpeg2-mp2.ts",
+      "passed": true
+    },
+    {
+      "source": "mpeg4-pcm.avi",
+      "hlsRenditionSelected": false,
+      "decoded": true,
+      "videoDecoded": true,
+      "audioDecoded": true,
+      "elapsedMs": 1171,
+      "width": 160,
+      "height": 96,
+      "video": [
+        "mpeg4"
+      ],
+      "audio": [
+        "pcm_s16le"
+      ],
+      "sampleRate": 48000,
+      "channels": 1,
+      "durationMs": 4000,
+      "decoderErrorCount": 0,
+      "name": "mpeg4-pcm.avi",
+      "passed": true
+    },
+    {
+      "source": "wmv2-wma2.asf",
+      "hlsRenditionSelected": false,
+      "decoded": true,
+      "videoDecoded": true,
+      "audioDecoded": true,
+      "elapsedMs": 1121,
+      "width": 160,
+      "height": 96,
+      "video": [
+        "wmv2"
+      ],
+      "audio": [
+        "wmav2"
+      ],
+      "sampleRate": 48000,
+      "channels": 1,
+      "durationMs": 4086,
+      "decoderErrorCount": 0,
+      "name": "wmv2-wma2.asf",
+      "passed": true
+    },
+    {
+      "source": "audio-aac.aac",
+      "hlsRenditionSelected": false,
+      "decoded": true,
+      "videoDecoded": false,
+      "audioDecoded": true,
+      "elapsedMs": 1135,
+      "width": null,
+      "height": null,
+      "video": [],
+      "audio": [
+        "aac"
+      ],
+      "sampleRate": 48000,
+      "channels": 2,
+      "durationMs": 4056,
+      "decoderErrorCount": 0,
+      "name": "audio-aac.aac",
+      "passed": true
+    },
+    {
+      "source": "audio-mp3.mp3",
+      "hlsRenditionSelected": false,
+      "decoded": true,
+      "videoDecoded": false,
+      "audioDecoded": true,
+      "elapsedMs": 1134,
+      "width": null,
+      "height": null,
+      "video": [],
+      "audio": [
+        "mp3"
+      ],
+      "sampleRate": 48000,
+      "channels": 2,
+      "durationMs": 4032,
+      "decoderErrorCount": 0,
+      "name": "audio-mp3.mp3",
+      "passed": true
+    },
+    {
+      "source": "audio-flac.flac",
+      "hlsRenditionSelected": false,
+      "decoded": true,
+      "videoDecoded": false,
+      "audioDecoded": true,
+      "elapsedMs": 1243,
+      "width": null,
+      "height": null,
+      "video": [],
+      "audio": [
+        "flac"
+      ],
+      "sampleRate": 48000,
+      "channels": 2,
+      "durationMs": 4000,
+      "decoderErrorCount": 0,
+      "name": "audio-flac.flac",
+      "passed": true
+    },
+    {
+      "source": "audio-alac.m4a",
+      "hlsRenditionSelected": false,
+      "decoded": true,
+      "videoDecoded": false,
+      "audioDecoded": true,
+      "elapsedMs": 1193,
+      "width": null,
+      "height": null,
+      "video": [],
+      "audio": [
+        "alac"
+      ],
+      "sampleRate": 48000,
+      "channels": 2,
+      "durationMs": 4000,
+      "decoderErrorCount": 0,
+      "name": "audio-alac.m4a",
+      "passed": true
+    },
+    {
+      "source": "audio-opus.ogg",
+      "hlsRenditionSelected": false,
+      "decoded": true,
+      "videoDecoded": false,
+      "audioDecoded": true,
+      "elapsedMs": 1129,
+      "width": null,
+      "height": null,
+      "video": [],
+      "audio": [
+        "opus"
+      ],
+      "sampleRate": 48000,
+      "channels": 2,
+      "durationMs": 4006,
+      "decoderErrorCount": 0,
+      "name": "audio-opus.ogg",
+      "passed": true
+    },
+    {
+      "source": "audio-vorbis.ogg",
+      "hlsRenditionSelected": false,
+      "decoded": true,
+      "videoDecoded": false,
+      "audioDecoded": true,
+      "elapsedMs": 1153,
+      "width": null,
+      "height": null,
+      "video": [],
+      "audio": [
+        "vorbis"
+      ],
+      "sampleRate": 48000,
+      "channels": 2,
+      "durationMs": 4000,
+      "decoderErrorCount": 0,
+      "name": "audio-vorbis.ogg",
+      "passed": true
+    },
+    {
+      "source": "audio-pcm.wav",
+      "hlsRenditionSelected": false,
+      "decoded": true,
+      "videoDecoded": false,
+      "audioDecoded": true,
+      "elapsedMs": 1173,
+      "width": null,
+      "height": null,
+      "video": [],
+      "audio": [
+        "pcm_s16le"
+      ],
+      "sampleRate": 48000,
+      "channels": 2,
+      "durationMs": 4000,
+      "decoderErrorCount": 0,
+      "name": "audio-pcm.wav",
+      "passed": true
+    },
+    {
+      "source": "aac-he-v1.m4a",
+      "hlsRenditionSelected": false,
+      "decoded": true,
+      "videoDecoded": false,
+      "audioDecoded": true,
+      "elapsedMs": 1216,
+      "width": null,
+      "height": null,
+      "video": [],
+      "audio": [
+        "aac"
+      ],
+      "sampleRate": 48000,
+      "channels": 2,
+      "durationMs": 4138,
+      "decoderErrorCount": 0,
+      "name": "aac-he-v1.m4a",
+      "passed": true
+    },
+    {
+      "source": "h264-aac-he-v1.ts",
+      "hlsRenditionSelected": false,
+      "decoded": true,
+      "videoDecoded": true,
+      "audioDecoded": true,
+      "elapsedMs": 1157,
+      "width": 160,
+      "height": 96,
+      "video": [
+        "h264"
+      ],
+      "audio": [
+        "aac"
+      ],
+      "sampleRate": 48000,
+      "channels": 2,
+      "durationMs": 4065,
+      "decoderErrorCount": 0,
+      "name": "h264-aac-he-v1.ts",
+      "passed": true
+    },
+    {
+      "source": "aac-he-v2.m4a",
+      "hlsRenditionSelected": false,
+      "decoded": true,
+      "videoDecoded": false,
+      "audioDecoded": true,
+      "elapsedMs": 1144,
+      "width": null,
+      "height": null,
+      "video": [],
+      "audio": [
+        "aac"
+      ],
+      "sampleRate": 48000,
+      "channels": 2,
+      "durationMs": 4138,
+      "decoderErrorCount": 0,
+      "name": "aac-he-v2.m4a",
+      "passed": true
+    },
+    {
+      "source": "h264-aac-he-v2.ts",
+      "hlsRenditionSelected": false,
+      "decoded": true,
+      "videoDecoded": true,
+      "audioDecoded": true,
+      "elapsedMs": 1152,
+      "width": 160,
+      "height": 96,
+      "video": [
+        "h264"
+      ],
+      "audio": [
+        "aac"
+      ],
+      "sampleRate": 48000,
+      "channels": 2,
+      "durationMs": 4065,
+      "decoderErrorCount": 0,
+      "name": "h264-aac-he-v2.ts",
+      "passed": true
+    },
+    {
+      "source": "index.m3u8",
+      "hlsRenditionSelected": false,
+      "decoded": true,
+      "videoDecoded": true,
+      "audioDecoded": true,
+      "elapsedMs": 1148,
+      "width": 160,
+      "height": 96,
+      "video": [
+        "h264"
+      ],
+      "audio": [
+        "aac"
+      ],
+      "sampleRate": 48000,
+      "channels": 1,
+      "durationMs": 4010,
+      "decoderErrorCount": 0,
+      "name": "hls",
+      "passed": true
+    },
+    {
+      "source": "index.mpd",
+      "hlsRenditionSelected": false,
+      "decoded": true,
+      "videoDecoded": true,
+      "audioDecoded": true,
+      "elapsedMs": 1163,
+      "width": 160,
+      "height": 96,
+      "video": [
+        "h264"
+      ],
+      "audio": [
+        "aac"
+      ],
+      "sampleRate": 48000,
+      "channels": 1,
+      "durationMs": 4000,
+      "decoderErrorCount": 0,
+      "name": "dash",
+      "passed": true
+    },
+    {
+      "source": "index.m3u8",
+      "hlsRenditionSelected": false,
+      "decoded": true,
+      "videoDecoded": true,
+      "audioDecoded": true,
+      "elapsedMs": 1116,
+      "width": 640,
+      "height": 360,
+      "video": [
+        "h264"
+      ],
+      "audio": [
+        "aac"
+      ],
+      "sampleRate": 48000,
+      "channels": 1,
+      "durationMs": 4000,
+      "decoderErrorCount": 0,
+      "name": "hls-fmp4",
+      "passed": true
+    }
+  ]
+}

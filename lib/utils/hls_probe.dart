@@ -1,5 +1,7 @@
 import 'dart:async';
 import 'dart:io';
+import 'package:xplayer_player/xplayer_player.dart'
+    show PlaybackSource, StreamFormat;
 
 /// HLS master 清单里的一个码率变体。
 class HlsVariant {
@@ -92,18 +94,22 @@ class HlsProbeResult {
 Future<HlsProbeResult> probeHlsVariants(
   String url, {
   Duration timeout = const Duration(seconds: 8),
+  Map<String, String> headers = const {},
 }) async {
-  final lower = url.toLowerCase();
-  if (!lower.contains('.m3u8')) {
+  final source = PlaybackSource.parse(url, headers: headers);
+  if (source.format != StreamFormat.hls) {
     return const HlsProbeResult(notHls: true);
   }
 
   final client = HttpClient();
   client.connectionTimeout = timeout;
+  client.userAgent = source.headers.entries
+      .where((e) => e.key.toLowerCase() == 'user-agent').firstOrNull?.value ?? 'XPlayer';
   client.badCertificateCallback = (cert, host, port) => true; // IPTV 常用自签证书
   try {
-    final req = await client.getUrl(Uri.parse(url.trim())).timeout(timeout);
+    final req = await client.getUrl(Uri.parse(source.url)).timeout(timeout);
     req.headers.set(HttpHeaders.userAgentHeader, 'XPlayer');
+    source.headers.forEach((key, value) => req.headers.set(key, value));
     final resp = await req.close().timeout(timeout);
     if (resp.statusCode < 200 || resp.statusCode >= 400) {
       return HlsProbeResult(error: 'HTTP ${resp.statusCode}');
@@ -123,7 +129,11 @@ Future<HlsProbeResult> probeHlsVariants(
       return const HlsProbeResult(isMaster: false);
     }
 
-    final variants = _parseStreamInf(text, Uri.parse(url.trim()));
+    var effectiveUri = Uri.parse(source.url);
+    for (final redirect in resp.redirects) {
+      effectiveUri = effectiveUri.resolveUri(redirect.location);
+    }
+    final variants = _parseStreamInf(text, effectiveUri);
     variants.sort((a, b) => (b.bandwidth ?? 0) - (a.bandwidth ?? 0));
     return HlsProbeResult(isMaster: true, variants: variants);
   } on TimeoutException {

@@ -1,0 +1,760 @@
+{
+  "date": "2026-10-25",
+  "scope": "Follow-up on the four macOS native decode failures; live source behavior is time-dependent. Authenticated URLs omitted.",
+  "sources": [
+    {
+      "hlsRenditionSelected": false,
+      "httpStatus": 403,
+      "decoded": false,
+      "error": "StateError",
+      "stage": "ready",
+      "width": null,
+      "height": null,
+      "audioReady": false,
+      "playing": false,
+      "buffering": true,
+      "decoderErrorCount": 1,
+      "errors": [
+        "Failed to open [source URL]"
+      ],
+      "sourceLabel": "CCTV-4 official"
+    },
+    {
+      "hlsRenditionSelected": false,
+      "decoded": false,
+      "error": "TimeoutException",
+      "stage": "progress",
+      "width": 1280,
+      "height": 720,
+      "audioReady": true,
+      "playing": true,
+      "buffering": true,
+      "decoderErrorCount": 0,
+      "errors": [],
+      "sourceLabel": "CCTV-4 overseas"
+    },
+    {
+      "hlsRenditionSelected": false,
+      "decoded": true,
+      "videoDecoded": true,
+      "audioDecoded": true,
+      "elapsedMs": 3076,
+      "width": 1920,
+      "height": 1080,
+      "video": [
+        "h264"
+      ],
+      "audio": [
+        "aac"
+      ],
+      "sampleRate": 44100,
+      "channels": 2,
+      "durationMs": 16811,
+      "decoderErrorCount": 0,
+      "errors": [],
+      "sourceLabel": "CCTV-6 resolver"
+    },
+    {
+      "hlsRenditionSelected": true,
+      "decoded": true,
+      "videoDecoded": true,
+      "audioDecoded": true,
+      "elapsedMs": 10612,
+      "width": 1920,
+      "height": 1080,
+      "video": [
+        "h264"
+      ],
+      "audio": [
+        "aac"
+      ],
+      "sampleRate": 44100,
+      "channels": 2,
+      "durationMs": 2469,
+      "decoderErrorCount": 0,
+      "errors": [],
+      "sourceLabel": "TVBS"
+    }
+  ],
+  "findings": {
+    "CCTV-4 official": {
+      "currentHttpStatus": 403,
+      "details": "Direct HTTP clients and native libmpv all receive 403 with multiple standard User-Agent values. Updating decoder settings does not authorize a denied source; upstream must supply a currently accepted URL."
+    },
+    "CCTV-4 overseas": {
+      "details": "H.264/AAC decodes. Startup and progress latency varied significantly between runs, including about 6 to 28 seconds. Native network timeout increased from 5 to 15 seconds; HLS analysis budget is 1 second. This is not a missing codec.",
+      "deviceLimit": "Android TV full-decoder auto and software paths failed this run. Reducing native stream-info probing allowed decoded H.264/AAC parameters, then the emulator GPU context failed during texture setup. Those experimental overrides are not shipped. Native fatal playback logs are now reported so the host can advance to another backend instead of waiting for a secondary seek warning."
+    },
+    "CCTV-6 resolver": {
+      "details": "Lavf/default clients receive HTTP 423 after redirect. Mozilla/5.0 receives MP4 and decodes H.264/AAC at 1920x1080. However the ~16.8 second MP4 is an upstream server-overload notice, not the live CCTV-6 broadcast. The notice explicitly asks viewers to switch channels."
+    },
+    "TVBS": {
+      "details": "The master has two 1080p streams at about 2.89 and 1.24 Mbps. Native master probing opens both variants; joining incomplete H.264 headers recovers once SPS/PPS arrive. The high bitrate branch still stalled in one retest. Selecting one safe muxed variant and lower bandwidth during recovery yielded decoded audio/video and clock advancement."
+    }
+  },
+  "transportRegression": {
+    "passed": 5,
+    "total": 5,
+    "results": [
+      {
+        "source": "/browser.flv",
+        "hlsRenditionSelected": false,
+        "decoded": true,
+        "videoDecoded": true,
+        "audioDecoded": true,
+        "elapsedMs": 1179,
+        "width": 160,
+        "height": 96,
+        "video": [
+          "h264"
+        ],
+        "audio": [
+          "aac"
+        ],
+        "sampleRate": 48000,
+        "channels": 1,
+        "durationMs": 4167,
+        "decoderErrorCount": 0,
+        "errors": [],
+        "name": "browser-agent-redirect-flv",
+        "passed": true
+      },
+      {
+        "source": "/redirect/master.m3u8",
+        "hlsRenditionSelected": true,
+        "decoded": true,
+        "videoDecoded": true,
+        "audioDecoded": true,
+        "elapsedMs": 1190,
+        "width": 160,
+        "height": 96,
+        "video": [
+          "h264"
+        ],
+        "audio": [
+          "aac"
+        ],
+        "sampleRate": 48000,
+        "channels": 1,
+        "durationMs": 4010,
+        "decoderErrorCount": 0,
+        "errors": [],
+        "name": "signed-hls-master-redirect",
+        "passed": true
+      },
+      {
+        "source": "/recovery/master.m3u8",
+        "hlsRenditionSelected": true,
+        "decoded": true,
+        "videoDecoded": true,
+        "audioDecoded": true,
+        "elapsedMs": 1184,
+        "width": 160,
+        "height": 96,
+        "video": [
+          "h264"
+        ],
+        "audio": [
+          "aac"
+        ],
+        "sampleRate": 48000,
+        "channels": 1,
+        "durationMs": 4010,
+        "decoderErrorCount": 0,
+        "errors": [],
+        "name": "lower-bandwidth-recovery",
+        "passed": true
+      },
+      {
+        "source": "/slow.flv",
+        "hlsRenditionSelected": false,
+        "decoded": true,
+        "videoDecoded": true,
+        "audioDecoded": true,
+        "elapsedMs": 7184,
+        "width": 160,
+        "height": 96,
+        "video": [
+          "h264"
+        ],
+        "audio": [
+          "aac"
+        ],
+        "sampleRate": 48000,
+        "channels": 1,
+        "durationMs": 4167,
+        "decoderErrorCount": 0,
+        "errors": [],
+        "name": "slow-first-byte",
+        "passed": true
+      },
+      {
+        "source": "/forbidden.flv",
+        "hlsRenditionSelected": false,
+        "httpStatus": 403,
+        "decoded": false,
+        "error": "StateError",
+        "stage": "ready",
+        "width": null,
+        "height": null,
+        "audioReady": false,
+        "playing": false,
+        "buffering": true,
+        "decoderErrorCount": 1,
+        "errors": [
+          "Failed to open [source URL]"
+        ],
+        "name": "http-403-classification",
+        "passed": true
+      }
+    ]
+  },
+  "notClaimed": [
+    "Restoring CCTV-4 authorization or actual CCTV-6 broadcast.",
+    "Every geographic network or physical device now passes.",
+    "Long-duration playback and audible speaker output from these raw decoder checks."
+  ],
+  "decoderRegression": {
+    "platform": "Darwin",
+    "architecture": "arm64",
+    "passed": 18,
+    "total": 18,
+    "results": [
+      {
+        "hlsRenditionSelected": false,
+        "decoded": true,
+        "videoDecoded": true,
+        "audioDecoded": true,
+        "elapsedMs": 1180,
+        "width": 160,
+        "height": 96,
+        "video": [
+          "h264"
+        ],
+        "audio": [
+          "aac"
+        ],
+        "sampleRate": 48000,
+        "channels": 1,
+        "durationMs": 4167,
+        "decoderErrorCount": 0,
+        "name": "h264-aac.flv",
+        "passed": true
+      },
+      {
+        "hlsRenditionSelected": false,
+        "decoded": true,
+        "videoDecoded": true,
+        "audioDecoded": true,
+        "elapsedMs": 1138,
+        "width": 160,
+        "height": 96,
+        "video": [
+          "h264"
+        ],
+        "audio": [
+          "ac3"
+        ],
+        "sampleRate": 48000,
+        "channels": 1,
+        "durationMs": 4005,
+        "decoderErrorCount": 0,
+        "name": "h264-ac3.ts",
+        "passed": true
+      },
+      {
+        "hlsRenditionSelected": false,
+        "decoded": true,
+        "videoDecoded": true,
+        "audioDecoded": true,
+        "elapsedMs": 1139,
+        "width": 160,
+        "height": 96,
+        "video": [
+          "hevc"
+        ],
+        "audio": [
+          "eac3"
+        ],
+        "sampleRate": 48000,
+        "channels": 1,
+        "durationMs": 4000,
+        "decoderErrorCount": 0,
+        "name": "hevc-eac3.mkv",
+        "passed": true
+      },
+      {
+        "hlsRenditionSelected": false,
+        "decoded": true,
+        "videoDecoded": true,
+        "audioDecoded": true,
+        "elapsedMs": 1124,
+        "width": 160,
+        "height": 96,
+        "video": [
+          "hevc"
+        ],
+        "audio": [
+          "eac3"
+        ],
+        "sampleRate": 48000,
+        "channels": 1,
+        "durationMs": 4000,
+        "decoderErrorCount": 0,
+        "name": "hevc-main10-eac3.mkv",
+        "passed": true
+      },
+      {
+        "hlsRenditionSelected": false,
+        "decoded": true,
+        "videoDecoded": true,
+        "audioDecoded": true,
+        "elapsedMs": 1137,
+        "width": 160,
+        "height": 96,
+        "video": [
+          "vp9"
+        ],
+        "audio": [
+          "opus"
+        ],
+        "sampleRate": 48000,
+        "channels": 1,
+        "durationMs": 4008,
+        "decoderErrorCount": 0,
+        "name": "vp9-opus.webm",
+        "passed": true
+      },
+      {
+        "hlsRenditionSelected": false,
+        "decoded": true,
+        "videoDecoded": true,
+        "audioDecoded": true,
+        "elapsedMs": 1146,
+        "width": 160,
+        "height": 96,
+        "video": [
+          "av1"
+        ],
+        "audio": [
+          "aac"
+        ],
+        "sampleRate": 48000,
+        "channels": 1,
+        "durationMs": 4021,
+        "decoderErrorCount": 0,
+        "name": "av1-aac.mp4",
+        "passed": true
+      },
+      {
+        "hlsRenditionSelected": false,
+        "decoded": true,
+        "videoDecoded": true,
+        "audioDecoded": true,
+        "elapsedMs": 1123,
+        "width": 160,
+        "height": 96,
+        "video": [
+          "h264"
+        ],
+        "audio": [
+          "mp2"
+        ],
+        "sampleRate": 48000,
+        "channels": 1,
+        "durationMs": 4010,
+        "decoderErrorCount": 0,
+        "name": "h264-mp2.ts",
+        "passed": true
+      },
+      {
+        "hlsRenditionSelected": false,
+        "decoded": true,
+        "videoDecoded": true,
+        "audioDecoded": true,
+        "elapsedMs": 1112,
+        "width": 160,
+        "height": 96,
+        "video": [
+          "h264"
+        ],
+        "audio": [
+          "dts"
+        ],
+        "sampleRate": 48000,
+        "channels": 1,
+        "durationMs": 4000,
+        "decoderErrorCount": 0,
+        "name": "h264-dts.mkv",
+        "passed": true
+      },
+      {
+        "hlsRenditionSelected": false,
+        "decoded": true,
+        "videoDecoded": true,
+        "audioDecoded": true,
+        "elapsedMs": 1104,
+        "width": 160,
+        "height": 96,
+        "video": [
+          "h264"
+        ],
+        "audio": [
+          "truehd"
+        ],
+        "sampleRate": 48000,
+        "channels": 1,
+        "durationMs": 4000,
+        "decoderErrorCount": 0,
+        "name": "h264-truehd.mkv",
+        "passed": true
+      },
+      {
+        "hlsRenditionSelected": false,
+        "decoded": true,
+        "videoDecoded": true,
+        "audioDecoded": true,
+        "elapsedMs": 1113,
+        "width": 160,
+        "height": 96,
+        "video": [
+          "h264"
+        ],
+        "audio": [
+          "truehd"
+        ],
+        "sampleRate": 48000,
+        "channels": 6,
+        "durationMs": 4000,
+        "decoderErrorCount": 0,
+        "name": "h264-truehd-5.1.mkv",
+        "passed": true
+      },
+      {
+        "hlsRenditionSelected": false,
+        "decoded": true,
+        "videoDecoded": true,
+        "audioDecoded": true,
+        "elapsedMs": 1107,
+        "width": 160,
+        "height": 96,
+        "video": [
+          "h264"
+        ],
+        "audio": [
+          "mlp"
+        ],
+        "sampleRate": 48000,
+        "channels": 1,
+        "durationMs": 4000,
+        "decoderErrorCount": 0,
+        "name": "h264-mlp.mkv",
+        "passed": true
+      },
+      {
+        "hlsRenditionSelected": false,
+        "decoded": true,
+        "videoDecoded": true,
+        "audioDecoded": true,
+        "elapsedMs": 1242,
+        "width": 160,
+        "height": 96,
+        "video": [
+          "h264"
+        ],
+        "audio": [
+          "flac"
+        ],
+        "sampleRate": 48000,
+        "channels": 1,
+        "durationMs": 4000,
+        "decoderErrorCount": 0,
+        "name": "h264-flac.mkv",
+        "passed": true
+      },
+      {
+        "hlsRenditionSelected": false,
+        "decoded": true,
+        "videoDecoded": true,
+        "audioDecoded": true,
+        "elapsedMs": 1115,
+        "width": 160,
+        "height": 96,
+        "video": [
+          "h264"
+        ],
+        "audio": [
+          "alac"
+        ],
+        "sampleRate": 48000,
+        "channels": 1,
+        "durationMs": 4000,
+        "decoderErrorCount": 0,
+        "name": "h264-alac.mov",
+        "passed": true
+      },
+      {
+        "hlsRenditionSelected": false,
+        "decoded": true,
+        "videoDecoded": true,
+        "audioDecoded": true,
+        "elapsedMs": 1126,
+        "width": 160,
+        "height": 96,
+        "video": [
+          "mpeg2video"
+        ],
+        "audio": [
+          "mp2"
+        ],
+        "sampleRate": 48000,
+        "channels": 1,
+        "durationMs": 4010,
+        "decoderErrorCount": 0,
+        "name": "mpeg2-mp2.ts",
+        "passed": true
+      },
+      {
+        "hlsRenditionSelected": false,
+        "decoded": true,
+        "videoDecoded": true,
+        "audioDecoded": true,
+        "elapsedMs": 1145,
+        "width": 160,
+        "height": 96,
+        "video": [
+          "mpeg4"
+        ],
+        "audio": [
+          "pcm_s16le"
+        ],
+        "sampleRate": 48000,
+        "channels": 1,
+        "durationMs": 4000,
+        "decoderErrorCount": 0,
+        "name": "mpeg4-pcm.avi",
+        "passed": true
+      },
+      {
+        "hlsRenditionSelected": false,
+        "decoded": true,
+        "videoDecoded": true,
+        "audioDecoded": true,
+        "elapsedMs": 1114,
+        "width": 160,
+        "height": 96,
+        "video": [
+          "wmv2"
+        ],
+        "audio": [
+          "wmav2"
+        ],
+        "sampleRate": 48000,
+        "channels": 1,
+        "durationMs": 4086,
+        "decoderErrorCount": 0,
+        "name": "wmv2-wma2.asf",
+        "passed": true
+      },
+      {
+        "hlsRenditionSelected": false,
+        "decoded": true,
+        "videoDecoded": true,
+        "audioDecoded": true,
+        "elapsedMs": 1165,
+        "width": 160,
+        "height": 96,
+        "video": [
+          "h264"
+        ],
+        "audio": [
+          "aac"
+        ],
+        "sampleRate": 48000,
+        "channels": 1,
+        "durationMs": 4010,
+        "decoderErrorCount": 0,
+        "name": "hls",
+        "passed": true
+      },
+      {
+        "hlsRenditionSelected": false,
+        "decoded": true,
+        "videoDecoded": true,
+        "audioDecoded": true,
+        "elapsedMs": 1210,
+        "width": 160,
+        "height": 96,
+        "video": [
+          "h264"
+        ],
+        "audio": [
+          "aac"
+        ],
+        "sampleRate": 48000,
+        "channels": 1,
+        "durationMs": 4000,
+        "decoderErrorCount": 0,
+        "name": "dash",
+        "passed": true
+      }
+    ]
+  },
+  "packageUnitTests": 96,
+  "packageAnalysis": "No issues found",
+  "androidTVRenderedFollowup": {
+    "platform": "android",
+    "version": "BT2A.260319.001 dev-keys",
+    "passed": 7,
+    "total": 10,
+    "results": [
+      {
+        "name": "CCTV-4 overseas",
+        "mode": "auto",
+        "audioOutput": "system (muted)",
+        "passed": false,
+        "error": "TimeoutException",
+        "message": "TimeoutException after 0:00:20.000000: Future not completed",
+        "diagnostics": {
+          "engine": "libmpv",
+          "decodeMode": "auto",
+          "initializationStage": "decoder",
+          "hlsRenditionSelected": false
+        }
+      },
+      {
+        "name": "CCTV-4 overseas",
+        "mode": "software",
+        "audioOutput": "system (muted)",
+        "passed": false
+      },
+      {
+        "name": "CCTV-6 upstream notice",
+        "mode": "auto",
+        "audioOutput": "system (muted)",
+        "passed": true,
+        "width": 1920.0,
+        "height": 1080.0,
+        "audio": "aac",
+        "video": "h264",
+        "sampleRate": 44100,
+        "channels": 2,
+        "firstFrameRendered": true,
+        "hlsSelection": null,
+        "durationMs": 16811,
+        "elapsedMs": 3333
+      },
+      {
+        "name": "CCTV-6 upstream notice",
+        "mode": "software",
+        "audioOutput": "system (muted)",
+        "passed": true,
+        "width": 1920.0,
+        "height": 1080.0,
+        "audio": "aac",
+        "video": "h264",
+        "sampleRate": 44100,
+        "channels": 2,
+        "firstFrameRendered": true,
+        "hlsSelection": null,
+        "durationMs": 16811,
+        "elapsedMs": 3332
+      },
+      {
+        "name": "TVBS",
+        "mode": "auto",
+        "audioOutput": "system (muted)",
+        "passed": false,
+        "error": "TimeoutException",
+        "message": "TimeoutException after 0:00:20.000000: Future not completed",
+        "diagnostics": {
+          "engine": "libmpv",
+          "decodeMode": "auto",
+          "initializationStage": "decoder",
+          "hlsRenditionSelected": true,
+          "hlsSelection": "highestBandwidth"
+        }
+      },
+      {
+        "name": "TVBS",
+        "mode": "software",
+        "audioOutput": "system (muted)",
+        "passed": true,
+        "width": 1920.0,
+        "height": 1080.0,
+        "audio": "aac",
+        "video": "h264",
+        "sampleRate": 44100,
+        "channels": 2,
+        "firstFrameRendered": true,
+        "hlsSelection": "lowerBandwidth",
+        "durationMs": 1267,
+        "elapsedMs": 9033
+      },
+      {
+        "name": "h264-truehd-5.1.mkv",
+        "mode": "auto",
+        "audioOutput": "system (muted)",
+        "passed": true,
+        "width": 160.0,
+        "height": 96.0,
+        "audio": "truehd",
+        "video": "h264",
+        "sampleRate": 48000,
+        "channels": 6,
+        "firstFrameRendered": true,
+        "hlsSelection": null,
+        "durationMs": 4000,
+        "elapsedMs": 1060
+      },
+      {
+        "name": "h264-truehd-5.1.mkv",
+        "mode": "software",
+        "audioOutput": "system (muted)",
+        "passed": true,
+        "width": 160.0,
+        "height": 96.0,
+        "audio": "truehd",
+        "video": "h264",
+        "sampleRate": 48000,
+        "channels": 6,
+        "firstFrameRendered": true,
+        "hlsSelection": null,
+        "durationMs": 4000,
+        "elapsedMs": 1158
+      },
+      {
+        "name": "hevc-main10-eac3.mkv",
+        "mode": "auto",
+        "audioOutput": "system (muted)",
+        "passed": true,
+        "width": 160.0,
+        "height": 96.0,
+        "audio": "eac3",
+        "video": "hevc",
+        "sampleRate": 48000,
+        "channels": 1,
+        "firstFrameRendered": true,
+        "hlsSelection": null,
+        "durationMs": 4000,
+        "elapsedMs": 1178
+      },
+      {
+        "name": "hevc-main10-eac3.mkv",
+        "mode": "software",
+        "audioOutput": "system (muted)",
+        "passed": true,
+        "width": 160.0,
+        "height": 96.0,
+        "audio": "eac3",
+        "video": "hevc",
+        "sampleRate": 48000,
+        "channels": 1,
+        "firstFrameRendered": true,
+        "hlsSelection": null,
+        "durationMs": 4000,
+        "elapsedMs": 1361
+      }
+    ]
+  }
+}

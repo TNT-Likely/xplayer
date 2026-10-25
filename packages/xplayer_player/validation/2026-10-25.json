@@ -1,0 +1,1602 @@
+{
+  "date": "2026-10-25",
+  "nativeBuilds": "../../native/native_builds.json",
+  "checks": {
+    "macos": {
+      "scope": "Pinned full libmpv, software decode, no GPU or speaker output",
+      "report": {
+        "platform": "Darwin",
+        "architecture": "arm64",
+        "passed": 18,
+        "total": 18,
+        "results": [
+          {
+            "decoded": true,
+            "videoDecoded": true,
+            "audioDecoded": true,
+            "elapsedMs": 1252,
+            "width": 160,
+            "height": 96,
+            "video": [
+              "h264"
+            ],
+            "audio": [
+              "aac"
+            ],
+            "sampleRate": 48000,
+            "channels": 1,
+            "name": "h264-aac.flv",
+            "passed": true
+          },
+          {
+            "decoded": true,
+            "videoDecoded": true,
+            "audioDecoded": true,
+            "elapsedMs": 1109,
+            "width": 160,
+            "height": 96,
+            "video": [
+              "h264"
+            ],
+            "audio": [
+              "ac3"
+            ],
+            "sampleRate": 48000,
+            "channels": 1,
+            "name": "h264-ac3.ts",
+            "passed": true
+          },
+          {
+            "decoded": true,
+            "videoDecoded": true,
+            "audioDecoded": true,
+            "elapsedMs": 1110,
+            "width": 160,
+            "height": 96,
+            "video": [
+              "hevc"
+            ],
+            "audio": [
+              "eac3"
+            ],
+            "sampleRate": 48000,
+            "channels": 1,
+            "name": "hevc-eac3.mkv",
+            "passed": true
+          },
+          {
+            "decoded": true,
+            "videoDecoded": true,
+            "audioDecoded": true,
+            "elapsedMs": 1109,
+            "width": 160,
+            "height": 96,
+            "video": [
+              "hevc"
+            ],
+            "audio": [
+              "eac3"
+            ],
+            "sampleRate": 48000,
+            "channels": 1,
+            "name": "hevc-main10-eac3.mkv",
+            "passed": true
+          },
+          {
+            "decoded": true,
+            "videoDecoded": true,
+            "audioDecoded": true,
+            "elapsedMs": 1141,
+            "width": 160,
+            "height": 96,
+            "video": [
+              "vp9"
+            ],
+            "audio": [
+              "opus"
+            ],
+            "sampleRate": 48000,
+            "channels": 1,
+            "name": "vp9-opus.webm",
+            "passed": true
+          },
+          {
+            "decoded": true,
+            "videoDecoded": true,
+            "audioDecoded": true,
+            "elapsedMs": 1141,
+            "width": 160,
+            "height": 96,
+            "video": [
+              "av1"
+            ],
+            "audio": [
+              "aac"
+            ],
+            "sampleRate": 48000,
+            "channels": 1,
+            "name": "av1-aac.mp4",
+            "passed": true
+          },
+          {
+            "decoded": true,
+            "videoDecoded": true,
+            "audioDecoded": true,
+            "elapsedMs": 1104,
+            "width": 160,
+            "height": 96,
+            "video": [
+              "h264"
+            ],
+            "audio": [
+              "mp2"
+            ],
+            "sampleRate": 48000,
+            "channels": 1,
+            "name": "h264-mp2.ts",
+            "passed": true
+          },
+          {
+            "decoded": true,
+            "videoDecoded": true,
+            "audioDecoded": true,
+            "elapsedMs": 1178,
+            "width": 160,
+            "height": 96,
+            "video": [
+              "h264"
+            ],
+            "audio": [
+              "dts"
+            ],
+            "sampleRate": 48000,
+            "channels": 1,
+            "name": "h264-dts.mkv",
+            "passed": true
+          },
+          {
+            "decoded": true,
+            "videoDecoded": true,
+            "audioDecoded": true,
+            "elapsedMs": 1115,
+            "width": 160,
+            "height": 96,
+            "video": [
+              "h264"
+            ],
+            "audio": [
+              "truehd"
+            ],
+            "sampleRate": 48000,
+            "channels": 1,
+            "name": "h264-truehd.mkv",
+            "passed": true
+          },
+          {
+            "decoded": true,
+            "videoDecoded": true,
+            "audioDecoded": true,
+            "elapsedMs": 1110,
+            "width": 160,
+            "height": 96,
+            "video": [
+              "h264"
+            ],
+            "audio": [
+              "truehd"
+            ],
+            "sampleRate": 48000,
+            "channels": 6,
+            "name": "h264-truehd-5.1.mkv",
+            "passed": true
+          },
+          {
+            "decoded": true,
+            "videoDecoded": true,
+            "audioDecoded": true,
+            "elapsedMs": 1104,
+            "width": 160,
+            "height": 96,
+            "video": [
+              "h264"
+            ],
+            "audio": [
+              "mlp"
+            ],
+            "sampleRate": 48000,
+            "channels": 1,
+            "name": "h264-mlp.mkv",
+            "passed": true
+          },
+          {
+            "decoded": true,
+            "videoDecoded": true,
+            "audioDecoded": true,
+            "elapsedMs": 1140,
+            "width": 160,
+            "height": 96,
+            "video": [
+              "h264"
+            ],
+            "audio": [
+              "flac"
+            ],
+            "sampleRate": 48000,
+            "channels": 1,
+            "name": "h264-flac.mkv",
+            "passed": true
+          },
+          {
+            "decoded": true,
+            "videoDecoded": true,
+            "audioDecoded": true,
+            "elapsedMs": 1109,
+            "width": 160,
+            "height": 96,
+            "video": [
+              "h264"
+            ],
+            "audio": [
+              "alac"
+            ],
+            "sampleRate": 48000,
+            "channels": 1,
+            "name": "h264-alac.mov",
+            "passed": true
+          },
+          {
+            "decoded": true,
+            "videoDecoded": true,
+            "audioDecoded": true,
+            "elapsedMs": 1128,
+            "width": 160,
+            "height": 96,
+            "video": [
+              "mpeg2video"
+            ],
+            "audio": [
+              "mp2"
+            ],
+            "sampleRate": 48000,
+            "channels": 1,
+            "name": "mpeg2-mp2.ts",
+            "passed": true
+          },
+          {
+            "decoded": true,
+            "videoDecoded": true,
+            "audioDecoded": true,
+            "elapsedMs": 1142,
+            "width": 160,
+            "height": 96,
+            "video": [
+              "mpeg4"
+            ],
+            "audio": [
+              "pcm_s16le"
+            ],
+            "sampleRate": 48000,
+            "channels": 1,
+            "name": "mpeg4-pcm.avi",
+            "passed": true
+          },
+          {
+            "decoded": true,
+            "videoDecoded": true,
+            "audioDecoded": true,
+            "elapsedMs": 1174,
+            "width": 160,
+            "height": 96,
+            "video": [
+              "wmv2"
+            ],
+            "audio": [
+              "wmav2"
+            ],
+            "sampleRate": 48000,
+            "channels": 1,
+            "name": "wmv2-wma2.asf",
+            "passed": true
+          },
+          {
+            "decoded": true,
+            "videoDecoded": true,
+            "audioDecoded": true,
+            "elapsedMs": 1145,
+            "width": 160,
+            "height": 96,
+            "video": [
+              "h264"
+            ],
+            "audio": [
+              "aac"
+            ],
+            "sampleRate": 48000,
+            "channels": 1,
+            "name": "hls",
+            "passed": true
+          },
+          {
+            "decoded": true,
+            "videoDecoded": true,
+            "audioDecoded": true,
+            "elapsedMs": 1144,
+            "width": 160,
+            "height": 96,
+            "video": [
+              "h264"
+            ],
+            "audio": [
+              "aac"
+            ],
+            "sampleRate": 48000,
+            "channels": 1,
+            "name": "dash",
+            "passed": true
+          }
+        ]
+      }
+    },
+    "androidTV": {
+      "scope": "Read-only ARM64 API 36 TV emulator; auto and forced software, system audio output muted; decoded audio, rendered first frame, clock advancement",
+      "report": {
+        "platform": "android",
+        "version": "BT2A.260319.001 dev-keys",
+        "passed": 40,
+        "total": 40,
+        "results": [
+          {
+            "name": "h264-aac.flv",
+            "mode": "auto",
+            "passed": true,
+            "width": 160.0,
+            "height": 96.0,
+            "audio": "aac",
+            "video": "h264",
+            "sampleRate": 48000,
+            "channels": 1,
+            "firstFrameRendered": true,
+            "elapsedMs": 1635
+          },
+          {
+            "name": "h264-aac.flv",
+            "mode": "software",
+            "passed": true,
+            "width": 160.0,
+            "height": 96.0,
+            "audio": "aac",
+            "video": "h264",
+            "sampleRate": 48000,
+            "channels": 1,
+            "firstFrameRendered": true,
+            "elapsedMs": 1175
+          },
+          {
+            "name": "h264-ac3.ts",
+            "mode": "auto",
+            "passed": true,
+            "width": 160.0,
+            "height": 96.0,
+            "audio": "ac3",
+            "video": "h264",
+            "sampleRate": 48000,
+            "channels": 1,
+            "firstFrameRendered": true,
+            "elapsedMs": 1057
+          },
+          {
+            "name": "h264-ac3.ts",
+            "mode": "software",
+            "passed": true,
+            "width": 160.0,
+            "height": 96.0,
+            "audio": "ac3",
+            "video": "h264",
+            "sampleRate": 48000,
+            "channels": 1,
+            "firstFrameRendered": true,
+            "elapsedMs": 1187
+          },
+          {
+            "name": "hevc-eac3.mkv",
+            "mode": "auto",
+            "passed": true,
+            "width": 160.0,
+            "height": 96.0,
+            "audio": "eac3",
+            "video": "hevc",
+            "sampleRate": 48000,
+            "channels": 1,
+            "firstFrameRendered": true,
+            "elapsedMs": 1368
+          },
+          {
+            "name": "hevc-eac3.mkv",
+            "mode": "software",
+            "passed": true,
+            "width": 160.0,
+            "height": 96.0,
+            "audio": "eac3",
+            "video": "hevc",
+            "sampleRate": 48000,
+            "channels": 1,
+            "firstFrameRendered": true,
+            "elapsedMs": 1150
+          },
+          {
+            "name": "vp9-opus.webm",
+            "mode": "auto",
+            "passed": true,
+            "width": 160.0,
+            "height": 96.0,
+            "audio": "opus",
+            "video": "vp9",
+            "sampleRate": 48000,
+            "channels": 1,
+            "firstFrameRendered": true,
+            "elapsedMs": 1387
+          },
+          {
+            "name": "vp9-opus.webm",
+            "mode": "software",
+            "passed": true,
+            "width": 160.0,
+            "height": 96.0,
+            "audio": "opus",
+            "video": "vp9",
+            "sampleRate": 48000,
+            "channels": 1,
+            "firstFrameRendered": true,
+            "elapsedMs": 1077
+          },
+          {
+            "name": "av1-aac.mp4",
+            "mode": "auto",
+            "passed": true,
+            "width": 160.0,
+            "height": 96.0,
+            "audio": "aac",
+            "video": "av1",
+            "sampleRate": 48000,
+            "channels": 1,
+            "firstFrameRendered": true,
+            "elapsedMs": 1070
+          },
+          {
+            "name": "av1-aac.mp4",
+            "mode": "software",
+            "passed": true,
+            "width": 160.0,
+            "height": 96.0,
+            "audio": "aac",
+            "video": "av1",
+            "sampleRate": 48000,
+            "channels": 1,
+            "firstFrameRendered": true,
+            "elapsedMs": 1096
+          },
+          {
+            "name": "h264-mp2.ts",
+            "mode": "auto",
+            "passed": true,
+            "width": 160.0,
+            "height": 96.0,
+            "audio": "mp2",
+            "video": "h264",
+            "sampleRate": 48000,
+            "channels": 1,
+            "firstFrameRendered": true,
+            "elapsedMs": 1410
+          },
+          {
+            "name": "h264-mp2.ts",
+            "mode": "software",
+            "passed": true,
+            "width": 160.0,
+            "height": 96.0,
+            "audio": "mp2",
+            "video": "h264",
+            "sampleRate": 48000,
+            "channels": 1,
+            "firstFrameRendered": true,
+            "elapsedMs": 1156
+          },
+          {
+            "name": "h264-dts.mkv",
+            "mode": "auto",
+            "passed": true,
+            "width": 160.0,
+            "height": 96.0,
+            "audio": "dts",
+            "video": "h264",
+            "sampleRate": 48000,
+            "channels": 1,
+            "firstFrameRendered": true,
+            "elapsedMs": 1387
+          },
+          {
+            "name": "h264-dts.mkv",
+            "mode": "software",
+            "passed": true,
+            "width": 160.0,
+            "height": 96.0,
+            "audio": "dts",
+            "video": "h264",
+            "sampleRate": 48000,
+            "channels": 1,
+            "firstFrameRendered": true,
+            "elapsedMs": 1389
+          },
+          {
+            "name": "h264-truehd.mkv",
+            "mode": "auto",
+            "passed": true,
+            "width": 160.0,
+            "height": 96.0,
+            "audio": "truehd",
+            "video": "h264",
+            "sampleRate": 48000,
+            "channels": 1,
+            "firstFrameRendered": true,
+            "elapsedMs": 1061
+          },
+          {
+            "name": "h264-truehd.mkv",
+            "mode": "software",
+            "passed": true,
+            "width": 160.0,
+            "height": 96.0,
+            "audio": "truehd",
+            "video": "h264",
+            "sampleRate": 48000,
+            "channels": 1,
+            "firstFrameRendered": true,
+            "elapsedMs": 1366
+          },
+          {
+            "name": "h264-truehd-5.1.mkv",
+            "mode": "auto",
+            "passed": true,
+            "width": 160.0,
+            "height": 96.0,
+            "audio": "truehd",
+            "video": "h264",
+            "sampleRate": 48000,
+            "channels": 6,
+            "firstFrameRendered": true,
+            "elapsedMs": 1371
+          },
+          {
+            "name": "h264-truehd-5.1.mkv",
+            "mode": "software",
+            "passed": true,
+            "width": 160.0,
+            "height": 96.0,
+            "audio": "truehd",
+            "video": "h264",
+            "sampleRate": 48000,
+            "channels": 6,
+            "firstFrameRendered": true,
+            "elapsedMs": 1086
+          },
+          {
+            "name": "h264-mlp.mkv",
+            "mode": "auto",
+            "passed": true,
+            "width": 160.0,
+            "height": 96.0,
+            "audio": "mlp",
+            "video": "h264",
+            "sampleRate": 48000,
+            "channels": 1,
+            "firstFrameRendered": true,
+            "elapsedMs": 1069
+          },
+          {
+            "name": "h264-mlp.mkv",
+            "mode": "software",
+            "passed": true,
+            "width": 160.0,
+            "height": 96.0,
+            "audio": "mlp",
+            "video": "h264",
+            "sampleRate": 48000,
+            "channels": 1,
+            "firstFrameRendered": true,
+            "elapsedMs": 1389
+          },
+          {
+            "name": "h264-flac.mkv",
+            "mode": "auto",
+            "passed": true,
+            "width": 160.0,
+            "height": 96.0,
+            "audio": "flac",
+            "video": "h264",
+            "sampleRate": 48000,
+            "channels": 1,
+            "firstFrameRendered": true,
+            "elapsedMs": 1080
+          },
+          {
+            "name": "h264-flac.mkv",
+            "mode": "software",
+            "passed": true,
+            "width": 160.0,
+            "height": 96.0,
+            "audio": "flac",
+            "video": "h264",
+            "sampleRate": 48000,
+            "channels": 1,
+            "firstFrameRendered": true,
+            "elapsedMs": 1090
+          },
+          {
+            "name": "h264-alac.mov",
+            "mode": "auto",
+            "passed": true,
+            "width": 160.0,
+            "height": 96.0,
+            "audio": "alac",
+            "video": "h264",
+            "sampleRate": 48000,
+            "channels": 1,
+            "firstFrameRendered": true,
+            "elapsedMs": 1394
+          },
+          {
+            "name": "h264-alac.mov",
+            "mode": "software",
+            "passed": true,
+            "width": 160.0,
+            "height": 96.0,
+            "audio": "alac",
+            "video": "h264",
+            "sampleRate": 48000,
+            "channels": 1,
+            "firstFrameRendered": true,
+            "elapsedMs": 1388
+          },
+          {
+            "name": "mpeg2-mp2.ts",
+            "mode": "auto",
+            "passed": true,
+            "width": 160.0,
+            "height": 96.0,
+            "audio": "mp2",
+            "video": "mpeg2video",
+            "sampleRate": 48000,
+            "channels": 1,
+            "firstFrameRendered": true,
+            "elapsedMs": 1375
+          },
+          {
+            "name": "mpeg2-mp2.ts",
+            "mode": "software",
+            "passed": true,
+            "width": 160.0,
+            "height": 96.0,
+            "audio": "mp2",
+            "video": "mpeg2video",
+            "sampleRate": 48000,
+            "channels": 1,
+            "firstFrameRendered": true,
+            "elapsedMs": 1165
+          },
+          {
+            "name": "mpeg4-pcm.avi",
+            "mode": "auto",
+            "passed": true,
+            "width": 160.0,
+            "height": 96.0,
+            "audio": "pcm_s16le",
+            "video": "mpeg4",
+            "sampleRate": 48000,
+            "channels": 1,
+            "firstFrameRendered": true,
+            "elapsedMs": 1067
+          },
+          {
+            "name": "mpeg4-pcm.avi",
+            "mode": "software",
+            "passed": true,
+            "width": 160.0,
+            "height": 96.0,
+            "audio": "pcm_s16le",
+            "video": "mpeg4",
+            "sampleRate": 48000,
+            "channels": 1,
+            "firstFrameRendered": true,
+            "elapsedMs": 1165
+          },
+          {
+            "name": "wmv2-wma2.asf",
+            "mode": "auto",
+            "passed": true,
+            "width": 160.0,
+            "height": 96.0,
+            "audio": "wmav2",
+            "video": "wmv2",
+            "sampleRate": 48000,
+            "channels": 1,
+            "firstFrameRendered": true,
+            "elapsedMs": 1063
+          },
+          {
+            "name": "wmv2-wma2.asf",
+            "mode": "software",
+            "passed": true,
+            "width": 160.0,
+            "height": 96.0,
+            "audio": "wmav2",
+            "video": "wmv2",
+            "sampleRate": 48000,
+            "channels": 1,
+            "firstFrameRendered": true,
+            "elapsedMs": 1115
+          },
+          {
+            "name": "hls",
+            "mode": "auto",
+            "passed": true,
+            "width": 160.0,
+            "height": 96.0,
+            "audio": "aac",
+            "video": "h264",
+            "sampleRate": 48000,
+            "channels": 1,
+            "firstFrameRendered": true,
+            "elapsedMs": 1073
+          },
+          {
+            "name": "hls",
+            "mode": "software",
+            "passed": true,
+            "width": 160.0,
+            "height": 96.0,
+            "audio": "aac",
+            "video": "h264",
+            "sampleRate": 48000,
+            "channels": 1,
+            "firstFrameRendered": true,
+            "elapsedMs": 1388
+          },
+          {
+            "name": "dash",
+            "mode": "auto",
+            "passed": true,
+            "width": 160.0,
+            "height": 96.0,
+            "audio": "aac",
+            "video": "h264",
+            "sampleRate": 48000,
+            "channels": 1,
+            "firstFrameRendered": true,
+            "elapsedMs": 1195
+          },
+          {
+            "name": "dash",
+            "mode": "software",
+            "passed": true,
+            "width": 160.0,
+            "height": 96.0,
+            "audio": "aac",
+            "video": "h264",
+            "sampleRate": 48000,
+            "channels": 1,
+            "firstFrameRendered": true,
+            "elapsedMs": 1377
+          },
+          {
+            "name": "LAN CCTV-3",
+            "mode": "auto",
+            "passed": true,
+            "width": 1920.0,
+            "height": 1080.0,
+            "audio": "mp2",
+            "video": "h264",
+            "sampleRate": 48000,
+            "channels": 2,
+            "firstFrameRendered": true,
+            "elapsedMs": 3291
+          },
+          {
+            "name": "LAN CCTV-3",
+            "mode": "software",
+            "passed": true,
+            "width": 1920.0,
+            "height": 1080.0,
+            "audio": "mp2",
+            "video": "h264",
+            "sampleRate": 48000,
+            "channels": 2,
+            "firstFrameRendered": true,
+            "elapsedMs": 1293
+          },
+          {
+            "name": "LAN 广东卫视",
+            "mode": "auto",
+            "passed": true,
+            "width": 1280.0,
+            "height": 720.0,
+            "audio": "aac",
+            "video": "h264",
+            "sampleRate": 44100,
+            "channels": 2,
+            "firstFrameRendered": true,
+            "elapsedMs": 1617
+          },
+          {
+            "name": "LAN 广东卫视",
+            "mode": "software",
+            "passed": true,
+            "width": 1280.0,
+            "height": 720.0,
+            "audio": "aac",
+            "video": "h264",
+            "sampleRate": 44100,
+            "channels": 2,
+            "firstFrameRendered": true,
+            "elapsedMs": 1772
+          },
+          {
+            "name": "LAN 凤凰卫视资讯台",
+            "mode": "auto",
+            "passed": true,
+            "width": 1280.0,
+            "height": 720.0,
+            "audio": "aac",
+            "video": "h264",
+            "sampleRate": 48000,
+            "channels": 2,
+            "firstFrameRendered": true,
+            "elapsedMs": 4089
+          },
+          {
+            "name": "LAN 凤凰卫视资讯台",
+            "mode": "software",
+            "passed": true,
+            "width": 1280.0,
+            "height": 720.0,
+            "audio": "aac",
+            "video": "h264",
+            "sampleRate": 48000,
+            "channels": 2,
+            "firstFrameRendered": true,
+            "elapsedMs": 3311
+          }
+        ]
+      }
+    },
+    "ipadSimulator": {
+      "scope": "iPad Air 11-inch M4, iOS 26.5 simulator. Explicit null audio output because upstream simulator library has no audio output driver. Decoding/rendering only, not audible output.",
+      "initialMatrix": {
+        "platform": "ios",
+        "version": "Version 26.5 (Build 23F77)",
+        "passed": 41,
+        "total": 42,
+        "results": [
+          {
+            "name": "h264-aac.flv",
+            "mode": "auto",
+            "audioOutput": "null (decoder test)",
+            "passed": true,
+            "width": 160.0,
+            "height": 96.0,
+            "audio": "aac",
+            "video": "h264",
+            "sampleRate": 48000,
+            "channels": 1,
+            "firstFrameRendered": true,
+            "elapsedMs": 1493
+          },
+          {
+            "name": "h264-aac.flv",
+            "mode": "software",
+            "audioOutput": "null (decoder test)",
+            "passed": true,
+            "width": 160.0,
+            "height": 96.0,
+            "audio": "aac",
+            "video": "h264",
+            "sampleRate": 48000,
+            "channels": 1,
+            "firstFrameRendered": true,
+            "elapsedMs": 1250
+          },
+          {
+            "name": "h264-ac3.ts",
+            "mode": "auto",
+            "audioOutput": "null (decoder test)",
+            "passed": true,
+            "width": 160.0,
+            "height": 96.0,
+            "audio": "ac3",
+            "video": "h264",
+            "sampleRate": 48000,
+            "channels": 1,
+            "firstFrameRendered": true,
+            "elapsedMs": 1256
+          },
+          {
+            "name": "h264-ac3.ts",
+            "mode": "software",
+            "audioOutput": "null (decoder test)",
+            "passed": true,
+            "width": 160.0,
+            "height": 96.0,
+            "audio": "ac3",
+            "video": "h264",
+            "sampleRate": 48000,
+            "channels": 1,
+            "firstFrameRendered": true,
+            "elapsedMs": 1262
+          },
+          {
+            "name": "hevc-eac3.mkv",
+            "mode": "auto",
+            "audioOutput": "null (decoder test)",
+            "passed": true,
+            "width": 160.0,
+            "height": 96.0,
+            "audio": "eac3",
+            "video": "hevc",
+            "sampleRate": 48000,
+            "channels": 1,
+            "firstFrameRendered": true,
+            "elapsedMs": 1271
+          },
+          {
+            "name": "hevc-eac3.mkv",
+            "mode": "software",
+            "audioOutput": "null (decoder test)",
+            "passed": true,
+            "width": 160.0,
+            "height": 96.0,
+            "audio": "eac3",
+            "video": "hevc",
+            "sampleRate": 48000,
+            "channels": 1,
+            "firstFrameRendered": true,
+            "elapsedMs": 1246
+          },
+          {
+            "name": "hevc-main10-eac3.mkv",
+            "mode": "auto",
+            "audioOutput": "null (decoder test)",
+            "passed": true,
+            "width": 160.0,
+            "height": 96.0,
+            "audio": "eac3",
+            "video": "hevc",
+            "sampleRate": 48000,
+            "channels": 1,
+            "firstFrameRendered": true,
+            "elapsedMs": 1271
+          },
+          {
+            "name": "hevc-main10-eac3.mkv",
+            "mode": "software",
+            "audioOutput": "null (decoder test)",
+            "passed": true,
+            "width": 160.0,
+            "height": 96.0,
+            "audio": "eac3",
+            "video": "hevc",
+            "sampleRate": 48000,
+            "channels": 1,
+            "firstFrameRendered": true,
+            "elapsedMs": 1248
+          },
+          {
+            "name": "vp9-opus.webm",
+            "mode": "auto",
+            "audioOutput": "null (decoder test)",
+            "passed": true,
+            "width": 160.0,
+            "height": 96.0,
+            "audio": "opus",
+            "video": "vp9",
+            "sampleRate": 48000,
+            "channels": 1,
+            "firstFrameRendered": true,
+            "elapsedMs": 1247
+          },
+          {
+            "name": "vp9-opus.webm",
+            "mode": "software",
+            "audioOutput": "null (decoder test)",
+            "passed": true,
+            "width": 160.0,
+            "height": 96.0,
+            "audio": "opus",
+            "video": "vp9",
+            "sampleRate": 48000,
+            "channels": 1,
+            "firstFrameRendered": true,
+            "elapsedMs": 1250
+          },
+          {
+            "name": "av1-aac.mp4",
+            "mode": "auto",
+            "audioOutput": "null (decoder test)",
+            "passed": true,
+            "width": 160.0,
+            "height": 96.0,
+            "audio": "aac",
+            "video": "av1",
+            "sampleRate": 48000,
+            "channels": 1,
+            "firstFrameRendered": true,
+            "elapsedMs": 1249
+          },
+          {
+            "name": "av1-aac.mp4",
+            "mode": "software",
+            "audioOutput": "null (decoder test)",
+            "passed": true,
+            "width": 160.0,
+            "height": 96.0,
+            "audio": "aac",
+            "video": "av1",
+            "sampleRate": 48000,
+            "channels": 1,
+            "firstFrameRendered": true,
+            "elapsedMs": 1248
+          },
+          {
+            "name": "h264-mp2.ts",
+            "mode": "auto",
+            "audioOutput": "null (decoder test)",
+            "passed": true,
+            "width": 160.0,
+            "height": 96.0,
+            "audio": "mp2",
+            "video": "h264",
+            "sampleRate": 48000,
+            "channels": 1,
+            "firstFrameRendered": true,
+            "elapsedMs": 1252
+          },
+          {
+            "name": "h264-mp2.ts",
+            "mode": "software",
+            "audioOutput": "null (decoder test)",
+            "passed": true,
+            "width": 160.0,
+            "height": 96.0,
+            "audio": "mp2",
+            "video": "h264",
+            "sampleRate": 48000,
+            "channels": 1,
+            "firstFrameRendered": true,
+            "elapsedMs": 1245
+          },
+          {
+            "name": "h264-dts.mkv",
+            "mode": "auto",
+            "audioOutput": "null (decoder test)",
+            "passed": true,
+            "width": 160.0,
+            "height": 96.0,
+            "audio": "dts",
+            "video": "h264",
+            "sampleRate": 48000,
+            "channels": 1,
+            "firstFrameRendered": true,
+            "elapsedMs": 1249
+          },
+          {
+            "name": "h264-dts.mkv",
+            "mode": "software",
+            "audioOutput": "null (decoder test)",
+            "passed": true,
+            "width": 160.0,
+            "height": 96.0,
+            "audio": "dts",
+            "video": "h264",
+            "sampleRate": 48000,
+            "channels": 1,
+            "firstFrameRendered": true,
+            "elapsedMs": 1247
+          },
+          {
+            "name": "h264-truehd.mkv",
+            "mode": "auto",
+            "audioOutput": "null (decoder test)",
+            "passed": true,
+            "width": 160.0,
+            "height": 96.0,
+            "audio": "truehd",
+            "video": "h264",
+            "sampleRate": 48000,
+            "channels": 1,
+            "firstFrameRendered": true,
+            "elapsedMs": 1252
+          },
+          {
+            "name": "h264-truehd.mkv",
+            "mode": "software",
+            "audioOutput": "null (decoder test)",
+            "passed": true,
+            "width": 160.0,
+            "height": 96.0,
+            "audio": "truehd",
+            "video": "h264",
+            "sampleRate": 48000,
+            "channels": 1,
+            "firstFrameRendered": true,
+            "elapsedMs": 1246
+          },
+          {
+            "name": "h264-truehd-5.1.mkv",
+            "mode": "auto",
+            "audioOutput": "null (decoder test)",
+            "passed": true,
+            "width": 160.0,
+            "height": 96.0,
+            "audio": "truehd",
+            "video": "h264",
+            "sampleRate": 48000,
+            "channels": 6,
+            "firstFrameRendered": true,
+            "elapsedMs": 1252
+          },
+          {
+            "name": "h264-truehd-5.1.mkv",
+            "mode": "software",
+            "audioOutput": "null (decoder test)",
+            "passed": true,
+            "width": 160.0,
+            "height": 96.0,
+            "audio": "truehd",
+            "video": "h264",
+            "sampleRate": 48000,
+            "channels": 6,
+            "firstFrameRendered": true,
+            "elapsedMs": 1249
+          },
+          {
+            "name": "h264-mlp.mkv",
+            "mode": "auto",
+            "audioOutput": "null (decoder test)",
+            "passed": true,
+            "width": 160.0,
+            "height": 96.0,
+            "audio": "mlp",
+            "video": "h264",
+            "sampleRate": 48000,
+            "channels": 1,
+            "firstFrameRendered": true,
+            "elapsedMs": 1258
+          },
+          {
+            "name": "h264-mlp.mkv",
+            "mode": "software",
+            "audioOutput": "null (decoder test)",
+            "passed": true,
+            "width": 160.0,
+            "height": 96.0,
+            "audio": "mlp",
+            "video": "h264",
+            "sampleRate": 48000,
+            "channels": 1,
+            "firstFrameRendered": true,
+            "elapsedMs": 1242
+          },
+          {
+            "name": "h264-flac.mkv",
+            "mode": "auto",
+            "audioOutput": "null (decoder test)",
+            "passed": true,
+            "width": 160.0,
+            "height": 96.0,
+            "audio": "flac",
+            "video": "h264",
+            "sampleRate": 48000,
+            "channels": 1,
+            "firstFrameRendered": true,
+            "elapsedMs": 1260
+          },
+          {
+            "name": "h264-flac.mkv",
+            "mode": "software",
+            "audioOutput": "null (decoder test)",
+            "passed": true,
+            "width": 160.0,
+            "height": 96.0,
+            "audio": "flac",
+            "video": "h264",
+            "sampleRate": 48000,
+            "channels": 1,
+            "firstFrameRendered": true,
+            "elapsedMs": 1247
+          },
+          {
+            "name": "h264-alac.mov",
+            "mode": "auto",
+            "audioOutput": "null (decoder test)",
+            "passed": true,
+            "width": 160.0,
+            "height": 96.0,
+            "audio": "alac",
+            "video": "h264",
+            "sampleRate": 48000,
+            "channels": 1,
+            "firstFrameRendered": true,
+            "elapsedMs": 1253
+          },
+          {
+            "name": "h264-alac.mov",
+            "mode": "software",
+            "audioOutput": "null (decoder test)",
+            "passed": true,
+            "width": 160.0,
+            "height": 96.0,
+            "audio": "alac",
+            "video": "h264",
+            "sampleRate": 48000,
+            "channels": 1,
+            "firstFrameRendered": true,
+            "elapsedMs": 1263
+          },
+          {
+            "name": "mpeg2-mp2.ts",
+            "mode": "auto",
+            "audioOutput": "null (decoder test)",
+            "passed": true,
+            "width": 160.0,
+            "height": 96.0,
+            "audio": "mp2",
+            "video": "mpeg2video",
+            "sampleRate": 48000,
+            "channels": 1,
+            "firstFrameRendered": true,
+            "elapsedMs": 1264
+          },
+          {
+            "name": "mpeg2-mp2.ts",
+            "mode": "software",
+            "audioOutput": "null (decoder test)",
+            "passed": true,
+            "width": 160.0,
+            "height": 96.0,
+            "audio": "mp2",
+            "video": "mpeg2video",
+            "sampleRate": 48000,
+            "channels": 1,
+            "firstFrameRendered": true,
+            "elapsedMs": 1250
+          },
+          {
+            "name": "mpeg4-pcm.avi",
+            "mode": "auto",
+            "audioOutput": "null (decoder test)",
+            "passed": true,
+            "width": 160.0,
+            "height": 96.0,
+            "audio": "pcm_s16le",
+            "video": "mpeg4",
+            "sampleRate": 48000,
+            "channels": 1,
+            "firstFrameRendered": true,
+            "elapsedMs": 1263
+          },
+          {
+            "name": "mpeg4-pcm.avi",
+            "mode": "software",
+            "audioOutput": "null (decoder test)",
+            "passed": true,
+            "width": 160.0,
+            "height": 96.0,
+            "audio": "pcm_s16le",
+            "video": "mpeg4",
+            "sampleRate": 48000,
+            "channels": 1,
+            "firstFrameRendered": true,
+            "elapsedMs": 1257
+          },
+          {
+            "name": "wmv2-wma2.asf",
+            "mode": "auto",
+            "audioOutput": "null (decoder test)",
+            "passed": true,
+            "width": 160.0,
+            "height": 96.0,
+            "audio": "wmav2",
+            "video": "wmv2",
+            "sampleRate": 48000,
+            "channels": 1,
+            "firstFrameRendered": true,
+            "elapsedMs": 1261
+          },
+          {
+            "name": "wmv2-wma2.asf",
+            "mode": "software",
+            "audioOutput": "null (decoder test)",
+            "passed": true,
+            "width": 160.0,
+            "height": 96.0,
+            "audio": "wmav2",
+            "video": "wmv2",
+            "sampleRate": 48000,
+            "channels": 1,
+            "firstFrameRendered": true,
+            "elapsedMs": 1255
+          },
+          {
+            "name": "hls",
+            "mode": "auto",
+            "audioOutput": "null (decoder test)",
+            "passed": true,
+            "width": 160.0,
+            "height": 96.0,
+            "audio": "aac",
+            "video": "h264",
+            "sampleRate": 48000,
+            "channels": 1,
+            "firstFrameRendered": true,
+            "elapsedMs": 1264
+          },
+          {
+            "name": "hls",
+            "mode": "software",
+            "audioOutput": "null (decoder test)",
+            "passed": true,
+            "width": 160.0,
+            "height": 96.0,
+            "audio": "aac",
+            "video": "h264",
+            "sampleRate": 48000,
+            "channels": 1,
+            "firstFrameRendered": true,
+            "elapsedMs": 1265
+          },
+          {
+            "name": "dash",
+            "mode": "auto",
+            "audioOutput": "null (decoder test)",
+            "passed": true,
+            "width": 160.0,
+            "height": 96.0,
+            "audio": "aac",
+            "video": "h264",
+            "sampleRate": 48000,
+            "channels": 1,
+            "firstFrameRendered": true,
+            "elapsedMs": 1272
+          },
+          {
+            "name": "dash",
+            "mode": "software",
+            "audioOutput": "null (decoder test)",
+            "passed": true,
+            "width": 160.0,
+            "height": 96.0,
+            "audio": "aac",
+            "video": "h264",
+            "sampleRate": 48000,
+            "channels": 1,
+            "firstFrameRendered": true,
+            "elapsedMs": 1267
+          },
+          {
+            "name": "LAN CCTV-3",
+            "mode": "auto",
+            "audioOutput": "null (decoder test)",
+            "passed": true,
+            "width": 1920.0,
+            "height": 1080.0,
+            "audio": "mp2",
+            "video": "h264",
+            "sampleRate": 48000,
+            "channels": 2,
+            "firstFrameRendered": true,
+            "elapsedMs": 1161
+          },
+          {
+            "name": "LAN CCTV-3",
+            "mode": "software",
+            "audioOutput": "null (decoder test)",
+            "passed": true,
+            "width": 1920.0,
+            "height": 1080.0,
+            "audio": "mp2",
+            "video": "h264",
+            "sampleRate": 48000,
+            "channels": 2,
+            "firstFrameRendered": true,
+            "elapsedMs": 1462
+          },
+          {
+            "name": "LAN 广东卫视",
+            "mode": "auto",
+            "audioOutput": "null (decoder test)",
+            "passed": true,
+            "width": 1280.0,
+            "height": 720.0,
+            "audio": "aac",
+            "video": "h264",
+            "sampleRate": 44100,
+            "channels": 2,
+            "firstFrameRendered": true,
+            "elapsedMs": 1924
+          },
+          {
+            "name": "LAN 广东卫视",
+            "mode": "software",
+            "audioOutput": "null (decoder test)",
+            "passed": true,
+            "width": 1280.0,
+            "height": 720.0,
+            "audio": "aac",
+            "video": "h264",
+            "sampleRate": 44100,
+            "channels": 2,
+            "firstFrameRendered": true,
+            "elapsedMs": 1818
+          },
+          {
+            "name": "LAN 凤凰卫视资讯台",
+            "mode": "auto",
+            "audioOutput": "null (decoder test)",
+            "passed": true,
+            "width": 1280.0,
+            "height": 720.0,
+            "audio": "aac",
+            "video": "h264",
+            "sampleRate": 48000,
+            "channels": 2,
+            "firstFrameRendered": true,
+            "elapsedMs": 16004
+          },
+          {
+            "name": "LAN 凤凰卫视资讯台",
+            "mode": "software",
+            "audioOutput": "null (decoder test)",
+            "passed": false,
+            "error": "TimeoutException",
+            "message": "TimeoutException after 0:00:20.000000: Future not completed"
+          }
+        ]
+      },
+      "lanRetest": {
+        "platform": "ios",
+        "version": "Version 26.5 (Build 23F77)",
+        "passed": 6,
+        "total": 6,
+        "results": [
+          {
+            "name": "LAN CCTV-3",
+            "mode": "auto",
+            "audioOutput": "null (decoder test)",
+            "passed": true,
+            "width": 1920.0,
+            "height": 1080.0,
+            "audio": "mp2",
+            "video": "h264",
+            "sampleRate": 48000,
+            "channels": 2,
+            "firstFrameRendered": true,
+            "elapsedMs": 1238
+          },
+          {
+            "name": "LAN CCTV-3",
+            "mode": "software",
+            "audioOutput": "null (decoder test)",
+            "passed": true,
+            "width": 1920.0,
+            "height": 1080.0,
+            "audio": "mp2",
+            "video": "h264",
+            "sampleRate": 48000,
+            "channels": 2,
+            "firstFrameRendered": true,
+            "elapsedMs": 1402
+          },
+          {
+            "name": "LAN 广东卫视",
+            "mode": "auto",
+            "audioOutput": "null (decoder test)",
+            "passed": true,
+            "width": 1280.0,
+            "height": 720.0,
+            "audio": "aac",
+            "video": "h264",
+            "sampleRate": 44100,
+            "channels": 2,
+            "firstFrameRendered": true,
+            "elapsedMs": 1989
+          },
+          {
+            "name": "LAN 广东卫视",
+            "mode": "software",
+            "audioOutput": "null (decoder test)",
+            "passed": true,
+            "width": 1280.0,
+            "height": 720.0,
+            "audio": "aac",
+            "video": "h264",
+            "sampleRate": 44100,
+            "channels": 2,
+            "firstFrameRendered": true,
+            "elapsedMs": 1838
+          },
+          {
+            "name": "LAN 凤凰卫视资讯台",
+            "mode": "auto",
+            "audioOutput": "null (decoder test)",
+            "passed": true,
+            "width": 1280.0,
+            "height": 720.0,
+            "audio": "aac",
+            "video": "h264",
+            "sampleRate": 48000,
+            "channels": 2,
+            "firstFrameRendered": true,
+            "elapsedMs": 3230
+          },
+          {
+            "name": "LAN 凤凰卫视资讯台",
+            "mode": "software",
+            "audioOutput": "null (decoder test)",
+            "passed": true,
+            "width": 1280.0,
+            "height": 720.0,
+            "audio": "aac",
+            "video": "h264",
+            "sampleRate": 48000,
+            "channels": 2,
+            "firstFrameRendered": true,
+            "elapsedMs": 10150
+          }
+        ]
+      },
+      "notes": [
+        "All 18 generated codec combinations passed in both modes (36/36).",
+        "The initial full run timed out on the last LAN FLV/software case (41/42). After adding initialization-stage diagnostics and explicitly awaiting video-output setup, all three LAN streams passed both modes in a focused rerun (6/6)."
+      ]
+    }
+  },
+  "lan": {
+    "playlistEntries": 1087,
+    "networkSamples": 65,
+    "responsesWithData": 42,
+    "networkFailures": {
+      "http401": 8,
+      "timeout": 7,
+      "connection": 5,
+      "http404": 2,
+      "http403": 1
+    },
+    "nativeMacosDecodeSamples": 10,
+    "nativeMacosDecodePassed": 6,
+    "nativeMacosDecodeFailed": 4,
+    "notes": [
+      "HTTP 200 playlists/segments do not prove complete playback. Four selected streams failed native readiness/clock checks despite retrievable media responses.",
+      "Authenticated source URLs and query parameters are intentionally omitted.",
+      "The rendered device samples were CCTV-3 (HLS/MP2), Guangdong TV (MP4/AAC), Phoenix Info (HTTP-FLV/AAC)."
+    ]
+  },
+  "notValidated": [
+    "Windows and Linux runtime (CI matrix added, not executed here).",
+    "Physical Android/iOS/iPad audio output and hardware decoders.",
+    "HDMI passthrough, Atmos object rendering, DRM and long-duration endurance."
+  ],
+  "builds": [
+    "Android ARM64 debug APK",
+    "iOS device debug, unsigned",
+    "macOS debug, unsigned"
+  ],
+  "automatedTests": 148,
+  "verification": {
+    "flutter": "3.41.9",
+    "testsPassed": 148,
+    "selectedPackageAndToolAnalysis": "No issues found",
+    "androidBuild": "passed, ARM64 debug; com.tntlikely.xplayer",
+    "iosBuild": "passed, device debug, unsigned; lib/main.dart",
+    "macosBuild": "passed, debug, unsigned",
+    "gitDiffCheck": "passed"
+  },
+  "notificationAudit": "The older Android 40/40 decoder report includes the upstream waitUntilFirstFrameRendered signal, which may complete on video-parameter changes. That report does not by itself prove successful GPU presentation. This stricter host run retains fatal output failures instead of counting metadata as visible playback."
+}

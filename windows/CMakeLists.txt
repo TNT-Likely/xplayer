@@ -57,6 +57,20 @@ add_subdirectory("runner")
 # them to the application.
 include(flutter/generated_plugins.cmake)
 
+# permission_handler_windows 0.2.2 already requests C++20, but also adds the
+# obsolete /await mode. MSVC 14.51 rejects its experimental coroutine header.
+# Keep standard C++20 coroutines and all other plugin options, without editing
+# the pub cache. https://learn.microsoft.com/cpp/build/reference/await-enable-coroutine-support
+if(MSVC AND TARGET permission_handler_windows_plugin)
+  get_target_property(XPLAYER_PERMISSION_HANDLER_OPTIONS
+    permission_handler_windows_plugin COMPILE_OPTIONS)
+  if(XPLAYER_PERMISSION_HANDLER_OPTIONS)
+    list(REMOVE_ITEM XPLAYER_PERMISSION_HANDLER_OPTIONS "/await")
+    set_property(TARGET permission_handler_windows_plugin PROPERTY
+      COMPILE_OPTIONS "${XPLAYER_PERMISSION_HANDLER_OPTIONS}")
+  endif()
+endif()
+
 
 # === Installation ===
 # Support files are copied into place next to the executable, so that it can

@@ -4,8 +4,10 @@ import 'package:flutter/material.dart';
 import 'package:video_player/video_player.dart';
 import 'package:xplayer/services/player/x_player_backend.dart';
 import 'package:xplayer/utils/player_settings.dart';
+import 'package:xplayer_player/xplayer_player.dart'
+    show PlaybackSource, StreamFormat;
 
-/// video_player 实现(全平台可用;Android 默认被 NativePlayerBackend 取代)。
+/// 系统播放适配器:Apple AVPlayer / Android ExoPlayer / Windows Media Foundation。
 class VideoPlayerBackend implements XPlayerBackend {
   VideoPlayerController? _controller;
   final ValueNotifier<XPlayerValue> _notifier =
@@ -48,15 +50,24 @@ class VideoPlayerBackend implements XPlayerBackend {
   }
 
   @override
-  Future<void> initialize(String url) async {
+  Future<void> initialize(String url, {
+    Map<String, String> headers = const {},
+  }) async {
     await _controller?.dispose();
     // Android:强制 textureView。原因有二:① 清晰度走原生引擎(NativePlayerBackend),
     // video_player 仅作降级,纹理最稳;② 全局透明(原生 hole-punch 所需)下,
     // platformView(Hybrid Composition)会与透明 FlutterView 冲突卡死。
     // 其它平台(iOS/macOS,avfoundation 支持 platformView)保留 useSurfaceView 选项。
     final usePlatformView = !Platform.isAndroid && useSurfaceView.value;
+    final source = PlaybackSource.parse(url, headers: headers);
     final c = VideoPlayerController.networkUrl(
-      Uri.parse(url),
+      Uri.parse(source.url),
+      httpHeaders: source.headers,
+      formatHint: source.format == StreamFormat.hls
+          ? VideoFormat.hls
+          : source.format == StreamFormat.dash
+          ? VideoFormat.dash
+          : null,
       viewType: usePlatformView
           ? VideoViewType.platformView
           : VideoViewType.textureView,

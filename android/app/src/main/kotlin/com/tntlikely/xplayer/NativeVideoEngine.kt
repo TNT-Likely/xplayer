@@ -1,6 +1,7 @@
 package com.tntlikely.xplayer
 
 import android.content.Context
+import android.media.AudioManager
 import android.os.Handler
 import android.os.Looper
 import android.view.SurfaceHolder
@@ -15,10 +16,14 @@ import androidx.media3.common.Player
 import androidx.media3.common.TrackGroup
 import androidx.media3.common.TrackSelectionOverride
 import androidx.media3.common.VideoSize
+import androidx.media3.datasource.DefaultDataSource
+import androidx.media3.datasource.DefaultHttpDataSource
+import androidx.media3.datasource.HttpDataSource
 import androidx.media3.exoplayer.DefaultLoadControl
 import androidx.media3.exoplayer.DefaultRenderersFactory
 import androidx.media3.exoplayer.ExoPlayer
 import androidx.media3.exoplayer.analytics.AnalyticsListener
+import androidx.media3.exoplayer.source.DefaultMediaSourceFactory
 import androidx.media3.ui.AspectRatioFrameLayout
 import io.flutter.plugin.common.EventChannel
 import io.flutter.plugin.common.MethodChannel
@@ -62,7 +67,10 @@ class NativeVideoEngine(
             "load" -> {
                 val url = call.argument<String>("url")!!
                 val profile = call.argument<String>("profile") ?: "live"
-                load(url, profile); result.success(null)
+                val headers = call.argument<Map<String, String>>("headers") ?: emptyMap()
+                val mimeType = call.argument<String>("mimeType")
+                val buffer = call.argument<Map<String, Number>>("buffer") ?: emptyMap()
+                load(url, profile, headers, mimeType, buffer); result.success(null)
             }
             // 注意:必须 main.post,与 load 同队列;否则切源时 play 可能在 load(重建+prepare)之前
             // 执行,对着尚未就绪/已释放的 player 调用 → 不自动播放。
@@ -127,25 +135,32 @@ class NativeVideoEngine(
         }
     }
 
-    private fun bufferDurations(profile: String): IntArray = when (profile) {
-        "vod" -> intArrayOf(15000, 45000, 3000, 10000)
-        else -> intArrayOf(8000, 30000, 1500, 5000)
+    private fun bufferDurations(profile: String, overrides: Map<String, Number>): IntArray {
+        val values = listOf("minMs", "maxMs", "playbackMs", "rebufferMs").map { overrides[it]?.toInt() }
+        if (values.all { it != null && it >= 0 }) {
+            val b = values.map { it!! }.toIntArray()
+            if (b[1] >= b[0] && b[0] >= b[2] && b[0] >= b[3]) return b
+        }
+        return when (profile) {
+            "vod" -> intArrayOf(15000, 45000, 3000, 10000)
+            else -> intArrayOf(8000, 30000, 1500, 5000)
+        }
     }
 
-    private fun load(url: String, profile: String) {
+    private fun load(url: String, profile: String, headers: Map<String, String>, mimeType: String?, buffer: Map<String, Number>) {
         main.post {
             ensureSurface()
             droppedFrames = 0; rebufferCount = 0; hasReachedReady = false
-            if (player == null) player = buildPlayer(profile)
+            if (player == null) player = buildPlayer(profile, headers, buffer)
             val p = player!!
             surfaceView?.holder?.surface?.let { p.setVideoSurface(it) }
-            p.setMediaItem(MediaItem.fromUri(url))
+            p.setMediaItem(MediaItem.Builder().setUri(url).setMimeType(mimeType).build())
             p.prepare()
         }
     }
 
-    private fun buildPlayer(profile: String): ExoPlayer {
-        val b = bufferDurations(profile)
+    private fun buildPlayer(profile: String, headers: Map<String, String>, buffer: Map<String, Number>): ExoPlayer {
+        val b = bufferDurations(profile, buffer)
         val renderers = DefaultRenderersFactory(context)
             .setEnableDecoderFallback(true)
             // 硬解优先;设备无硬件解码器的音频(AC-3/E-AC-3/DTS/MP2 等)回退 FFmpeg 软解扩展。
@@ -155,6 +170,12 @@ class NativeVideoEngine(
             .build()
         val p = ExoPlayer.Builder(context, renderers)
             .setLoadControl(loadControl)
+            .setMediaSourceFactory(DefaultMediaSourceFactory(
+                DefaultDataSource.Factory(context, DefaultHttpDataSource.Factory()
+                    .setDefaultRequestProperties(headers)
+                    .setAllowCrossProtocolRedirects(true)
+                    .setConnectTimeoutMs(10000)
+                    .setReadTimeoutMs(15000))))
             .build()
         p.videoScalingMode = C.VIDEO_SCALING_MODE_SCALE_TO_FIT
         p.addListener(object : Player.Listener {
@@ -188,11 +209,31 @@ class NativeVideoEngine(
                 }
             }
             override fun onPlayerError(error: PlaybackException) {
-                emit(mapOf("event" to "error", "code" to error.errorCodeName, "msg" to (error.message ?: "")))
+                val httpError = generateSequence<Throwable>(error) { it.cause }
+                    .take(8).filterIsInstance<HttpDataSource.InvalidResponseCodeException>().firstOrNull()
+                emit(mapOf("event" to "error", "code" to error.errorCodeName,
+                    "msg" to (error.message ?: ""), "httpStatus" to httpError?.responseCode))
             }
         })
         // 透出真实音频解码器名(确认是否走了 FFmpeg 软解):ffmpeg 前缀 = 软解。
         p.addAnalyticsListener(object : AnalyticsListener {
+            override fun onAudioPositionAdvancing(
+                eventTime: AnalyticsListener.EventTime,
+                playoutStartSystemTimeMs: Long
+            ) {
+                val audio = context.getSystemService(Context.AUDIO_SERVICE) as AudioManager
+                emit(mapOf("event" to "stats", "audioOutputStarted" to true,
+                    "volume" to p.volume, "muted" to (p.volume == 0f),
+                    "systemMediaVolume" to audio.getStreamVolume(AudioManager.STREAM_MUSIC),
+                    "systemMediaVolumeMax" to audio.getStreamMaxVolume(AudioManager.STREAM_MUSIC),
+                    "systemMediaMuted" to audio.isStreamMute(AudioManager.STREAM_MUSIC)))
+            }
+            override fun onAudioSinkError(
+                eventTime: AnalyticsListener.EventTime, audioSinkError: Exception
+            ) {
+                emit(mapOf("event" to "stats",
+                    "audioOutputError" to (audioSinkError.message ?: audioSinkError.javaClass.simpleName)))
+            }
             override fun onAudioDecoderInitialized(
                 eventTime: AnalyticsListener.EventTime,
                 decoderName: String,

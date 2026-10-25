@@ -1,0 +1,3 @@
+packages/** text=auto eol=lf
+tool/*.py text eol=lf
+.github/workflows/*.yml text eol=lf
