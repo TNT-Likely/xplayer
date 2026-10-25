@@ -110,7 +110,9 @@ public class VideoOutput: NSObject {
       )
     }
 
-    DispatchQueue.main.sync { [weak self]() in
+    // Never make the render worker wait on the platform thread: Dart may be
+    // calling the normal mpv API there. libmpv forbids that lock dependency.
+    DispatchQueue.main.async { [weak self]() in
       guard let that = self else {
         return
       }
@@ -153,7 +155,7 @@ public class VideoOutput: NSObject {
       currentSize = size
 
       texture.resize(size)
-      DispatchQueue.main.sync { [weak self] in
+      DispatchQueue.main.async { [weak self] in
         guard let that = self else { return }
         // textureUpdateCallback must run on the main thread
         that.textureUpdateCallback(that.textureId, size)
@@ -165,7 +167,7 @@ public class VideoOutput: NSObject {
     }
 
     texture.render(size)
-    DispatchQueue.main.sync { [weak self] in
+    DispatchQueue.main.async { [weak self] in
       guard let that = self else { return }
       // Textures must be marked as available from the main thread
       that.registry.textureFrameAvailable(that.textureId)

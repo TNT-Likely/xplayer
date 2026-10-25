@@ -10,9 +10,34 @@ from unittest.mock import patch
 import json
 import sys
 import subprocess
+import runpy
 
-from package_player import ignored, validate_documentation_links, write_archive
+from package_player import ROOT, ignored, validate_documentation_links, write_archive
 import verify_darwin_distribution as darwin
+
+validate_assets = runpy.run_path(str(ROOT / 'packages/xplayer_player/tool/generate_playback_fixtures.py'))['validate_segment_assets']
+
+
+class FixtureAssetsTest(unittest.TestCase):
+    def test_hls_requires_both_initialization_and_media_segments(self):
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            (root / 'index.m3u8').write_text('#EXTM3U\n#EXT-X-MAP:URI="init.mp4"\nsegment.m4s\n', encoding='utf-8')
+            with self.assertRaisesRegex(ValueError, 'init.mp4'): validate_assets(root)
+            (root / 'init.mp4').write_bytes(b'init')
+            with self.assertRaisesRegex(ValueError, 'segment.m4s'): validate_assets(root)
+            (root / 'segment.m4s').write_bytes(b'media')
+            validate_assets(root)
+
+    def test_dash_requires_representation_init_and_numbered_media_files(self):
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            (root / 'index.mpd').write_text('<MPD xmlns="urn:mpeg:dash:schema:mpd:2011"><Period><AdaptationSet><Representation id="0"><SegmentTemplate initialization="init-$RepresentationID$.m4s" media="chunk-$RepresentationID$-$Number%05d$.m4s"/></Representation></AdaptationSet></Period></MPD>', encoding='utf-8')
+            with self.assertRaisesRegex(ValueError, 'init-0.m4s'): validate_assets(root)
+            (root / 'init-0.m4s').write_bytes(b'init')
+            with self.assertRaisesRegex(ValueError, 'media segment'): validate_assets(root)
+            (root / 'chunk-0-00001.m4s').write_bytes(b'media')
+            validate_assets(root)
 
 
 class PackageArtifactTest(unittest.TestCase):

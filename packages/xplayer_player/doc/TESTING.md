@@ -55,6 +55,8 @@ CI 会先用 `dart compile exe tool/probe_decoder.dart -o /tmp/decoder-probe` �
 
 当前生成器包含 36 组：22 组音视频文件、9 组纯音频、3 组 HLS/DASH 清单，以及 2 组 H.264 + HE-AAC/v2 的 TS。覆盖 H.264 Baseline、H.264 High 1080p、HEVC Main 720p、HEVC Main10、VP8/VP9、AV1、AAC LC/LATM/HE/v2、MP2/MP3、AC-3/E-AC-3、TrueHD/MLP、DTS、FLAC、ALAC、Opus、Vorbis、PCM 与 WMA。360p/720p/1080p 指编码尺寸，缩放样本保留原始显示比例，包含非方形像素；不把短合成样本当作高码率或长期性能验收。
 
+分段输出在对应清单目录中生成，输出参数只使用文件名，避免 Windows 路径分隔符让 FFmpeg 将初始化片段写到其他目录。生成器会先检查 HLS 的 MAP/媒体分片、DASH 各 Representation 的初始化片段和编号媒体分片，再写样本清单；缺失或空文件属于无效测试样本，不能记为解码器不兼容。
+
 纯音频清单使用 `expectVideo: false`，原生检查仍要求音频参数和时钟，不等待不存在的视频轨道；音视频用例继续强制验证两条轨道。HE-AAC 输入来源和复现方法见[固定音调说明](../test/fixtures/README.md)，生成器会校验 SHA-256。
 
 ## 3. Flutter/设备播放

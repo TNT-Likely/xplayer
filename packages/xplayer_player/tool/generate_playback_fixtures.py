@@ -2,13 +2,44 @@
 import argparse
 import hashlib
 import json
+import re
 from pathlib import Path
 import shutil
 import subprocess
+import xml.etree.ElementTree as ET
+from urllib.parse import unquote, urlsplit
+
+
+def validate_segment_assets(output):
+    """Do not mistake missing generated init/segment files for decoder failures."""
+    output = Path(output).resolve()
+    def require(directory, reference):
+        uri = urlsplit(reference)
+        file = (directory / unquote(uri.path)).resolve()
+        if uri.scheme or uri.netloc or not file.is_relative_to(output) or not file.is_file() or file.stat().st_size == 0:
+            raise ValueError(f'Missing generated segment asset: {reference}')
+    for playlist in output.rglob('*.m3u8'):
+        for line in playlist.read_text(encoding='utf-8').splitlines():
+            if line and not line.startswith('#'):
+                require(playlist.parent, line)
+            elif line.startswith('#EXT-X-MAP:'):
+                require(playlist.parent, re.search(r'URI="([^"]+)"', line)[1])
+    for manifest in output.rglob('*.mpd'):
+        root = ET.parse(manifest).getroot()
+        for representation in root.findall('.//{*}Representation'):
+            template = representation.find('{*}SegmentTemplate')
+            if template is None: raise ValueError('Generated DASH has no segment template')
+            init = template.attrib['initialization'].replace('$RepresentationID$', representation.attrib['id'])
+            require(manifest.parent, init)
+            media = template.attrib['media'].replace('$RepresentationID$', representation.attrib['id'])
+            pattern = re.sub(r'\$[^$]+\$', '*', media)
+            segments = list(manifest.parent.glob(pattern))
+            if not segments: raise ValueError(f'Missing generated media segment: {pattern}')
+            for segment in segments: require(manifest.parent, segment.name)
 
 
 def generate(output, ffmpeg):
-    output = Path(output)
+    output = Path(output).resolve()
     output.mkdir(parents=True, exist_ok=True)
     fixtures = [
         ("h264-aac.flv", "libx264", "aac", []),
@@ -81,16 +112,17 @@ def generate(output, ffmpeg):
         path = output / name
         path.parent.mkdir(exist_ok=True)
         subprocess.run([ffmpeg, "-hide_banner", "-loglevel", "error", "-y",
-                        "-i", str(output / "h264-aac.flv"), "-c", "copy", "-f", fmt, str(path)],
-                       check=True, capture_output=True)
+                        "-i", str(output / "h264-aac.flv"), "-c", "copy", "-f", fmt, path.name],
+                       cwd=path.parent, check=True, capture_output=True)
         result.append({"name": fmt, "file": name, "expectVideo": True, "expectAudio": True})
     path = output / "hls-fmp4/index.m3u8"
     path.parent.mkdir(exist_ok=True)
     subprocess.run([ffmpeg, "-hide_banner", "-loglevel", "error", "-y",
                     "-i", str(output / "h264-aac.mp4"), "-c", "copy", "-f", "hls",
-                    "-hls_segment_type", "fmp4", str(path)], check=True, capture_output=True)
+                    "-hls_segment_type", "fmp4", path.name], cwd=path.parent, check=True, capture_output=True)
     result.append({"name": "hls-fmp4", "file": "hls-fmp4/index.m3u8",
                    "expectVideo": True, "expectAudio": True})
+    validate_segment_assets(output)
     (output / "manifest.json").write_text(json.dumps(result, indent=2) + "\n", encoding="utf-8")
     return result
 

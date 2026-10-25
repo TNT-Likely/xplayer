@@ -161,7 +161,10 @@ def main():
                 try: adb('shell', 'am', 'force-stop', app_id)
                 except subprocess.SubprocessError: pass
             elif args.platform == 'ios':
-                subprocess.run(['xcrun', 'simctl', 'terminate', args.device, app_id], capture_output=True)
+                try:
+                    subprocess.run(['xcrun', 'simctl', 'terminate', args.device, app_id], capture_output=True, timeout=20)
+                except subprocess.TimeoutExpired:
+                    report.setdefault('cleanupWarnings', []).append('simctl terminate timed out')
         if device_logger:
             device_logger.terminate()
             try: device_logger.wait(timeout=10)
@@ -173,7 +176,10 @@ def main():
             try: desktop.wait(timeout=10)
             except subprocess.TimeoutExpired: desktop.kill()
         if reverse:
-            subprocess.run([args.adb, '-s', args.device, 'reverse', '--remove', f'tcp:{server.server_port}'], capture_output=True)
+            try:
+                subprocess.run([args.adb, '-s', args.device, 'reverse', '--remove', f'tcp:{server.server_port}'], capture_output=True, timeout=20)
+            except subprocess.TimeoutExpired:
+                report.setdefault('cleanupWarnings', []).append('adb reverse cleanup timed out')
         if server:
             server.shutdown(); server.server_close(); server_thread.join(timeout=5)
         if previous is None: target.unlink(missing_ok=True)

@@ -24,9 +24,11 @@ public class TextureSW: NSObject, FlutterTexture, ResizableTextureProtocol {
 
     super.init()
 
-    DispatchQueue.main.async {
-      self.initMPV()
-    }
+    // VideoOutput constructs and renders this texture on its worker. Creating
+    // the mpv context on the platform/UI thread can block the Dart calls that
+    // finish configuring that same player, especially with merged UI threads.
+    // Only Flutter texture registration/notifications belong on the main queue.
+    self.initMPV()
   }
 
   deinit {
