@@ -56,7 +56,8 @@
     ".dart_tool/flutter_build",
     "packages/xplayer_ui/build",
     "packages/xplayer_ui/example/build",
-    "packages/xplayer_ui/example/.dart_tool/flutter_build"
+    "packages/xplayer_ui/example/.dart_tool/flutter_build",
+    ".dart_tool/preserve_player_layout.py"
   ],
   "kept": [
     "v3 worktree and branch",
