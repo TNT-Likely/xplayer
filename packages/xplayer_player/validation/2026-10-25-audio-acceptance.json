@@ -174,7 +174,7 @@
     ]
   },
   "limits": [
-    "CCTV-4样本10、CCTV-5样本11、TVBS样本51在三个Apple环境均未通过；独立FFmpeg也供数或时间轴推进不足。",
+    "CCTV-4样本10、CCTV-5样本11在三个Apple环境均未通过；TVBS样本51在iPhone/iPad未通过、macOS通过；macOS另有CCTV-6样本13未通过。独立FFmpeg对CCTV-4、CCTV-5、TVBS的检查也出现供数或时间轴推进不足。",
     "Android模拟器额外存在EGL图形输出失败；MLP样本未通过。未将MediaCodec直接输出实验设为默认。",
     "TrueHD 5.1样本四端通过；Apple的10组编码样本全部通过，Android为9/10。",
     "Windows/Linux及真实手机/TV/蓝牙/HDMI/长时间连续直播未在本轮替代验收。"

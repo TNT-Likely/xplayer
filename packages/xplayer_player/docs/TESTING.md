@@ -1,5 +1,7 @@
 # 测试、排障与版本升级
 
+查看结果请先读[中文验收报告](../validation/2026-10-25-audio-acceptance.md)；本文面向需要运行测试或排查错误的开发者。
+
 ## 1. 包独立检查
 
 在仓库根目录执行：
@@ -63,7 +65,7 @@ Android 宿主 Gradle 针对此入口使用 `.playbackprobe` 应用 ID。测试�
 {"sources":[{"name":"h264-aac","url":"http://fixture-server/live.flv","expectAudio":true,"expectVideo":true}]}
 ```
 
-每个源分别测试自动与强制软解；断言解码参数、渲染首帧和时钟推进，结果输出 `XPLAYER_PROBE`，并写入应用支持目录 `codec_probe.json`。`PLAYBACK_PROBE_FILTER` 按样本名称过滤，`PLAYBACK_PROBE_MODE=auto` 或 `software` 限定模式。iOS 模拟器额外使用 `PLAYBACK_PROBE_NULL_AUDIO=true`，报告会明确标注无声测试。真实设备保持系统音频输出，测试应用静音；实际声音与路由另做人工验收。
+每个源分别测试自动与强制软解；断言解码参数、渲染首帧和时钟推进，结果输出 `XPLAYER_PROBE`，并写入应用支持目录 `codec_probe.json`。`PLAYBACK_PROBE_FILTER` 按样本名称过滤，`PLAYBACK_PROBE_MODE=auto` 或 `software` 限定模式。该入口默认静音，`PLAYBACK_PROBE_NULL_AUDIO=true` 仅用于显式的无声解码检查，报告会标明测试模式。本地适配器已补齐 iOS 模拟器的 AudioUnit；完整声音检查使用下文的应用探针和系统混音验收流程，物理设备的音质与路由单独记录。
 
 `PLAYBACK_PROBE_DEBUG=true` 开启 `XPLAYER_NATIVE` 脱敏日志。失败报告包含初始化阶段、HTTP 状态、音频参数、视频尺寸、位置与缓冲状态。Android 上游首帧通知可能在视频尺寸变化时完成，验收时还应检查没有输出错误并查看实际画面；不能只凭该布尔值宣布 GPU 正常。
 
@@ -121,6 +123,6 @@ swiftc -parse-as-library packages/xplayer_player/tool/system_audio_meter.swift \
 
 需要 macOS 13+ 以及已授予的“屏幕与系统音频录制”权限；工具会先检查权限，不会主动弹出授权请求。先停止所有测试播放器测静音基线，再逐端单独播放同一个已知有声源。每次采样 12 秒，记录采样数、峰值、RMS 与 dBFS。全局混音模式下应关闭其他有声应用；不能将别的应用或提示音当作受测播放器通过。可提供 PID 限定 macOS 应用，但应核对系统的音频进程归属。
 
-该检查证明系统输出中存在非静音 PCM，不替代物理扬声器音质、蓝牙/HDMI 路由、多声道或口型同步验证。2026-10-25 的音频补测结果见 [验收记录](../validation/2026-10-25-audio-acceptance.json)。
+该检查证明系统输出中存在非静音 PCM，不替代物理扬声器音质、蓝牙/HDMI 路由、多声道或口型同步验证。2026-10-25 的音频补测结果见[中文验收报告](../validation/2026-10-25-audio-acceptance.md)，逐项技术数据保留在[原始 JSON](../validation/2026-10-25-audio-acceptance.json)。
 
 更新 `native_builds.json` 后同步 Darwin Makefile、Windows CMake；Android直接读取清单。核对来源与许可证，运行 pin 测试、完整矩阵和应用构建。不要通过换回裁剪构建缩小包体，否则 TrueHD 等会再次缺失。库升级与行为修改尽量分开提交，保留旧版本报告作为对照；必要时回滚到上一组完整且已验证的固定资产。

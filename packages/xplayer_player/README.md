@@ -4,6 +4,8 @@ XPlayer 的本地 Flutter 播放兼容包，集中管理源地址、请求头、
 
 详细文档：[架构、API 与配置](docs/ARCHITECTURE.md) · [格式与设备兼容边界](docs/COMPATIBILITY.md) · [独立测试、原生回归与排障](docs/TESTING.md)。包目前为仓库内路径依赖，尚未发布到 pub.dev。
 
+**查看本轮结果：[中文验收报告（2026-10-25）](validation/2026-10-25-audio-acceptance.md)**。包含修复项、四端结果、编码兼容表、失败原因和完整 32 项对照；原始 JSON 作为排障数据保留。
+
 包可独立检查：在 `packages/xplayer_player` 下执行 `flutter pub get`、`flutter analyze`、`flutter test`。原生解码样本生成器、HTTP/HLS 回归服务与设备测试入口均由包维护，根目录工具保留转发入口。
 
 | 平台 / 输入 | 首选内核 | 失败后 |
@@ -61,7 +63,7 @@ fvm dart run tool/probe_playlist.dart 'https://cdn.jsdelivr.net/gh/Kimentanm/apt
 
 [应用接入复测](validation/2026-10-25-application-integration.json) 进一步记录了实际内核回退：Android TV 上 CCTV-4 海外源与 TVBS 可经系统播放器路径播放，TrueHD 5.1 样本可经原生路径播放。当前模拟器的 libmpv 仍有 EGL 输出限制，HEVC Main10 样本未通过严格宿主测试。上游 Android 首帧通知可能在尺寸变化时提前完成，历史布尔值与解码时钟检查不能单独证明 GPU 已呈现画面；报告保留失败证据，不将其计为全平台兼容。
 
-iPad 模拟器的上游 libmpv 二进制没有可用的音频输出驱动；可显式使用 `PLAYBACK_PROBE_NULL_AUDIO=true` 验证解码与渲染，但不把此结果当作扬声器输出验收。iOS 真机构建包含 AudioUnit 输出驱动，仍需在实际设备上确认声音、路由和中断恢复。
+早期 iPad 模拟器的上游 libmpv 二进制没有可用的音频输出驱动，相关解码与渲染检查使用了 null audio。本地适配器现已补齐模拟器 AudioUnit，最新声音验收使用系统输出，结果见[中文验收报告](validation/2026-10-25-audio-acceptance.md)。iOS 真机的声音、路由和中断恢复仍需在实际设备上确认。
 
 真机验收应覆盖 Android 手机、Android TV、iPhone、iPad、Windows 和 Linux，使用有效的 HLS（含无后缀重定向）、HTTP-FLV、TS、DASH、H.264/HEVC 与 AAC/AC-3 等样本，检查首帧、声音、长时间播放、断网恢复、切台、小窗和前后台切换。只有对应设备实际通过后才标记兼容。
 
