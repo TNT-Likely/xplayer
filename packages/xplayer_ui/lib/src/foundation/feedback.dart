@@ -85,7 +85,8 @@ class XpEmptyState extends StatelessWidget {
     return Semantics(
         liveRegion: true,
         container: true,
-        child: XpSurface(
+        child: SingleChildScrollView(
+            child: XpSurface(
           padding: EdgeInsets.symmetric(
               vertical: theme.isTv ? 48 : 32, horizontal: 24),
           child: SizedBox(
@@ -144,7 +145,7 @@ class XpEmptyState extends StatelessWidget {
                       ]),
                 ],
               ])),
-        ));
+        )));
   }
 }
 

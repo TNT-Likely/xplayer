@@ -29,9 +29,9 @@ void main() {
       expect(AppPalette.all.toSet().length, AppPalette.all.length);
     });
 
-    test('默认色仍是原品牌色 #00DC82,老用户升级后观感不变', () {
+    test('v3 默认色采用 A 静夜强调色，持久化选色仍由设置加载', () {
       expect(AppPalette.all.first, AppPalette.green);
-      expect(AppPalette.green, const Color(0xFF00DC82));
+      expect(AppPalette.green, const Color(0xFFB5E6BB));
     });
 
     test('色板恰好 8 色(UI 按 4x2 网格布局)', () {

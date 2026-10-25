@@ -41,7 +41,9 @@ PODS:
     - DKImagePickerController/PhotoGallery
     - Flutter
   - Flutter (1.0.0)
-  - media_kit_libs_ios_video (1.0.4):
+  - integration_test (0.0.1):
+    - Flutter
+  - libmpv_xplayer (0.1.0):
     - Flutter
   - media_kit_video (0.0.1):
     - Flutter
@@ -100,7 +102,8 @@ DEPENDENCIES:
   - device_info_plus (from `.symlinks/plugins/device_info_plus/ios`)
   - file_picker (from `.symlinks/plugins/file_picker/ios`)
   - Flutter (from `Flutter`)
-  - media_kit_libs_ios_video (from `.symlinks/plugins/media_kit_libs_ios_video/ios`)
+  - integration_test (from `.symlinks/plugins/integration_test/ios`)
+  - libmpv_xplayer (from `.symlinks/plugins/libmpv_xplayer/ios`)
   - media_kit_video (from `.symlinks/plugins/media_kit_video/ios`)
   - open_filex (from `.symlinks/plugins/open_filex/ios`)
   - package_info_plus (from `.symlinks/plugins/package_info_plus/ios`)
@@ -131,8 +134,10 @@ EXTERNAL SOURCES:
     :path: ".symlinks/plugins/file_picker/ios"
   Flutter:
     :path: Flutter
-  media_kit_libs_ios_video:
-    :path: ".symlinks/plugins/media_kit_libs_ios_video/ios"
+  integration_test:
+    :path: ".symlinks/plugins/integration_test/ios"
+  libmpv_xplayer:
+    :path: ".symlinks/plugins/libmpv_xplayer/ios"
   media_kit_video:
     :path: ".symlinks/plugins/media_kit_video/ios"
   open_filex:
@@ -162,8 +167,9 @@ SPEC CHECKSUMS:
   DKPhotoGallery: b3834fecb755ee09a593d7c9e389d8b5d6deed60
   file_picker: a0560bc09d61de87f12d246fc47d2119e6ef37be
   Flutter: cabc95a1d2626b1b06e7179b784ebcf0c0cde467
-  media_kit_libs_ios_video: 5a18affdb97d1f5d466dc79988b13eff6c5e2854
-  media_kit_video: 1746e198cb697d1ffb734b1d05ec429d1fcd1474
+  integration_test: 4a889634ef21a45d28d50d622cf412dc6d9f586e
+  libmpv_xplayer: 8e52de9f0dae3a459ea266d6b828e8a46a43501a
+  media_kit_video: f3b0d035d89def15cfbbcf7dc2ae278f201e2f83
   open_filex: 432f3cd11432da3e39f47fcc0df2b1603854eff1
   package_info_plus: af8e2ca6888548050f16fa2f1938db7b5a5df499
   permission_handler_apple: 92d754bbaa7361d436db2d6c3c1c2a0fdcec462e

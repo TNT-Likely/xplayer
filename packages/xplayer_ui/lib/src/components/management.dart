@@ -12,14 +12,15 @@ class XpPlaylistCard extends StatelessWidget {
       this.status = XpPlaylistStatus.ready,
       this.updatedLabel,
       this.onRetry,
+      this.onRefresh,
       this.onEdit,
       this.onRemove});
   final String name;
-  final int channelCount;
+  final int? channelCount;
   final String? updatedLabel;
   final bool selected;
   final XpPlaylistStatus status;
-  final VoidCallback? onSelect, onRetry, onEdit, onRemove;
+  final VoidCallback? onSelect, onRetry, onRefresh, onEdit, onRemove;
   @override
   Widget build(BuildContext context) {
     final theme = XpTheme.of(context), p = theme.palette;
@@ -36,7 +37,7 @@ class XpPlaylistCard extends StatelessWidget {
               style: TextStyle(fontSize: theme.titleSize, color: p.foreground)),
           const SizedBox(height: 8),
           Text(
-              '$channelCount 个频道${updatedLabel == null ? '' : ' · $updatedLabel'}',
+              '${channelCount == null ? '正在读取频道数量' : '$channelCount 个频道'}${updatedLabel == null ? '' : ' · $updatedLabel'}',
               style: TextStyle(fontSize: theme.smallSize, color: p.muted)),
         ])),
         if (onEdit != null)
@@ -64,6 +65,12 @@ class XpPlaylistCard extends StatelessWidget {
             loading: busy,
             icon: selected ? XpSymbol.check : null,
             variant: XpButtonVariant.secondary),
+        if (onRefresh != null)
+          XpButton(
+              label: '刷新频道',
+              icon: XpSymbol.sync,
+              onPressed: busy ? null : onRefresh,
+              variant: XpButtonVariant.secondary),
         if (onRemove != null)
           XpButton(
               label: '移除',

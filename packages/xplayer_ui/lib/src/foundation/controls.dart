@@ -170,11 +170,12 @@ class XpNavigationItem extends StatelessWidget {
       required this.onPressed,
       this.selected = false,
       this.collapsed = false,
-      this.count});
+      this.count,
+      this.autofocus = false});
   final String label;
   final XpSymbol icon;
   final VoidCallback? onPressed;
-  final bool selected, collapsed;
+  final bool selected, collapsed, autofocus;
   final int? count;
   @override
   Widget build(BuildContext context) {
@@ -183,10 +184,11 @@ class XpNavigationItem extends StatelessWidget {
       selected: selected,
       child: TextButton(
         onPressed: onPressed,
+        autofocus: autofocus,
         style: ButtonStyle(
           minimumSize: WidgetStatePropertyAll(Size(0, theme.isTv ? 62 : 52)),
           padding: const WidgetStatePropertyAll(
-              EdgeInsets.symmetric(horizontal: 14, vertical: 12)),
+              EdgeInsets.symmetric(horizontal: 8, vertical: 12)),
           shape: WidgetStatePropertyAll(
               RoundedRectangleBorder(borderRadius: BorderRadius.circular(8))),
           backgroundColor: WidgetStatePropertyAll(
@@ -203,7 +205,10 @@ class XpNavigationItem extends StatelessWidget {
             ? Column(mainAxisSize: MainAxisSize.min, children: [
                 XpIcon(icon, color: selected ? p.accent : p.muted),
                 const SizedBox(height: 6),
-                Text(label, style: TextStyle(fontSize: theme.smallSize))
+                Text(label,
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                    style: TextStyle(fontSize: theme.smallSize))
               ])
             : Row(children: [
                 XpIcon(icon, color: selected ? p.accent : p.muted),
@@ -232,6 +237,7 @@ class XpTextField extends StatelessWidget {
       this.helper,
       this.error,
       this.enabled = true,
+      this.autofocus = false,
       this.focusNode,
       this.prefix,
       this.suffix,
@@ -239,7 +245,7 @@ class XpTextField extends StatelessWidget {
   final TextEditingController controller;
   final ValueChanged<String>? onChanged, onSubmitted;
   final String? label, hint, helper, error;
-  final bool enabled;
+  final bool enabled, autofocus;
   final FocusNode? focusNode;
   final Widget? prefix, suffix;
   final TextInputType keyboardType;
@@ -252,11 +258,14 @@ class XpTextField extends StatelessWidget {
             borderSide: BorderSide(color: color, width: width));
     return TextField(
       controller: controller,
+      autofocus: autofocus,
       focusNode: focusNode,
       enabled: enabled,
       onChanged: onChanged,
       onSubmitted: onSubmitted,
       keyboardType: keyboardType,
+      autocorrect: keyboardType != TextInputType.url,
+      enableSuggestions: keyboardType != TextInputType.url,
       style: TextStyle(fontSize: theme.bodySize, color: p.foreground),
       decoration: InputDecoration(
         labelText: label,

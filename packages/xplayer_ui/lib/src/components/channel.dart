@@ -19,14 +19,28 @@ class XpChannelIdentity extends StatelessWidget {
             color: p.accentWash,
             border: Border.all(color: p.border),
             borderRadius: BorderRadius.circular(4)),
-        child: Text(
-            channel.logoLabel ?? channel.name.characters.take(4).toString(),
-            maxLines: 1,
-            overflow: TextOverflow.ellipsis,
-            style: TextStyle(
-                color: p.accent,
-                fontSize: theme.smallSize,
-                fontWeight: FontWeight.w600)),
+        child: channel.logo == null
+            ? Text(
+                channel.logoLabel ?? channel.name.characters.take(4).toString(),
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+                style: TextStyle(
+                    color: p.accent,
+                    fontSize: theme.smallSize,
+                    fontWeight: FontWeight.w600))
+            : Image(
+                image: channel.logo!,
+                width: 44,
+                height: 28,
+                fit: BoxFit.contain,
+                excludeFromSemantics: true,
+                errorBuilder: (_, __, ___) => Text(
+                    channel.logoLabel ??
+                        channel.name.characters.take(4).toString(),
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                    style:
+                        TextStyle(color: p.accent, fontSize: theme.smallSize))),
       )),
       if (showName) ...[
         const SizedBox(width: 10),
@@ -42,25 +56,36 @@ class XpChannelIdentity extends StatelessWidget {
 }
 
 class XpArtwork extends StatelessWidget {
-  const XpArtwork({super.key, required this.channel});
+  const XpArtwork(
+      {super.key, required this.channel, this.showPlaceholder = true});
   final XpChannelData channel;
+  final bool showPlaceholder;
   @override
   Widget build(BuildContext context) {
     final p = XpTheme.of(context).palette;
     final fallback = ColoredBox(
         color: p.raised,
-        child: Center(
-            child: Column(mainAxisSize: MainAxisSize.min, children: [
-          XpIcon(XpSymbol.channels, size: 34, color: p.quiet),
-          const SizedBox(height: 12),
-          Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 16),
-              child: Text(channel.name,
-                  maxLines: 2,
-                  textAlign: TextAlign.center,
-                  overflow: TextOverflow.ellipsis,
-                  style: TextStyle(color: p.muted))),
-        ])));
+        child: !showPlaceholder
+            ? const SizedBox.expand()
+            : LayoutBuilder(builder: (context, box) {
+                if (box.maxHeight < 96 || box.maxWidth < 120) {
+                  return Center(
+                      child:
+                          XpIcon(XpSymbol.channels, size: 20, color: p.quiet));
+                }
+                return Center(
+                    child: Column(mainAxisSize: MainAxisSize.min, children: [
+                  XpIcon(XpSymbol.channels, size: 34, color: p.quiet),
+                  const SizedBox(height: 12),
+                  Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: 16),
+                      child: Text(channel.name,
+                          maxLines: 2,
+                          textAlign: TextAlign.center,
+                          overflow: TextOverflow.ellipsis,
+                          style: TextStyle(color: p.muted))),
+                ]));
+              }));
     if (channel.artwork == null) return fallback;
     return Image(
         image: channel.artwork!,
@@ -106,10 +131,11 @@ class XpChannelCard extends StatelessWidget {
       this.favourite = false,
       this.onFavouriteChanged,
       this.epgStatus = XpEpgStatus.ready,
+      this.onDetails,
       this.offline = false});
   final XpChannelData channel;
   final DateTime now;
-  final VoidCallback? onPlay;
+  final VoidCallback? onPlay, onDetails;
   final bool favourite, offline;
   final ValueChanged<bool>? onFavouriteChanged;
   final XpEpgStatus epgStatus;
@@ -182,6 +208,11 @@ class XpChannelCard extends StatelessWidget {
                       children: [
                         Row(children: [
                           Expanded(child: XpChannelIdentity(channel: channel)),
+                          if (onDetails != null)
+                            XpIconButton(
+                                icon: XpSymbol.info,
+                                label: '查看 ${channel.name} 节目',
+                                onPressed: onDetails),
                           XpFavouriteButton(
                               channelName: channel.name,
                               value: favourite,
@@ -223,6 +254,7 @@ class XpFeaturedChannel extends StatelessWidget {
       required this.onPlay,
       this.epgStatus = XpEpgStatus.ready,
       this.favourite = false,
+      this.compact = false,
       this.onFavouriteChanged,
       this.onDetails,
       this.englishTitle});
@@ -232,6 +264,9 @@ class XpFeaturedChannel extends StatelessWidget {
   final VoidCallback? onPlay, onDetails;
   final ValueChanged<bool>? onFavouriteChanged;
   final bool favourite;
+
+  /// 矮窗口减少装饰留白，主要播放操作保持可见。
+  final bool compact;
   final String? englishTitle;
   @override
   Widget build(BuildContext context) {
@@ -240,7 +275,8 @@ class XpFeaturedChannel extends StatelessWidget {
     return ClipRRect(
         borderRadius: BorderRadius.circular(16),
         child: Stack(children: [
-          Positioned.fill(child: XpArtwork(channel: channel)),
+          Positioned.fill(
+              child: XpArtwork(channel: channel, showPlaceholder: false)),
           const Positioned.fill(
               child: DecoratedBox(
                   decoration: BoxDecoration(
@@ -249,7 +285,11 @@ class XpFeaturedChannel extends StatelessWidget {
                           end: Alignment.bottomLeft,
                           colors: [Color(0x3307100b), Color(0xef07100b)])))),
           Padding(
-              padding: EdgeInsets.all(theme.device == XpDevice.phone ? 22 : 32),
+              padding: EdgeInsets.all(compact
+                  ? 24
+                  : theme.device == XpDevice.phone
+                      ? 22
+                      : 32),
               child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
@@ -261,16 +301,23 @@ class XpFeaturedChannel extends StatelessWidget {
                           value: favourite,
                           onChanged: onFavouriteChanged)
                     ]),
-                    SizedBox(height: theme.isTv ? 100 : 60),
+                    SizedBox(
+                        height: compact
+                            ? 16
+                            : theme.isTv
+                                ? 100
+                                : 60),
                     XpChannelIdentity(channel: channel),
                     const SizedBox(height: 18),
                     Text(programme?.title ?? channel.name,
                         style: TextStyle(
-                            fontSize: theme.isTv
-                                ? 60
-                                : theme.device == XpDevice.phone
-                                    ? 36
-                                    : 44,
+                            fontSize: compact
+                                ? 40
+                                : theme.isTv
+                                    ? 60
+                                    : theme.device == XpDevice.phone
+                                        ? 36
+                                        : 44,
                             color: p.foreground,
                             fontWeight: FontWeight.w600,
                             height: 1.2,
@@ -287,7 +334,11 @@ class XpFeaturedChannel extends StatelessWidget {
                     const SizedBox(height: 16),
                     Text(
                         programme?.subtitle ??
-                            (programme == null ? '暂无节目单 · 频道仍可播放' : ''),
+                            (programme == null
+                                ? (epgStatus == XpEpgStatus.stale
+                                    ? '节目单已过期 · 频道仍可播放'
+                                    : '暂无节目单 · 频道仍可播放')
+                                : ''),
                         style: TextStyle(
                             color: p.muted, fontSize: theme.bodySize)),
                     const SizedBox(height: 22),

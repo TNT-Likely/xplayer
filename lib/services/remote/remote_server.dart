@@ -20,12 +20,10 @@ class RemoteServer {
   BonsoirBroadcast? _broadcast;
   final String _id = const Uuid().v4();
   int _port = 0;
+  String? _address;
+  String? get address => _address;
 
-  RemoteServer({
-    required this.serviceName,
-    required this.onText,
-    this.onKey,
-  });
+  RemoteServer({required this.serviceName, required this.onText, this.onKey});
 
   bool get isRunning => _server != null;
   int get port => _port;
@@ -34,6 +32,7 @@ class RemoteServer {
     if (_server != null) return;
     _server = await HttpServer.bind(InternetAddress.anyIPv4, 0);
     _port = _server!.port;
+    unawaited(_handleRequests());
     final localIp = await _getLocalIPv4() ?? '0.0.0.0';
 
     // Advertise via mDNS
@@ -50,15 +49,14 @@ class RemoteServer {
     _broadcast = BonsoirBroadcast(service: service);
     await _broadcast!.ready;
     await _broadcast!.start();
-
-    // Accept WebSocket
-    unawaited(_handleRequests());
   }
 
   Future<String?> _getLocalIPv4() async {
     try {
       final ifs = await NetworkInterface.list(
-          type: InternetAddressType.IPv4, includeLoopback: false);
+        type: InternetAddressType.IPv4,
+        includeLoopback: false,
+      );
       for (final ni in ifs) {
         for (final addr in ni.addresses) {
           final ip = addr.address;
@@ -105,11 +103,9 @@ class RemoteServer {
         // Simple health endpoint
         req.response.statusCode = HttpStatus.ok;
         req.response.headers.set('content-type', 'application/json');
-        req.response.write(jsonEncode({
-          'name': serviceName,
-          'id': _id,
-          'port': _port,
-        }));
+        req.response.write(
+          jsonEncode({'name': serviceName, 'id': _id, 'port': _port}),
+        );
         await req.response.close();
       }
     }
@@ -124,18 +120,29 @@ class RemoteServer {
           case RemoteMessageType.text:
             final text = (msg.payload['text'] as String?) ?? '';
             onText(text);
-            socket.add(jsonEncode(
-                RemoteMessage(RemoteMessageType.ack, {'ok': true}).toJson()));
+            socket.add(
+              jsonEncode(
+                RemoteMessage(RemoteMessageType.ack, {'ok': true}).toJson(),
+              ),
+            );
             break;
           case RemoteMessageType.key:
             final key = (msg.payload['key'] as String?) ?? '';
             onKey?.call(key);
-            socket.add(jsonEncode(
-                RemoteMessage(RemoteMessageType.ack, {'ok': true}).toJson()));
+            socket.add(
+              jsonEncode(
+                RemoteMessage(RemoteMessageType.ack, {'ok': true}).toJson(),
+              ),
+            );
             break;
           default:
-            socket.add(jsonEncode(RemoteMessage(
-                RemoteMessageType.error, {'message': 'unsupported'}).toJson()));
+            socket.add(
+              jsonEncode(
+                RemoteMessage(RemoteMessageType.error, {
+                  'message': 'unsupported',
+                }).toJson(),
+              ),
+            );
         }
       } catch (e) {
         if (kDebugMode) {

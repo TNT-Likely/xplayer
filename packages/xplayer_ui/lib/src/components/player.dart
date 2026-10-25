@@ -27,7 +27,7 @@ class XpPlayerStatusView extends StatelessWidget {
     final (title, copy, label, icon) = switch (phase) {
       XpPlaybackPhase.connecting => (
           '正在连接频道',
-          '首次打开可能需要一点时间。可以取消连接，或换一个频道。',
+          detail ?? '$channelName · 首次打开可能需要一点时间。可以取消连接，或换一个频道。',
           '取消连接',
           XpSymbol.sync
         ),
@@ -155,56 +155,61 @@ class XpMiniPlayer extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final theme = XpTheme.of(context), p = theme.palette;
-    return XpSurface(
-        padding: const EdgeInsets.all(8),
-        raised: true,
-        child: Row(children: [
-          Expanded(
-              child: Semantics(
-                  button: true,
-                  label: '展开 ${channel.name} 播放器',
-                  child: InkWell(
-                      onTap: onRestore,
-                      borderRadius: BorderRadius.circular(8),
-                      child: Padding(
-                          padding: const EdgeInsets.all(4),
-                          child: Row(children: [
-                            ClipRRect(
-                                borderRadius: BorderRadius.circular(6),
-                                child: SizedBox(
-                                    width: theme.isTv ? 90 : 58,
-                                    height: theme.isTv ? 58 : 44,
-                                    child: XpArtwork(channel: channel))),
-                            const SizedBox(width: 12),
-                            Expanded(
-                                child: Column(
-                                    crossAxisAlignment:
-                                        CrossAxisAlignment.start,
-                                    children: [
-                                  Text(channel.name,
-                                      maxLines: 1,
-                                      overflow: TextOverflow.ellipsis,
-                                      style: TextStyle(
-                                          fontSize: theme.bodySize,
-                                          color: p.foreground)),
-                                  if (epgStatus.hasCurrentMetadata &&
-                                      channel.programme != null) ...[
-                                    const SizedBox(height: 5),
-                                    Text(channel.programme!.title,
-                                        maxLines: 1,
-                                        overflow: TextOverflow.ellipsis,
-                                        style: TextStyle(
-                                            fontSize: theme.smallSize,
-                                            color: p.muted))
-                                  ],
-                                ])),
-                          ]))))),
-          XpIconButton(
-              icon: paused ? XpSymbol.play : XpSymbol.pause,
-              label: paused ? '继续播放' : '暂停播放',
-              onPressed: onTogglePause),
-          XpIconButton(
-              icon: XpSymbol.close, label: '关闭迷你播放器', onPressed: onClose),
-        ]));
+    return LayoutBuilder(
+        builder: (context, box) => XpSurface(
+            padding: const EdgeInsets.all(8),
+            raised: true,
+            child: Row(children: [
+              Expanded(
+                  child: Semantics(
+                      button: true,
+                      label: '展开 ${channel.name} 播放器',
+                      child: InkWell(
+                          onTap: onRestore,
+                          borderRadius: BorderRadius.circular(8),
+                          child: Padding(
+                              padding: const EdgeInsets.all(4),
+                              child: Row(children: [
+                                if (box.maxWidth >=
+                                    (theme.isTv ? 400 : 300)) ...[
+                                  ClipRRect(
+                                      borderRadius: BorderRadius.circular(6),
+                                      child: SizedBox(
+                                          width: theme.isTv ? 90 : 58,
+                                          height: theme.isTv ? 58 : 44,
+                                          child: XpArtwork(channel: channel))),
+                                  const SizedBox(width: 12),
+                                ],
+                                Expanded(
+                                    child: Column(
+                                        mainAxisSize: MainAxisSize.min,
+                                        crossAxisAlignment:
+                                            CrossAxisAlignment.start,
+                                        children: [
+                                      Text(channel.name,
+                                          maxLines: 1,
+                                          overflow: TextOverflow.ellipsis,
+                                          style: TextStyle(
+                                              fontSize: theme.bodySize,
+                                              color: p.foreground)),
+                                      if (epgStatus.hasCurrentMetadata &&
+                                          channel.programme != null) ...[
+                                        const SizedBox(height: 5),
+                                        Text(channel.programme!.title,
+                                            maxLines: 1,
+                                            overflow: TextOverflow.ellipsis,
+                                            style: TextStyle(
+                                                fontSize: theme.smallSize,
+                                                color: p.muted))
+                                      ],
+                                    ])),
+                              ]))))),
+              XpIconButton(
+                  icon: paused ? XpSymbol.play : XpSymbol.pause,
+                  label: paused ? '继续播放' : '暂停播放',
+                  onPressed: onTogglePause),
+              XpIconButton(
+                  icon: XpSymbol.close, label: '关闭迷你播放器', onPressed: onClose),
+            ])));
   }
 }

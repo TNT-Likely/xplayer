@@ -1,1160 +1,902 @@
-import 'dart:io';
-
+import 'dart:async';
 import 'package:flutter/material.dart';
-import 'package:font_awesome_flutter/font_awesome_flutter.dart';
-import 'package:package_info_plus/package_info_plus.dart';
-import 'package:xplayer/data/models/playlist_model.dart';
-// 导入 FavoritesRepository
-import 'package:xplayer/presentation/screens/playlist.dart';
-import 'package:xplayer/presentation/screens/epg_screen.dart';
-import 'package:xplayer/presentation/screens/lan_sync_open_screen.dart';
-import 'package:xplayer/presentation/screens/lan_sync_screen.dart';
-import 'package:xplayer/presentation/widgets/recent_played_widget.dart';
-import 'package:xplayer/presentation/screens/log_center_screen.dart';
-import 'package:xplayer/utils/logger_util.dart';
-import 'package:xplayer/utils/player_settings.dart';
-import 'package:xplayer/services/update_service.dart';
-import 'package:xplayer/shared/components/x_base_button.dart';
-import 'package:xplayer/presentation/widgets/bg_wrapper.dart';
-import 'package:xplayer/presentation/widgets/channel_list_widget.dart';
-import 'package:xplayer/presentation/widgets/channel_filter_dialog.dart';
-import 'package:xplayer/presentation/widgets/playlist_dialog.dart';
-import 'package:xplayer/presentation/widgets/preset_source_dialog.dart';
-import 'package:xplayer/presentation/widgets/update_proxy_dialog.dart';
-import 'package:xplayer/shared/components/x_text_button.dart';
-import 'package:shared_preferences/shared_preferences.dart';
-import 'package:xplayer/providers/locale_provider.dart';
 import 'package:flutter/services.dart';
-import 'package:xplayer/shared/components/x_icon_button.dart';
-import 'package:xplayer/shared/theme/app_tokens.dart';
-import 'package:xplayer/shared/build_flags.dart';
-import 'package:xplayer/utils/dialog.dart';
-import 'package:xplayer/utils/toast.dart';
-import 'package:xplayer/providers/media_provider.dart';
 import 'package:provider/provider.dart';
+import 'package:xplayer/data/models/channel_model.dart';
 import 'package:xplayer/localization/app_localizations.dart';
-import 'package:url_launcher/url_launcher.dart';
-import 'package:qr_flutter/qr_flutter.dart';
-import 'package:xplayer/providers/remote_provider.dart';
-import 'package:xplayer/providers/global_provider.dart';
-import 'package:xplayer/providers/mini_player_controller.dart';
+import 'package:xplayer/presentation/adaptive/app_layout.dart';
+import 'package:xplayer/presentation/adapters/app_actions.dart';
+import 'package:xplayer/presentation/adapters/media_presentation.dart';
+import 'package:xplayer/presentation/screens/epg_screen.dart';
 import 'package:xplayer/presentation/screens/player.dart';
-import 'package:xplayer/presentation/widgets/theme_color_dialog.dart';
-import 'package:xplayer/shared/theme/theme_settings.dart';
+import 'package:xplayer/presentation/screens/settings_screen.dart';
+import 'package:xplayer/presentation/widgets/channel_filter_dialog.dart';
+import 'package:xplayer/presentation/widgets/preset_source_dialog.dart';
+import 'package:xplayer/providers/global_provider.dart';
+import 'package:xplayer/providers/media_provider.dart';
+import 'package:xplayer/providers/mini_player_controller.dart';
+import 'package:xplayer/providers/remote_provider.dart';
+import 'package:xplayer/shared/build_flags.dart';
+import 'package:xplayer/utils/channel_filter.dart';
+import 'package:xplayer/utils/player_settings.dart';
+import 'package:xplayer/utils/toast.dart';
+import 'package:xplayer_ui/xplayer_ui.dart';
+
+enum AppSection { home, channels, guide, favorites, settings }
 
 class HomeScreen extends StatefulWidget {
-  const HomeScreen({super.key});
-
+  const HomeScreen({super.key, this.startRemoteServer = true});
+  final bool startRemoteServer;
   @override
-  _HomeScreenState createState() => _HomeScreenState();
+  State<HomeScreen> createState() => _HomeScreenState();
 }
 
 class _HomeScreenState extends State<HomeScreen> {
-  final GlobalKey<ScaffoldState> _scaffoldKey = GlobalKey<ScaffoldState>();
-  String _version = 'Loading...';
-
+  AppSection _section = AppSection.home;
+  final _search = TextEditingController();
+  final _favoritesSearch = TextEditingController();
+  final _storage = PageStorageBucket();
+  Timer? _timer;
+  DateTime _now = DateTime.now();
+  Channel? _selected;
   @override
   void initState() {
     super.initState();
-    _loadVersion();
-
-    // 数据已在启动屏加载，这里只需启动远程输入服务
-    final globalProvider = Provider.of<GlobalProvider>(context, listen: false);
-    WidgetsBinding.instance.addPostFrameCallback((_) async {
-      if (!globalProvider.isMobile) {
-        try {
-          await Provider.of<RemoteProvider>(context, listen: false)
-              .startServer(serviceName: 'XPlayer TV');
-        } catch (_) {}
+    _timer = Timer.periodic(const Duration(minutes: 1), (_) {
+      if (mounted) setState(() => _now = DateTime.now());
+    });
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!mounted || !widget.startRemoteServer) return;
+      final g = context.read<GlobalProvider>();
+      final platform = Theme.of(context).platform;
+      if (g.isTV ||
+          ![TargetPlatform.android, TargetPlatform.iOS].contains(platform)) {
+        context
+            .read<RemoteProvider>()
+            .startServer(serviceName: 'XPlayer')
+            .catchError((_) {});
       }
     });
-  }
-
-  Future<void> _loadVersion() async {
-    try {
-      final packageInfo = await PackageInfo.fromPlatform();
-      setState(() {
-        _version = '${packageInfo.version}+${packageInfo.buildNumber}';
-      });
-    } catch (e) {
-      setState(() {
-        _version = 'Unknown';
-      });
-    }
   }
 
   @override
   void didChangeDependencies() {
     super.didChangeDependencies();
-    final mediaProvider = Provider.of<MediaProvider>(context, listen: false);
-    final localizations = AppLocalizations.of(context)!;
-    mediaProvider.setLocalizations(localizations);
+    context.read<MediaProvider>().setLocalizations(
+      AppLocalizations.of(context)!,
+    );
   }
 
-  // 添加播放列表弹窗
-  void _showAddDialog(BuildContext context) {
-    final mediaProvider = Provider.of<MediaProvider>(context, listen: false);
-    final localizations = AppLocalizations.of(context)!;
+  @override
+  void dispose() {
+    _timer?.cancel();
+    _search.dispose();
+    _favoritesSearch.dispose();
+    super.dispose();
+  }
 
-    showDialog(
+  String _label(AppSection section) {
+    final l = AppLocalizations.of(context)!;
+    return switch (section) {
+      AppSection.home => '首页',
+      AppSection.channels => l.allChannels,
+      AppSection.guide => l.epg,
+      AppSection.favorites => l.favorites,
+      AppSection.settings => l.settings,
+    };
+  }
+
+  XpSymbol _icon(AppSection section) => switch (section) {
+    AppSection.home => XpSymbol.home,
+    AppSection.channels => XpSymbol.channels,
+    AppSection.guide => XpSymbol.guide,
+    AppSection.favorites => XpSymbol.heart,
+    AppSection.settings => XpSymbol.settings,
+  };
+  void _select(AppSection section) => setState(() {
+    _section = section;
+    _selected = null;
+  });
+  Future<void> _back() async {
+    if (_selected != null) {
+      setState(() => _selected = null);
+      return;
+    }
+    if (_section != AppSection.home) {
+      _select(AppSection.home);
+      return;
+    }
+    final confirmed = await showDialog<bool>(
       context: context,
-      builder: (BuildContext context2) {
-        return PlaylistDialog(
-          isNew: true,
-          onSuccess: (Playlist playlist) async {
-            final id = playlist.id!;
+      builder: (ctx) => XpConfirmDialog(
+        title: AppLocalizations.of(context)!.exitAppTitle,
+        confirmLabel: AppLocalizations.of(context)!.exit,
+        child: Text(AppLocalizations.of(context)!.exitAppMessage),
+        onConfirm: () => Navigator.pop(ctx, true),
+        onCancel: () => Navigator.pop(ctx, false),
+      ),
+    );
+    if (confirmed == true) await SystemNavigator.pop();
+  }
 
-            if (id != '-1') {
-              showToast(localizations.updatingChannels);
-            }
+  void _resumeMini() {
+    final mini = context.read<MiniPlayerController>();
+    if (!mini.hasMini || mini.channel == null) return;
+    final channel = mini.channel!, favorites = mini.favorites;
+    mini.take();
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (_) =>
+            PlayerScreen(channel: channel, favoriteChannels: favorites),
+      ),
+    );
+  }
 
-            final prefs = await SharedPreferences.getInstance();
-            prefs.setString('lastSelectedPlaylistId', id.toString());
+  Future<void> _chooseSource() async {
+    final media = context.read<MediaProvider>();
+    final id = await showDialog<int>(
+      context: context,
+      builder: (ctx) => SimpleDialog(
+        title: const Text('选择播放列表'),
+        children: [
+          SimpleDialogOption(
+            onPressed: () => Navigator.pop(ctx, -1),
+            child: Padding(
+              padding: const EdgeInsets.all(12),
+              child: Text('收藏 · ${media.favoriteChannels.length} 个频道'),
+            ),
+          ),
+          for (final list in media.playlists)
+            SimpleDialogOption(
+              onPressed: () => Navigator.pop(ctx, list.id),
+              child: Padding(
+                padding: const EdgeInsets.all(12),
+                child: Text(list.name),
+              ),
+            ),
+        ],
+      ),
+    );
+    if (id != null) {
+      await media.updateCurrentPlaylist(id);
+      if (mounted) {
+        _search.text = media.searchQuery;
+        setState(() => _selected = null);
+      }
+    }
+  }
 
-            await mediaProvider.fetchPlaylists();
-            await mediaProvider.updateCurrentPlaylist(id);
-            hideToast();
+  Future<void> _configureEpg() async {
+    final media = context.read<MediaProvider>();
+    if (media.currentPlaylistId == -1) {
+      await Navigator.pushNamed(context, '/playlists');
+    } else {
+      await AppActions.editPlaylist(context, playlist: media.currentPlaylist);
+    }
+  }
+
+  Future<void> _detail(Channel channel, bool inline) async {
+    if (inline) {
+      setState(() => _selected = channel);
+      return;
+    }
+    await showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      showDragHandle: true,
+      builder: (ctx) => SafeArea(
+        child: ConstrainedBox(
+          constraints: BoxConstraints(
+            maxHeight: MediaQuery.sizeOf(ctx).height * .8,
+          ),
+          child: SingleChildScrollView(
+            padding: const EdgeInsets.all(24),
+            child: _channelDetail(channel),
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _channelDetail(Channel channel) {
+    final media = context.watch<MediaProvider>();
+    final presentation = MediaPresentation(media, now: _now, allSources: true);
+    final programmes = presentation.index
+        .forChannel(channel.id)
+        .where((p) => p.stop.isAfter(_now))
+        .take(6)
+        .toList();
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        XpChannelIdentity(channel: presentation.channel(channel)),
+        const SizedBox(height: 22),
+        XpButton(
+          label: '观看频道直播',
+          icon: XpSymbol.play,
+          onPressed: () => AppActions.play(context, channel),
+        ),
+        const SizedBox(height: 18),
+        Text(
+          '${channel.source.length} 个播放源',
+          style: TextStyle(color: XpTheme.of(context).palette.muted),
+        ),
+        const SizedBox(height: 22),
+        if (programmes.isEmpty)
+          const XpNotice(title: '暂无当前节目信息', description: '频道直播不受节目单影响。')
+        else
+          ...programmes.map(
+            (programme) => Padding(
+              padding: const EdgeInsets.only(bottom: 10),
+              child: SizedBox(
+                height: 110,
+                child: XpProgrammeBlock(
+                  programme: presentProgramme(programme),
+                  now: _now,
+                ),
+              ),
+            ),
+          ),
+      ],
+    );
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final media = context.watch<MediaProvider>();
+    final isTv = context.watch<GlobalProvider>().isTV;
+    final p = XpTheme.of(context).palette;
+    return LayoutBuilder(
+      builder: (context, box) {
+        final layout = AppLayout(
+          width: box.maxWidth,
+          isTv: isTv,
+          platform: Theme.of(context).platform,
+        );
+        return CallbackShortcuts(
+          bindings: {
+            const SingleActivator(LogicalKeyboardKey.contextMenu): _resumeMini,
+            const SingleActivator(LogicalKeyboardKey.escape): _back,
           },
+          child: PopScope(
+            canPop: false,
+            onPopInvokedWithResult: (didPop, _) {
+              if (!didPop) _back();
+            },
+            child: Scaffold(
+              backgroundColor: p.background,
+              bottomNavigationBar: layout.useBottomNavigation
+                  ? SafeArea(
+                      top: false,
+                      child: Container(
+                        decoration: BoxDecoration(
+                          color: p.background,
+                          border: Border(top: BorderSide(color: p.border)),
+                        ),
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 4,
+                          vertical: 6,
+                        ),
+                        child: Row(
+                          children: [
+                            for (final section in AppSection.values)
+                              Expanded(
+                                child: XpNavigationItem(
+                                  key: ValueKey('nav-${section.name}'),
+                                  label: section == AppSection.channels
+                                      ? '频道'
+                                      : _label(section),
+                                  icon: _icon(section),
+                                  selected: _section == section,
+                                  collapsed: true,
+                                  onPressed: () => _select(section),
+                                ),
+                              ),
+                          ],
+                        ),
+                      ),
+                    )
+                  : null,
+              body: SafeArea(
+                bottom: !layout.useBottomNavigation,
+                child: Row(
+                  children: [
+                    if (!layout.useBottomNavigation)
+                      SizedBox(
+                        width: layout.navigationWidth,
+                        child: Container(
+                          decoration: BoxDecoration(
+                            border: Border(right: BorderSide(color: p.border)),
+                          ),
+                          padding: EdgeInsets.symmetric(
+                            horizontal: layout.expandedNavigation ? 18 : 6,
+                            vertical: 28,
+                          ),
+                          child: FocusTraversalGroup(
+                            child: SingleChildScrollView(
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.stretch,
+                                children: [
+                                  Padding(
+                                    padding: const EdgeInsets.only(bottom: 34),
+                                    child: Text(
+                                      layout.expandedNavigation
+                                          ? 'XPlayer'
+                                          : 'XP',
+                                      textAlign: TextAlign.center,
+                                      style: TextStyle(
+                                        fontSize: isTv ? 34 : 28,
+                                        fontWeight: FontWeight.w600,
+                                        letterSpacing: -1,
+                                      ),
+                                    ),
+                                  ),
+                                  for (final section in AppSection.values)
+                                    Padding(
+                                      padding: const EdgeInsets.only(bottom: 8),
+                                      child: XpNavigationItem(
+                                        key: ValueKey('nav-${section.name}'),
+                                        autofocus:
+                                            isTv && section == AppSection.home,
+                                        label:
+                                            !layout.expandedNavigation &&
+                                                section == AppSection.channels
+                                            ? '频道'
+                                            : _label(section),
+                                        icon: _icon(section),
+                                        selected: _section == section,
+                                        collapsed: !layout.expandedNavigation,
+                                        onPressed: () => _select(section),
+                                      ),
+                                    ),
+                                  const SizedBox(height: 28),
+                                  XpNavigationItem(
+                                    label: '播放列表',
+                                    icon: XpSymbol.sources,
+                                    collapsed: !layout.expandedNavigation,
+                                    onPressed: () => Navigator.pushNamed(
+                                      context,
+                                      '/playlists',
+                                    ),
+                                  ),
+                                  if (layout.expandedNavigation)
+                                    Padding(
+                                      padding: const EdgeInsets.only(
+                                        top: 24,
+                                        left: 14,
+                                      ),
+                                      child: Text(
+                                        '${media.channels.length} 个频道 · ${isTv ? '遥控模式' : '随时发现，安心观看'}',
+                                        style: TextStyle(
+                                          color: p.muted,
+                                          fontSize: 12,
+                                        ),
+                                      ),
+                                    ),
+                                ],
+                              ),
+                            ),
+                          ),
+                        ),
+                      ),
+                    Expanded(
+                      child: Column(
+                        children: [
+                          Padding(
+                            padding: EdgeInsets.symmetric(
+                              horizontal: layout.padding,
+                              vertical: 16,
+                            ),
+                            child: Row(
+                              children: [
+                                Expanded(
+                                  child: Column(
+                                    crossAxisAlignment:
+                                        CrossAxisAlignment.start,
+                                    children: [
+                                      if (!layout.compact)
+                                        Padding(
+                                          padding: const EdgeInsets.only(
+                                            bottom: 5,
+                                          ),
+                                          child: Text(
+                                            'XPLAYER / ${_label(_section)}',
+                                            style: TextStyle(
+                                              color: p.quiet,
+                                              fontSize: 10,
+                                              letterSpacing: 1.8,
+                                            ),
+                                          ),
+                                        ),
+                                      Text(
+                                        _label(_section),
+                                        style: TextStyle(
+                                          fontSize: isTv ? 32 : 24,
+                                          fontWeight: FontWeight.w500,
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                ),
+                                XpIconButton(
+                                  icon: XpSymbol.sources,
+                                  label: '管理播放列表',
+                                  onPressed: () => Navigator.pushNamed(
+                                    context,
+                                    '/playlists',
+                                  ),
+                                ),
+                                XpIconButton(
+                                  icon: XpSymbol.plus,
+                                  label: '添加播放列表',
+                                  onPressed: () =>
+                                      AppActions.editPlaylist(context),
+                                ),
+                              ],
+                            ),
+                          ),
+                          Divider(height: 1, color: p.border),
+                          Expanded(
+                            child: PageStorage(
+                              bucket: _storage,
+                              child: IndexedStack(
+                                index: _section.index,
+                                children: [
+                                  _overview(media, layout),
+                                  _channels(media, layout),
+                                  EpgScreen(
+                                    embedded: true,
+                                    onWatchChannels: () =>
+                                        _select(AppSection.channels),
+                                    onConfigure: _configureEpg,
+                                  ),
+                                  _channels(media, layout, favorites: true),
+                                  const SettingsScreen(),
+                                ],
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+          ),
         );
       },
     );
   }
 
-  void _showPresetSources(BuildContext context) {
-    showDialog(
-      context: context,
-      builder: (_) => const PresetSourceDialog(),
+  Widget _empty(MediaProvider media, {bool favorites = false}) {
+    if (media.isRefreshingChannels && media.channels.isEmpty && !favorites) {
+      return XpEmptyState(
+        title: '正在载入频道',
+        description: '正在读取你的播放列表。',
+        icon: XpSymbol.channels,
+        loading: true,
+        secondaryLabel: '管理播放列表',
+        onSecondary: () => Navigator.pushNamed(context, '/playlists'),
+      );
+    }
+    if (favorites) {
+      return XpEmptyState(
+        title: '把喜欢的频道留在这里',
+        description: '点击频道卡片上的收藏按钮，下次更快找到。',
+        icon: XpSymbol.heart,
+        actionLabel: '浏览频道',
+        onAction: () => _select(AppSection.channels),
+      );
+    }
+    final error = media.playlistError(media.currentPlaylistId);
+    return XpEmptyState(
+      title: error != null ? '频道列表暂时获取失败' : '添加一个频道来源',
+      description: error != null ? '检查列表地址或网络连接后重试。' : '导入 M3U 地址或本地文件，开始观看。',
+      icon: XpSymbol.sources,
+      actionLabel: error != null ? '重试加载' : '添加播放列表',
+      onAction: error != null
+          ? media.refreshChannels
+          : () => AppActions.editPlaylist(context),
+      secondaryLabel: !kStoreBuild ? '推荐来源' : '管理播放列表',
+      onSecondary: !kStoreBuild
+          ? () => showDialog(
+              context: context,
+              builder: (_) => const PresetSourceDialog(),
+            )
+          : () => Navigator.pushNamed(context, '/playlists'),
     );
   }
 
-  void _showSearchDialog(BuildContext context) {
-    showDialog(
-      context: context,
-      builder: (_) => const ChannelSearchDialog(),
-    );
-  }
-
-  void _showGroupDialog(BuildContext context) {
-    showDialog(
-      context: context,
-      builder: (_) => const ChannelGroupDialog(),
-    );
-  }
-
-  /// 「启动时自动更新」弹窗:分别开关 刷新频道 / 刷新节目单。
-  void _showAutoRefreshDialog(BuildContext context) {
-    showDialog(
-      context: context,
-      builder: (_) => const AutoRefreshDialog(),
-    );
-  }
-
-  void _showSizeDialog(BuildContext context) {
-    showDialog(
-      context: context,
-      builder: (_) => const ChannelSizeDialog(),
-    );
-  }
-
-  /// 右上角筛选入口图标;[active] 为 true 时右上角叠加一个选中红点。
-  Widget _filterIcon(
-    BuildContext context, {
-    required IconData icon,
-    required String tooltip,
-    required bool active,
-    required VoidCallback onPressed,
-  }) {
-    final button = XIconButton(
-      icon: icon,
-      hoverBgOnly: true,
-      tooltipMessage: tooltip,
-      onPressed: onPressed,
-    );
-    if (!active) return button;
-    return Stack(
-      clipBehavior: Clip.none,
-      children: [
-        button,
-        Positioned(
-          right: 6,
-          top: 6,
-          child: IgnorePointer(
-            child: Container(
-              width: 9,
-              height: 9,
-              decoration: BoxDecoration(
-                color: AppTokens.brand,
-                shape: BoxShape.circle,
-                border: Border.all(
-                    color: Colors.black.withOpacity(0.45), width: 1),
+  Widget _card(
+    Channel channel,
+    MediaPresentation presentation, {
+    bool inline = false,
+  }) => XpChannelCard(
+    key: ValueKey('channel-${channel.id}'),
+    channel: presentation.channel(channel),
+    now: _now,
+    epgStatus: presentation.channelStatus(channel),
+    favourite: presentation.media.favoriteChannels.any(
+      (c) => c.id == channel.id,
+    ),
+    onFavouriteChanged: (_) => AppActions.favorite(context, channel),
+    onPlay: () => AppActions.play(context, channel),
+    onDetails: () => _detail(channel, inline),
+  );
+  Widget _overview(MediaProvider media, AppLayout layout) {
+    if (media.channels.isEmpty) return _empty(media);
+    final presentation = MediaPresentation(media, now: _now);
+    final ids = media.channels.map((c) => c.id).toSet();
+    final recent = media.recentChannels
+        .where((c) => ids.contains(c.id))
+        .toList();
+    final featured =
+        recent.firstOrNull ??
+        media.channels.firstWhere(
+          (c) => presentation.index.current(c.id, _now) != null,
+          orElse: () => media.channels.firstWhere(
+            (c) => c.logo?.isNotEmpty ?? false,
+            orElse: () => media.channels.first,
+          ),
+        );
+    final favourites = media.favoriteChannels
+        .where((c) => ids.contains(c.id))
+        .toList();
+    return CustomScrollView(
+      key: const PageStorageKey('home-scroll'),
+      slivers: [
+        SliverPadding(
+          padding: EdgeInsets.all(layout.padding),
+          sliver: SliverList.list(
+            children: [
+              Row(
+                children: [
+                  Expanded(
+                    child: Text(
+                      media.currentPlaylist.name,
+                      style: TextStyle(
+                        color: XpTheme.of(context).palette.muted,
+                      ),
+                    ),
+                  ),
+                  XpButton(
+                    label: '切换列表',
+                    onPressed: _chooseSource,
+                    variant: XpButtonVariant.ghost,
+                  ),
+                ],
               ),
-            ),
+              const SizedBox(height: 12),
+              XpFeaturedChannel(
+                compact: layout.isTv && MediaQuery.sizeOf(context).height < 700,
+                channel: presentation.channel(featured),
+                now: _now,
+                epgStatus: presentation.channelStatus(featured),
+                favourite: media.favoriteChannels.any(
+                  (c) => c.id == featured.id,
+                ),
+                onFavouriteChanged: (_) =>
+                    AppActions.favorite(context, featured),
+                onPlay: () => AppActions.play(context, featured),
+                onDetails: () => _detail(featured, false),
+              ),
+              const SizedBox(height: 28),
+              ValueListenableBuilder<bool>(
+                valueListenable: showRecentModule,
+                builder: (_, show, __) => !show || recent.isEmpty
+                    ? const SizedBox.shrink()
+                    : _channelRow('最近播放', recent, presentation, layout),
+              ),
+              ValueListenableBuilder<bool>(
+                valueListenable: showFavoritesRow,
+                builder: (_, show, __) => !show || favourites.isEmpty
+                    ? const SizedBox.shrink()
+                    : _channelRow('收藏频道', favourites, presentation, layout),
+              ),
+              XpSectionHeading(
+                title: '正在直播',
+                actionLabel: '全部频道',
+                onAction: () => _select(AppSection.channels),
+              ),
+              const SizedBox(height: 16),
+            ],
           ),
         ),
+        _grid(
+          media.channels.take(layout.device == XpDevice.phone ? 4 : 8).toList(),
+          presentation,
+          layout,
+        ),
+        const SliverToBoxAdapter(child: SizedBox(height: 28)),
       ],
     );
   }
 
-  void _showLanguageSwitcher(
-    BuildContext context,
-    LocaleProvider localeProvider,
-  ) {
-    List<Map<String, dynamic>> languageItems = [
-      {'label': '中文', 'value': 'zh'},
-      {'label': 'English', 'value': 'en'},
-    ];
-
-    DialogUtils.showOptionsDialog(
-      context,
-      options: languageItems,
-      onOptionSelected: (Map<String, dynamic> selectedOption) {
-        final newValue = selectedOption['value'] as String;
-        if (newValue == 'zh') {
-          localeProvider.setLocale(const Locale('zh', ''));
-        } else {
-          localeProvider.setLocale(const Locale('en', ''));
-        }
-      },
-      currentId: localeProvider.locale.languageCode,
-      title: AppLocalizations.of(context)!.selectLanguage,
-      cancelButtonText: AppLocalizations.of(context)!.cancel,
-    );
-  }
-
-  ChildCallback animeContainer(Widget child) {
-    final theme = Theme.of(context);
-
-    return (isFocused) {
-      return isFocused
-          ? Container(color: theme.primaryColor, child: child)
-          : child;
-    };
-  }
-
-  /// 返回键退出二次确认(App 与 TV 共用系统返回键)。
-  /// 抽屉打开时优先关抽屉,不弹退出框。
-  Future<bool> _confirmExit(BuildContext context) async {
-    final l = AppLocalizations.of(context)!;
-    final result = await showDialog<bool>(
-      context: context,
-      builder: (ctx) => AlertDialog(
-        backgroundColor: AppTokens.surfacePanel,
-        title: Text(l.exitAppTitle,
-            style: const TextStyle(color: AppTokens.textPrimary)),
-        content: Text(l.exitAppMessage,
-            style: const TextStyle(color: AppTokens.textSecondary)),
-        actions: [
-          XTextButton(
-            text: l.cancel,
-            onPressed: () => Navigator.of(ctx).pop(false),
-          ),
-          XTextButton(
-            text: l.exit,
-            type: XTextButtonType.danger,
-            onPressed: () => Navigator.of(ctx).pop(true),
-          ),
-        ],
-      ),
-    );
-    return result ?? false;
-  }
-
-  /// 抽屉分组标题。
-  Widget _drawerSectionHeader(String title) => Padding(
-        padding: const EdgeInsets.fromLTRB(16, 16, 16, 4),
-        child: Text(
-          title.toUpperCase(),
-          style: const TextStyle(
-              color: Colors.white38,
-              fontSize: 11,
-              fontWeight: FontWeight.w600,
-              letterSpacing: 1.0),
-        ),
-      );
-
-  /// 菜单键:若有小窗续播,回到该频道全屏(复用小窗后端,不重连)。
-  /// TV 遥控器够不到悬浮小窗(浮层在路由焦点域之外),用菜单键作为"回到在播"入口;
-  /// 返回键则回归本职(退出),不再被拦截。
-  void _resumeMini(BuildContext context) {
-    final mini = Provider.of<MiniPlayerController>(context, listen: false);
-    if (!mini.hasMini) return;
-    final ch = mini.channel;
-    final favs = mini.favorites;
-    if (ch == null) return;
-    mini.take();
-    Navigator.of(context).push(MaterialPageRoute(
-      builder: (_) => PlayerScreen(channel: ch, favoriteChannels: favs),
-    ));
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    return CallbackShortcuts(
-      bindings: {
-        // 菜单键 → 回到正在小窗续播的频道(不占用返回键)
-        const SingleActivator(LogicalKeyboardKey.contextMenu): () =>
-            _resumeMini(context),
-      },
-      child: PopScope(
-        canPop: false,
-        onPopInvokedWithResult: (didPop, result) async {
-          if (didPop) return;
-          // 抽屉开着先关抽屉
-          final scaffold = _scaffoldKey.currentState;
-          if (scaffold != null && scaffold.isDrawerOpen) {
-            scaffold.closeDrawer();
+  Widget _channelRow(
+    String title,
+    List<Channel> channels,
+    MediaPresentation presentation,
+    AppLayout layout,
+  ) => Column(
+    crossAxisAlignment: CrossAxisAlignment.stretch,
+    children: [
+      XpSectionHeading(
+        title: title,
+        actionLabel: title == '最近播放' ? '清空记录' : '全部收藏',
+        onAction: () async {
+          if (title != '最近播放') {
+            _select(AppSection.favorites);
             return;
           }
-          if (await _confirmExit(context)) {
-            await SystemNavigator.pop();
-          }
+          final confirmed = await showDialog<bool>(
+            context: context,
+            builder: (ctx) => XpConfirmDialog(
+              title: '清空播放记录？',
+              confirmLabel: '确认清空',
+              child: const Text('这不会影响你的播放列表和收藏。'),
+              onConfirm: () => Navigator.pop(ctx, true),
+              onCancel: () => Navigator.pop(ctx, false),
+            ),
+          );
+          if (confirmed == true) await presentation.media.clearRecent();
         },
-        child: _buildHome(context),
       ),
+      const SizedBox(height: 16),
+      SizedBox(
+        height: layout.isTv ? 425 : 365,
+        child: ListView.separated(
+          scrollDirection: Axis.horizontal,
+          itemCount: channels.length.clamp(0, 12),
+          separatorBuilder: (_, __) => const SizedBox(width: 16),
+          itemBuilder: (_, i) => SizedBox(
+            width: layout.isTv ? 360 : 270,
+            child: _card(channels[i], presentation),
+          ),
+        ),
+      ),
+      const SizedBox(height: 20),
+    ],
+  );
+  Widget _channels(
+    MediaProvider media,
+    AppLayout layout, {
+    bool favorites = false,
+  }) {
+    final presentation = MediaPresentation(
+      media,
+      now: _now,
+      allSources: favorites,
     );
-  }
-
-  Widget _buildHome(BuildContext context) {
-    final localeProvider = Provider.of<LocaleProvider>(context, listen: false);
-    final localizations = AppLocalizations.of(context)!;
-
-    return BgWrapper(
-      child: Scaffold(
-        // 背景由 BgWrapper 统一提供(单层遮罩);此处透明,避免二次叠加导致背景过暗/消失
-        backgroundColor: Colors.transparent,
-        key: _scaffoldKey,
-        appBar: AppBar(
-          leading: XIconButton(
-            icon: Icons.menu,
-            hoverBgOnly: true,
-            onPressed: () {
-              _scaffoldKey.currentState?.openDrawer();
-            },
-          ),
-          automaticallyImplyLeading: false, // 确保不会添加默认的返回按钮
-          title: Consumer<MediaProvider>(
-            builder: (context, mediaProvider, _) {
-              if (mediaProvider.isTesting) {
-                return Text(
-                  '${localizations.testing}: ${mediaProvider.testProgressText}',
-                  style: const TextStyle(color: Colors.white, fontSize: 14),
-                );
-              }
-              return const Text('');
-            },
-          ),
-          elevation: 0, // 移除阴影
-          backgroundColor: Colors.transparent, // 使背景透明
-          actions: [
-            // 搜索 / 分组:独立入口(有频道时才显示;显示大小已移到侧边栏)
-            Consumer<MediaProvider>(
-              builder: (context, mp, _) {
-                if (mp.channels.isEmpty) return const SizedBox.shrink();
-                final hasGroups = mp.availableGroups.isNotEmpty;
-                final groupActive = mp.selectedGroup != null &&
-                    mp.selectedGroup!.isNotEmpty;
-                return Row(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    _filterIcon(
-                      context,
-                      icon: Icons.search,
-                      tooltip: localizations.search,
-                      active: mp.searchQuery.isNotEmpty,
-                      onPressed: () => _showSearchDialog(context),
-                    ),
-                    if (hasGroups)
-                      _filterIcon(
-                        context,
-                        icon: Icons.filter_list,
-                        tooltip: localizations.groups,
-                        active: groupActive,
-                        onPressed: () => _showGroupDialog(context),
-                      ),
-                    // 测速后才出现:隐藏无法播放的频道(可恢复)
-                    if (mp.hasTestResults)
-                      _filterIcon(
-                        context,
-                        icon: Icons.playlist_remove,
-                        tooltip: localizations.hideUnplayable,
-                        active: mp.hideUnplayable,
-                        onPressed: () =>
-                            mp.setHideUnplayable(!mp.hideUnplayable),
-                      ),
-                  ],
-                );
-              },
-            ),
-            Consumer<MediaProvider>(
-              builder: (context, mediaProvider, _) {
-                if (mediaProvider.isTesting) {
-                  // 测试中显示取消按钮
-                  return XIconButton(
-                    icon: Icons.cancel,
-                    hoverBgOnly: true,
-                    tooltipMessage: localizations.cancel,
-                    onPressed: () {
-                      mediaProvider.cancelTest();
-                      showToast(localizations.testCancelled);
-                    },
-                  );
-                } else {
-                  // 未测试显示测试按钮
-                  return XIconButton(
-                    icon: Icons.speed,
-                    hoverBgOnly: true,
-                    tooltipMessage: localizations.testChannels,
-                    onPressed: () async {
-                      try {
-                        showToast(localizations.testingChannels);
-                        await mediaProvider.testAllChannels();
-                        showToast(localizations.testCompleted);
-                      } catch (e) {
-                        showToast(localizations.testFailed(e.toString()));
-                      }
-                    },
-                  );
-                }
-              },
-            ),
-          ],
-        ),
-        drawer: Drawer(
-          backgroundColor: const Color.fromRGBO(34, 34, 34, 1),
-          child: SafeArea(
-            child: ListView(
-              padding: EdgeInsets.zero,
-              children: <Widget>[
-                // 顶部品牌头:logo + 名称 + 版本
-                Padding(
-                  padding: const EdgeInsets.fromLTRB(16, 20, 16, 12),
-                  child: Row(
-                    children: [
-                      ClipRRect(
-                        borderRadius: BorderRadius.circular(8),
-                        child: Image.asset(
-                          'assets/images/mini-logo.png',
-                          width: 40,
-                          height: 40,
-                          fit: BoxFit.cover,
-                        ),
-                      ),
-                      const SizedBox(width: 12),
-                      Expanded(
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            const Text(
-                              'XPlayer',
-                              style: TextStyle(
-                                color: Colors.white,
-                                fontSize: 20,
-                                fontWeight: FontWeight.w600,
-                              ),
-                            ),
-                            Text(
-                              _version,
-                              style: const TextStyle(
-                                color: Colors.white54,
-                                fontSize: 12,
-                              ),
-                            ),
-                          ],
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-                const Divider(color: Colors.white24, height: 1),
-                _drawerSectionHeader('源与节目单'),
-                Consumer<MediaProvider>(
-                  builder: (BuildContext context2, mediaProvider, _) {
-                    final playlist = [
-                      Playlist(name: localizations.favorites, url: '', id: -1),
-                      ...mediaProvider.playlists,
-                    ];
-
-                    return XBaseButton(
-                      child: animeContainer(
-                        ListTile(
-                          leading: const Icon(
-                            Icons.playlist_play,
-                            color: Colors.white,
-                          ),
-                          title: Text(
-                            mediaProvider.currentPlaylistId == -1
-                                ? localizations.favorites
-                                : mediaProvider.currentPlaylist.name,
-                            style: const TextStyle(color: Colors.white),
-                          ),
-                        ),
-                      ),
-                      onPressed: () {
-                        Navigator.of(context).pop();
-                        DialogUtils.showOptionsDialog(
-                          context,
-                          options: playlist
-                              .map(
-                                (playlist) => {
-                                  'label': playlist.name,
-                                  'value': playlist.id.toString(),
-                                },
-                              )
-                              .toList(),
-                          onOptionSelected: (
-                            Map<String, dynamic> selectedOption,
-                          ) async {
-                            final id = selectedOption['value'];
-                            if (id != '-1') {
-                              showToast(localizations.updatingChannels);
-                            }
-
-                            final prefs = await SharedPreferences.getInstance();
-                            prefs.setString('lastSelectedPlaylistId', id);
-
-                            await mediaProvider.updateCurrentPlaylist(
-                              int.parse(id),
-                            );
-                          },
-                          currentId: mediaProvider.currentPlaylistId.toString(),
-                          title: localizations.selectPlaylist,
-                          cancelButtonText: localizations.cancel,
-                        );
-                      },
-                    );
-                  },
-                ),
-                XBaseButton(
-                  onPressed: () {
-                    Navigator.push(
-                      context,
-                      MaterialPageRoute(
-                        builder: (context) => const PlaylistListScreen(),
-                      ),
-                    );
-                  },
-                  child: animeContainer(
-                    ListTile(
-                      leading: const Icon(
-                        Icons.play_arrow,
-                        color: Colors.white,
-                      ),
-                      title: Text(
-                        localizations.playlist,
-                        style: const TextStyle(color: Colors.white),
-                      ),
-                    ),
-                  ),
-                ),
-                XBaseButton(
-                  child: animeContainer(
-                    ListTile(
-                      leading: const Icon(Icons.refresh, color: Colors.white),
-                      title: Text(
-                        localizations.refreshChannels,
-                        style: const TextStyle(color: Colors.white),
-                      ),
-                    ),
-                  ),
-                  onPressed: () async {
-                    Navigator.of(context).pop();
-                    try {
-                      showToast(localizations.updatingChannels);
-                      final mediaProvider = Provider.of<MediaProvider>(
-                        context,
-                        listen: false,
-                      );
-                      await mediaProvider.refreshChannels();
-                      showToast(localizations.channelsUpdatedSuccessfully);
-                    } catch (e, s) {
-                      Logger.error('刷新频道失败: $e', e, s);
-                      showToast(
-                        localizations.channelsUpdateFailed(e.toString()),
-                      );
-                    }
-                  },
-                ),
-                XBaseButton(
-                  child: animeContainer(
-                    ListTile(
-                      leading: const Icon(Icons.calendar_view_day,
-                          color: Colors.white),
-                      title: Text(
-                        localizations.epg,
-                        style: const TextStyle(color: Colors.white),
-                      ),
-                    ),
-                  ),
-                  onPressed: () {
-                    Navigator.of(context).pop();
-                    Navigator.of(context).push(
-                      MaterialPageRoute(builder: (_) => const EpgScreen()),
-                    );
-                  },
-                ),
-                XBaseButton(
-                  child: animeContainer(
-                    ListTile(
-                      leading: const Icon(
-                        Icons.event_note,
-                        color: Colors.white,
-                      ),
-                      title: Text(
-                        localizations.refreshProgrammes,
-                        style: const TextStyle(color: Colors.white),
-                      ),
-                    ),
-                  ),
-                  onPressed: () async {
-                    Navigator.of(context).pop();
-                    try {
-                      final mediaProvider = Provider.of<MediaProvider>(
-                        context,
-                        listen: false,
-                      );
-                      await mediaProvider.refreshProgrammes();
-                      showToast(localizations.programmesUpdatedSuccessfully);
-                    } catch (e, s) {
-                      Logger.error('刷新节目单失败: $e', e, s);
-                      showToast(
-                        localizations.programmesUpdateFailed(e.toString()),
-                      );
-                    }
-                  },
-                ),
-                if (!kStoreBuild)
-                XBaseButton(
-                  onPressed: () {
-                    Navigator.of(context).pop();
-                    _showPresetSources(context);
-                  },
-                  child: animeContainer(
-                    ListTile(
-                      leading:
-                          const Icon(Icons.recommend, color: Colors.white),
-                      title: Text(
-                        localizations.recommendedSources,
-                        style: const TextStyle(color: Colors.white),
-                      ),
-                    ),
-                  ),
-                ),
-                XBaseButton(
-                  onPressed: () {
-                    Navigator.of(context).pop();
-                    _showAutoRefreshDialog(context);
-                  },
-                  child: animeContainer(
-                    ListTile(
-                      leading:
-                          const Icon(Icons.autorenew, color: Colors.white),
-                      title: Text(
-                        localizations.autoRefreshOnLaunch,
-                        style: const TextStyle(color: Colors.white),
-                      ),
-                    ),
-                  ),
-                ),
-                _drawerSectionHeader('播放'),
-                // 渲染模式开关:SurfaceView(platformView)/ 纹理。仅非 Android 显示 ——
-                // Android 的清晰度走「播放引擎=原生」(见下),且全局透明下 platformView 会卡;
-                // iOS/macOS(avfoundation 支持 platformView)保留此选项。
-                if (!Platform.isAndroid)
-                  ValueListenableBuilder<bool>(
-                    valueListenable: useSurfaceView,
-                    builder: (_, surface, __) => ListTile(
-                      leading: const Icon(Icons.hd, color: Colors.white),
-                      title: Text(
-                        '${localizations.renderMode}: ${surface ? "SurfaceView" : "Texture"}',
-                        style: const TextStyle(color: Colors.white),
-                      ),
-                      subtitle: Text(
-                        localizations.renderModeHint,
-                        style: const TextStyle(
-                            color: Colors.white54, fontSize: 11),
-                      ),
-                      trailing: Switch(
-                        value: surface,
-                        onChanged: (v) => setUseSurfaceView(v),
-                      ),
-                    ),
-                  ),
-                // 播放引擎开关:原生(SurfaceView,硬件 VPP)/ video_player。仅 Android。
-                if (Platform.isAndroid)
-                  ValueListenableBuilder<bool>(
-                    valueListenable: useNativeEngine,
-                    builder: (_, on, __) => ListTile(
-                      leading: const Icon(Icons.memory, color: Colors.white),
-                      title: Text(
-                        localizations.playerEngine,
-                        style: const TextStyle(color: Colors.white),
-                      ),
-                      subtitle: Text(
-                        on
-                            ? localizations.playerEngineNative
-                            : localizations.playerEngineVideoPlayer,
-                        style: const TextStyle(
-                            color: Colors.white54, fontSize: 11),
-                      ),
-                      trailing: Switch(
-                        value: on,
-                        onChanged: (v) => setUseNativeEngine(v),
-                      ),
-                    ),
-                  ),
-                // 返回首页小窗续播开关(全平台)
-                ValueListenableBuilder<bool>(
-                  valueListenable: miniPlayerOnExit,
-                  builder: (_, on, __) => ListTile(
-                    leading: const Icon(Icons.picture_in_picture_alt,
-                        color: Colors.white),
-                    title: Text(localizations.miniPlayerOnExit,
-                        style: const TextStyle(color: Colors.white)),
-                    subtitle: Text(
-                      localizations.miniPlayerOnExitHint,
-                      style:
-                          const TextStyle(color: Colors.white54, fontSize: 11),
-                    ),
-                    trailing: Switch(
-                      value: on,
-                      onChanged: (v) => setMiniPlayerOnExit(v),
-                    ),
-                  ),
-                ),
-                // 回桌面系统画中画开关(仅 Android 手机/平板;TV 无系统 PiP,隐藏)
-                if (Platform.isAndroid)
-                  Consumer<GlobalProvider>(
-                    builder: (context, g, _) {
-                      if (g.isTV) return const SizedBox.shrink();
-                      return ValueListenableBuilder<bool>(
-                        valueListenable: pipOnLeave,
-                        builder: (_, on, __) => ListTile(
-                          leading: const Icon(Icons.picture_in_picture,
-                              color: Colors.white),
-                          title: Text(localizations.pipOnLeave,
-                              style: const TextStyle(color: Colors.white)),
-                          subtitle: Text(
-                            localizations.pipOnLeaveHint,
-                            style: const TextStyle(
-                                color: Colors.white54, fontSize: 11),
-                          ),
-                          trailing: Switch(
-                            value: on,
-                            onChanged: (v) => setPipOnLeave(v),
-                          ),
-                        ),
-                      );
-                    },
-                  ),
-                _drawerSectionHeader('界面'),
-                XBaseButton(
-                  child: animeContainer(
-                    ListTile(
-                      leading: const Icon(Icons.photo_size_select_large,
-                          color: Colors.white),
-                      title: Text(
-                        localizations.itemSize,
-                        style: const TextStyle(color: Colors.white),
-                      ),
-                    ),
-                  ),
-                  onPressed: () {
-                    Navigator.of(context).pop();
-                    _showSizeDialog(context);
-                  },
-                ),
-                // 主题强调色:色块 trailing 实时反映当前色
-                ValueListenableBuilder<Color>(
-                  valueListenable: themeColor,
-                  builder: (_, color, __) => XBaseButton(
-                    child: animeContainer(
-                      ListTile(
-                        leading:
-                            const Icon(Icons.palette, color: Colors.white),
-                        title: Text(
-                          localizations.themeColor,
-                          style: const TextStyle(color: Colors.white),
-                        ),
-                        trailing: Container(
-                          width: 24,
-                          height: 24,
-                          decoration: BoxDecoration(
-                            color: color,
-                            shape: BoxShape.circle,
-                          ),
-                        ),
-                      ),
-                    ),
-                    onPressed: () {
-                      Navigator.of(context).pop();
-                      showDialog(
-                        context: context,
-                        builder: (_) => const ThemeColorDialog(),
-                      );
-                    },
-                  ),
-                ),
-                // 首页「最近播放」模块显示开关
-                ValueListenableBuilder<bool>(
-                  valueListenable: showRecentModule,
-                  builder: (_, on, __) => ListTile(
-                    leading: const Icon(Icons.history, color: Colors.white),
-                    title: Text(localizations.showRecentOnHome,
-                        style: const TextStyle(color: Colors.white)),
-                    trailing: Switch(
-                      value: on,
-                      onChanged: (v) => setShowRecentModule(v),
-                    ),
-                  ),
-                ),
-                // 首页「收藏」行显示开关
-                ValueListenableBuilder<bool>(
-                  valueListenable: showFavoritesRow,
-                  builder: (_, on, __) => ListTile(
-                    leading: const Icon(Icons.favorite, color: Colors.white),
-                    title: Text(localizations.showFavoritesOnHome,
-                        style: const TextStyle(color: Colors.white)),
-                    trailing: Switch(
-                      value: on,
-                      onChanged: (v) => setShowFavoritesRow(v),
-                    ),
-                  ),
-                ),
-                XBaseButton(
-                  child: animeContainer(
-                    ListTile(
-                      leading: const Icon(Icons.language, color: Colors.white),
-                      title: Text(
-                        localeProvider.locale.languageCode == 'zh'
-                            ? '中文'
-                            : 'English',
-                        style: const TextStyle(color: Colors.white),
-                      ),
-                    ),
-                  ),
-                  onPressed: () {
-                    Navigator.of(context).pop();
-                    _showLanguageSwitcher(context, localeProvider);
-                  },
-                ),
-                _drawerSectionHeader('诊断与系统'),
-                XBaseButton(
-                  child: animeContainer(
-                    ListTile(
-                      leading:
-                          const Icon(Icons.bug_report, color: Colors.white),
-                      title: Text(AppLocalizations.of(context)!.diagLog,
-                          style: const TextStyle(color: Colors.white)),
-                    ),
-                  ),
-                  onPressed: () {
-                    Navigator.of(context).pop();
-                    Navigator.of(context).push(
-                      MaterialPageRoute(builder: (_) => const LogCenterScreen()),
-                    );
-                  },
-                ),
-                // 局域网同步:接收端(发现并拉取对端配置)
-                XBaseButton(
-                  child: animeContainer(
-                    ListTile(
-                      leading: const Icon(Icons.devices, color: Colors.white),
-                      title: Text(AppLocalizations.of(context)!.lanSync,
-                          style: const TextStyle(color: Colors.white)),
-                    ),
-                  ),
-                  onPressed: () {
-                    Navigator.of(context).pop();
-                    Navigator.of(context).push(
-                      MaterialPageRoute(builder: (_) => const LanSyncScreen()),
-                    );
-                  },
-                ),
-                // 局域网同步:源端(开放本机供拉取)
-                XBaseButton(
-                  child: animeContainer(
-                    ListTile(
-                      leading: const Icon(Icons.wifi_tethering,
-                          color: Colors.white),
-                      title: Text(AppLocalizations.of(context)!.lanSyncOpen,
-                          style: const TextStyle(color: Colors.white)),
-                    ),
-                  ),
-                  onPressed: () {
-                    Navigator.of(context).pop();
-                    Navigator.of(context).push(
-                      MaterialPageRoute(
-                          builder: (_) => const LanSyncOpenScreen()),
-                    );
-                  },
-                ),
-                // 应用商店包(App Store / Mac App Store / Play)不允许应用自更新,
-                // 隐藏「检查更新」入口(Guideline 2.4.5)。侧载包(GitHub)保留。
-                if (!kStoreBuild)
-                  XBaseButton(
-                    child: animeContainer(
-                      ListTile(
-                        leading: const Icon(Icons.system_update,
-                            color: Colors.white),
-                        title: Text(
-                          localizations.checkUpdate,
-                          style: const TextStyle(color: Colors.white),
-                        ),
-                      ),
-                    ),
-                    onPressed: () async {
-                      Navigator.of(context).pop();
-                      await UpdateService.checkUpdateWithUI(context);
-                    },
-                  ),
-                XBaseButton(
-                  onPressed: () {
-                    Navigator.of(context).pop();
-                    showDialog(
-                      context: context,
-                      builder: (_) => const UpdateProxyDialog(),
-                    );
-                  },
-                  child: animeContainer(
-                    ListTile(
-                      leading: const Icon(Icons.settings_ethernet,
-                          color: Colors.white),
-                      title: Text(
-                        localizations.updateProxy,
-                        style: const TextStyle(color: Colors.white),
-                      ),
-                    ),
-                  ),
-                ),
-                Consumer<GlobalProvider>(builder: (context, g, _) {
-                  if (g.isTV) return const SizedBox.shrink();
-                  return XBaseButton(
-                    child: animeContainer(
-                      ListTile(
-                        leading:
-                            const Icon(Icons.phonelink, color: Colors.white),
-                        title: Text(
-                          AppLocalizations.of(context)!.remoteInput,
-                          style: const TextStyle(color: Colors.white),
-                        ),
-                      ),
-                    ),
-                    onPressed: () {
-                      Navigator.of(context).pop();
-                      Navigator.pushNamed(context, '/remote');
-                    },
-                  );
-                }),
-                _drawerSectionHeader('关于'),
-                XBaseButton(
-                  child: animeContainer(
-                    ListTile(
-                      leading: const FaIcon(FontAwesomeIcons.github,
-                          color: Colors.white),
-                      title: Text(
-                        'Github',
-                        style: const TextStyle(color: Colors.white),
-                      ),
-                    ),
-                  ),
-                  onPressed: () async {
-                    const url = 'https://github.com/TNT-Likely/xplayer';
-                    // TV 无浏览器,launch 无效 → 弹窗显示地址供手机/电脑访问;其余打开浏览器。
-                    final isTV =
-                        Provider.of<GlobalProvider>(context, listen: false).isTV;
-                    if (isTV) {
-                      showDialog(
-                        context: context,
-                        builder: (_) => AlertDialog(
-                          backgroundColor: AppTokens.surfacePanel,
-                          title: const Text('Github',
-                              style: TextStyle(color: AppTokens.textPrimary)),
-                          content: Column(
-                            mainAxisSize: MainAxisSize.min,
-                            crossAxisAlignment: CrossAxisAlignment.center,
-                            children: [
-                              Text(
-                                localizations.githubTvHint,
-                                style: const TextStyle(
-                                    color: AppTokens.textSecondary),
-                              ),
-                              const SizedBox(height: 16),
-                              // 二维码:手机扫码直达;白底保证暗色弹窗下可识别
-                              Container(
-                                padding: const EdgeInsets.all(12),
-                                decoration: BoxDecoration(
-                                  color: Colors.white,
-                                  borderRadius: BorderRadius.circular(8),
-                                ),
-                                child: QrImageView(
-                                  data: url,
-                                  version: QrVersions.auto,
-                                  size: 200,
-                                  backgroundColor: Colors.white,
-                                ),
-                              ),
-                              const SizedBox(height: 12),
-                              const SelectableText(
-                                url,
-                                style: TextStyle(
-                                    color: AppTokens.textPrimary,
-                                    fontWeight: FontWeight.w600),
-                              ),
-                            ],
-                          ),
-                          actions: [
-                            XTextButton(
-                              text: localizations.cancel,
-                              onPressed: () => Navigator.of(context).pop(),
-                            ),
-                          ],
-                        ),
-                      );
-                    } else {
-                      await launch(url);
-                    }
-                  },
-                ),
-              ],
-            ),
-          ),
-        ),
-        body: Stack(
+    final filtered = favorites
+        ? filterChannels(media.favoriteChannels, query: _favoritesSearch.text)
+        : media.filteredChannels;
+    final source = favorites ? media.favoriteChannels : media.channels;
+    if (source.isEmpty) return _empty(media, favorites: favorites);
+    return LayoutBuilder(
+      builder: (context, box) {
+        final inline = !layout.isTv && box.maxWidth >= 1100;
+        return Row(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
-            Consumer<MediaProvider>(
-              builder: (context, mediaProvider, _) {
-                if (mediaProvider.playlists.isEmpty) {
-                  return Center(
-                    child: Column(
-                      mainAxisSize: MainAxisSize.min,
+            Expanded(
+              child: CustomScrollView(
+                key: PageStorageKey(
+                  favorites ? 'favorites-scroll' : 'channels-scroll',
+                ),
+                slivers: [
+                  SliverPadding(
+                    padding: EdgeInsets.all(layout.padding),
+                    sliver: SliverList.list(
                       children: [
-                        XBaseButton(
-                          onPressed: () => _showAddDialog(context),
-                          child: (isFocused) => Column(
-                            mainAxisSize: MainAxisSize.min,
+                        if (!favorites)
+                          Row(
                             children: [
-                              const Icon(
-                                Icons.add,
-                                size: 48.0,
-                                color: Colors.white,
-                              ),
-                              const SizedBox(height: 8.0),
-                              Text(
-                                localizations.addPlaylist,
-                                style: const TextStyle(
-                                  fontSize: 16.0,
-                                  color: Colors.white,
-                                ),
+                              Expanded(child: Text(media.currentPlaylist.name)),
+                              XpButton(
+                                label: '切换列表',
+                                onPressed: _chooseSource,
+                                variant: XpButtonVariant.ghost,
                               ),
                             ],
                           ),
-                        ),
-                        if (!kStoreBuild) ...[
-                          const SizedBox(height: 16.0),
-                          SizedBox(
-                            width: 240,
-                            child: XTextButton(
-                              text: localizations.recommendedSources,
-                              size: XTextButtonSize.large,
-                              type: XTextButtonType.primary,
-                              onPressed: () => _showPresetSources(context),
-                            ),
-                          ),
-                        ],
-                      ],
-                    ),
-                  );
-                } else if (mediaProvider.channels.isEmpty) {
-                  return Center(
-                    child: Column(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        const Icon(
-                          Icons.search_off,
-                          color: Colors.white,
-                          size: 60,
-                        ),
-                        Text(
-                          localizations.noChannelsFound,
-                          style: const TextStyle(color: Colors.white),
-                        ),
-                        const SizedBox(height: 16.0),
-                        SizedBox(
-                          width: 200,
-                          child: XTextButton(
-                            text: localizations.refreshChannels,
-                            type: XTextButtonType.primary,
-                            onPressed: () async {
-                              try {
-                                showToast(localizations.updatingChannels);
-                                await mediaProvider.refreshChannels();
-                                showToast(
-                                    localizations.channelsUpdatedSuccessfully);
-                              } catch (e, s) {
-                                Logger.error('刷新频道失败: $e', e, s);
-                                showToast(localizations
-                                    .channelsUpdateFailed(e.toString()));
-                              }
-                            },
-                          ),
-                        ),
-                      ],
-                    ),
-                  );
-                } else {
-                  final filtered = mediaProvider.filteredChannels;
-                  if (filtered.isEmpty) {
-                    // 搜索/分组无结果(原始频道非空)
-                    return Center(
-                      child: Column(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: [
-                          const Icon(Icons.search_off,
-                              color: Colors.white, size: 60),
-                          Text(
-                            localizations.noChannelsFound,
-                            style: const TextStyle(color: Colors.white),
-                          ),
-                        ],
-                      ),
-                    );
-                  }
-                  return Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      const RecentPlayedWidget(),
-                      const FavoritesRowWidget(),
-                      const AllChannelsHeader(),
-                      Expanded(
-                        child: ChannelListWidget(
-                          channels: filtered,
-                          favoriteChannels: mediaProvider.favoriteChannels,
-                          sizeLevel: mediaProvider.gridSizeLevel,
-                          onChannelUpdated: () async {
-                            try {
-                              final mp = Provider.of<MediaProvider>(
-                                context,
-                                listen: false,
-                              );
-                              await mp.refreshChannels();
-                              showToast(
-                                  localizations.channelsUpdatedSuccessfully);
-                            } catch (e, s) {
-                              Logger.error('刷新频道失败: $e', e, s);
-                              showToast(localizations
-                                  .channelsUpdateFailed(e.toString()));
+                        const SizedBox(height: 12),
+                        XpSearchField(
+                          controller: favorites ? _favoritesSearch : _search,
+                          hint: favorites ? '搜索收藏频道' : '搜索频道名称、编号或分组',
+                          onChanged: (value) {
+                            if (favorites) {
+                              setState(() {});
+                            } else {
+                              media.setSearchQuery(value);
                             }
                           },
                         ),
+                        const SizedBox(height: 16),
+                        if (!favorites)
+                          SingleChildScrollView(
+                            scrollDirection: Axis.horizontal,
+                            child: Row(
+                              children: [
+                                Padding(
+                                  padding: const EdgeInsets.only(right: 8),
+                                  child: XpChip(
+                                    label: '全部',
+                                    count: media.channels.length,
+                                    selected: media.selectedGroup == null,
+                                    onPressed: () =>
+                                        media.setSelectedGroup(null),
+                                  ),
+                                ),
+                                for (final group in media.availableGroups)
+                                  Padding(
+                                    padding: const EdgeInsets.only(right: 8),
+                                    child: XpChip(
+                                      label: group,
+                                      selected: media.selectedGroup == group,
+                                      onPressed: () =>
+                                          media.setSelectedGroup(group),
+                                    ),
+                                  ),
+                              ],
+                            ),
+                          ),
+                        const SizedBox(height: 12),
+                        Wrap(
+                          spacing: 8,
+                          runSpacing: 8,
+                          crossAxisAlignment: WrapCrossAlignment.center,
+                          children: [
+                            Text('${filtered.length} 个频道'),
+                            if (!favorites) ...[
+                              XpIconButton(
+                                icon: XpSymbol.sync,
+                                label: '刷新频道',
+                                onPressed: media.isRefreshingChannels
+                                    ? null
+                                    : media.refreshChannels,
+                              ),
+                              XpButton(
+                                label: media.isTesting
+                                    ? '取消测速 ${media.testProgressText}'
+                                    : '频道测速',
+                                onPressed: media.isTesting
+                                    ? media.cancelTest
+                                    : () async {
+                                        try {
+                                          await media.testAllChannels();
+                                        } catch (_) {
+                                          showToast('测速失败，请重试');
+                                        }
+                                      },
+                                variant: XpButtonVariant.ghost,
+                              ),
+                              if (media.hasTestResults)
+                                XpChip(
+                                  label: '隐藏不可播放',
+                                  selected: media.hideUnplayable,
+                                  onPressed: () => media.setHideUnplayable(
+                                    !media.hideUnplayable,
+                                  ),
+                                ),
+                              XpIconButton(
+                                icon: XpSymbol.settings,
+                                label: '频道显示大小',
+                                onPressed: () => showDialog(
+                                  context: context,
+                                  builder: (_) => const ChannelSizeDialog(),
+                                ),
+                              ),
+                            ],
+                          ],
+                        ),
+                        if (media.isRefreshingChannels && !favorites)
+                          const XpNotice(
+                            title: '正在更新频道',
+                            description: '保留当前频道，更新期间仍可观看。',
+                            loading: true,
+                          ),
+                        if (media.playlistError(media.currentPlaylistId) !=
+                                null &&
+                            !favorites)
+                          XpNotice(
+                            title: '更新失败，原有频道已保留',
+                            description: '稍后可以重试，已有频道仍可使用。',
+                            tone: XpTone.warning,
+                            actionLabel: '重试更新',
+                            onAction: media.refreshChannels,
+                          ),
+                      ],
+                    ),
+                  ),
+                  if (filtered.isEmpty)
+                    SliverToBoxAdapter(
+                      child: XpEmptyState(
+                        title: '没有找到匹配的频道',
+                        description: '尝试其他关键词或清除筛选。',
+                        icon: XpSymbol.search,
+                        actionLabel: '清除筛选',
+                        onAction: () {
+                          if (favorites) {
+                            setState(_favoritesSearch.clear);
+                          } else {
+                            _search.clear();
+                            media.setSearchQuery('');
+                            media.setSelectedGroup(null);
+                          }
+                        },
                       ),
-                    ],
-                  );
-                }
-              },
+                    )
+                  else
+                    _grid(filtered, presentation, layout, inline: inline),
+                  const SliverToBoxAdapter(child: SizedBox(height: 28)),
+                ],
+              ),
             ),
+            if (inline && _selected != null)
+              SizedBox(
+                width: 310,
+                child: Container(
+                  decoration: BoxDecoration(
+                    border: Border(
+                      left: BorderSide(
+                        color: XpTheme.of(context).palette.border,
+                      ),
+                    ),
+                  ),
+                  child: SingleChildScrollView(
+                    padding: const EdgeInsets.all(20),
+                    child: Column(
+                      children: [
+                        Align(
+                          alignment: Alignment.centerRight,
+                          child: XpIconButton(
+                            icon: XpSymbol.close,
+                            label: '关闭节目详情',
+                            onPressed: () => setState(() => _selected = null),
+                          ),
+                        ),
+                        _channelDetail(_selected!),
+                      ],
+                    ),
+                  ),
+                ),
+              ),
           ],
-        ),
-      ),
+        );
+      },
     );
   }
+
+  Widget _grid(
+    List<Channel> channels,
+    MediaPresentation presentation,
+    AppLayout layout, {
+    bool inline = false,
+  }) => SliverPadding(
+    padding: EdgeInsets.symmetric(horizontal: layout.padding),
+    sliver: SliverLayoutBuilder(
+      builder: (context, box) {
+        final columns = layout.channelColumns(
+          box.crossAxisExtent,
+          sizeLevel: presentation.media.gridSizeLevel,
+        );
+        final width = (box.crossAxisExtent - (columns - 1) * 16) / columns;
+        final scale = MediaQuery.textScalerOf(context).scale(14) / 14;
+        return SliverGrid.builder(
+          gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+            crossAxisCount: columns,
+            mainAxisExtent: width * 9 / 16 + (layout.isTv ? 195 : 170) * scale,
+            mainAxisSpacing: 16,
+            crossAxisSpacing: 16,
+          ),
+          itemCount: channels.length,
+          itemBuilder: (_, i) =>
+              _card(channels[i], presentation, inline: inline),
+        );
+      },
+    ),
+  );
 }

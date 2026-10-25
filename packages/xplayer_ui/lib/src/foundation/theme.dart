@@ -42,12 +42,14 @@ class XpThemeData {
     this.palette = const XpPalette(),
     this.reduceMotion = false,
     this.fontFamily,
+    this.inputMode,
   });
 
   final XpDevice device;
   final XpPalette palette;
   final bool reduceMotion;
   final String? fontFamily;
+  final XpInputMode? inputMode;
   bool get isTv => device == XpDevice.tv;
   double get controlHeight => isTv ? 56 : 44;
   double get iconSize => isTv ? 26 : 20;
@@ -55,7 +57,9 @@ class XpThemeData {
   double get smallSize => isTv ? 16 : 12;
   double get titleSize => isTv ? 32 : 23;
   double get radius => 16;
-  XpInputMode get input => switch (device) {
+  XpInputMode get input =>
+      inputMode ??
+      switch (device) {
         XpDevice.phone || XpDevice.ipad => XpInputMode.touch,
         XpDevice.desktop => XpInputMode.pointer,
         XpDevice.tv => XpInputMode.directional,

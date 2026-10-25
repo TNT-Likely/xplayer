@@ -4,7 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 class LocaleProvider with ChangeNotifier {
-  Locale _locale = const Locale('en', '');
+  Locale _locale = const Locale('zh', '');
 
   Locale get locale => _locale;
 
@@ -21,7 +21,7 @@ class LocaleProvider with ChangeNotifier {
 
   Future<void> loadLocale() async {
     final prefs = await SharedPreferences.getInstance();
-    final languageCode = prefs.getString('language_code') ?? 'en';
+    final languageCode = prefs.getString('language_code') ?? 'zh';
     final countryCode = prefs.getString('country_code') ?? '';
 
     // 设置默认语言为中文

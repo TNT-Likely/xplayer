@@ -1,0 +1,52 @@
+name: Flutter UI regression
+
+on:
+  pull_request:
+    paths:
+      - 'lib/**'
+      - 'test/**'
+      - 'packages/xplayer_ui/**'
+      - 'pubspec.*'
+      - '.github/workflows/ui.yml'
+  push:
+    branches: [main, 'v[0-9]*']
+    paths:
+      - 'lib/**'
+      - 'test/**'
+      - 'packages/xplayer_ui/**'
+      - 'pubspec.*'
+      - '.github/workflows/ui.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ui-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  widgets:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - uses: subosito/flutter-action@v2
+        with:
+          flutter-version: '3.41.9'
+          cache: true
+      - run: flutter pub get
+      - name: Main application regressions
+        run: flutter test --no-pub test
+      - name: Component package boundary
+        working-directory: packages/xplayer_ui
+        run: |
+          flutter pub get
+          dart run tool/check_architecture.dart
+          flutter analyze --no-pub
+          flutter test --no-pub
+      - name: Four viewport component gallery
+        working-directory: packages/xplayer_ui/example
+        run: |
+          flutter pub get
+          flutter test --no-pub

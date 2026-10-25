@@ -49,6 +49,7 @@ class XpChannelData {
       {required this.id,
       required this.name,
       this.logoLabel,
+      this.logo,
       this.group,
       this.quality,
       this.artwork,
@@ -56,6 +57,7 @@ class XpChannelData {
   final String id, name;
   final String? logoLabel, group, quality;
   final ImageProvider? artwork;
+  final ImageProvider? logo;
   final XpProgramme? programme;
 }
 

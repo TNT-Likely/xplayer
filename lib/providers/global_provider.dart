@@ -47,7 +47,7 @@ class GlobalProvider with ChangeNotifier {
       }
     } else if (Platform.isIOS) {
       final iosInfo = await deviceInfo.iosInfo;
-      _isMobile = iosInfo.name.toLowerCase().contains('iphone');
+      _isMobile = !iosInfo.model.toLowerCase().contains('ipad');
       _isTV = false; // iOS 不视为 TV
     } else {
       // 其他平台（macOS/Windows/Linux）默认不是 TV，且不是移动端
