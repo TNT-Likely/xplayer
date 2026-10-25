@@ -55,44 +55,68 @@ class XpChannelIdentity extends StatelessWidget {
   }
 }
 
+/// 优先使用真实节目图片；无图或加载失败时使用随包提供的 A 设计装饰背景。
 class XpArtwork extends StatelessWidget {
   const XpArtwork(
       {super.key, required this.channel, this.showPlaceholder = true});
   final XpChannelData channel;
+
+  /// 最终资源也不可读时，是否显示频道标识。
   final bool showPlaceholder;
+
+  AssetImage _backdrop() {
+    final category = '${channel.group ?? ''} ${channel.name}'.toLowerCase();
+    final String name;
+    if (RegExp(r'体育|运动|sport|cctv-?5').hasMatch(category)) {
+      name = 'sport';
+    } else if (RegExp(r'新闻|财经|news|finance|cctv-?13').hasMatch(category)) {
+      name = 'city';
+    } else if (RegExp(r'纪录|自然|documentary|nature|cctv-?9').hasMatch(category)) {
+      name = 'forest';
+    } else {
+      // 频道 ID 稳定映射，刷新、收藏和切源不会随机换图。
+      final seed = channel.id.codeUnits
+          .fold<int>(0, (hash, unit) => (hash * 31 + unit) & 0x7fffffff);
+      name = const ['forest', 'mountain', 'ocean', 'city'][seed % 4];
+    }
+    return AssetImage('assets/backdrops/$name.jpg', package: 'xplayer_ui');
+  }
+
   @override
   Widget build(BuildContext context) {
     final p = XpTheme.of(context).palette;
-    final fallback = ColoredBox(
+    final fallback = Image(
+      image: _backdrop(),
+      fit: BoxFit.cover,
+      width: double.infinity,
+      height: double.infinity,
+      excludeFromSemantics: true,
+      gaplessPlayback: true,
+      errorBuilder: (_, __, ___) => ColoredBox(
         color: p.raised,
-        child: !showPlaceholder
-            ? const SizedBox.expand()
-            : LayoutBuilder(builder: (context, box) {
-                if (box.maxHeight < 96 || box.maxWidth < 120) {
-                  return Center(
-                      child:
-                          XpIcon(XpSymbol.channels, size: 20, color: p.quiet));
-                }
-                return Center(
-                    child: Column(mainAxisSize: MainAxisSize.min, children: [
-                  XpIcon(XpSymbol.channels, size: 34, color: p.quiet),
-                  const SizedBox(height: 12),
-                  Padding(
-                      padding: const EdgeInsets.symmetric(horizontal: 16),
-                      child: Text(channel.name,
-                          maxLines: 2,
-                          textAlign: TextAlign.center,
-                          overflow: TextOverflow.ellipsis,
-                          style: TextStyle(color: p.muted))),
-                ]));
-              }));
+        child: showPlaceholder
+            ? Center(
+                child: Padding(
+                padding: const EdgeInsets.all(8),
+                child: Text(channel.logoLabel ?? channel.name,
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                    style: TextStyle(color: p.muted)),
+              ))
+            : const SizedBox.expand(),
+      ),
+    );
     if (channel.artwork == null) return fallback;
     return Image(
-        image: channel.artwork!,
-        fit: BoxFit.cover,
-        width: double.infinity,
-        excludeFromSemantics: true,
-        errorBuilder: (_, __, ___) => fallback);
+      image: channel.artwork!,
+      fit: BoxFit.cover,
+      width: double.infinity,
+      excludeFromSemantics: true,
+      gaplessPlayback: true,
+      frameBuilder: (_, child, frame, synchronous) =>
+          frame != null || synchronous ? child : fallback,
+      errorBuilder: (_, __, ___) => fallback,
+    );
   }
 }
 
@@ -100,8 +124,14 @@ class XpLiveBadge extends StatelessWidget {
   const XpLiveBadge({super.key, this.live = true});
   final bool live;
   @override
-  Widget build(BuildContext context) => XpBadge(live ? 'LIVE' : '离线',
-      dot: live, tone: live ? XpTone.success : XpTone.warning);
+  Widget build(BuildContext context) => DecoratedBox(
+        decoration: BoxDecoration(
+          color: XpTheme.of(context).palette.background.withValues(alpha: .86),
+          borderRadius: BorderRadius.circular(5),
+        ),
+        child: XpBadge(live ? 'LIVE' : '离线',
+            dot: live, tone: live ? XpTone.success : XpTone.warning),
+      );
 }
 
 class XpFavouriteButton extends StatelessWidget {
@@ -218,16 +248,17 @@ class XpChannelCard extends StatelessWidget {
                               value: favourite,
                               onChanged: onFavouriteChanged)
                         ]),
-                        const SizedBox(height: 4),
-                        Text(
-                            programme?.title ??
-                                (epgStatus == XpEpgStatus.stale
-                                    ? '节目单已过期'
-                                    : '暂无节目单'),
-                            maxLines: 1,
-                            overflow: TextOverflow.ellipsis,
-                            style: TextStyle(
-                                fontSize: theme.bodySize, color: p.muted)),
+                        if (programme == null) ...[
+                          const SizedBox(height: 2),
+                          Text(
+                              epgStatus == XpEpgStatus.stale
+                                  ? '节目单已过期'
+                                  : '暂无节目单',
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
+                              style: TextStyle(
+                                  fontSize: theme.smallSize, color: p.muted)),
+                        ],
                         if (programme != null && programme.hasValidRange) ...[
                           if (current) ...[
                             const SizedBox(height: 12),

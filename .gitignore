@@ -61,3 +61,6 @@ windows/installer/vc_redist.x64.exe
 
 # fvm
 .fvm/
+
+# 本地设计与配置交付包
+/releases/

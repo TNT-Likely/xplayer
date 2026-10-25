@@ -116,6 +116,40 @@ void main() {
       await tester.pumpWidget(const SizedBox.shrink());
     });
   }
+  for (final status in [XpEpgStatus.empty, XpEpgStatus.stale]) {
+    testWidgets('频道卡片 $status 按内容收紧，不预留节目单空白', (tester) async {
+      tester.view.physicalSize = const Size(1440, 960);
+      tester.view.devicePixelRatio = 1;
+      addTearDown(tester.view.resetPhysicalSize);
+      addTearDown(tester.view.resetDevicePixelRatio);
+      final media = FakeMedia(
+        now: status == XpEpgStatus.stale
+            ? DateTime.now().subtract(const Duration(days: 2))
+            : null,
+      );
+      if (status == XpEpgStatus.empty) media.snapshots.clear();
+      await tester.pumpWidget(app(media));
+      await tester.pumpAndSettle();
+      await tester.tap(find.byKey(const ValueKey('nav-channels')));
+      await tester.pumpAndSettle();
+      final card = find.byKey(const ValueKey('channel-one'));
+      final label = find.descendant(
+        of: card,
+        matching: find.text(status == XpEpgStatus.stale ? '节目单已过期' : '暂无节目单'),
+      );
+      expect(
+        tester.getRect(card).bottom - tester.getRect(label).bottom,
+        lessThanOrEqualTo(20),
+        reason: '状态提示后应直接收口，不保留固定网格高度',
+      );
+      expect(
+        find.descendant(of: card, matching: find.byType(XpProgress)),
+        findsNothing,
+      );
+      expect(tester.takeException(), isNull);
+      await tester.pumpWidget(const SizedBox.shrink());
+    });
+  }
   testWidgets('搜索、分组和收藏连接到真实 Provider 接口', (tester) async {
     tester.view.physicalSize = const Size(390, 844);
     tester.view.devicePixelRatio = 1;

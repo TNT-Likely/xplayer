@@ -1,5 +1,6 @@
 import 'dart:io';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:integration_test/integration_test.dart';
 import 'package:provider/provider.dart';
@@ -32,6 +33,12 @@ void main() {
   const device = String.fromEnvironment('QA_DEVICE', defaultValue: 'phone');
   testWidgets('v3 用户局域网来源导入、节目单状态、真实直播与续播', (tester) async {
     expect(source, isNotEmpty);
+    if (const bool.fromEnvironment('QA_LANDSCAPE')) {
+      await SystemChrome.setPreferredOrientations([
+        DeviceOrientation.landscapeLeft,
+        DeviceOrientation.landscapeRight,
+      ]);
+    }
     Future<void> until(bool Function() ready, {int seconds = 60}) async {
       final end = DateTime.now().add(Duration(seconds: seconds));
       while (!ready() && DateTime.now().isBefore(end)) {
@@ -97,6 +104,7 @@ void main() {
     await shot('guide');
     await tester.tap(find.byKey(const ValueKey('nav-channels')));
     await tester.pump(const Duration(milliseconds: 500));
+    await shot('channels');
     final search = find.descendant(
       of: find.byType(XpSearchField),
       matching: find.byType(TextField),

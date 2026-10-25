@@ -12,7 +12,7 @@ xplayer_ui / components + 展示模型
 主应用适配器 / 独立验收应用
 ```
 
-包不会导入 `package:xplayer/`、`xplayer_player`、Provider、数据库、文件系统或发现插件。`flutter_svg` 用于加载包内的设计稿 SVG；示例图片只在 `example` 中。
+包不会导入 `package:xplayer/`、`xplayer_player`、Provider、数据库、文件系统或发现插件。`flutter_svg` 用于加载包内设计 SVG。`assets/backdrops/` 随包提供五张用户确认的 A 设计装饰图，作为缺图/加载失败的本地兜底；示例节目信息仍只在 `example` 中。
 
 `tool/check_architecture.dart` 检查基础层反向依赖、应用/服务耦合，以及基础颜色与确认版 JSON 的一致性。
 

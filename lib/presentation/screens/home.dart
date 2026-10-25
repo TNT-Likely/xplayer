@@ -645,16 +645,21 @@ class _HomeScreenState extends State<HomeScreen> {
         },
       ),
       const SizedBox(height: 16),
-      SizedBox(
-        height: layout.isTv ? 425 : 365,
-        child: ListView.separated(
-          scrollDirection: Axis.horizontal,
-          itemCount: channels.length.clamp(0, 12),
-          separatorBuilder: (_, __) => const SizedBox(width: 16),
-          itemBuilder: (_, i) => SizedBox(
-            width: layout.isTv ? 360 : 270,
-            child: _card(channels[i], presentation),
-          ),
+      SingleChildScrollView(
+        key: PageStorageKey('channel-row-$title'),
+        scrollDirection: Axis.horizontal,
+        child: Row(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            for (final channel in channels.take(12))
+              Padding(
+                padding: const EdgeInsets.only(right: 16),
+                child: SizedBox(
+                  width: layout.isTv ? 360 : 270,
+                  child: _card(channel, presentation),
+                ),
+              ),
+          ],
         ),
       ),
       const SizedBox(height: 20),
@@ -883,18 +888,29 @@ class _HomeScreenState extends State<HomeScreen> {
           box.crossAxisExtent,
           sizeLevel: presentation.media.gridSizeLevel,
         );
-        final width = (box.crossAxisExtent - (columns - 1) * 16) / columns;
-        final scale = MediaQuery.textScalerOf(context).scale(14) / 14;
-        return SliverGrid.builder(
-          gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
-            crossAxisCount: columns,
-            mainAxisExtent: width * 9 / 16 + (layout.isTv ? 195 : 170) * scale,
-            mainAxisSpacing: 16,
-            crossAxisSpacing: 16,
+        // 一行按实际内容确定高度；无 EPG 不再预留时间、进度条的固定空间。
+        return SliverList.builder(
+          itemCount: (channels.length / columns).ceil(),
+          itemBuilder: (_, row) => Padding(
+            padding: const EdgeInsets.only(bottom: 16),
+            child: Row(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                for (var column = 0; column < columns; column++) ...[
+                  if (column > 0) const SizedBox(width: 16),
+                  Expanded(
+                    child: row * columns + column < channels.length
+                        ? _card(
+                            channels[row * columns + column],
+                            presentation,
+                            inline: inline,
+                          )
+                        : const SizedBox.shrink(),
+                  ),
+                ],
+              ],
+            ),
           ),
-          itemCount: channels.length,
-          itemBuilder: (_, i) =>
-              _card(channels[i], presentation, inline: inline),
         );
       },
     ),
