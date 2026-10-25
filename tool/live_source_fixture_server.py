@@ -7,7 +7,8 @@ from urllib.parse import urlparse
 
 parser = argparse.ArgumentParser()
 parser.add_argument('--root', required=True, type=Path)
-parser.add_argument('--cases', required=True, type=Path)
+parser.add_argument('--cases', type=Path)
+parser.add_argument('--playlists', type=Path)
 parser.add_argument('--port-file', required=True, type=Path)
 args = parser.parse_args()
 
@@ -23,9 +24,15 @@ class Handler(BaseHTTPRequestHandler):
             cases = [
                 {'name': name, 'url': f'{base}/{name}.flv', 'headers': {}}
                 for name in ['h264-aac', 'h264-mp3']
-            ] + json.loads(args.cases.read_text())
+            ] + (json.loads(args.cases.read_text()) if args.cases else [])
             data = json.dumps({'sources': cases}).encode()
             content_type = 'application/json'
+        elif path == '/playlists.json' and args.playlists:
+            data = args.playlists.read_bytes()
+            content_type = 'application/json'
+        elif path == '/flv-test.m3u' and args.playlists:
+            data = (args.root / 'flv-test.m3u').read_bytes()
+            content_type = 'audio/x-mpegurl'
         elif path in ['/h264-aac.flv', '/h264-mp3.flv']:
             data = (args.root / path.removeprefix('/')).read_bytes()
             content_type = 'video/x-flv'
