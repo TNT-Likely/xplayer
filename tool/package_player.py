@@ -10,6 +10,7 @@ from pathlib import Path
 import re
 import shutil
 import subprocess
+import sys
 import tarfile
 import tempfile
 from urllib.parse import unquote, urlsplit
@@ -19,7 +20,7 @@ PACKAGES = {'libmpv_xplayer': 'engines/complete_codec', 'xplayer_player': 'sdk/p
 
 
 def field(path, key):
-    match = re.search(r'^' + re.escape(key) + r':\s*([^\n]+)', path.read_text(), re.M)
+    match = re.search(r'^' + re.escape(key) + r':\s*([^\n]+)', path.read_text(encoding="utf-8"), re.M)
     if not match:
         raise ValueError(f'Missing {key}: {path}')
     return match.group(1).strip().strip('\"\'')
@@ -42,8 +43,8 @@ def source_files(package):
     prefix = package.relative_to(ROOT).as_posix()
     names = subprocess.check_output(
         ['git', 'ls-files', '--cached', '--others', '--exclude-standard', '--', prefix],
-        cwd=ROOT, text=True).splitlines()
-    patterns = [line.strip() for line in (package / '.pubignore').read_text().splitlines()
+        cwd=ROOT, text=True, encoding="utf-8").splitlines()
+    patterns = [line.strip() for line in (package / '.pubignore').read_text(encoding="utf-8").splitlines()
                 if line.strip() and not line.startswith('#')]
     for name in sorted(set(names)):
         file = ROOT / name
@@ -71,7 +72,7 @@ def write_archive(source, destination):
 def validate_documentation_links(package):
     """Check local Markdown links against the actual published file set."""
     for document in package.rglob('*.md'):
-        for ref in re.findall(r'\]\(([^\s)]+)\)', document.read_text()):
+        for ref in re.findall(r'\]\(([^\s)]+)\)', document.read_text(encoding="utf-8")):
             parsed = urlsplit(ref.strip('<>'))
             if parsed.scheme or parsed.netloc or not parsed.path:
                 continue
@@ -90,10 +91,15 @@ def render_report(report, destination):
     destination.write_text('''<!doctype html><html lang="zh-CN"><meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1"><title>播放器包分发验证</title>
 <style>body{font:15px/1.8 -apple-system,BlinkMacSystemFont,"PingFang SC",sans-serif;color:#182334;background:#f5f6f8;margin:0;padding:32px}main{max-width:960px;margin:auto;background:white;border:1px solid #e3e7ec;border-radius:16px;padding:32px}h1{font-size:30px}table{width:100%;border-collapse:collapse}td,th{padding:12px;text-align:left;border-bottom:1px solid #e3e7ec}a{color:#187259}code{overflow-wrap:anywhere}p{overflow-wrap:anywhere}</style><main>
-<h1>播放器独立包分发验证</h1><p><b>结果：''' + status + '</b></p><p>候选包已复制到仓库外，原生依赖使用不同目录，验证过程中不引用应用源码。此流程只打包和预检，不上传 pub.dev。</p><p>源码提交：<code>' + html.escape(report['commit']) + '</code></p><ul>' + packages + '</ul><table><thead><tr><th>检查</th><th>结果</th><th>证据</th></tr></thead><tbody>' + rows + '</tbody></table><p>压缩包校验值见 <a href="SHA256SUMS">SHA256SUMS</a>。本报告不替代设备格式、真机、长稳和多声道验收。</p></main></html>')
+<h1>播放器独立包分发验证</h1><p><b>结果：''' + status + '</b></p><p>候选包已复制到仓库外，原生依赖使用不同目录，验证过程中不引用应用源码。此流程只打包和预检，不上传 pub.dev。</p><p>源码提交：<code>' + html.escape(report['commit']) + '</code></p><ul>' + packages + '</ul><table><thead><tr><th>检查</th><th>结果</th><th>证据</th></tr></thead><tbody>' + rows + '</tbody></table><p>压缩包校验值见 <a href="SHA256SUMS">SHA256SUMS</a>。本报告不替代设备格式、真机、长稳和多声道验收。</p></main></html>', encoding="utf-8")
 
 
 def main():
+    # Windows redirected streams may otherwise use cp1252/cp936 and fail on
+    # Chinese progress messages even when all source files are UTF-8.
+    for stream in (sys.stdout, sys.stderr):
+        if hasattr(stream, 'reconfigure'):
+            stream.reconfigure(encoding='utf-8')
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument('--output', required=True)
     parser.add_argument('--flutter', default=shutil.which('flutter'))
@@ -106,7 +112,7 @@ def main():
         parser.error('Supply --flutter=/path/to/flutter')
     output = Path(args.output).resolve(); output.mkdir(parents=True, exist_ok=True)
     stage = Path(tempfile.mkdtemp(prefix='xplayer-package-stage-')).resolve()
-    report = {'commit': subprocess.check_output(['git', 'rev-parse', 'HEAD'], cwd=ROOT, text=True).strip(),
+    report = {'commit': subprocess.check_output(['git', 'rev-parse', 'HEAD'], cwd=ROOT, text=True, encoding="utf-8").strip(),
               'verificationRequested': args.verify, 'buildPlatform': args.build,
               'sourceDirty': bool(subprocess.check_output(['git', 'status', '--porcelain'], cwd=ROOT)),
               'stagingPath': str(stage), 'resolution': args.resolution, 'packages': [], 'checks': [], 'passed': False}
@@ -116,17 +122,17 @@ def main():
             for file, relative in source_files(source):
                 dest = target / relative; dest.parent.mkdir(parents=True, exist_ok=True); shutil.copy2(file, dest)
             version = field(target / 'pubspec.yaml', 'version')
-            if re.search(r'^\s+path:', (target / 'pubspec.yaml').read_text(), re.M):
+            if re.search(r'^\s+path:', (target / 'pubspec.yaml').read_text(encoding="utf-8"), re.M):
                 raise ValueError(f'{name} still has a path dependency')
             validate_documentation_links(target)
             archive = output / f'{name}-{version}.tar.gz'; write_archive(target, archive)
             report['packages'].append({'name': name, 'version': version, 'archive': archive.name,
                                        'sha256': hashlib.sha256(archive.read_bytes()).hexdigest()})
-        (output / 'SHA256SUMS').write_text(''.join(p['sha256'] + '  ' + p['archive'] + '\n' for p in report['packages']))
-        (stage / 'pubspec.yaml').write_text("name: player_package_validation\npublish_to: none\nenvironment:\n  sdk: '>=3.11.0 <4.0.0'\nworkspace:\n" + ''.join('  - ' + f + '\n' for f in PACKAGES.values()) + '  - sdk/player_api/example\n')
+        (output / 'SHA256SUMS').write_text(''.join(p['sha256'] + '  ' + p['archive'] + '\n' for p in report['packages']), encoding="utf-8")
+        (stage / 'pubspec.yaml').write_text("name: player_package_validation\npublish_to: none\nenvironment:\n  sdk: '>=3.11.0 <4.0.0'\nworkspace:\n" + ''.join('  - ' + f + '\n' for f in PACKAGES.values()) + '  - sdk/player_api/example\n', encoding="utf-8")
         def check(name, command, cwd, timeout=900):
             log = output / (name + '.log')
-            with log.open('w') as stream:
+            with log.open('w', encoding="utf-8") as stream:
                 try:
                     result = subprocess.run(command, cwd=cwd, stdout=stream, stderr=subprocess.STDOUT, timeout=timeout)
                     code = result.returncode
@@ -159,7 +165,7 @@ def main():
         report['error'] = str(error)
         print(str(error), flush=True)
     finally:
-        (output / 'packaging-report.json').write_text(json.dumps(report, ensure_ascii=False, indent=2) + '\n')
+        (output / 'packaging-report.json').write_text(json.dumps(report, ensure_ascii=False, indent=2) + '\n', encoding="utf-8")
         render_report(report, output / 'packaging-report.html')
         if not args.keep_staging: shutil.rmtree(stage)
     if report.get('error'):

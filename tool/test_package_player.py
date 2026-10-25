@@ -9,12 +9,27 @@ from types import SimpleNamespace
 from unittest.mock import patch
 import json
 import sys
+import subprocess
 
 from package_player import ignored, validate_documentation_links, write_archive
 import verify_darwin_distribution as darwin
 
 
 class PackageArtifactTest(unittest.TestCase):
+    def test_packaging_chinese_docs_works_without_a_utf8_locale(self):
+        with tempfile.TemporaryDirectory() as directory:
+            env = dict(os.environ, LC_ALL='C', PYTHONUTF8='0',
+                       PYTHONCOERCECLOCALE='0', PYTHONIOENCODING='ascii')
+            result = subprocess.run([sys.executable,
+                str(Path(__file__).with_name('package_player.py')),
+                '--output', directory], env=env, capture_output=True,
+                text=True, encoding='utf-8', timeout=60)
+            self.assertEqual(result.returncode, 0, result.stdout + result.stderr)
+            report = Path(directory) / 'packaging-report.html'
+            self.assertIn('播放器独立包分发验证', report.read_text(encoding='utf-8'))
+            with tarfile.open(next(Path(directory).glob('libmpv_xplayer-*.tar.gz'))) as archive:
+                self.assertIn('自包含', archive.extractfile('README.md').read().decode('utf-8'))
+
     def test_documentation_cannot_link_to_excluded_or_neighbor_files(self):
         with tempfile.TemporaryDirectory() as directory:
             package = Path(directory) / 'package'; package.mkdir()

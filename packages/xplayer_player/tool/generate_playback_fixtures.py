@@ -41,7 +41,7 @@ def generate(output, ffmpeg):
                 "-f", "lavfi", "-i", "sine=frequency=1000:sample_rate=48000",
                 "-t", "4", "-pix_fmt", "yuv420p", "-c:v", video, "-c:a", audio,
                 *extra, str(output / name)]
-        encoded = subprocess.run(args, capture_output=True, text=True)
+        encoded = subprocess.run(args, capture_output=True, text=True, encoding="utf-8")
         if encoded.returncode:
             raise RuntimeError(f"Cannot generate {name}: {encoded.stderr[-1200:]}")
         result.append({"name": name, "file": name, "expectVideo": True, "expectAudio": True})
@@ -91,7 +91,7 @@ def generate(output, ffmpeg):
                     "-hls_segment_type", "fmp4", str(path)], check=True, capture_output=True)
     result.append({"name": "hls-fmp4", "file": "hls-fmp4/index.m3u8",
                    "expectVideo": True, "expectAudio": True})
-    (output / "manifest.json").write_text(json.dumps(result, indent=2) + "\n")
+    (output / "manifest.json").write_text(json.dumps(result, indent=2) + "\n", encoding="utf-8")
     return result
 
 

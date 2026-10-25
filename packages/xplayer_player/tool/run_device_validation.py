@@ -19,7 +19,7 @@ def render(report, output):
                    html.escape(str(r.get('mode', ''))) + '</td><td>' +
                    ('通过' if r.get('passed') else '未通过') + '</td><td>' +
                    html.escape(str(r.get('message', ''))) + '</td></tr>' for r in report.get('results', []))
-    output.write_text('''<!doctype html><html lang="zh-CN"><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>独立包设备播放验收</title><style>body{font:15px/1.8 -apple-system,BlinkMacSystemFont,"PingFang SC",sans-serif;padding:24px;background:#f5f6f8;color:#182334}main{max-width:1100px;margin:auto;background:white;padding:28px;border-radius:14px}table{border-collapse:collapse;width:100%}th,td{padding:10px;border-bottom:1px solid #ddd;text-align:left}p,td{overflow-wrap:anywhere}.scroll{overflow:auto}table{min-width:600px}</style><main><h1>独立播放器包设备验收</h1><p><b>''' + str(report.get('passed', 0)) + ' / ' + str(report.get('expectedTotal', 0)) + ' 项通过</b> · ' + ('已完成' if report.get('complete') else '未完整完成') + '</p><p>' + html.escape(str(report.get('device', ''))) + ' · ' + html.escape(str(report.get('platform', ''))) + '</p><p>此流程使用独立示例中的核心后端，检查解码、视频输出状态与时钟。默认静音；不替代物理声音、真实像素、多声道或长稳验收。</p><p>' + html.escape(str(report.get('error', ''))) + '</p><div class="scroll"><table><thead><tr><th>样本</th><th>模式</th><th>结果</th><th>失败说明</th></tr></thead><tbody>' + rows + '</tbody></table></div></main></html>')
+    output.write_text('''<!doctype html><html lang="zh-CN"><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>独立包设备播放验收</title><style>body{font:15px/1.8 -apple-system,BlinkMacSystemFont,"PingFang SC",sans-serif;padding:24px;background:#f5f6f8;color:#182334}main{max-width:1100px;margin:auto;background:white;padding:28px;border-radius:14px}table{border-collapse:collapse;width:100%}th,td{padding:10px;border-bottom:1px solid #ddd;text-align:left}p,td{overflow-wrap:anywhere}.scroll{overflow:auto}table{min-width:600px}</style><main><h1>独立播放器包设备验收</h1><p><b>''' + str(report.get('passed', 0)) + ' / ' + str(report.get('expectedTotal', 0)) + ' 项通过</b> · ' + ('已完成' if report.get('complete') else '未完整完成') + '</p><p>' + html.escape(str(report.get('device', ''))) + ' · ' + html.escape(str(report.get('platform', ''))) + '</p><p>此流程使用独立示例中的核心后端，检查解码、视频输出状态与时钟。默认静音；不替代物理声音、真实像素、多声道或长稳验收。</p><p>' + html.escape(str(report.get('error', ''))) + '</p><div class="scroll"><table><thead><tr><th>样本</th><th>模式</th><th>结果</th><th>失败说明</th></tr></thead><tbody>' + rows + '</tbody></table></div></main></html>', encoding="utf-8")
 
 
 def main():
@@ -39,7 +39,7 @@ def main():
     if not args.flutter: parser.error('Supply --flutter=/path/to/flutter')
     if args.platform == 'android' and not args.adb: parser.error('Supply --adb=/path/to/adb')
     fixtures = Path(args.fixtures).resolve(); output = Path(args.report).resolve(); output.parent.mkdir(parents=True, exist_ok=True)
-    entries = [e for e in json.loads((fixtures / 'manifest.json').read_text()) if args.filter in e['name']]
+    entries = [e for e in json.loads((fixtures / 'manifest.json').read_text(encoding="utf-8")) if args.filter in e['name']]
     if not entries: parser.error('No matching fixtures')
     expected = len(entries) * (2 if args.mode == 'both' else 1)
     report = {'platform': args.platform, 'device': args.device, 'expectedTotal': expected,
@@ -53,8 +53,8 @@ def main():
     server = None; server_thread = None
     def command(parts, *, capture=False, cwd=example, timeout=600):
         if capture:
-            return subprocess.check_output(parts, cwd=cwd, text=True, stderr=subprocess.DEVNULL, timeout=timeout).strip()
-        with log.open('a') as stream:
+            return subprocess.check_output(parts, cwd=cwd, text=True, stderr=subprocess.DEVNULL, timeout=timeout, encoding="utf-8").strip()
+        with log.open('a', encoding="utf-8") as stream:
             subprocess.run(parts, cwd=cwd, stdout=stream, stderr=subprocess.STDOUT, timeout=timeout, check=True)
     def adb(*parts, capture=False):
         return command([args.adb, '-s', args.device, *parts], capture=capture, timeout=20 if capture else 120)
@@ -101,7 +101,7 @@ def main():
                     if time.monotonic() >= pid_deadline:
                         raise TimeoutError('Probe process did not start')
                     time.sleep(0.25)
-            device_log_stream = output.with_suffix('.device.log').open('w')
+            device_log_stream = output.with_suffix('.device.log').open('w', encoding="utf-8")
             device_logger = subprocess.Popen([args.adb, '-s', args.device, 'logcat', '--pid=' + pid, '-v', 'brief', 'flutter:I', '*:S'], stdout=device_log_stream, stderr=subprocess.STDOUT)
             def read_checkpoint():
                 return json.loads(adb('shell', 'run-as', app_id, 'cat', 'files/codec_probe.json', capture=True))
@@ -114,7 +114,7 @@ def main():
             for file in (container / 'Library').rglob('codec_probe.json'): file.unlink()
             command(['xcrun', 'simctl', 'launch', args.device, app_id])
             def read_checkpoint():
-                return json.loads(next((container / 'Library').rglob('codec_probe.json')).read_text())
+                return json.loads(next((container / 'Library').rglob('codec_probe.json')).read_text(encoding="utf-8"))
         else:
             command(base, timeout=1200)
             app = next((example / 'build/macos/Build/Products/Debug').glob('*.app'))
@@ -122,10 +122,10 @@ def main():
             container = Path.home() / 'Library/Containers' / app_id / 'Data/Library/Application Support'
             if container.exists():
                 for file in container.rglob('codec_probe.json'): file.unlink()
-            with log.open('a') as stream:
+            with log.open('a', encoding="utf-8") as stream:
                 desktop = subprocess.Popen([str(app / 'Contents/MacOS' / info['CFBundleExecutable'])], stdout=stream, stderr=subprocess.STDOUT)
             def read_checkpoint():
-                return json.loads(next(container.rglob('codec_probe.json')).read_text())
+                return json.loads(next(container.rglob('codec_probe.json')).read_text(encoding="utf-8"))
         last = -1; deadline = time.monotonic() + args.timeout
         while time.monotonic() < deadline:
             try:
@@ -135,7 +135,7 @@ def main():
                 time.sleep(2); continue
             if current['total'] != last:
                 last = current['total']; print(f"{args.platform}: {current['passed']}/{last}, expected {expected}", flush=True)
-                output.write_text(json.dumps(report, ensure_ascii=False, indent=2) + '\n')
+                output.write_text(json.dumps(report, ensure_ascii=False, indent=2) + '\n', encoding="utf-8")
             if current.get('complete'):
                 if current['total'] != expected: raise RuntimeError('Incomplete fixture/mode coverage')
                 break
@@ -167,7 +167,7 @@ def main():
             server.shutdown(); server.server_close(); server_thread.join(timeout=5)
         if previous is None: target.unlink(missing_ok=True)
         else: target.write_bytes(previous)
-        output.write_text(json.dumps(report, ensure_ascii=False, indent=2) + '\n')
+        output.write_text(json.dumps(report, ensure_ascii=False, indent=2) + '\n', encoding="utf-8")
         render(report, output.with_suffix('.html'))
     return 0 if report.get('complete') and report.get('total') == expected and report.get('passed') == expected else 1
 

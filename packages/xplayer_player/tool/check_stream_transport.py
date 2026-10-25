@@ -25,7 +25,7 @@ def main():
     env = dict(os.environ)
     cache = Path(args.cache).resolve()
     cache.mkdir(parents=True, exist_ok=True)
-    manifest = json.loads((native_package_root() / 'native_builds.json').read_text())
+    manifest = json.loads((native_package_root() / 'native_builds.json').read_text(encoding="utf-8"))
     library = native_library(manifest, cache, env)
     requests = []
 
@@ -118,7 +118,7 @@ def main():
                        'tool/probe_decoder.dart', f'--libmpv={library}',
                        '--require-audio', '--require-video', '--diagnose-errors', *options, base + path]
             try:
-                completed = subprocess.run(command, cwd=ROOT, env=env, capture_output=True, text=True, timeout=45)
+                completed = subprocess.run(command, cwd=ROOT, env=env, capture_output=True, text=True, timeout=45, encoding="utf-8")
                 records = [json.loads(line) for line in completed.stdout.splitlines() if line.startswith('{"source":')]
                 result = records[-1] if records else {'decoded': False, 'error': 'No decoder result'}
                 passed = result.get('decoded') is expect_decode
@@ -139,7 +139,7 @@ def main():
         server.shutdown()
         server.server_close()
     report = {'passed': sum(r['passed'] for r in results), 'total': len(results), 'results': results}
-    Path(args.report).write_text(json.dumps(report, indent=2) + '\n')
+    Path(args.report).write_text(json.dumps(report, indent=2) + '\n', encoding="utf-8")
     return 0 if report['passed'] == report['total'] else 1
 
 

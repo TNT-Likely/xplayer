@@ -68,7 +68,7 @@ def native_library(manifest, cache, env):
             # Ad-hoc sign only test copies. Never edit the pub cache or SDK.
             subprocess.run(["codesign", "--force", "--sign", "-", str(target)],
                            check=True, capture_output=True)
-        (directory / ".probe-ready").write_text(artifact["sha256"])
+        (directory / ".probe-ready").write_text(artifact["sha256"], encoding="utf-8")
     env["DYLD_FRAMEWORK_PATH"] = str(directory)
     return str(directory / "Mpv.framework/Mpv")
 
@@ -96,7 +96,7 @@ def package_configuration():
 def native_package_root():
     """Resolve the installed plugin, including hosted caches and staged releases."""
     config = Path(package_configuration()).resolve()
-    packages = json.loads(config.read_text())["packages"]
+    packages = json.loads(config.read_text(encoding="utf-8"))["packages"]
     entry = next(p for p in packages if p["name"] == "libmpv_xplayer")
     uri = urlparse(urljoin(config.as_uri(), entry["rootUri"]))
     if uri.scheme != "file":
@@ -116,9 +116,9 @@ def main():
     cache = Path(args.cache).resolve()
     cache.mkdir(parents=True, exist_ok=True)
     env = dict(os.environ)
-    manifest = json.loads((native_package_root() / "native_builds.json").read_text())
+    manifest = json.loads((native_package_root() / "native_builds.json").read_text(encoding="utf-8"))
     library = args.libmpv or native_library(manifest, cache, env)
-    entries = json.loads((fixtures / "manifest.json").read_text())
+    entries = json.loads((fixtures / "manifest.json").read_text(encoding="utf-8"))
     results = []
     dart = args.dart or dart_binary()
     for entry in entries:
@@ -131,7 +131,7 @@ def main():
         command.append(str(fixtures / entry["file"]))
         try:
             completed = subprocess.run(command, cwd=ROOT, env=env, capture_output=True,
-                                       text=True, timeout=45)
+                                       text=True, timeout=45, encoding="utf-8")
             records = [json.loads(line) for line in completed.stdout.splitlines() if line.startswith('{"source":')]
             result = records[-1] if records else {"decoded": False, "error": "No decoder result"}
             result["name"] = entry["name"]
@@ -142,7 +142,7 @@ def main():
         print(json.dumps(result), flush=True)
     report = {"platform": platform.system(), "architecture": platform.machine(),
               "passed": sum(row["passed"] for row in results), "total": len(results), "results": results}
-    Path(args.report).write_text(json.dumps(report, indent=2) + "\n")
+    Path(args.report).write_text(json.dumps(report, indent=2) + "\n", encoding="utf-8")
     return 0 if report["passed"] == report["total"] else 1
 
 

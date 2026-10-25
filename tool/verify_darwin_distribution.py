@@ -14,7 +14,7 @@ def main():
     parser.add_argument('--platform', required=True, choices=['ios', 'macos'])
     args = parser.parse_args()
     output = Path(args.packages).resolve()
-    stage = Path(json.loads((output / 'packaging-report.json').read_text())['stagingPath'])
+    stage = Path(json.loads((output / 'packaging-report.json').read_text(encoding="utf-8"))['stagingPath'])
     runner = stage / 'sdk/player_api/tool/run_device_validation.py'
     if not runner.is_file():
         raise RuntimeError('External package stage missing; package with --keep-staging')
@@ -23,12 +23,12 @@ def main():
     try:
         if args.platform == 'ios':
             devices = json.loads(subprocess.check_output(
-                ['xcrun', 'simctl', 'list', 'devices', 'available', '--json'], text=True))['devices']
+                ['xcrun', 'simctl', 'list', 'devices', 'available', '--json'], text=True, encoding="utf-8"))['devices']
             template = next((runtime, device) for runtime, entries in devices.items()
                             for device in entries if 'iPhone' in device['name'])
             owned = subprocess.check_output([
                 'xcrun', 'simctl', 'create', 'XPlayer-Package-' + uuid.uuid4().hex[:8],
-                template[1]['deviceTypeIdentifier'], template[0]], text=True).strip()
+                template[1]['deviceTypeIdentifier'], template[0]], text=True, encoding="utf-8").strip()
             device = owned
             subprocess.run(['xcrun', 'simctl', 'boot', device], check=True, timeout=60)
             subprocess.run(['xcrun', 'simctl', 'bootstatus', device, '-b'], check=True, timeout=240)
