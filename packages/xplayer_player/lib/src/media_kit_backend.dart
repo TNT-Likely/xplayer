@@ -7,6 +7,7 @@ import 'package:media_kit_video/media_kit_video.dart';
 import 'package:audio_session/audio_session.dart';
 
 import 'audio_session_coordinator.dart';
+import 'android_gpu_capabilities.dart';
 import 'hls_startup.dart';
 import 'playback_configuration.dart';
 import 'playback_log.dart';
@@ -263,6 +264,17 @@ class MediaKitBackend implements XPlayerBackend {
       await _video!.platform.future;
       if (_disposed) throw StateError('Playback cancelled');
       final native = player.platform as mk.NativePlayer;
+      if (!kIsWeb && defaultTargetPlatform == TargetPlatform.android) {
+        final capabilities = await queryAndroidGpuCapabilities();
+        if (_disposed) throw StateError('Playback cancelled');
+        _diagnostics.value = {
+          ..._diagnostics.value,
+          'androidEglCapabilities': capabilities,
+        };
+        if (capabilities['needsDebugContext'] == true) {
+          await native.setProperty('gpu-debug', 'yes');
+        }
+      }
       // Decoder parameters alone do not prove that a speaker output opened.
       // Keep output, mute and volume visible across pause/resume and rerouting.
       for (final property in {
@@ -271,6 +283,9 @@ class MediaKitBackend implements XPlayerBackend {
         'audio-device': 'audioDevice',
         'mute': 'muted',
         'volume': 'volume',
+        'current-vo': 'videoOutputDriver',
+        'vo-configured': 'videoOutputConfigured',
+        'video-out-params': 'videoOutputParams',
       }.entries) {
         await native.observeProperty(property.key, (value) async {
           if (_disposed) return;

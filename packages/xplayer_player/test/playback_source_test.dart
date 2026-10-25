@@ -2,6 +2,32 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:xplayer_player/playback.dart';
 
 void main() {
+  test('common audio and legacy video files retain on-demand buffering', () {
+    for (final extension in [
+      'AAC',
+      'mp3',
+      'flac',
+      'm4a',
+      'wav',
+      'ogg',
+      'opus',
+      'wma',
+      'ac3',
+      'eac3',
+      'dts',
+      'mlp',
+      'truehd',
+      'asf',
+      'wmv',
+      'mpeg',
+    ]) {
+      final source = PlaybackSource.parse(
+        'https://origin.test/file.$extension?token=keep%2Fbytes&next=.m3u8',
+      );
+      expect(source.format, StreamFormat.file, reason: extension);
+      expect(source.url, contains('token=keep%2Fbytes'));
+    }
+  });
   test(
     'HTTP uses browser UA but leaves explicit agents and native protocols alone',
     () {

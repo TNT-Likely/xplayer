@@ -1,6 +1,6 @@
 # XPlayer 原生解码库
 
-这里保留 media_kit 原生库适配器的最小本地分支。原始 Java、Swift、C++ 插件和 MIT 许可来自 media-kit/media-kit；改动集中在下载、校验和完整解码构建的选择，不修改 Flutter 渲染器或自行实现解码器。
+这里保留 media_kit 原生库适配器的最小本地分支。原始 Java、Swift、C++ 插件和 MIT 许可来自 media-kit/media-kit；改动集中在下载、校验、完整解码构建的选择，以及 Android EGL 能力探测，不修改 Flutter 渲染器或自行实现解码器。
 
 `native_builds.json` 记录来源、固定版本、构建类型和 SHA-256。原生二进制通过构建下载，不提交到 Git；缓存和解压目录被 `.gitignore` 排除。
 
@@ -18,7 +18,7 @@ Darwin 原生库适配器基于上游 1.1.4，Android 基于 1.3.8，Windows 基
 
 ## 验证
 
-`tool/generate_playback_fixtures.py` 生成包含 TrueHD 5.1、MLP、HEVC Main10、DTS、AC-3、E-AC-3、FLAC、ALAC、VP9、AV1、MPEG-2、WMV/WMA 等组合的样本。
+`tool/generate_playback_fixtures.py` 生成 36 组样本，覆盖 TrueHD 5.1、MLP、HEVC Main10、DTS、AC-3、E-AC-3、AAC/HE-AAC/v2、FLAC、ALAC、VP8/VP9、AV1、MPEG-2、WMV/WMA、纯音频、HLS TS/fMP4 与 DASH。HE-AAC 采用包内自行生成的音调，固定 SHA-256，见[样本说明](../xplayer_player/test/fixtures/README.md)。
 
 `tool/check_decoder_compatibility.py` 校验实际音频解码参数、视频解码参数和至少一秒的时钟推进，进程超时单独标记失败。`.github/workflows/playback-compatibility.yml` 在 macOS、Windows、Linux 运行此矩阵，并在 Windows 构建应用以检查 CMake / ANGLE 集成；不能用这份配置代替尚未执行的 CI 结果。
 
@@ -33,3 +33,11 @@ Darwin 原生库适配器基于上游 1.1.4，Android 基于 1.3.8，Windows 基
 `tool/application_playback_probe.dart` 使用应用的实际后端工厂和回退顺序，默认开启声音。libmpv 必须有实际输出驱动、输出 PCM 参数和非零音量；Android 原生后端必须收到音频播放位置推进回调。配置 `testPauseResume: true` 可验证直播暂停恢复。短样本不应启用该选项，以免将正常播放结束误判为恢复失败。
 
 原生库版本升级时，更新清单、各平台适配器中的固定值并重新运行矩阵。Windows 解压目录使用 SHA-256 标记，避免复用旧的裁剪 DLL；所有平台不应切回 `default` 构建来缩小包体。
+
+### Android EGL 上下文兼容
+
+部分 Android EGL 驱动拒绝固定版本 mpv 提交的零 `EGL_CONTEXT_FLAGS_KHR` 属性，即使基础 GLES 和 DEBUG 上下文均可创建，也会出现 `EGL_BAD_ATTRIBUTE` 和视频输出初始化失败。原生适配器在独立线程探测这三种请求，将结果通过 `com.tntlikely.xplayer/decoder_capabilities` 返回核心包，只有命中此驱动行为才启用 `gpu-debug=yes`。普通驱动保留原设置；DEBUG 上下文可能增加驱动检查开销，仅用于已证实失败的路径。
+
+不修改模拟器全局 GPU 设置，也不强制所有设备使用软解。探测创建的 context 均立即销毁，工作线程释放 EGL 线程状态，但不终止 Flutter 正在使用的共享 display。原生端缓存结果，核心等待有超时，旧宿主缺少通道不会阻止播放。
+
+上游实现参考：[固定版本 EGL 上下文创建](https://github.com/mpv-player/mpv/blob/v0.36.0/video/out/opengl/egl_helpers.c)、[mpv EGL 后续兼容处理](https://github.com/mpv-player/mpv/blob/master/video/out/opengl/egl_helpers.c)。

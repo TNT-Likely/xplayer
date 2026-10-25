@@ -4,7 +4,9 @@ XPlayer 的本地 Flutter 播放兼容包，集中管理源地址、请求头、
 
 详细文档：[架构、API 与配置](docs/ARCHITECTURE.md) · [格式与设备兼容边界](docs/COMPATIBILITY.md) · [独立测试、原生回归与排障](docs/TESTING.md)。包目前为仓库内路径依赖，尚未发布到 pub.dev。
 
-**查看本轮结果：[HTML 验收报告（2026-10-25）](validation/2026-10-25-audio-acceptance.html)**。可离线打开，支持按平台、关键词和未通过结果筛选，包含修复项、编码兼容表和完整 32 项对照。另保留 [Markdown 版](validation/2026-10-25-audio-acceptance.md)和原始 JSON。
+**最新结果：[常用格式 HTML 补测报告（2026-10-25）](validation/2026-10-25-common-formats.html)**。Android MLP 渲染失败已修复；36 组样本在 Android 手机、Android TV、iPhone、iPad 模拟器与 macOS 共通过 180 次播放检查。包含 HE-AAC/v2、9 组纯音频、HLS TS/fMP4、DASH 与常见编码/封装，支持离线筛选与打印。另有 [Markdown 版](validation/2026-10-25-common-formats.md)。
+
+声音修复与直播地址的原始结果见[此前的验收报告](validation/2026-10-25-audio-acceptance.html)，保留各次实际结果和未验证范围。
 
 包可独立检查：在 `packages/xplayer_player` 下执行 `flutter pub get`、`flutter analyze`、`flutter test`。原生解码样本生成器、HTTP/HLS 回归服务与设备测试入口均由包维护，根目录工具保留转发入口。
 
@@ -29,6 +31,8 @@ iOS 在准备媒体前配置并激活系统音频会话，恢复播放时重新�
 诊断中的 `audioSampleFormat` 表示解码后的音频，`audioOutputDriver` / `audioOutputParams` 则表示实际打开的音频输出。两者不能混为一谈。`firstFrameMs`、`audioOutputMs`、`manifestReadyMs`、`initializedMs` 可帮助区分网络、解码、画面和声音的启动耗时。设备音频输出失败时会跳过使用同一输出驱动的软解重试，直接尝试其他平台后端。
 
 宿主可通过 `pausePlaybackWhenHidden(platform)` 选择后台策略：Android/iOS 切后台暂停，桌面窗口被遮挡或隐藏时保持音频播放。Android 宿主在音频开始推进时提供 `systemMediaVolume`、`systemMediaVolumeMax` 和 `systemMediaMuted`，辅助区分系统低音量与解码/输出错误。
+
+Android 原生适配器提供有界的 EGL 能力探测，缓存驱动行为；只有明确命中零上下文标志的 `EGL_BAD_ATTRIBUTE` 问题才启用兼容参数。诊断保留 `androidEglCapabilities`、`videoOutputConfigured` 与 `videoOutputParams`；没有通道的旧宿主和探测超时保留默认渲染路径。详细行为见[架构说明](docs/ARCHITECTURE.md)。
 
 频道测速使用同一套请求头上下文，能够识别无后缀 HLS 并沿重定向后的路径继续探测分片，拒绝 HTTP 200 的 HTML 错误页面。源属性以 JSON 对象保存，兼容读取旧字符串格式，避免请求头中的逗号、冒号在缓存或同步后丢失。
 
@@ -61,7 +65,7 @@ fvm dart run tool/probe_playlist.dart 'https://cdn.jsdelivr.net/gh/Kimentanm/apt
 
 这四条的[后续排查记录](validation/2026-10-25-source-investigation.json)：CCTV-4 海外源可解码但网络延迟波动；TVBS 使用单变体与低码率恢复后播通；CCTV-6 的浏览器 UA 修复了重定向后 423，但实际返回的是源站超负载提示短片；CCTV-4 官方源后续对不同客户端均返回 403，需上游提供可用授权地址。后两者不能据此宣称已恢复真实频道直播。
 
-[应用接入复测](validation/2026-10-25-application-integration.json) 进一步记录了实际内核回退：Android TV 上 CCTV-4 海外源与 TVBS 可经系统播放器路径播放，TrueHD 5.1 样本可经原生路径播放。当前模拟器的 libmpv 仍有 EGL 输出限制，HEVC Main10 样本未通过严格宿主测试。上游 Android 首帧通知可能在尺寸变化时提前完成，历史布尔值与解码时钟检查不能单独证明 GPU 已呈现画面；报告保留失败证据，不将其计为全平台兼容。
+[早期应用接入复测](validation/2026-10-25-application-integration.json) 记录了实际内核回退：Android TV 上 CCTV-4 海外源与 TVBS 可经系统播放器路径播放，TrueHD 5.1 样本可经原生路径播放。当时模拟器的 EGL 输出限制导致 HEVC Main10 未通过严格宿主测试；后续已修复共用渲染参数，HEVC Main10 与 MLP 在[36 组补测](validation/2026-10-25-common-formats.html)中通过。上游 Android 首帧通知可能在尺寸变化时提前完成，历史布尔值与解码时钟检查不能单独证明 GPU 已呈现画面；各次原始结果均保留。
 
 早期 iPad 模拟器的上游 libmpv 二进制没有可用的音频输出驱动，相关解码与渲染检查使用了 null audio。本地适配器现已补齐模拟器 AudioUnit，最新声音验收使用系统输出，结果见[HTML 验收报告](validation/2026-10-25-audio-acceptance.html)。iOS 真机的声音、路由和中断恢复仍需在实际设备上确认。
 

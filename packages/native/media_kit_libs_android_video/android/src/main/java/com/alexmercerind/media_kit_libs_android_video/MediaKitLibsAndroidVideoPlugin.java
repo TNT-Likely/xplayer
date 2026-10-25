@@ -18,15 +18,20 @@ import java.io.InputStreamReader;
 import java.util.zip.GZIPInputStream;
 
 import android.util.Log;
+import android.os.Build;
+import android.os.Handler;
+import android.os.Looper;
 import androidx.annotation.NonNull;
 import android.content.res.AssetManager;
 
 import io.flutter.embedding.engine.plugins.FlutterPlugin;
+import io.flutter.plugin.common.MethodChannel;
 
 import com.alexmercerind.mediakitandroidhelper.MediaKitAndroidHelper;
 
 /** MediaKitLibsAndroidVideoPlugin */
 public class MediaKitLibsAndroidVideoPlugin implements FlutterPlugin {
+    private MethodChannel compatibilityChannel;
     static {
         // DynamicLibrary.open on Dart side may not work on some ancient devices unless System.loadLibrary is called first.
         try {
@@ -38,6 +43,22 @@ public class MediaKitLibsAndroidVideoPlugin implements FlutterPlugin {
 
     @Override
     public void onAttachedToEngine(@NonNull FlutterPluginBinding flutterPluginBinding) {
+        compatibilityChannel = new MethodChannel(flutterPluginBinding.getBinaryMessenger(),
+                "com.tntlikely.xplayer/decoder_capabilities");
+        compatibilityChannel.setMethodCallHandler((call, result) -> {
+            if (!call.method.equals("queryEglCapabilities")) {
+                result.notImplemented();
+                return;
+            }
+            if (Build.VERSION.SDK_INT < 17) {
+                result.success(null);
+                return;
+            }
+            new Thread(() -> {
+                java.util.Map<String, Object> capabilities = EglCapabilities.query();
+                new Handler(Looper.getMainLooper()).post(() -> result.success(capabilities));
+            }, "xplayer-egl-probe").start();
+        });
         Log.i("media_kit", "package:media_kit_libs_android_video attached.");
         try {
             // Save android.content.Context for access later within MediaKitAndroidHelpers e.g. loading bundled assets.
@@ -50,6 +71,8 @@ public class MediaKitLibsAndroidVideoPlugin implements FlutterPlugin {
 
     @Override
     public void onDetachedFromEngine(@NonNull FlutterPluginBinding binding) {
+        compatibilityChannel.setMethodCallHandler(null);
+        compatibilityChannel = null;
         Log.i("media_kit", "package:media_kit_libs_android_video detached.");
     }
 }

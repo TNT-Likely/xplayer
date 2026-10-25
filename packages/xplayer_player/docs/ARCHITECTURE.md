@@ -76,7 +76,9 @@ HLS 原生探测时长设为 1 秒；网络超时默认为 15 秒，替代 media
 
 ## 状态与资源
 
-`initialize()` 完成表示媒体打开并出现解码参数，不代表用户已经看见首帧或听到声音。`diagnostics.firstFrameRendered` 单独表示 Flutter 视频输出首帧；时钟推进、音频解码参数、实际音频路由需要分别验证。纯音频没有视频首帧，调用方不可一律等待它。
+`initialize()` 完成表示媒体打开并出现解码参数，不代表用户已经看见首帧或听到声音。`diagnostics.firstFrameRendered` 来自上游视频通知，Android 可能在尺寸确定时提前触发；设备探针还要求 `videoOutputConfigured: yes` 和非空 `videoOutputParams`，并检查持续时钟与致命错误。实际画面仍应通过设备截图或帧检查确认。纯音频没有视频首帧，调用方不可一律等待它。
+
+Android 在打开媒体前向本地原生适配器请求一次 EGL 能力检查，Dart 等待上限为 1 秒，原生端缓存成功的探测结果。正常上下文使用原路径；只有明确检测到零 `EGL_CONTEXT_FLAGS_KHR` 返回 `EGL_BAD_ATTRIBUTE`、无标志与 DEBUG 上下文都成功，才设置 mpv 的 `gpu-debug=yes`。这避开固定版本 mpv 的 EGL 参数兼容问题，保留完整解码器和原硬解/软解选择。探测不创建屏幕表面，不调用共享 display 的 `eglTerminate`；旧宿主缺少通道、原生错误或超时均使用原路径。详细结果保留在 `androidEglCapabilities`，后续升级 mpv 时应重跑矩阵并评估移除此兼容参数。
 
 宿主对 libmpv 在所有系统上使用播放时钟推进检测；AVPlayer 直播位置可能长期不变，因此保留对该系统内核的豁免。不要只按“是否 Android”决定所有内核的停滞语义，否则桌面和 Apple 兼容内核的无错误冻结会漏检。
 

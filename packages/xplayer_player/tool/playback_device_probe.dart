@@ -96,7 +96,9 @@ class _PlaybackProbeState extends State<_PlaybackProbe> {
               final diag = backend.diagnostics.value;
               final videoReady =
                   entry['expectVideo'] == false ||
-                  diag['firstFrameRendered'] == true;
+                  (diag['firstFrameRendered'] == true &&
+                      diag['videoOutputConfigured'] == 'yes' &&
+                      '${diag['videoOutputParams'] ?? ''}'.isNotEmpty);
               final audioReady =
                   entry['expectAudio'] == false ||
                   diag['audioSampleFormat'] != null;
@@ -121,6 +123,9 @@ class _PlaybackProbeState extends State<_PlaybackProbe> {
                   'audioOutputParams': diag['audioOutputParams'],
                   'audioOutputMs': diag['audioOutputMs'],
                   'firstFrameMs': diag['firstFrameMs'],
+                  'videoOutputDriver': diag['videoOutputDriver'],
+                  'videoOutputConfigured': diag['videoOutputConfigured'],
+                  'androidEglCapabilities': diag['androidEglCapabilities'],
                 });
                 break;
               }

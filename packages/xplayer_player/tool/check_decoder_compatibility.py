@@ -110,8 +110,12 @@ def main():
     dart = args.dart or dart_binary()
     for entry in entries:
         command = [dart, f"--packages={package_configuration()}",
-                   "tool/probe_decoder.dart", f"--libmpv={library}",
-                   "--require-audio", "--require-video", str(fixtures / entry["file"])]
+                   "tool/probe_decoder.dart", f"--libmpv={library}"]
+        if entry.get("expectAudio", True):
+            command.append("--require-audio")
+        if entry.get("expectVideo", True):
+            command.append("--require-video")
+        command.append(str(fixtures / entry["file"]))
         try:
             completed = subprocess.run(command, cwd=ROOT, env=env, capture_output=True,
                                        text=True, timeout=45)

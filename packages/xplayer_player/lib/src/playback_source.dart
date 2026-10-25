@@ -87,7 +87,11 @@ class PlaybackSource {
         ? StreamFormat.flv
         : path.endsWith('.ts') || uri.scheme == 'udp' || uri.scheme == 'rtp'
         ? StreamFormat.transportStream
-        : RegExp(r'\.(mp4|m4v|mov|mkv|webm|avi|mp3|m4a)$').hasMatch(path)
+        : RegExp(
+            r'\.(mp4|m4v|mov|mkv|webm|avi|asf|wmv|mpg|mpeg|vob|mka|'
+            r'mp3|m4a|aac|flac|alac|wav|wave|aif|aiff|ogg|oga|opus|wma|'
+            r'ac3|eac3|dts|mlp|truehd)$',
+          ).hasMatch(path)
         ? StreamFormat.file
         : StreamFormat.unknown;
     // IPTV fragments often contain format hints, not part of the media URL.

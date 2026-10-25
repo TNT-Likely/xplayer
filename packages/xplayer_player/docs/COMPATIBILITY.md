@@ -1,6 +1,6 @@
 # 兼容范围与设备验收
 
-本轮四端播放、声音与失败项的结果见[HTML 验收报告（2026-10-25）](../validation/2026-10-25-audio-acceptance.html)。
+最新结果见[常用格式 HTML 补测报告](../validation/2026-10-25-common-formats.html)：Android MLP 渲染失败已修复，36 组样本在 Android 手机、Android TV、iPhone、iPad 模拟器与 macOS 均通过。直播源与声音原验收见[此前报告](../validation/2026-10-25-audio-acceptance.html)。
 
 ## 先区分五层
 
@@ -33,6 +33,8 @@ Apple 使用完整解码路径优先，避免 AVPlayer 只显示视频而忽略�
 当前宿主采用 Flutter 3.41.9 / Dart 3.11，Android debug 构建最低 API 24，iOS 13，macOS 10.15。它们是本宿主工程的系统下限，不是已逐版本实测的承诺。Windows 与 Linux 的桌面环境、GPU/驱动及动态库要求另受 Flutter 与发行版影响。
 
 ## 样本与证据
+
+当前矩阵为 36 组，新增 HE-AAC/v2（纯音频与 TS）、AAC LATM、MP3/FLV、VP8/Vorbis、HLS fMP4、9 组纯音频、编码尺寸 1080p 的 H.264 High 和 720p 的 HEVC Main。样本生成器与同一组 HE-AAC 固定音调已接入现有原生 CI；Windows/Linux 本轮运行结果仍待验证。矩阵验证具体样本的解码与输出，不承诺同格式全部档位、高码率或所有系统版本。
 
 | 组合 | 样本用途 |
 | --- | --- |

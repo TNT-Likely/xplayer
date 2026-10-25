@@ -1,6 +1,6 @@
 # 测试、排障与版本升级
 
-查看结果请先读[HTML 验收报告](../validation/2026-10-25-audio-acceptance.html)；本文面向需要运行测试或排查错误的开发者。
+查看最新结果请先读[常用格式 HTML 补测报告](../validation/2026-10-25-common-formats.html)；本文面向需要运行测试或排查错误的开发者。
 
 ## 1. 包独立检查
 
@@ -24,6 +24,7 @@ flutter test
 | player_backend_selector | 五平台策略、Android TV SurfaceView 优先、Linux 不调用缺失插件、有界推进 |
 | buffer_profile / stall_detector | 直播缓冲、位置倒跳不冒充前进、暂停不误报、恢复与 reset |
 | audio_session_coordinator | 并发租约、异步停用期间再申请、失败后队列恢复、重复释放 |
+| android_gpu_capabilities | EGL 探测证据、普通驱动、旧宿主无通道、原生错误和超时后的播放降级 |
 | native_library_pins | 生产适配器与 CI 的实际原生资产一致 |
 | x_player_value / audio_track | 状态复制、画面尺寸/比例和音轨显示契约 |
 
@@ -49,6 +50,10 @@ macOS/Linux 命令使用 shell；Windows CI 使用 Git Bash，或在 PowerShell 
 
 这两类原生检查使用 `vo=null`、`ao=null` 和软解，不能证明 Flutter texture、GPU、扬声器或硬解正常。Windows 应用构建也不能替代 Windows decoder/渲染运行验收。
 
+当前生成器包含 36 组：22 组音视频文件、9 组纯音频、3 组 HLS/DASH 清单，以及 2 组 H.264 + HE-AAC/v2 的 TS。覆盖 H.264 Baseline、H.264 High 1080p、HEVC Main 720p、HEVC Main10、VP8/VP9、AV1、AAC LC/LATM/HE/v2、MP2/MP3、AC-3/E-AC-3、TrueHD/MLP、DTS、FLAC、ALAC、Opus、Vorbis、PCM 与 WMA。360p/720p/1080p 指编码尺寸，缩放样本保留原始显示比例，包含非方形像素；不把短合成样本当作高码率或长期性能验收。
+
+纯音频清单使用 `expectVideo: false`，原生检查仍要求音频参数和时钟，不等待不存在的视频轨道；音视频用例继续强制验证两条轨道。HE-AAC 输入来源和复现方法见[固定音调说明](../test/fixtures/README.md)，生成器会校验 SHA-256。
+
 ## 3. Flutter/设备播放
 
 包内 `tool/playback_device_probe.dart` 是显式测试入口，需用 Flutter 应用工程承载。当前仓库提供 `tool/playback_device_probe.dart` 转发入口：
@@ -67,7 +72,7 @@ Android 宿主 Gradle 针对此入口使用 `.playbackprobe` 应用 ID。测试�
 
 每个源分别测试自动与强制软解；断言解码参数、渲染首帧和时钟推进，结果输出 `XPLAYER_PROBE`，并写入应用支持目录 `codec_probe.json`。`PLAYBACK_PROBE_FILTER` 按样本名称过滤，`PLAYBACK_PROBE_MODE=auto` 或 `software` 限定模式。该入口默认静音，`PLAYBACK_PROBE_NULL_AUDIO=true` 仅用于显式的无声解码检查，报告会标明测试模式。本地适配器已补齐 iOS 模拟器的 AudioUnit；完整声音检查使用下文的应用探针和系统混音验收流程，物理设备的音质与路由单独记录。
 
-`PLAYBACK_PROBE_DEBUG=true` 开启 `XPLAYER_NATIVE` 脱敏日志。失败报告包含初始化阶段、HTTP 状态、音频参数、视频尺寸、位置与缓冲状态。Android 上游首帧通知可能在视频尺寸变化时完成，验收时还应检查没有输出错误并查看实际画面；不能只凭该布尔值宣布 GPU 正常。
+`PLAYBACK_PROBE_DEBUG=true` 开启 `XPLAYER_NATIVE` 脱敏日志。失败报告包含初始化阶段、HTTP 状态、音频参数、视频尺寸、位置与缓冲状态。探针同时要求首帧通知、`videoOutputConfigured: yes` 与输出参数，纯音频按配置跳过视频检查。Android 上游首帧通知可能在视频尺寸变化时完成，验收时还应检查没有输出错误并查看实际画面；不能只凭该布尔值宣布 GPU 正常。`androidEglCapabilities` 应保留原始错误码与兼容参数判定。
 
 ## 4. 单源排障
 
@@ -87,7 +92,7 @@ dart --packages=.dart_tool/package_config.json tool/probe_decoder.dart \
 
 ## 5. 发布门槛
 
-修改协议、默认请求头、HLS 选择、超时或库版本，运行包测试、传输原生回归、18 组 decoder 矩阵；修改渲染/会话还运行 Android TV 与 iPad 测试，并做可用真机验证。最终接入应用时再运行根目录测试与平台构建。没有对应系统的实际执行环境时，标记为“CI 配置/待验证”，不填“通过”。
+修改协议、默认请求头、HLS 选择、超时或库版本，运行包测试、传输原生回归、完整 decoder 矩阵（当前 36 组）；修改渲染/会话还运行 Android TV 与 iPad 测试，并做可用真机验证。最终接入应用时再运行根目录测试与平台构建。没有对应系统的实际执行环境时，标记为“CI 配置/待验证”，不填“通过”。
 
 新增格式应明确容器、视频编码/profile/位深、音频编码/声道，生成或保存可公开再现的最小样本，加入矩阵，记录预期成功或受限原因。避免只加扩展名正则而没有 decoder 证据。
 
