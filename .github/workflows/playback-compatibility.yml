@@ -70,12 +70,17 @@ jobs:
         run: |
           FFMPEG_BIN=$(python -c 'import imageio_ffmpeg; print(imageio_ffmpeg.get_ffmpeg_exe())')
           python tool/generate_playback_fixtures.py --output "${RUNNER_TEMP}/codec-fixtures" --ffmpeg "$FFMPEG_BIN"
+      - name: Compile the native probe once for isolated per-fixture checks
+        shell: bash
+        run: dart compile exe tool/probe_decoder.dart -o "${RUNNER_TEMP}/decoder-probe.exe"
       - name: Verify audio and video decoding
+        id: decode
         shell: bash
-        run: python tool/check_decoder_compatibility.py --fixtures "${RUNNER_TEMP}/codec-fixtures" --report "${RUNNER_TEMP}/decoder-report.json"
+        run: python tool/check_decoder_compatibility.py --fixtures "${RUNNER_TEMP}/codec-fixtures" --report "${RUNNER_TEMP}/decoder-report.json" --probe-executable "${RUNNER_TEMP}/decoder-probe.exe" --native-log
       - name: Verify HTTP and HLS playback regressions
+        if: ${{ !cancelled() && (success() || steps.decode.outcome == 'failure') }}
         shell: bash
-        run: python tool/check_stream_transport.py --fixtures "${RUNNER_TEMP}/codec-fixtures" --report "${RUNNER_TEMP}/transport-report.json"
+        run: python tool/check_stream_transport.py --fixtures "${RUNNER_TEMP}/codec-fixtures" --report "${RUNNER_TEMP}/transport-report.json" --probe-executable "${RUNNER_TEMP}/decoder-probe.exe" --native-log
       - uses: actions/upload-artifact@v4
         if: always()
         with:

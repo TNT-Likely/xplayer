@@ -47,7 +47,9 @@ macOS/Linux 命令使用 shell；Windows CI 使用 Git Bash，或在 PowerShell 
 
 成功条件包含：视频轨道与解码参数、音频轨道与样本格式、至少两个向前位置样本、至少一秒墙钟时间与一秒媒体时钟推进、没有致命播放错误。每个进程有 45 秒上限，超时也计入失败；退出码非零可直接阻止 CI。
 
-传输回归通过本机服务与同一真实 decoder 检查五种场景：浏览器 UA + FLV 重定向、HLS master 重定向与签名、坏高码率下的低码率恢复、首字节等待超过旧的 5 秒默认值、HTTP 403 状态识别。测试同时核对未访问坏的变体与签名查询未改写，避免只凭“函数返回某个 URL”宣称恢复成功。
+传输回归通过本机服务与同一真实 decoder 检查七种场景：浏览器 UA + FLV 重定向、HLS master 重定向与签名、坏高码率下的低码率恢复、首字节等待超过旧的 5 秒默认值、HTTP 403 状态识别，以及 HTTP HLS fMP4、HTTP DASH。测试同时核对未访问坏的变体与签名查询未改写，避免只凭“函数返回某个 URL”宣称恢复成功。清单同时保留本地文件和 HTTP 的独立证据，避免把一条路径成功算成两种路径都兼容。
+
+CI 会先用 `dart compile exe tool/probe_decoder.dart -o /tmp/decoder-probe` 编译一次探针，再向两类脚本传入 `--probe-executable /tmp/decoder-probe`。每个样本仍运行在单独进程，有超时、退出码与脱敏日志；省去逐项重新 JIT 编译的时间。默认不提供该选项时仍使用实际 Dart SDK。`--native-log` 开启底层日志，失败报告只保存有界且脱敏的输出。
 
 这两类原生检查使用 `vo=null`、`ao=null` 和软解，不能证明 Flutter texture、GPU、扬声器或硬解正常。Windows 应用构建也不能替代 Windows decoder/渲染运行验收。
 
@@ -136,3 +138,5 @@ swiftc -parse-as-library packages/xplayer_player/tool/system_audio_meter.swift \
 ## 候选包与设备编排
 
 参见 [独立分发文档](DISTRIBUTION.md)。`tool/package_player.py --verify` 在仓库外检查两个包与独立示例，输出 HTML 和归档校验值。`tool/run_device_validation.py` 将示例作为宿主执行自动/强制软解矩阵，逐项保存 `complete: false` 检查点，结束后写 `complete: true`；缺项、超时、失败和无结果均以非零退出。设备运行仍应额外确认真实画面和音频。
+
+设备编排会检查桌面和 iOS 控制台进程退出；90 秒没有完成任何新样本时按原生启动或销毁停滞失败，保留日志。iOS 使用 `simctl launch --console` 收集原生错误，避免应用崩溃后一直读取旧的 `0/0` 检查点。

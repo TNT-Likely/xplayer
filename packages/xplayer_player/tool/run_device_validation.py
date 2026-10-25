@@ -112,7 +112,10 @@ def main():
             command(['xcrun', 'simctl', 'install', args.device, str(app)])
             container = Path(command(['xcrun', 'simctl', 'get_app_container', args.device, app_id, 'data'], capture=True))
             for file in (container / 'Library').rglob('codec_probe.json'): file.unlink()
-            command(['xcrun', 'simctl', 'launch', args.device, app_id])
+            device_log_stream = log.open('a', encoding='utf-8')
+            device_logger = subprocess.Popen(
+                ['xcrun', 'simctl', 'launch', '--console', args.device, app_id],
+                stdout=device_log_stream, stderr=subprocess.STDOUT)
             def read_checkpoint():
                 return json.loads(next((container / 'Library').rglob('codec_probe.json')).read_text(encoding="utf-8"))
         else:
@@ -127,7 +130,14 @@ def main():
             def read_checkpoint():
                 return json.loads(next(container.rglob('codec_probe.json')).read_text(encoding="utf-8"))
         last = -1; deadline = time.monotonic() + args.timeout
+        progress_deadline = time.monotonic() + 90
         while time.monotonic() < deadline:
+            if desktop and desktop.poll() is not None:
+                raise RuntimeError(f'Native probe exited before completing the matrix ({desktop.returncode}); see .log')
+            if args.platform == 'ios' and device_logger and device_logger.poll() is not None:
+                raise RuntimeError(f'Simulator probe exited before completing the matrix ({device_logger.returncode}); see .log')
+            if time.monotonic() >= progress_deadline:
+                raise TimeoutError('No completed fixture for 90s; native startup or teardown stalled; see .log')
             try:
                 current = read_checkpoint()
                 report.update(current)
@@ -135,6 +145,7 @@ def main():
                 time.sleep(2); continue
             if current['total'] != last:
                 last = current['total']; print(f"{args.platform}: {current['passed']}/{last}, expected {expected}", flush=True)
+                progress_deadline = time.monotonic() + 90
                 output.write_text(json.dumps(report, ensure_ascii=False, indent=2) + '\n', encoding="utf-8")
             if current.get('complete'):
                 if current['total'] != expected: raise RuntimeError('Incomplete fixture/mode coverage')

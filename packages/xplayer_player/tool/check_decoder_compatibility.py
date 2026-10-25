@@ -110,6 +110,8 @@ def main():
     parser.add_argument("--fixtures", required=True)
     parser.add_argument("--report", required=True)
     parser.add_argument("--dart")
+    parser.add_argument("--probe-executable", help="Precompiled probe_decoder executable; keeps per-case process isolation")
+    parser.add_argument("--native-log", action="store_true")
     parser.add_argument("--libmpv")
     parser.add_argument("--cache", default=str(Path(tempfile.gettempdir()) / "xplayer-native-probe"))
     args = parser.parse_args()
@@ -121,10 +123,12 @@ def main():
     library = args.libmpv or native_library(manifest, cache, env)
     entries = json.loads((fixtures / "manifest.json").read_text(encoding="utf-8"))
     results = []
-    dart = args.dart or dart_binary()
+    prefix = [str(Path(args.probe_executable).resolve())] if args.probe_executable else [
+        args.dart or dart_binary(), f"--packages={package_configuration()}", "tool/probe_decoder.dart"]
     for entry in entries:
-        command = [dart, f"--packages={package_configuration()}",
-                   "tool/probe_decoder.dart", f"--libmpv={library}", "--diagnose-errors"]
+        command = [*prefix, f"--libmpv={library}", "--diagnose-errors"]
+        if args.native_log:
+            command.append('--native-log')
         if entry.get("expectAudio", True):
             command.append("--require-audio")
         if entry.get("expectVideo", True):

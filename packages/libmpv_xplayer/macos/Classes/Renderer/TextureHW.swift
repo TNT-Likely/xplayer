@@ -16,19 +16,29 @@ public class TextureHW: NSObject, FlutterTexture, ResizableTextureProtocol {
     skipCheckArgs: true
   )
 
-  init(
+  init?(
     handle: OpaquePointer,
     updateCallback: @escaping UpdateCallback
   ) {
+    guard let pixelFormat = OpenGLHelpers.createPixelFormat() else { return nil }
+    guard let context = OpenGLHelpers.createContext(pixelFormat) else {
+      OpenGLHelpers.deletePixelFormat(pixelFormat)
+      return nil
+    }
+    guard let textureCache = OpenGLHelpers.createTextureCache(context, pixelFormat) else {
+      OpenGLHelpers.deleteContext(context)
+      OpenGLHelpers.deletePixelFormat(pixelFormat)
+      return nil
+    }
     self.handle = handle
     self.updateCallback = updateCallback
-    self.pixelFormat = OpenGLHelpers.createPixelFormat()
-    self.context = OpenGLHelpers.createContext(pixelFormat)
-    self.textureCache = OpenGLHelpers.createTextureCache(context, pixelFormat)
+    self.pixelFormat = pixelFormat
+    self.context = context
+    self.textureCache = textureCache
 
     super.init()
 
-    self.initMPV()
+    guard self.initMPV() else { return nil }
   }
 
   deinit {
@@ -53,7 +63,7 @@ public class TextureHW: NSObject, FlutterTexture, ResizableTextureProtocol {
     return Unmanaged.passRetained(textureContext!.pixelBuffer)
   }
 
-  private func initMPV() {
+  private func initMPV() -> Bool {
     CGLSetCurrentContext(context)
     defer {
       OpenGLHelpers.checkError("initMPV")
@@ -85,9 +95,11 @@ public class TextureHW: NSObject, FlutterTexture, ResizableTextureProtocol {
       ]
     }
 
-    MPVHelpers.checkError(
-      mpv_render_context_create(&renderContext, handle, &params)
-    )
+    let status = mpv_render_context_create(&renderContext, handle, &params)
+    guard status >= 0, renderContext != nil else {
+      NSLog("XPlayer: OpenGL mpv renderer unavailable: \(status)")
+      return false
+    }
 
     mpv_render_context_set_update_callback(
       renderContext,
@@ -99,6 +111,7 @@ public class TextureHW: NSObject, FlutterTexture, ResizableTextureProtocol {
       },
       UnsafeMutableRawPointer(Unmanaged.passUnretained(self).toOpaque())
     )
+    return true
   }
 
   private func disposeMPV() {
@@ -108,8 +121,11 @@ public class TextureHW: NSObject, FlutterTexture, ResizableTextureProtocol {
       CGLSetCurrentContext(nil)
     }
 
-    mpv_render_context_set_update_callback(renderContext, nil, nil)
-    mpv_render_context_free(renderContext)
+    if let renderContext = renderContext {
+      mpv_render_context_set_update_callback(renderContext, nil, nil)
+      mpv_render_context_free(renderContext)
+      self.renderContext = nil
+    }
   }
 
   public func resize(_ size: CGSize) {

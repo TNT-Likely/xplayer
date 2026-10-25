@@ -3,6 +3,7 @@ import argparse
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 import json
 import os
+import re
 from pathlib import Path
 import subprocess
 import sys
@@ -19,6 +20,8 @@ def main():
     parser.add_argument('--fixtures', required=True)
     parser.add_argument('--report', required=True)
     parser.add_argument('--dart')
+    parser.add_argument('--probe-executable')
+    parser.add_argument('--native-log', action='store_true')
     parser.add_argument('--cache', default=str(Path(tempfile.gettempdir()) / 'xplayer-native-probe'))
     args = parser.parse_args()
     fixtures = Path(args.fixtures).resolve()
@@ -73,6 +76,16 @@ def main():
                     return
                 data = file.read_bytes()
                 content_type = 'video/mp2t'
+            elif target.path.startswith(('/fmp4/', '/dash/')):
+                folder, _, relative = target.path.lstrip('/').partition('/')
+                directory = (fixtures / ('hls-fmp4' if folder == 'fmp4' else 'dash')).resolve()
+                file = (directory / relative).resolve()
+                if not file.is_relative_to(directory) or not file.is_file():
+                    self.send_error(404)
+                    return
+                data = file.read_bytes()
+                content_type = {'m3u8': 'application/vnd.apple.mpegurl',
+                    'mpd': 'application/dash+xml'}.get(file.suffix.lstrip('.'), 'application/octet-stream')
             else:
                 if target.path not in ['/cdn/live.flv', '/slow.flv']:
                     self.send_error(404)
@@ -109,14 +122,18 @@ def main():
         ('lower-bandwidth-recovery', '/recovery/master.m3u8', ['--lower-bandwidth'], True),
         ('slow-first-byte', '/slow.flv', [], True),
         ('http-403-classification', '/forbidden.flv', [], False),
+        ('http-hls-fmp4', '/fmp4/index.m3u8', [], True),
+        ('http-dash', '/dash/index.mpd', [], True),
     ]
     results = []
+    prefix = [str(Path(args.probe_executable).resolve())] if args.probe_executable else [
+        args.dart or dart_binary(), f'--packages={package_configuration()}', 'tool/probe_decoder.dart']
     try:
         for name, path, options, expect_decode in cases:
             requests.clear()
-            command = [args.dart or dart_binary(), f'--packages={package_configuration()}',
-                       'tool/probe_decoder.dart', f'--libmpv={library}',
+            command = [*prefix, f'--libmpv={library}',
                        '--require-audio', '--require-video', '--diagnose-errors', *options, base + path]
+            if args.native_log: command.insert(-1, '--native-log')
             try:
                 completed = subprocess.run(command, cwd=ROOT, env=env, capture_output=True, text=True, timeout=45, encoding="utf-8")
                 records = [json.loads(line) for line in completed.stdout.splitlines() if line.startswith('{"source":')]
@@ -131,6 +148,10 @@ def main():
                     passed = passed and not any(p == '/unusable/master.m3u8' for p, _ in requests)
                     passed = passed and any(q == 'token=signed%2Bbytes' for _, q in requests)
                 result.update(name=name, passed=bool(passed))
+                result['processExitCode'] = completed.returncode
+                if not passed:
+                    result['processDiagnostic'] = re.sub(
+                        r'(?:https?|rtmps?|rtsp)://\S+', '[source URL]', completed.stderr[-6000:])
             except subprocess.TimeoutExpired:
                 result = {'name': name, 'passed': False, 'error': 'ProcessTimeout'}
             results.append(result)

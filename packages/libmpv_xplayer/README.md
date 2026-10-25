@@ -52,6 +52,8 @@ Darwin 原生适配器基于上游 1.1.4，Android 基于 1.3.8，Windows 基于
 
 Darwin 的上游视频插件按旧二进制包名扫描锁文件，独立包改名后会编译空实现。为避免“构建成功但运行时找不到视频通道”，本包包含固定 `media_kit_video 2.0.1` 的 Swift 纹理桥接，并由自身插件注册视频通道。iOS/macOS 的独立宿主运行测试是发布门槛；只检查 CocoaPods 构建不足以验证该契约。生成头文件来自固定 mpv 0.36.0，下载散列见清单。
 
+macOS 图形环境可能无法创建所需的 OpenGL 格式。创建像素格式、上下文、纹理缓存或 libmpv 渲染器失败时，本包会清理已建立资源并选择软件纹理，日志明确记录回退。普通设备继续使用硬件纹理；软件路径的高分辨率性能需另行测试。设备验收同时监控进程退出和检查点停滞，不能让原生崩溃停留在 `0/0` 等待直到整体超时。
+
 Android helper 的 `com.alexmercerind.mediakitandroidhelper` 类名属于固定 JNI ABI，保留原名；Flutter 插件本身使用自有的 `LibmpvXplayerPlugin` 注册名称。
 
 首次构建会按 SHA-256 校验并下载原生资产，Apple 模拟器额外编译 AudioUnit 切片。源码包不包含下载缓存或原生大文件，首次构建需要网络和对应平台工具链。macOS/iOS 需要 Xcode、Python 3.10+ 和 pkg-config；Windows 需要 Flutter 桌面工具链。Linux 安装发行版的 `libmpv-dev`。

@@ -87,20 +87,15 @@ public class VideoOutput: NSObject {
       )
     }
 
-    if enableHardwareAcceleration {
-      texture = SafeResizableTexture(
-        TextureHW(
-          handle: handle,
-          // Use `weak self` to prevent memory leaks
-          updateCallback: { [weak self]() in
-            guard let that = self else {
-              return
-            }
-            that.updateCallback()
-          }
-        )
-      )
+    let update: () -> Void = { [weak self] in self?.updateCallback() }
+    if enableHardwareAcceleration,
+      let hardware = TextureHW(handle: handle, updateCallback: update)
+    {
+      texture = SafeResizableTexture(hardware)
     } else {
+      if enableHardwareAcceleration {
+        NSLog("XPlayer: OpenGL unavailable; falling back to software texture rendering")
+      }
       texture = SafeResizableTexture(
         TextureSW(
           handle: handle,
