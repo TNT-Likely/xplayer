@@ -59,6 +59,8 @@ dependencies:
   wakelock_plus: ^1.2.10
 
 dev_dependencies:
+  flutter_driver:
+    sdk: flutter
   integration_test:
     sdk: flutter
   flutter_test:

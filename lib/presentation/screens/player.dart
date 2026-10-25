@@ -56,7 +56,9 @@ class _PlayerScreenState extends State<PlayerScreen>
   RemoteProvider? _remote;
   bool _hasBackend = false; // _backend 是否已赋值(首次加载前为 false,避免对 late 字段读前初始化)
   bool _controlsVisible = false;
+  Route<dynamic>? _controlsRoute;
   final FocusNode _focusNode = FocusNode();
+  final FocusNode _retryFocusNode = FocusNode();
   late Channel _channel;
   late int _currentIndex;
   late List<Channel> _channels;
@@ -284,6 +286,10 @@ class _PlayerScreenState extends State<PlayerScreen>
 
   void _remotePlayPause() {
     if (!_hasBackend || !mounted) return;
+    if (_playState == PlayState.failed) {
+      _initializePlayer();
+      return;
+    }
     final playing =
         _backend.notifier.value.isPlaying ||
         _backend.notifier.value.isBuffering;
@@ -318,6 +324,7 @@ class _PlayerScreenState extends State<PlayerScreen>
     useNativeEngine.removeListener(_onRenderModeChanged);
     WidgetsBinding.instance.removeObserver(this);
     _focusNode.dispose();
+    _retryFocusNode.dispose();
     _infoScroll.dispose();
     _infoFocus.dispose();
     FocusManager.instance.removeListener(_resetAutoCloseOnFocus);
@@ -496,8 +503,35 @@ class _PlayerScreenState extends State<PlayerScreen>
       });
     } else {
       Logger.error('播放视频失败(重试 $_retryTimes 次仍失败): ${_channel.name} | $_sourceLink');
-      setState(() {
-        _playState = PlayState.failed;
+      _showPlaybackFailure();
+    }
+  }
+
+  void _showPlaybackFailure() {
+    _retryTimer?.cancel();
+    _bufferingTimer?.cancel();
+    _stableTimer?.cancel();
+    _bufShowTimer?.cancel();
+    _bufHideTimer?.cancel();
+    cancelAutoCloseTimer();
+    _pauseIntended = true;
+    setState(() => _playState = PlayState.failed);
+    _updateWakelock(false);
+    if (_isTv) {
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (mounted && _playState == PlayState.failed) {
+          _retryFocusNode.requestFocus();
+        }
+      });
+    }
+    if (_hasBackend) {
+      unawaited(_backend.pause().catchError((Object _) {}));
+    }
+    // 只移除播放控制栏，避免异步失败误关用户刚打开的来源或频道面板。
+    final route = _controlsRoute;
+    if (route != null) {
+      scheduleMicrotask(() {
+        if (mounted && route.isActive) route.navigator?.removeRoute(route);
       });
     }
   }
@@ -579,9 +613,7 @@ class _PlayerScreenState extends State<PlayerScreen>
     } else {
       Logger.error('播放视频失败(卡死重连超限): ${_channel.name} | $_sourceLink');
       LogStore.instance.e('player', '✖ 卡死重连 3 次仍未恢复[$kind] $snap');
-      setState(() {
-        _playState = PlayState.failed;
-      });
+      _showPlaybackFailure();
     }
   }
 
@@ -604,6 +636,7 @@ class _PlayerScreenState extends State<PlayerScreen>
 
   void _listenToVideoController() {
     if (!_hasBackend || !mounted) return;
+    if (_playState == PlayState.failed) return;
     final value = _backend.notifier.value;
     _updateWakelock(value.isPlaying && !value.hasError);
 
@@ -636,9 +669,7 @@ class _PlayerScreenState extends State<PlayerScreen>
             } else {
               // 长缓冲重试已达上限,不再无限重载,直接标记失败
               Logger.error('播放视频失败(长时间缓冲超限): ${_channel.name} | $_sourceLink');
-              setState(() {
-                _playState = PlayState.failed;
-              });
+              _showPlaybackFailure();
             }
           }
           _isHandlingBuffering = false;
@@ -724,6 +755,12 @@ class _PlayerScreenState extends State<PlayerScreen>
 
   void _toggleControlsVisibility() {
     if (_inPip) return; // PiP 小窗里不弹操作栏
+    if (!_hasBackend ||
+        _playState == PlayState.failed ||
+        _playState == PlayState.loading ||
+        _playState == PlayState.retrying) {
+      return;
+    }
     if (_controlsVisible) {
       cancelAutoCloseTimer();
       Navigator.of(context).pop();
@@ -814,6 +851,7 @@ class _PlayerScreenState extends State<PlayerScreen>
       transitionDuration: const Duration(milliseconds: 200),
       pageBuilder: (BuildContext buildContext, Animation<double> animation,
           Animation<double> secondaryAnimation) {
+        _controlsRoute = ModalRoute.of(buildContext);
         final mediaProvider =
             Provider.of<MediaProvider>(context, listen: false);
 
@@ -885,6 +923,7 @@ class _PlayerScreenState extends State<PlayerScreen>
       FocusManager.instance.removeListener(_resetAutoCloseOnFocus);
       // 同上:不 setState,关闭控制条时不触发整页重建
       _controlsVisible = false;
+      _controlsRoute = null;
     });
   }
 
@@ -958,6 +997,19 @@ class _PlayerScreenState extends State<PlayerScreen>
   }
 
   void _handleKeyPress(RawKeyEvent event) {
+    if (_playState == PlayState.failed && const [
+      LogicalKeyboardKey.select,
+      LogicalKeyboardKey.contextMenu,
+      LogicalKeyboardKey.enter,
+      LogicalKeyboardKey.numpadEnter,
+      LogicalKeyboardKey.space,
+      LogicalKeyboardKey.arrowLeft,
+      LogicalKeyboardKey.arrowRight,
+      LogicalKeyboardKey.arrowUp,
+      LogicalKeyboardKey.arrowDown,
+    ].contains(event.logicalKey)) {
+      return;
+    }
     // 数字键选台:遥控器数字键累积输入频道号
     if (event is RawKeyDownEvent) {
       final lbl = event.logicalKey.keyLabel;
@@ -1418,7 +1470,8 @@ class _PlayerScreenState extends State<PlayerScreen>
     }
     final v = _backend.notifier.value;
     final mini = Provider.of<MiniPlayerController>(context, listen: false);
-    if (miniPlayerOnExit.value && _hasBackend && v.isPlaying && !v.hasError) {
+    if (miniPlayerOnExit.value && _hasBackend &&
+        _playState != PlayState.failed && v.isPlaying && !v.hasError) {
       _handedOff = true;
       _setSurfaceMini();
       mini.enterMini(_backend, _channel, widget.favoriteChannels);
@@ -1479,8 +1532,11 @@ class _PlayerScreenState extends State<PlayerScreen>
                   phase: XpPlaybackPhase.error,
                   channelName: _channel.name,
                   onRetry: _initializePlayer,
+                  retryFocusNode: _retryFocusNode,
+                  onSwitchSource: _channel.source.length > 1
+                      ? () => _showSourceSwitcher(context)
+                      : null,
                   onSwitchChannel: () => _showChannelSelectWidget(context),
-                  detail: '连接已中断；自动重试已停止，可以重试或切换频道。',
                 )
               else if (_playState == PlayState.loading ||
                   _playState == PlayState.retrying)
@@ -1524,6 +1580,16 @@ class _PlayerScreenState extends State<PlayerScreen>
                   onPressed: _handleBack,
                 ),
               ),
+              if (_playState == PlayState.failed)
+                Positioned(
+                  right: 12,
+                  top: MediaQuery.paddingOf(context).top + 12,
+                  child: XpIconButton(
+                    icon: XpSymbol.info,
+                    label: '播放诊断',
+                    onPressed: () => _showStreamInfoSheet(context),
+                  ),
+                ),
               // 切台信息浮层(OSD):台标 + 频道名 + 当前/下一节目
               if (_zapOsdVisible)
                 Positioned(

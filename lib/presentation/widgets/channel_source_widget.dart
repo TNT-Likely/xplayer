@@ -1,6 +1,6 @@
 import 'package:flutter/widgets.dart';
 import 'package:xplayer/data/models/channel_model.dart';
-import 'package:xplayer/shared/components/x_text_button.dart';
+import 'package:xplayer_ui/xplayer_ui.dart';
 import 'package:xplayer/shared/components/ipv6_badge.dart';
 import 'package:xplayer/utils/url_utils.dart';
 import 'package:xplayer/localization/app_localizations.dart';
@@ -12,41 +12,40 @@ class ChannelSourceWidget extends StatefulWidget {
   final String link;
   final OnSourceSwitchCallback? onSourceSwitch;
 
-  const ChannelSourceWidget(
-      {super.key,
-      required this.channel,
-      required this.link,
-      this.onSourceSwitch});
+  const ChannelSourceWidget({
+    super.key,
+    required this.channel,
+    required this.link,
+    this.onSourceSwitch,
+  });
 
   @override
   State<ChannelSourceWidget> createState() => _ChannelSourceWidgetState();
 }
 
 class _ChannelSourceWidgetState extends State<ChannelSourceWidget> {
-  int currentIndex = 0;
-
-  String getName(String name) {
+  String getName(String name, int index) {
     String modifiedTitle = name
         .toUpperCase()
         .replaceAll(widget.channel.id.toUpperCase(), '')
         .replaceAll(RegExp(r'^[-_]+'), '')
         .trim();
-    currentIndex += 1;
-
     final hasId = name.toUpperCase().contains(widget.channel.id.toUpperCase());
 
     // title 不含频道 id,或去掉 id 后为空(title 本身就等于频道 id / title 为空)
     // → 回退为「源 N」,避免源名字空白
     if (!hasId || modifiedTitle.isEmpty) {
-      return '${AppLocalizations.of(context)!.source}$currentIndex';
+      return '${AppLocalizations.of(context)!.source}${index + 1}';
     }
     return modifiedTitle;
   }
 
   List<Source> get sources {
     return widget.channel.source
-        .fold<Map<String, Source>>({},
-            (Map<String, Source> map, Source source) {
+        .fold<Map<String, Source>>({}, (
+          Map<String, Source> map,
+          Source source,
+        ) {
           map[source.link] = source;
           return map;
         })
@@ -58,45 +57,46 @@ class _ChannelSourceWidgetState extends State<ChannelSourceWidget> {
   Widget build(BuildContext context) {
     // 源较多时可纵向滚动,避免超出浮层被裁切
     return SingleChildScrollView(
-        padding: const EdgeInsets.symmetric(vertical: 16),
-        child: Column(
-      children: sources.map((e) {
-        final isSelected = widget.link == e.link;
+      padding: const EdgeInsets.symmetric(vertical: 16),
+      child: Column(
+        children: sources.asMap().entries.map((entry) {
+          final e = entry.value;
+          final isSelected = widget.link == e.link;
 
-        return Column(
-          children: [
-            Stack(
-              clipBehavior: Clip.none,
-              children: [
-                XTextButton(
-                  text: getName(e.title),
-                  size: XTextButtonSize.large,
-                  width: 160,
-                  autofocus: isSelected, // 打开即聚焦当前源
-                  onPressed: () {
-                    if (!isSelected && widget.onSourceSwitch != null) {
-                      widget.onSourceSwitch!(e.link);
-                    }
-                  },
-                  type: isSelected
-                      ? XTextButtonType.primary
-                      : XTextButtonType.defaultType,
-                ),
-                // IPv6 源:右上角浮标
-                if (isIpv6Url(e.link))
-                  const Positioned(
-                    top: -6,
-                    right: -6,
-                    child: Ipv6Badge(corner: true),
+          return Column(
+            children: [
+              Stack(
+                clipBehavior: Clip.none,
+                children: [
+                  SizedBox(
+                    width: double.infinity,
+                    child: XpButton(
+                      label: getName(e.title, entry.key),
+                      autofocus: isSelected, // 打开即聚焦当前源
+                      onPressed: () {
+                        if (!isSelected && widget.onSourceSwitch != null) {
+                          widget.onSourceSwitch!(e.link);
+                        }
+                      },
+                      variant: isSelected
+                          ? XpButtonVariant.primary
+                          : XpButtonVariant.secondary,
+                    ),
                   ),
-              ],
-            ),
-            const SizedBox(
-              height: 8,
-            ),
-          ],
-        );
-      }).toList(),
-    ));
+                  // IPv6 源:右上角浮标
+                  if (isIpv6Url(e.link))
+                    const Positioned(
+                      top: -6,
+                      right: -6,
+                      child: Ipv6Badge(corner: true),
+                    ),
+                ],
+              ),
+              const SizedBox(height: 8),
+            ],
+          );
+        }).toList(),
+      ),
+    );
   }
 }

@@ -100,7 +100,7 @@ class _GalleryPageState extends State<GalleryPage> {
       sourceRemoved = false;
   bool reducedMotion = false;
   XpEpgStatus epg = XpEpgStatus.ready;
-  XpPlaybackPhase playback = XpPlaybackPhase.buffering;
+  XpPlaybackPhase playback = XpPlaybackPhase.playing;
   XpRemoteStatus remote = XpRemoteStatus.connected;
   XpPlaylistStatus playlist = XpPlaylistStatus.ready;
   String category = '全部', scenario = 'epg-error';
@@ -923,44 +923,53 @@ class _GalleryPageState extends State<GalleryPage> {
                 },
             (v) => setState(() => playback = v)),
         const SizedBox(height: 18),
-        XpPlayerStatusView(
-            phase: playback,
-            channelName: channel.name,
-            paused: paused,
-            onToggleAudio: () => setState(() => paused = !paused),
-            onRetry: () =>
-                recover(() => playback = XpPlaybackPhase.connecting, () {
-                  playback = XpPlaybackPhase.playing;
-                  lastEvent = 'onRetry · 演示恢复';
-                }),
-            onCancel: () => setState(() {
-                  playback = XpPlaybackPhase.paused;
-                  lastEvent = 'onCancel';
-                }),
-            onSwitchChannel: () => event('onSwitchChannel')),
+        AspectRatio(
+          aspectRatio: 16 / 9,
+          child: ColoredBox(
+              color: Colors.black,
+              child: XpPlayerStatusView(
+                  phase: playback,
+                  channelName: channel.name,
+                  paused: paused,
+                  onToggleAudio: () => setState(() => paused = !paused),
+                  onRetry: () =>
+                      recover(() => playback = XpPlaybackPhase.connecting, () {
+                        playback = XpPlaybackPhase.playing;
+                        lastEvent = 'onRetry · 演示恢复';
+                      }),
+                  onCancel: () => setState(() {
+                        playback = XpPlaybackPhase.paused;
+                        lastEvent = 'onCancel';
+                      }),
+                  onSwitchSource: () => event('onSwitchSource'),
+                  onSwitchChannel: () => event('onSwitchChannel'))),
+        ),
         if (playback == XpPlaybackPhase.playing ||
             playback == XpPlaybackPhase.paused)
           const XpNotice(
               title: '播放界面已就绪', description: '此处是 UI 验收，没有启动真实音视频流。'),
         const SizedBox(height: 18),
-        XpPlayerControls(
-            paused: paused,
-            onTogglePause: () => setState(() => paused = !paused),
-            onVolume: () => event('onVolume'),
-            onChannels: () => event('onChannels'),
-            onFullscreen: () => event('onFullscreen'),
-            qualityLabel: '自动',
-            onQuality: () => event('onQuality'),
-            audioLabel: '国语',
-            onAudio: () => event('onAudio'),
-            onSleep: () => event('onSleep')),
-        const SizedBox(height: 20),
-        const Text('没有额外能力时的控制条',
-            style: TextStyle(color: Color(0xff8d9c8d), fontSize: 12)),
-        const SizedBox(height: 8),
-        XpPlayerControls(
-            paused: paused,
-            onTogglePause: () => setState(() => paused = !paused)),
+        if (playback == XpPlaybackPhase.playing ||
+            playback == XpPlaybackPhase.paused) ...[
+          XpPlayerControls(
+              paused: paused,
+              onTogglePause: () => setState(() => paused = !paused),
+              onVolume: () => event('onVolume'),
+              onChannels: () => event('onChannels'),
+              onFullscreen: () => event('onFullscreen'),
+              qualityLabel: '自动',
+              onQuality: () => event('onQuality'),
+              audioLabel: '国语',
+              onAudio: () => event('onAudio'),
+              onSleep: () => event('onSleep')),
+          const SizedBox(height: 20),
+          const Text('没有额外能力时的控制条',
+              style: TextStyle(color: Color(0xff8d9c8d), fontSize: 12)),
+          const SizedBox(height: 8),
+          XpPlayerControls(
+              paused: paused,
+              onTogglePause: () => setState(() => paused = !paused)),
+        ],
       ]);
 
   Widget _playlistDemo() =>
@@ -1082,20 +1091,24 @@ class _GalleryPageState extends State<GalleryPage> {
                   : '局部数据失败不会清空其他有效内容。'));
     }
     if (scenario.startsWith('player-')) {
-      return XpPlayerStatusView(
-          phase: {
-            'player-connecting': XpPlaybackPhase.connecting,
-            'player-buffering': XpPlaybackPhase.buffering,
-            'player-error': XpPlaybackPhase.error,
-            'player-unsupported': XpPlaybackPhase.unsupported,
-            'player-audio': XpPlaybackPhase.audioOnly
-          }[scenario]!,
-          channelName: channel.name,
-          onRetry: () => event('onRetryPlayer'),
-          onCancel: () => event('onCancelConnecting'),
-          onSwitchChannel: () => event('onSwitchChannel'),
-          paused: paused,
-          onToggleAudio: () => setState(() => paused = !paused));
+      return AspectRatio(
+          aspectRatio: 16 / 9,
+          child: ColoredBox(
+              color: Colors.black,
+              child: XpPlayerStatusView(
+                  phase: {
+                    'player-connecting': XpPlaybackPhase.connecting,
+                    'player-buffering': XpPlaybackPhase.buffering,
+                    'player-error': XpPlaybackPhase.error,
+                    'player-unsupported': XpPlaybackPhase.unsupported,
+                    'player-audio': XpPlaybackPhase.audioOnly
+                  }[scenario]!,
+                  channelName: channel.name,
+                  onRetry: () => event('onRetryPlayer'),
+                  onCancel: () => event('onCancelConnecting'),
+                  onSwitchChannel: () => event('onSwitchChannel'),
+                  paused: paused,
+                  onToggleAudio: () => setState(() => paused = !paused))));
     }
     if (scenario.startsWith('remote-')) {
       return XpRemoteStatusView(

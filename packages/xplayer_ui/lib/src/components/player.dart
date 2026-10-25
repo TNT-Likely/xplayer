@@ -9,6 +9,8 @@ class XpPlayerStatusView extends StatelessWidget {
       required this.phase,
       required this.channelName,
       this.onRetry,
+      this.retryFocusNode,
+      this.onSwitchSource,
       this.onSwitchChannel,
       this.onCancel,
       this.detail,
@@ -17,8 +19,13 @@ class XpPlayerStatusView extends StatelessWidget {
   final XpPlaybackPhase phase;
   final String channelName;
   final String? detail;
-  final VoidCallback? onRetry, onSwitchChannel, onCancel, onToggleAudio;
+  final VoidCallback? onRetry,
+      onSwitchSource,
+      onSwitchChannel,
+      onCancel,
+      onToggleAudio;
   final bool paused;
+  final FocusNode? retryFocusNode;
   @override
   Widget build(BuildContext context) {
     if (phase == XpPlaybackPhase.playing || phase == XpPlaybackPhase.paused) {
@@ -44,8 +51,8 @@ class XpPlayerStatusView extends StatelessWidget {
     }
     final (title, copy, label, icon) = switch (phase) {
       XpPlaybackPhase.error => (
-          '这个频道暂时无法播放',
-          detail ?? '连接已中断；已停止自动重试。可以重连或切换频道。',
+          '暂时无法播放',
+          detail ?? (onSwitchSource == null ? '请重试，或切换其他频道。' : '请重试，或更换播放来源。'),
           '重试播放',
           XpSymbol.info
         ),
@@ -57,29 +64,67 @@ class XpPlayerStatusView extends StatelessWidget {
         ),
       XpPlaybackPhase.audioOnly => (
           paused ? '音频已暂停' : '这是一个音频频道',
-          '$channelName · ${paused ? '准备好后可以继续收听' : '声音正在播放，不显示黑屏错误'}',
+          channelName,
           paused ? '继续音频' : '暂停音频',
           XpSymbol.volume
         ),
       _ => ('', '', '', XpSymbol.info),
     };
-    final callback = phase == XpPlaybackPhase.connecting
-        ? onCancel
-        : phase == XpPlaybackPhase.audioOnly
-            ? onToggleAudio
-            : onRetry;
-    return XpEmptyState(
-      title: title,
-      description: copy,
-      icon: icon,
-      tone:
-          phase == XpPlaybackPhase.error || phase == XpPlaybackPhase.unsupported
-              ? XpTone.error
-              : XpTone.neutral,
-      actionLabel: label,
-      onAction: callback,
-      secondaryLabel: onSwitchChannel == null ? null : '切换频道',
-      onSecondary: onSwitchChannel,
+    final theme = XpTheme.of(context), p = theme.palette;
+    final callback =
+        phase == XpPlaybackPhase.audioOnly ? onToggleAudio : onRetry;
+    return Center(
+      child: SingleChildScrollView(
+        padding: const EdgeInsets.all(24),
+        child: ConstrainedBox(
+          constraints: const BoxConstraints(maxWidth: 480),
+          child: Semantics(
+            liveRegion: true,
+            container: true,
+            child: Column(mainAxisSize: MainAxisSize.min, children: [
+              XpIcon(icon, size: theme.isTv ? 36 : 28, color: p.muted),
+              const SizedBox(height: 16),
+              Text(title,
+                  textAlign: TextAlign.center,
+                  style: TextStyle(
+                      fontSize: theme.isTv ? 26 : 20,
+                      fontWeight: FontWeight.w500,
+                      color: p.foreground)),
+              const SizedBox(height: 8),
+              Text(copy,
+                  textAlign: TextAlign.center,
+                  style: TextStyle(
+                      fontSize: theme.bodySize, color: p.muted, height: 1.5)),
+              const SizedBox(height: 20),
+              Wrap(
+                alignment: WrapAlignment.center,
+                spacing: 10,
+                runSpacing: 8,
+                children: [
+                  if (callback != null)
+                    XpButton(
+                        label: label,
+                        focusNode: retryFocusNode,
+                        autofocus: theme.isTv,
+                        onPressed: callback),
+                  if (onSwitchSource != null)
+                    XpButton(
+                        label: '切换来源',
+                        onPressed: onSwitchSource,
+                        variant: XpButtonVariant.secondary),
+                  if (onSwitchChannel != null)
+                    XpButton(
+                        label: '切换频道',
+                        onPressed: onSwitchChannel,
+                        variant: onSwitchSource == null
+                            ? XpButtonVariant.secondary
+                            : XpButtonVariant.ghost),
+                ],
+              ),
+            ]),
+          ),
+        ),
+      ),
     );
   }
 }

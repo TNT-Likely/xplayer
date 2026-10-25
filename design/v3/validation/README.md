@@ -6,6 +6,8 @@
 
 [iPad 声音路由排查与简化缓冲交互](PLAYER-FEEDBACK.md)
 
+[UI 状态巡检与 TV 窗口验收](UI-STATE-AUDIT.md)
+
 验收日期：2026-10-25。Flutter 3.41.9 / Dart 3.11.5。执行于独立工作区的 `v3` 分支。下列结果为本机实际执行记录。
 
 | 检查 | 结果 |
