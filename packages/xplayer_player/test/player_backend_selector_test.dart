@@ -94,4 +94,27 @@ void main() {
     expect(positionIsProgressSignal(isAndroid: false), isFalse);
     expect(positionIsProgressSignal(isAndroid: true), isTrue);
   });
+  test(
+    'compatibility playback on Apple and desktop still detects a frozen clock',
+    () {
+      final detector = StallDetector();
+      final now = DateTime(2026, 10, 25);
+      final eligible = positionIsProgressSignal(
+        isAndroid: false,
+        isCompatibilityBackend: true,
+      );
+      expect(
+        detector.sample(eligible: eligible, position: Duration.zero, now: now),
+        isFalse,
+      );
+      expect(
+        detector.sample(
+          eligible: eligible,
+          position: Duration.zero,
+          now: now.add(const Duration(seconds: 9)),
+        ),
+        isTrue,
+      );
+    },
+  );
 }

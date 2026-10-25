@@ -1597,5 +1597,6 @@
     "iosBuild": "passed, device debug, unsigned; lib/main.dart",
     "macosBuild": "passed, debug, unsigned",
     "gitDiffCheck": "passed"
-  }
+  },
+  "notificationAudit": "The older Android 40/40 decoder report includes the upstream waitUntilFirstFrameRendered signal, which may complete on video-parameter changes. That report does not by itself prove successful GPU presentation. This stricter host run retains fatal output failures instead of counting metadata as visible playback."
 }

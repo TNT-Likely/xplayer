@@ -63,3 +63,18 @@ jobs:
           path: |
             ${{ runner.temp }}/decoder-report.json
             ${{ runner.temp }}/transport-report.json
+
+  application:
+    runs-on: windows-latest
+    timeout-minutes: 25
+    steps:
+      - uses: actions/checkout@v4
+      - uses: subosito/flutter-action@v2
+        with:
+          flutter-version: '3.41.9'
+          cache: true
+      - run: flutter pub get
+      - name: Check host integration
+        run: flutter test
+      - name: Build Windows native integration
+        run: flutter build windows --debug

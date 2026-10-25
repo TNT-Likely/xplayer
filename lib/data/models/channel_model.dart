@@ -21,23 +21,16 @@ class Source {
       link: json['link'],
       groupTitle: json['groupTitle'],
       attributes: _parseAttributes(json['attributes']),
-      duration: json['duration'] ?? '',
+      duration: int.tryParse('${json['duration']}') ?? -1,
     );
   }
 
   Map<String, dynamic> toJson() {
-    // 将 attributes Map 转换回字符串形式
-    String attributesString = '';
-    attributes.forEach((key, value) {
-      if (attributesString.isNotEmpty) attributesString += ', ';
-      attributesString += '$key: $value';
-    });
-
     return {
       'title': title,
       'link': link,
       'groupTitle': groupTitle,
-      'attributes': attributesString,
+      'attributes': attributes,
       'duration': duration,
     };
   }
@@ -95,15 +88,18 @@ class Channel {
 }
 
 // 辅助函数来解析属性字符串为 Map<String, String>
-Map<String, String> _parseAttributes(String? attributesString) {
+Map<String, String> _parseAttributes(Object? attributesString) {
+  if (attributesString is Map) {
+    return attributesString.map((key, value) => MapEntry('$key', '$value'));
+  }
   Map<String, String> attributesMap = {};
-  if (attributesString != null && attributesString.isNotEmpty) {
+  if (attributesString is String && attributesString.isNotEmpty) {
     try {
       final attributePairs = attributesString.split(', ');
       for (var pair in attributePairs) {
-        final keyValue = pair.split(': ');
-        if (keyValue.length == 2) {
-          attributesMap[keyValue[0]] = keyValue[1];
+        final separator = pair.indexOf(': ');
+        if (separator > 0) {
+          attributesMap[pair.substring(0, separator)] = pair.substring(separator + 2);
         }
       }
     } catch (e) {

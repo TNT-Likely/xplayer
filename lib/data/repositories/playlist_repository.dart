@@ -12,6 +12,7 @@ import 'package:xml/xml.dart';
 import 'package:m3u_parser_nullsafe/m3u_parser_nullsafe.dart';
 import 'dart:convert';
 import 'package:xplayer/extensions/m3u.dart';
+import 'package:xplayer_player/xplayer_player.dart' show prepareM3uForPlayback;
 import 'package:xplayer/data/repositories/channels_file_storage.dart';
 import 'package:xplayer/data/repositories/playlist_database_recovery.dart';
 
@@ -261,7 +262,7 @@ class PlaylistRepository {
 
           if (response.statusCode == 200) {
             final responseBody = await response.transform(utf8.decoder).join();
-            final m3uList = M3uList.load(responseBody);
+            final m3uList = M3uList.load(prepareM3uForPlayback(responseBody));
             httpClient.close();
             return m3uList;
           } else {
@@ -282,7 +283,7 @@ class PlaylistRepository {
         }
         final bytes = await file.readAsBytes();
         final m3uContent = utf8.decode(bytes);
-        return M3uList.load(m3uContent);
+        return M3uList.load(prepareM3uForPlayback(m3uContent));
       }
     } catch (e) {
       rethrow;

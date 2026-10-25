@@ -55,6 +55,8 @@ fvm dart run tool/probe_playlist.dart 'https://cdn.jsdelivr.net/gh/Kimentanm/apt
 
 这四条的[后续排查记录](validation/2026-10-25-source-investigation.json)：CCTV-4 海外源可解码但网络延迟波动；TVBS 使用单变体与低码率恢复后播通；CCTV-6 的浏览器 UA 修复了重定向后 423，但实际返回的是源站超负载提示短片；CCTV-4 官方源后续对不同客户端均返回 403，需上游提供可用授权地址。后两者不能据此宣称已恢复真实频道直播。
 
+[应用接入复测](validation/2026-10-25-application-integration.json) 进一步记录了实际内核回退：Android TV 上 CCTV-4 海外源与 TVBS 可经系统播放器路径播放，TrueHD 5.1 样本可经原生路径播放。当前模拟器的 libmpv 仍有 EGL 输出限制，HEVC Main10 样本未通过严格宿主测试。上游 Android 首帧通知可能在尺寸变化时提前完成，历史布尔值与解码时钟检查不能单独证明 GPU 已呈现画面；报告保留失败证据，不将其计为全平台兼容。
+
 iPad 模拟器的上游 libmpv 二进制没有可用的音频输出驱动；可显式使用 `PLAYBACK_PROBE_NULL_AUDIO=true` 验证解码与渲染，但不把此结果当作扬声器输出验收。iOS 真机构建包含 AudioUnit 输出驱动，仍需在实际设备上确认声音、路由和中断恢复。
 
 真机验收应覆盖 Android 手机、Android TV、iPhone、iPad、Windows 和 Linux，使用有效的 HLS（含无后缀重定向）、HTTP-FLV、TS、DASH、H.264/HEVC 与 AAC/AC-3 等样本，检查首帧、声音、长时间播放、断网恢复、切台、小窗和前后台切换。只有对应设备实际通过后才标记兼容。

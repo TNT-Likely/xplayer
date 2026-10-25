@@ -78,6 +78,8 @@ HLS 原生探测时长设为 1 秒；网络超时默认为 15 秒，替代 media
 
 `initialize()` 完成表示媒体打开并出现解码参数，不代表用户已经看见首帧或听到声音。`diagnostics.firstFrameRendered` 单独表示 Flutter 视频输出首帧；时钟推进、音频解码参数、实际音频路由需要分别验证。纯音频没有视频首帧，调用方不可一律等待它。
 
+宿主对 libmpv 在所有系统上使用播放时钟推进检测；AVPlayer 直播位置可能长期不变，因此保留对该系统内核的豁免。不要只按“是否 Android”决定所有内核的停滞语义，否则桌面和 Apple 兼容内核的无错误冻结会漏检。
+
 `initializationStage` 分为 videoOutput、manifest、open、decoder、ready。`httpStatus` 保留原生 HTTP 错误状态，403/423 不能笼统归为“设备不支持编码”。`videoMime` / `audioMime`、硬解像素格式、音频采样率和声道数用于定位；没有值时不要补写推测结果。诊断字段可增加，调用方应容忍缺失字段。
 
 可选 `onLog` 回调开启脱敏的详细原生日志，正式播放默认只收集警告/错误。核心额外转发 media_kit 默认遗漏的 cplayer fatal 错误，并保留首个根因，避免纹理输出失败被随后“不支持 seek”的消息掩盖。详细日志本身不能替代时钟或画面验证；部分 Android 首帧通知会随视频参数产生，实际 GPU/屏幕仍应由设备验收确认。

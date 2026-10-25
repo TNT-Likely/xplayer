@@ -50,4 +50,7 @@ class PlaybackPlan {
 }
 
 /// AVPlayer live positions may remain constant while rendering correctly.
-bool positionIsProgressSignal({required bool isAndroid}) => isAndroid;
+bool positionIsProgressSignal({
+  required bool isAndroid,
+  bool isCompatibilityBackend = false,
+}) => isAndroid || isCompatibilityBackend;

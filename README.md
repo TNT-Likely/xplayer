@@ -23,6 +23,7 @@
 - 📺 **开箱即用的直播源**：内置 [iptv-org](https://github.com/iptv-org/iptv) 公开订阅源，首启自动加载「中国」，也可一键添加 全部/港/台/新/美/英/日/韩 + 体育/新闻/电影 等推荐源；同时支持导入任意 M3U/M3U8（本地文件或网络 URL）。
 - 🖼️ **电视画质更清晰**：Android 内置原生播放引擎，视频直接走电视硬件视频平面（SurfaceView），吃到电视的 VPP / 超分，明显比普通纹理渲染更锐利；出问题可在设置一键切回。
 - 🔊 **解决「有画面没声音」**：内置 FFmpeg 音频软解,补齐 AC-3 / E-AC-3 / DTS / MP2 等很多设备硬件解不了的音频编码。
+- 🎞️ **播放兼容层**：本地 [xplayer_player package](packages/xplayer_player/README.md) 统一内核选择与请求头，使用完整 libmpv/FFmpeg 构建补充 TrueHD / MLP 等音频解码，处理 FLV、DASH、TS、无后缀直播接口及硬解失败后的软解回退。设备兼容以实际样本验证为准；Linux 运行需安装 `libmpv`（Ubuntu/Debian：`sudo apt install libmpv-dev mpv`）。
 - 🎚️ **画质选择**：多码率直播源可手动选清晰度（1080P/720P/…）。
 - 🎧 **多音轨切换**：多语言/多音轨频道可切换音轨。
 - 🔎 **分组 + 搜索**：频道太多找不到好看的？顶部搜索框按名称即时过滤，分组标签一键筛选 News / Sports / Movies…（世界杯看球更快）。

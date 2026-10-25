@@ -27,6 +27,9 @@ import 'package:xplayer/services/player/x_player_backend.dart';
 import 'package:xplayer/services/player/video_player_backend.dart';
 import 'package:xplayer/services/player/native_player_backend.dart';
 import 'package:xplayer/services/player/player_backend_selector.dart';
+import 'package:xplayer/services/player/player_backend_factory.dart';
+import 'package:xplayer_player/xplayer_player.dart'
+    show MediaKitBackend, PlaybackSource;
 import 'package:xplayer/utils/player_settings.dart';
 import 'package:wakelock_plus/wakelock_plus.dart';
 import 'package:provider/provider.dart';
@@ -64,7 +67,7 @@ class _PlayerScreenState extends State<PlayerScreen>
   Timer? _stableTimer; // 持续稳定播放判定:连续稳定 N 秒才重置重试计数(防直播抖动流击穿重试上限)
   Timer? _bufShowTimer; // 缓冲遮罩“显示防抖”:缓冲持续 ≥1s 才显示,过滤边缘带宽的高频微卡闪烁
   Timer? _bufHideTimer; // 缓冲遮罩“隐藏防抖”:恢复后 ~0.8s 才撤,避免刚恢复又卡的 show/hide 抖动
-  // 静默卡死看门狗:状态“在播”但位置 8s 纹丝不动(READY 卡死,不缓冲不报错)→ 重连。
+  // 静默卡死看门狗:状态“在播”但位置 6s 纹丝不动(READY 卡死,不缓冲不报错)→ 重连。
   // 这是错误重试/长缓冲重连之外的第三种故障形态,ExoPlayer 自身不会上报。
   // 6s 阈值:实测正常播放位置每 ≤4s 必有一次向前进展,6s 有余量;越短恢复越快。
   final StallDetector _stallDetector =
@@ -77,7 +80,10 @@ class _PlayerScreenState extends State<PlayerScreen>
   // HLS 直播位置不推进(真机实测恒为 1ms),位置停滞看门狗连同它的 3s 反馈遮罩
   // 必须整体让开 —— 否则正常播放每 6s 被误判卡死一次,无限重连。
   bool get _posIsProgress =>
-      positionIsProgressSignal(isAndroid: Platform.isAndroid);
+      positionIsProgressSignal(
+        isAndroid: Platform.isAndroid,
+        isCompatibilityBackend: _hasBackend && _backend is MediaKitBackend,
+      );
   int _stallRetryTimes = 0;
   // 用户暂停意图:看门狗只信它,不信 ExoPlayer 的 isPlaying/isBuffering 标志——
   // 卡死时标志会“说谎”(如卡成假 paused),按标志豁免就会漏检(2.5.11 的教训)。
@@ -86,7 +92,8 @@ class _PlayerScreenState extends State<PlayerScreen>
   int _loadToken = 0; // 每次加载的代号:被新加载取代后,旧加载的异步回调据此丢弃
   bool _isHandlingBuffering = false;
   bool _isHandlingError = false;
-  bool _forcedFallback = false; // 原生引擎初始化失败后强制降级 video_player(切换设置时复位)
+  PlaybackPlan? _playbackPlan;
+  Future<void> _pendingRelease = Future.value();
   bool _handedOff = false; // 已把 backend 交接给小窗(dispose 时不销毁)
   bool _inPip = false; // 当前处于系统画中画(Android)
   bool _isTv = false; // TV 不启用系统画中画(系统无 PiP,且用遥控器)
@@ -116,6 +123,31 @@ class _PlayerScreenState extends State<PlayerScreen>
 
   /// 实际播放地址:选定画质时播该变体,否则播原始源(master/直链)
   String get _playUrl => _qualityOverrideUrl ?? _sourceLink;
+
+  PlaybackSource get _playSource {
+    final matches = _channel.source.where((s) => s.link == _sourceLink);
+    final source = PlaybackSource.parse(
+      _sourceLink,
+      attributes: matches.isEmpty ? const {} : matches.first.attributes,
+    );
+    return _qualityOverrideUrl == null
+        ? source
+        : source.withUrl(_qualityOverrideUrl!);
+  }
+
+  PlaybackPlan _newPlaybackPlan() => PlaybackPlan(
+    platform: Platform.isAndroid
+        ? PlaybackPlatform.android
+        : Platform.isIOS
+        ? PlaybackPlatform.ios
+        : Platform.isMacOS
+        ? PlaybackPlatform.macos
+        : Platform.isWindows
+        ? PlaybackPlatform.windows
+        : PlaybackPlatform.linux,
+    source: _playSource,
+    nativeEnabled: useNativeEngine.value,
+  );
 
   /// 当前流是否有多档画质可选
   bool get _hasQualityOptions =>
@@ -156,6 +188,13 @@ class _PlayerScreenState extends State<PlayerScreen>
     if (mini.backend != null && mini.channel?.id == _channel.id) {
       // 从小窗展开:取回正在播的 backend,不重连
       _backend = mini.take()!;
+      _playbackPlan = _newPlaybackPlan();
+      final kind = _backend is NativePlayerBackend ? PlayerBackendKind.native
+          : _backend is MediaKitBackend
+              ? ((_backend as MediaKitBackend).softwareDecoding
+                  ? PlayerBackendKind.mediaKitSoftware : PlayerBackendKind.mediaKit)
+              : PlayerBackendKind.videoPlayer;
+      while (_playbackPlan!.current != kind && _playbackPlan!.advance()) {}
       _hasBackend = true;
       _backend.notifier.addListener(_listenToVideoController);
       _backend.diagnostics?.addListener(_onBackendDiag);
@@ -166,7 +205,7 @@ class _PlayerScreenState extends State<PlayerScreen>
       WidgetsBinding.instance.addPostFrameCallback((_) => _setSurfaceFullscreen());
     } else {
       // 已有小窗但要播放别的频道 → 先关掉旧小窗(否则与新后端争抢同一原生引擎 → 黑屏)
-      if (mini.hasMini) mini.close();
+      if (mini.hasMini) _pendingRelease = mini.close();
       _initializePlayer();
     }
     // 静默卡死看门狗:周期采样位置推进(逻辑见 _onStallTick / StallDetector)
@@ -240,6 +279,7 @@ class _PlayerScreenState extends State<PlayerScreen>
 
   @override
   void dispose() {
+    ++_loadToken;
     _retryTimer?.cancel();
     _bufferingTimer?.cancel();
     _stableTimer?.cancel();
@@ -249,8 +289,10 @@ class _PlayerScreenState extends State<PlayerScreen>
     autoCloseTimer?.cancel();
     _zapOsdTimer?.cancel();
     _numberTimer?.cancel();
-    _backend.notifier.removeListener(_listenToVideoController);
-    _backend.diagnostics?.removeListener(_onBackendDiag);
+    if (_hasBackend) {
+      _backend.notifier.removeListener(_listenToVideoController);
+      _backend.diagnostics?.removeListener(_onBackendDiag);
+    }
     useSurfaceView.removeListener(_onRenderModeChanged);
     useNativeEngine.removeListener(_onRenderModeChanged);
     WidgetsBinding.instance.removeObserver(this);
@@ -264,10 +306,9 @@ class _PlayerScreenState extends State<PlayerScreen>
       _setPipEligible(false); // 离开播放页 → 不再允许进 PiP
       _pipChannel.setMethodCallHandler(null);
     }
-    if (!_handedOff) {
+    if (!_handedOff && _hasBackend) {
       // 未交接给小窗 → 正常销毁;已交接则由 MiniPlayerController 持有,不销毁
-      _backend.pause();
-      _backend.dispose();
+      unawaited(_releaseBackend(_backend));
     }
     // 离开播放页恢复自动旋转,避免播放页设的朝向锁定带到其它页面
     SystemChrome.setPreferredOrientations(const []);
@@ -275,20 +316,21 @@ class _PlayerScreenState extends State<PlayerScreen>
   }
 
   void _onRenderModeChanged() {
-    // 切换渲染模式/播放引擎设置时,给所选引擎一次重新尝试的机会(清掉上次的强制降级)
-    _forcedFallback = false;
     if (mounted) _initializePlayer();
   }
 
-  /// 按设置(平台 + 引擎开关 + 是否已强制降级)选择后端实例。
   XPlayerBackend _createBackend() {
-    final kind = selectBackendKind(
-      isAndroid: Platform.isAndroid,
-      nativeEnabled: useNativeEngine.value && !_forcedFallback,
-    );
-    return kind == PlayerBackendKind.native
-        ? NativePlayerBackend()
-        : VideoPlayerBackend();
+    _playbackPlan ??= _newPlaybackPlan();
+    return createPlayerBackend(_playbackPlan!.current);
+  }
+
+  Future<void> _releaseBackend(XPlayerBackend backend) async {
+    try {
+      await backend.pause();
+    } catch (_) {}
+    try {
+      await backend.dispose();
+    } catch (_) {}
   }
 
   Future<void> _initializePlayer({bool fresh = true}) async {
@@ -314,17 +356,21 @@ class _PlayerScreenState extends State<PlayerScreen>
       _retryTimes = 0;
       _bufferingRetryTimes = 0;
       _stallRetryTimes = 0;
+      _playbackPlan = null;
     }
     _isHandlingError = false; // 新一轮加载,允许下次错误被处理
 
     if (_hasBackend) {
-      try {
-        _backend.notifier.removeListener(_listenToVideoController);
-        _backend.diagnostics?.removeListener(_onBackendDiag);
-        _backend.pause();
-        await _backend.dispose();
-      } catch (error) {}
+      final previous = _backend;
+      _hasBackend = false;
+      previous.notifier.removeListener(_listenToVideoController);
+      previous.diagnostics?.removeListener(_onBackendDiag);
+      _pendingRelease = _releaseBackend(previous);
     }
+    setState(() => _playState = PlayState.loading);
+    // Rapid channel changes must await the same teardown before creating a
+    // new engine, particularly Android's shared MethodChannel/SurfaceView.
+    await _pendingRelease;
 
     // dispose 是异步的,其间若又触发了新加载或页面已卸载,则放弃本次
     if (token != _loadToken || !mounted) return;
@@ -341,7 +387,7 @@ class _PlayerScreenState extends State<PlayerScreen>
     LogStore.instance.i('player', '▶ 播放: $_playUrl');
     const MethodChannel('diag/logcat')
         .invokeMethod<Map>('probeStream', {'url': _playUrl}).then((m) {
-      if (m != null && mounted) {
+      if (m != null && mounted && token == _loadToken) {
         final info = Map<String, dynamic>.from(m);
         // 原生引擎的 Format 回调(diag)是 HLS 的权威来源,优先;probeStream 仅填补空缺。
         setState(() => _streamInfo = {...info, ..._streamInfo});
@@ -349,14 +395,8 @@ class _PlayerScreenState extends State<PlayerScreen>
       }
     }).catchError((_) => null);
 
-    // 探测多码率变体(在原始 master 上探;同地址只探一次)→ 决定画质按钮是否出现
-    _maybeProbeHls();
-
     try {
-      // 后端选择:Android 且原生引擎开关开(且未被强制降级)→ 原生引擎(SurfaceView/硬件 VPP),
-      // 其余一律 video_player。渲染模式(SurfaceView/纹理)由 VideoPlayerBackend.initialize 内部读
-      // useSurfaceView.value 决定 viewType。
-      _backend = _createBackend();
+      final backend = _backend = _createBackend();
       _hasBackend = true;
       // 登记到小窗控制器(全屏态),供返回时交接续播
       Provider.of<MiniPlayerController>(context, listen: false)
@@ -365,9 +405,18 @@ class _PlayerScreenState extends State<PlayerScreen>
       _backend.notifier.addListener(_listenToVideoController);
       _backend.diagnostics?.addListener(_onBackendDiag);
 
-      await _backend.initialize(_playUrl);
+      final source = _playSource;
+      _maybeProbeHls();
+      LogStore.instance.i(
+        'player',
+        '播放内核: ${_playbackPlan!.current.name}, 格式: ${source.format.name}',
+      );
+      await backend
+          .initialize(_playUrl, headers: source.headers)
+          .timeout(const Duration(seconds: 22));
       if (token != _loadToken || !mounted) return; // 已被新加载取代,丢弃
-      _backend.play();
+      await backend.play();
+      if (token != _loadToken || !mounted) return;
       setState(() {
         // 初始化成功后更新状态为 playing
         _playState = PlayState.playing;
@@ -375,6 +424,7 @@ class _PlayerScreenState extends State<PlayerScreen>
             ? DateTime.now().difference(_loadStartedAt!).inMilliseconds
             : null;
       });
+      _listenToVideoController();
       _setPipEligible(true); // 播放中 → 允许回桌面进 PiP(Android+开关)
       // 记录最近播放(失败不记录)
       if (mounted) {
@@ -386,20 +436,6 @@ class _PlayerScreenState extends State<PlayerScreen>
       }).catchError((_) {});
     } catch (e) {
       if (token != _loadToken || !mounted) return; // 已被新加载取代,丢弃
-      // 原生引擎初始化失败 → 强制降级 video_player,重跑一次本方法(届时 _createBackend 选 video_player)。
-      // 放在重试逻辑之前:否则会用同一个原生后端反复重试,降级不会发生。
-      if (_backend is NativePlayerBackend && !_forcedFallback) {
-        Logger.warning('原生引擎初始化失败,降级 video_player: $e');
-        LogStore.instance.w('player', '原生引擎失败→降级 video_player: $e');
-        _forcedFallback = true;
-        try {
-          _backend.notifier.removeListener(_listenToVideoController);
-          await _backend.dispose();
-        } catch (_) {}
-        if (token != _loadToken || !mounted) return; // dispose 期间被新加载取代
-        return _initializePlayer(fresh: false);
-      }
-      // video_player(或已降级后)失败:计入重试,超上限才 failed(统一走 _handleLoadError)
       Logger.warning('播放器初始化失败(将重试): $e');
       if (!_isHandlingError) {
         _isHandlingError = true;
@@ -413,6 +449,17 @@ class _PlayerScreenState extends State<PlayerScreen>
   /// 因此最终一定能到失败页,而不是一直"加载中"。
   void _handleLoadError() {
     if (!mounted) return;
+    // Initialization and runtime errors share this path. Never retry the
+    // same incompatible decoder three times before trying another engine.
+    if (_playbackPlan?.advance() ?? false) {
+      LogStore.instance.w('player', '切换播放内核: ${_playbackPlan!.current.name}');
+      setState(() => _playState = PlayState.retrying);
+      _retryTimer?.cancel();
+      _retryTimer = Timer(Duration.zero, () {
+        if (mounted) _initializePlayer(fresh: false);
+      });
+      return;
+    }
     if (_retryTimes < 3) {
       _retryTimes += 1;
       setState(() {
@@ -432,7 +479,7 @@ class _PlayerScreenState extends State<PlayerScreen>
   }
 
   /// 静默卡死看门狗(每 2s 采样):状态“在播”(READY、不缓冲、无错误)但位置
-  /// 连续 8s 纹丝不动 → 播放时钟停走(解码器/音频渲染器卡死),ExoPlayer 不会
+  /// 连续 6s 纹丝不动 → 播放时钟停走(解码器/音频渲染器卡死),ExoPlayer 不会
   /// 自己上报 —— 错误重试与长缓冲重连都探测不到,只能靠位置推进判定。
   /// 处置与切台同款:全量重连(上限 3 次,12s 稳定播放后配额恢复,超限停失败页)。
   void _onStallTick(Timer _) {
@@ -454,15 +501,16 @@ class _PlayerScreenState extends State<PlayerScreen>
           'posSignal=$_posIsProgress');
     }
     // 关键一:不再因缓冲让位/重置计时!实测卡死形态会每十几秒闪断一次缓冲
-    // (单采样周期,<5s,长缓冲看门狗接不住),若在此 reset 检测器,15s 帧计时
+    // (单采样周期,<15s,长缓冲看门狗接不住),若在此 reset 检测器,15s 帧计时
     // 反复被闪断清零,触发被拖到 30s+ 甚至永不触发(2.5.12 实测拖了 33s)。
-    // 持续性的真缓冲会被 5s 长缓冲看门狗先接走并重建播放器,不会双重重连。
+    // 持续性的真缓冲由 15s 长缓冲看门狗接走并重建播放器,不会双重重连。
     // 关键二:eligible 只看用户意图(_pauseIntended)与硬条件(已初始化/无错误),
     // 不看 isPlaying/isBuffering —— 卡死时 ExoPlayer 的状态标志会说谎。
-    final eligible = v.isInitialized && !v.hasError && !_pauseIntended;
+    final eligible = v.isInitialized && !v.hasError && !_pauseIntended &&
+        (_backend is! MediaKitBackend || (v.isPlaying && !v.isBuffering));
     final now = DateTime.now();
-    // 检测 1:播放位置 8s 纹丝不动(时钟停走/假暂停/管线卡死)
-    // 仅在位置语义可信的后端上做(Android/ExoPlayer);AVPlayer 上位置恒定是常态,
+    // 检测 1:播放位置 6s 纹丝不动(时钟停走/假暂停/管线卡死)
+    // 原生 ExoPlayer 与 libmpv 使用位置推进;AVPlayer 上位置恒定是常态,
     // 判了就是把正常直播当卡死。
     final posStalled = _posIsProgress &&
         _stallDetector.sample(
@@ -498,6 +546,11 @@ class _PlayerScreenState extends State<PlayerScreen>
       Logger.error('检测到播放卡死[$kind],重连($_stallRetryTimes/3): ${_channel.name}');
       LogStore.instance
           .w('player', '⚠ 卡死看门狗[$kind] $snap → 重连($_stallRetryTimes/3)');
+      // A second stall on the same decoder should try another pipeline,
+      // including FFmpeg software decoding on devices with broken hardware.
+      if (_stallRetryTimes >= 2) _playbackPlan?.advance();
+      _initializePlayer(fresh: false);
+    } else if (_playbackPlan?.advance() ?? false) {
       _initializePlayer(fresh: false);
     } else {
       Logger.error('播放视频失败(卡死重连超限): ${_channel.name} | $_sourceLink');
@@ -526,8 +579,14 @@ class _PlayerScreenState extends State<PlayerScreen>
   }
 
   void _listenToVideoController() {
+    if (!_hasBackend || !mounted) return;
     final value = _backend.notifier.value;
     _updateWakelock(value.isPlaying && !value.hasError);
+
+    // Initialization owns startup recovery. Start the runtime buffering
+    // watchdog after the engine is ready.
+    if (_playState == PlayState.loading || _playState == PlayState.retrying)
+      return;
 
     if (value.isBuffering) {
       // 缓冲期间取消“稳定播放”判定:抖动流会有一瞬 READY,不能借此重置重试计数
@@ -537,15 +596,18 @@ class _PlayerScreenState extends State<PlayerScreen>
       if (!_isHandlingBuffering) {
         _isHandlingBuffering = true;
         _bufferingTimer?.cancel();
-        _bufferingTimer = Timer(const Duration(seconds: 5), () {
+        _bufferingTimer = Timer(const Duration(seconds: 15), () {
           if (_backend.notifier.value.isBuffering) {
             if (_bufferingRetryTimes < 3) {
               _bufferingRetryTimes += 1;
+              if (_bufferingRetryTimes >= 2) _playbackPlan?.advance();
               Logger.debug('长时间缓冲，从直播边缘重连...($_bufferingRetryTimes/3)');
               // 修复:原先 pause→seekTo(Duration.zero)→play 对直播是错的——seekTo(0) 会跳到
               // 可回看窗口最早端 / 未缓冲位置,反而触发新一轮缓冲并把播放点甩到直播边缘之后,
               // 导致「缓冲↔播放」无限震荡卡死。改为从直播边缘全量重连(与切台同款可靠恢复;
               // fresh:false 保留重试计数,超 3 次才停到失败页)。
+              _initializePlayer(fresh: false);
+            } else if (_playbackPlan?.advance() ?? false) {
               _initializePlayer(fresh: false);
             } else {
               // 长缓冲重试已达上限,不再无限重载,直接标记失败
@@ -947,11 +1009,15 @@ class _PlayerScreenState extends State<PlayerScreen>
     }
     _hlsProbing = true;
     final link = _sourceLink;
-    probeHlsVariants(link).then((r) {
-      _hlsProbe = r;
-      _hlsProbedLink = link;
+    probeHlsVariants(link, headers: _playSource.headers).then((r) {
       _hlsProbing = false;
       if (!mounted) return;
+      if (link != _sourceLink) {
+        _maybeProbeHls();
+        return;
+      }
+      _hlsProbe = r;
+      _hlsProbedLink = link;
       if (setLocal != null) setLocal(() {});
       setState(() {}); // 刷新动作栏画质按钮可见性
     }).catchError((_) {
@@ -1206,7 +1272,9 @@ class _PlayerScreenState extends State<PlayerScreen>
                     l.infoRenderSurface,
                     _backend is NativePlayerBackend
                         ? 'SurfaceView (native)'
-                        : (surface ? 'SurfaceView (HW VPP)' : 'Texture')),
+                        : _backend is MediaKitBackend
+                      ? 'Texture (libmpv/FFmpeg)'
+                      : (surface ? 'SurfaceView (HW VPP)' : 'Texture')),
                 row(l.infoActiveDecoder, () {
                   final d = i['videoDecoder'];
                   if (d == null || d == '' || d == -1) return '—';
@@ -1228,7 +1296,9 @@ class _PlayerScreenState extends State<PlayerScreen>
                 row(l.infoAudioDecoder, fmt(i['audioDecoder'])),
                 row(
                     'FFmpeg',
-                    i['ffmpeg'] == true
+                    _backend is MediaKitBackend
+                        ? 'libmpv/FFmpeg'
+                        : i['ffmpeg'] == true
                         ? '已启用(当前音轨软解)'
                         : (_backend is NativePlayerBackend ? '已启用' : '—')),
                 // 缓冲/网络(原生引擎)
@@ -1272,7 +1342,7 @@ class _PlayerScreenState extends State<PlayerScreen>
                 const SizedBox(height: 8),
                 // 渲染面切换仅对非 Android 的 video_player platformView 有意义;
                 // Android 走原生引擎,这里不显示(避免无效操作)。
-                if (!Platform.isAndroid)
+                if (!Platform.isAndroid && _backend is VideoPlayerBackend)
                   ElevatedButton.icon(
                     onPressed: () => setUseSurfaceView(!surface),
                     icon: const Icon(Icons.hd, size: 18),
@@ -1365,6 +1435,11 @@ class _PlayerScreenState extends State<PlayerScreen>
 
   /// 返回:小窗开 && 在播 → 交接小窗续播(不销毁);否则正常关闭。
   void _handleBack() {
+    if (!_hasBackend) {
+      Provider.of<MiniPlayerController>(context, listen: false).clearReference();
+      Navigator.of(context).pop();
+      return;
+    }
     final v = _backend.notifier.value;
     final mini = Provider.of<MiniPlayerController>(context, listen: false);
     if (miniPlayerOnExit.value && _hasBackend && v.isPlaying && !v.hasError) {
