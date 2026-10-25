@@ -1,6 +1,6 @@
 # 测试、排障与版本升级
 
-查看结果请先读[中文验收报告](../validation/2026-10-25-audio-acceptance.md)；本文面向需要运行测试或排查错误的开发者。
+查看结果请先读[HTML 验收报告](../validation/2026-10-25-audio-acceptance.html)；本文面向需要运行测试或排查错误的开发者。
 
 ## 1. 包独立检查
 
@@ -123,6 +123,6 @@ swiftc -parse-as-library packages/xplayer_player/tool/system_audio_meter.swift \
 
 需要 macOS 13+ 以及已授予的“屏幕与系统音频录制”权限；工具会先检查权限，不会主动弹出授权请求。先停止所有测试播放器测静音基线，再逐端单独播放同一个已知有声源。每次采样 12 秒，记录采样数、峰值、RMS 与 dBFS。全局混音模式下应关闭其他有声应用；不能将别的应用或提示音当作受测播放器通过。可提供 PID 限定 macOS 应用，但应核对系统的音频进程归属。
 
-该检查证明系统输出中存在非静音 PCM，不替代物理扬声器音质、蓝牙/HDMI 路由、多声道或口型同步验证。2026-10-25 的音频补测结果见[中文验收报告](../validation/2026-10-25-audio-acceptance.md)，逐项技术数据保留在[原始 JSON](../validation/2026-10-25-audio-acceptance.json)。
+该检查证明系统输出中存在非静音 PCM，不替代物理扬声器音质、蓝牙/HDMI 路由、多声道或口型同步验证。2026-10-25 的音频补测结果见[HTML 验收报告](../validation/2026-10-25-audio-acceptance.html)，逐项技术数据保留在[原始 JSON](../validation/2026-10-25-audio-acceptance.json)。
 
 更新 `native_builds.json` 后同步 Darwin Makefile、Windows CMake；Android直接读取清单。核对来源与许可证，运行 pin 测试、完整矩阵和应用构建。不要通过换回裁剪构建缩小包体，否则 TrueHD 等会再次缺失。库升级与行为修改尽量分开提交，保留旧版本报告作为对照；必要时回滚到上一组完整且已验证的固定资产。
