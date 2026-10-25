@@ -1,0 +1,7 @@
+.dart_tool/
+pubspec.lock
+build/
+coverage/
+.flutter-plugins
+.flutter-plugins-dependencies
+__pycache__/

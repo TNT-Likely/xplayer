@@ -1,0 +1,4 @@
+**/Frameworks/
+**/.cache/
+**/build/
+**/.gradle/

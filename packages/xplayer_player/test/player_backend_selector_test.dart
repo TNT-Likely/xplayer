@@ -1,0 +1,97 @@
+import 'package:flutter_test/flutter_test.dart';
+import 'package:xplayer_player/playback.dart';
+
+void main() {
+  PlaybackPlan plan(
+    PlaybackPlatform platform,
+    String url, {
+    bool native = true,
+  }) => PlaybackPlan(
+    platform: platform,
+    source: PlaybackSource.parse(url),
+    nativeEnabled: native,
+  );
+
+  test(
+    'Android/TV HLS preserves SurfaceView and can reach a different decoder',
+    () {
+      final p = plan(PlaybackPlatform.android, 'http://test/live.m3u8');
+      expect(p.current, PlayerBackendKind.native);
+      expect(p.advance(), isTrue);
+      expect(p.current, PlayerBackendKind.videoPlayer);
+      expect(p.advance(), isTrue);
+      expect(p.current, PlayerBackendKind.mediaKit);
+      expect(p.advance(), isTrue);
+      expect(p.current, PlayerBackendKind.mediaKitSoftware);
+      expect(p.advance(), isFalse);
+    },
+  );
+  test('disabled native engine is never included in fallback', () {
+    expect(
+      plan(
+        PlaybackPlatform.android,
+        'http://test/live.m3u8',
+        native: false,
+      ).engines,
+      [
+        PlayerBackendKind.videoPlayer,
+        PlayerBackendKind.mediaKit,
+        PlayerBackendKind.mediaKitSoftware,
+      ],
+    );
+    expect(
+      plan(
+        PlaybackPlatform.android,
+        'http://test/live.flv',
+        native: false,
+      ).engines,
+      [
+        PlayerBackendKind.mediaKit,
+        PlayerBackendKind.mediaKitSoftware,
+        PlayerBackendKind.videoPlayer,
+      ],
+    );
+  });
+  for (final platform in PlaybackPlatform.values) {
+    for (final url in [
+      'http://test/live.flv',
+      'http://test/live/huya/123',
+      'http://test/live.mpd',
+      'rtmp://test/live/room',
+      'rtsp://test/camera',
+      'http://test/live.ts',
+      'http://test/video.mkv',
+    ]) {
+      test('$platform routes $url through the compatibility decoder first', () {
+        expect(plan(platform, url).current, PlayerBackendKind.mediaKit);
+      });
+    }
+  }
+  for (final platform in [PlaybackPlatform.ios, PlaybackPlatform.macos]) {
+    test(
+      '$platform uses full decoders for HLS/MP4 to avoid silently missing audio',
+      () {
+        for (final url in ['http://test/live.m3u8', 'http://test/movie.mp4']) {
+          final p = plan(platform, url);
+          expect(p.current, PlayerBackendKind.mediaKit);
+          expect(p.advance(), isTrue);
+          expect(p.current, PlayerBackendKind.mediaKitSoftware);
+          expect(p.advance(), isTrue);
+          expect(p.current, PlayerBackendKind.videoPlayer);
+          expect(p.advance(), isFalse);
+          expect(plan(platform, url).current, PlayerBackendKind.mediaKit);
+        }
+      },
+    );
+  }
+  test('Linux never falls back to an unregistered video_player plugin', () {
+    expect(plan(PlaybackPlatform.linux, 'http://test/live.m3u8').engines, [
+      PlayerBackendKind.mediaKit,
+      PlayerBackendKind.mediaKitSoftware,
+    ]);
+  });
+  test('AVPlayer live positions cannot trigger reconnect loops', () {
+    expect(positionIsProgressSignal(isAndroid: false), isFalse);
+    expect(positionIsProgressSignal(isAndroid: true), isTrue);
+  });
+}

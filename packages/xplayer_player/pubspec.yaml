@@ -1,0 +1,29 @@
+name: xplayer_player
+description: Shared playback contracts, source handling and engine policy for XPlayer.
+version: 0.1.0
+publish_to: none
+
+environment:
+  sdk: '>=3.11.0 <4.0.0'
+
+dependencies:
+  audio_session: 0.2.4
+  flutter:
+    sdk: flutter
+  media_kit: 1.2.6
+  media_kit_video: 2.0.1
+  media_kit_libs_android_video:
+    path: ../native/media_kit_libs_android_video
+  media_kit_libs_ios_video:
+    path: ../native/media_kit_libs_ios_video
+  media_kit_libs_macos_video:
+    path: ../native/media_kit_libs_macos_video
+  media_kit_libs_windows_video:
+    path: ../native/media_kit_libs_windows_video
+  media_kit_libs_linux: 1.2.1
+
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+  flutter_lints: ^2.0.0
+  path_provider: ^2.1.5
