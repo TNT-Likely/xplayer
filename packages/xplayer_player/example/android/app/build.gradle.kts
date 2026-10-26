@@ -22,7 +22,9 @@ android {
     defaultConfig {
         // TODO: Specify your own unique Application ID (https://developer.android.com/studio/build/application-id.html).
         applicationId = "com.tntlikely.xplayer_player_example"
-        if ((project.findProperty("target") as? String)?.endsWith("playback_probe.g.dart") == true) {
+        val probeTarget = project.findProperty("target") as? String ?: ""
+        if (probeTarget.endsWith("playback_probe.g.dart") ||
+            probeTarget.endsWith("playback_probe_android.g.dart")) {
             applicationIdSuffix = ".probe"
         }
         // You can update the following values to match your application needs.

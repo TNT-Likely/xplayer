@@ -7,6 +7,8 @@ class PlaybackConfiguration {
     this.hlsProbeTimeout = const Duration(seconds: 3),
     this.resolveHlsVariants = true,
     this.lowerBandwidthOnSoftwareFallback = true,
+    this.audioPacketRecoveryTimeout = const Duration(seconds: 3),
+    this.audioPacketErrorLimit = 8,
   });
 
   final Duration initializationTimeout;
@@ -14,16 +16,26 @@ class PlaybackConfiguration {
   final Duration hlsProbeTimeout;
   final bool resolveHlsVariants;
   final bool lowerBandwidthOnSoftwareFallback;
+  final Duration audioPacketRecoveryTimeout;
+  final int audioPacketErrorLimit;
 
   void validate() {
     for (final entry in {
       'initializationTimeout': initializationTimeout,
       'networkTimeout': networkTimeout,
       'hlsProbeTimeout': hlsProbeTimeout,
+      'audioPacketRecoveryTimeout': audioPacketRecoveryTimeout,
     }.entries) {
       if (entry.value <= Duration.zero) {
         throw ArgumentError.value(entry.value, entry.key, 'Must be positive');
       }
+    }
+    if (audioPacketErrorLimit < 1) {
+      throw ArgumentError.value(
+        audioPacketErrorLimit,
+        'audioPacketErrorLimit',
+        'Must be positive',
+      );
     }
     if (hlsProbeTimeout >= initializationTimeout) {
       throw ArgumentError('hlsProbeTimeout must leave time for native startup');

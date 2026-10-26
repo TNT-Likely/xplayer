@@ -79,6 +79,10 @@ class _PlaybackProbeState extends State<_PlaybackProbe> {
           if (!mounted) return;
           final backend = MediaKitBackend(
             softwareDecoding: software,
+            configuration: PlaybackConfiguration(
+              audioPacketErrorLimit:
+                  entry['audioPacketErrorLimit'] as int? ?? 8,
+            ),
             muted: !const bool.fromEnvironment('PLAYBACK_PROBE_AUDIBLE'),
             audioOutputDriver:
                 const bool.fromEnvironment('PLAYBACK_PROBE_NULL_AUDIO')
@@ -194,7 +198,15 @@ class _PlaybackProbeState extends State<_PlaybackProbe> {
               if (videoReady &&
                   audioReady &&
                   playingWatch.elapsed >= minimumPlayback &&
-                  forwardProgress >= minimumPlayback) {
+                  forwardProgress >= minimumPlayback &&
+                  diag['audioRecoveryState'] != 'pending') {
+                if (entry['expectFailure'] == true) {
+                  throw StateError('Expected decoding failure did not happen');
+                }
+                if ((diag['audioRecoveries'] as int? ?? 0) <
+                    (entry['minAudioRecoveries'] as int? ?? 0)) {
+                  throw StateError('Expected audio recovery was not observed');
+                }
                 if (entry['testPauseResume'] == true) {
                   await backend.pause();
                   await Future<void>.delayed(const Duration(milliseconds: 400));
@@ -223,6 +235,9 @@ class _PlaybackProbeState extends State<_PlaybackProbe> {
                   'elapsedMs': watch.elapsedMilliseconds,
                   'observedSeconds': playingWatch.elapsed.inSeconds,
                   'forwardProgressMs': forwardProgress.inMilliseconds,
+                  'audioRecoveries': diag['audioRecoveries'] ?? 0,
+                  'audioPacketErrors': diag['audioPacketErrors'] ?? 0,
+                  'audioRecoveryEvidence': diag['audioRecoveryEvidence'],
                   'samples': samples,
                   'bufferingSamples': bufferingSamples,
                   'audioOutputDriver': diag['audioOutputDriver'],
@@ -231,6 +246,7 @@ class _PlaybackProbeState extends State<_PlaybackProbe> {
                   'firstFrameMs': diag['firstFrameMs'],
                   'videoOutputDriver': diag['videoOutputDriver'],
                   'videoOutputConfigured': diag['videoOutputConfigured'],
+                  'videoHardware': diag['videoHardware'],
                   'startupHlsReloads': diag['startupHlsReloads'] ?? 0,
                   'androidEglCapabilities': diag['androidEglCapabilities'],
                 });
@@ -250,7 +266,12 @@ class _PlaybackProbeState extends State<_PlaybackProbe> {
               '[source URL]',
             );
             result.addAll({
-              'passed': false,
+              'passed':
+                  entry['expectFailure'] == true &&
+                  entry['expectedErrorContains'] is String &&
+                  (entry['expectedErrorContains'] as String).isNotEmpty &&
+                  safeError.contains(entry['expectedErrorContains'] as String),
+              'expectedFailure': entry['expectFailure'] == true,
               'error': e.runtimeType.toString(),
               'message': safeError,
               'diagnostics': backend.diagnostics.value,
@@ -267,7 +288,18 @@ class _PlaybackProbeState extends State<_PlaybackProbe> {
               backend.notifier.removeListener(progressListener);
             }
             if (mounted) setState(() => _backend = null);
-            await WidgetsBinding.instance.endOfFrame;
+            // Persist the playback outcome before potentially blocking teardown.
+            activeCase = {
+              'name': entry['name'],
+              'stage': 'disposing',
+              'outcome': result,
+            };
+            await checkpoint(complete: false);
+            WidgetsBinding.instance.ensureVisualUpdate();
+            await WidgetsBinding.instance.endOfFrame.timeout(
+              const Duration(seconds: 2),
+              onTimeout: () {},
+            );
             await backend.dispose();
           }
           results.add(result);
