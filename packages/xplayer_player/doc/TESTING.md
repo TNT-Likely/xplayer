@@ -97,6 +97,28 @@ dart --packages=.dart_tool/package_config.json tool/probe_decoder.dart \
 
 ## 5. 发布门槛
 
+### 坏包恢复与隐藏窗口回归
+
+`Error decoding audio.` 在 mpv 中也可能来自单个损坏包，不等同于整个文件无法解码。核心仅为这一明确消息提供有界恢复验证：默认 3 秒内必须观察到输出驱动存在且 `audio-pts` 连续向前累计至少 250 毫秒；仅视频时钟推进不算音频恢复。10 秒内超过 8 次该错误立即失败，连续错误不能延长原恢复期限。缺少解码器、HTTP、设备输出失败及未知错误沿用失败路径。
+
+可通过 `PlaybackConfiguration.audioPacketRecoveryTimeout` 和 `audioPacketErrorLimit` 配置预算，两个值均必须为正。暂停期间不把无进展判为失败，恢复播放后重新计时；跳转后的 PTS 大跳也不能作为恢复成功的依据。诊断中的 `audioPacketErrors`、`audioRecoveries`、`audioRecoveryState`、`audioRecoveryEvidence` 保留错误次数与实际音频时钟采样。正常播放不轮询这些属性。
+
+生成固定故障位置的合成样本，在独立示例中验证真实解码和输出：
+
+```sh
+python3 packages/xplayer_player/tool/generate_recovery_fixtures.py \
+  --ffmpeg /path/to/ffmpeg --output /tmp/xplayer-recovery
+python3 packages/xplayer_player/tool/run_device_validation.py \
+  --platform macos --device macos --fixtures /tmp/xplayer-recovery \
+  --report /tmp/xplayer-recovery-report.json --audible
+```
+
+这组样本独立于 36 组格式矩阵：正常音视频、两个损坏音频包、持续损坏触发数量上限、持续无有效音频触发时间上限。最后一项仅在探针中提高数量上限，以独立验证 3 秒超时路径。每组运行自动/软解两种模式。孤立坏包要求发生至少一次真实恢复；后两项必须以指定错误失败，报告显示“预期失败已验证”，不把它们当成正常播放成功。生成清单记录本次文件 SHA-256；FFmpeg 版本不同可能改变编码字节，但故障包位置与期望不变。
+
+实现依据为固定版本的 [mpv 音频解码路径](https://github.com/mpv-player/mpv/blob/v0.36.0/audio/decode/ad_lavc.c) 与 [audio-pts 定义](https://github.com/mpv-player/mpv/blob/v0.36.0/DOCS/man/input.rst)。恢复期间沿用当前解码实例，重新打开和切源仍由宿主管理。手动／发布的 Apple、Android 设备矩阵会额外执行这 8 项故障回归；日常 PR 仍只跑轻量检查。
+
+视频控制器的上游初始化依赖下一帧回调。普通帧未到来且平台控制器仍未完成时，核心补一次 warm-up frame，避免隐藏窗口卡在视频控制器初始化；这不会持续强制后台渲染。单测通过隐藏生命周期检查该分支。清理前探针写入 `stage: disposing` 和当前结果，等帧最多 2 秒，便于区分播放失败与清理失败。
+
 ### CI 执行范围与额度
 
 日常播放器源码 PR 使用 `Player source checks`：仅面向 `main` 的非草稿 PR，匹配包内实现、测试、原生构建脚本或播放器适配器时执行一个 Linux 任务，检查格式、静态分析、单测与源码打包。普通 UI、设计稿、文档、验收报告和宿主平台工程变动不启动完整解码矩阵；草稿转为待审时才开始轻量检查。同一 PR 的新提交取消旧的轻量任务。

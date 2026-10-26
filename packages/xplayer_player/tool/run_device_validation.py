@@ -17,7 +17,7 @@ ROOT = Path(__file__).resolve().parent.parent
 def render(report, output):
     rows = ''.join('<tr><td>' + html.escape(str(r.get('name', ''))) + '</td><td>' +
                    html.escape(str(r.get('mode', ''))) + '</td><td>' +
-                   ('通过' if r.get('passed') else '未通过') + '</td><td>' +
+                   ('预期失败已验证' if r.get('passed') and r.get('expectedFailure') else '通过' if r.get('passed') else '未通过') + '</td><td>' +
                    html.escape(str(r.get('message', ''))) + '</td></tr>' for r in report.get('results', []))
     output.write_text('''<!doctype html><html lang="zh-CN"><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>独立包设备播放验收</title><style>body{font:15px/1.8 -apple-system,BlinkMacSystemFont,"PingFang SC",sans-serif;padding:24px;background:#f5f6f8;color:#182334}main{max-width:1100px;margin:auto;background:white;padding:28px;border-radius:14px}table{border-collapse:collapse;width:100%}th,td{padding:10px;border-bottom:1px solid #ddd;text-align:left}p,td{overflow-wrap:anywhere}.scroll{overflow:auto}table{min-width:600px}</style><main><h1>独立播放器包设备验收</h1><p><b>''' + str(report.get('passed', 0)) + ' / ' + str(report.get('expectedTotal', 0)) + ' 项通过</b> · ' + ('已完成' if report.get('complete') else '未完整完成') + '</p><p>' + html.escape(str(report.get('device', ''))) + ' · ' + html.escape(str(report.get('platform', ''))) + '</p><p>此流程使用独立示例中的核心后端，检查解码、视频输出状态与时钟。默认静音；不替代物理声音、真实像素、多声道或长稳验收。</p><p>' + html.escape(str(report.get('error', ''))) + '</p><div class="scroll"><table><thead><tr><th>样本</th><th>模式</th><th>结果</th><th>失败说明</th></tr></thead><tbody>' + rows + '</tbody></table></div></main></html>', encoding="utf-8")
 
@@ -45,7 +45,7 @@ def main():
     report = {'platform': args.platform, 'device': args.device, 'expectedTotal': expected,
               'complete': False, 'passed': 0, 'total': 0, 'results': [],
               'audioMode': 'system (audible)' if args.audible else 'system (muted)'}
-    example = ROOT / 'example'; target = example / 'tool/playback_probe.g.dart'; target.parent.mkdir(exist_ok=True)
+    example = ROOT / 'example'; target = example / f'tool/playback_probe_{args.platform}.g.dart'; target.parent.mkdir(exist_ok=True)
     previous = target.read_bytes() if target.exists() else None
     target.write_bytes((ROOT / 'tool/playback_device_probe.dart').read_bytes())
     log = output.with_suffix('.log'); desktop = None; reverse = False; app_id = None
@@ -77,7 +77,7 @@ def main():
         if args.audible: defines.append('--dart-define=PLAYBACK_PROBE_AUDIBLE=true')
         if args.debug: defines.append('--dart-define=PLAYBACK_PROBE_DEBUG=true')
         base = [args.flutter, 'build', 'apk' if args.platform == 'android' else args.platform,
-                '--debug', '--no-pub', '-t', 'tool/playback_probe.g.dart', *defines]
+                '--debug', '--no-pub', '-t', target.relative_to(example).as_posix(), *defines]
         if args.platform == 'android':
             command([args.adb, '-s', args.device, 'wait-for-device'], timeout=120)
             boot_deadline = time.monotonic() + 120
@@ -131,7 +131,17 @@ def main():
             # A visible foreground window and an awake display are prerequisites
             # for measuring rendered playback, rather than App Nap/occlusion.
             time.sleep(1)
-            subprocess.run(['open', '-a', str(app)], check=True, timeout=20)
+            for attempt in range(3):
+                activated = subprocess.run(['open', '-a', str(app)], capture_output=True, timeout=20)
+                if activated.returncode == 0:
+                    break
+                if desktop.poll() is not None:
+                    raise RuntimeError('Probe process exited during activation')
+                time.sleep(1)
+            else:
+                # LaunchServices may not know a directly started debug app yet.
+                # Actual process, texture and clock checks below remain required.
+                report['activationWarning'] = activated.stderr.decode('utf-8', errors='replace').strip()
             awake = subprocess.Popen(['caffeinate', '-di', '-w', str(desktop.pid)])
             def read_checkpoint():
                 return json.loads(next(container.rglob('codec_probe.json')).read_text(encoding="utf-8"))
