@@ -8,6 +8,10 @@ import threading
 import unittest
 import shutil
 import subprocess
+import os
+import runpy
+import venv
+import json
 from unittest.mock import patch
 
 ROOT = Path(__file__).resolve().parent.parent
@@ -127,6 +131,25 @@ class NativeDownloadTest(unittest.TestCase):
         self.responses = [(404, b'not found')]
         self.assertNotEqual(self.cmake_fetch().returncode, 0)
         self.assertEqual(self.requests, 1)
+
+
+class AppleBuildEnvironmentTest(unittest.TestCase):
+    @unittest.skipUnless(os.name == 'posix', 'Apple build tools use a POSIX venv')
+    def test_meson_starts_after_a_cached_venv_is_moved_with_the_checkout(self):
+        command = runpy.run_path(str(ROOT / 'packages/libmpv_xplayer/ios/build_simulator_audio.py'))['meson_command']
+        with tempfile.TemporaryDirectory() as directory:
+            before = Path(directory) / 'original'; after = Path(directory) / 'moved'
+            venv.create(before, with_pip=False)
+            site = Path(subprocess.check_output([str(before / 'bin/python'), '-c',
+                        'import site; print(site.getsitepackages()[0])'], text=True).strip())
+            module = site / 'mesonbuild'; module.mkdir()
+            (module / '__init__.py').touch()
+            (module / 'mesonmain.py').write_text('import json,sys; print(json.dumps(sys.argv[1:]))', encoding='utf-8')
+            (before / 'bin/meson').write_text(f'#!{before}/bin/python\nraise SystemExit(99)\n', encoding='utf-8')
+            before.rename(after)
+            result = subprocess.run(command(after, '--version'), text=True, capture_output=True)
+            self.assertEqual(result.returncode, 0, result.stderr)
+            self.assertEqual(json.loads(result.stdout), ['--version'])
 
 
 if __name__ == '__main__':

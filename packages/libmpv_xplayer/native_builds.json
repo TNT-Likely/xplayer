@@ -19,7 +19,7 @@
         ],
         "output": "AudioUnit",
         "recipe": "ios/build_simulator_audio.py",
-        "recipe_sha256": "01fe2a28afef28eab5f071a5170f387f2b6542e38b67e1406b3ed7c72f2a2b60",
+        "recipe_sha256": "e299ca0a5099f81235470d8fa07c79b2dbdbb615b3e9ee961041eadf47fee40c",
         "note": "Only simulator mpv is rebuilt; pinned full FFmpeg/frameworks and the device slice are retained."
       }
     }

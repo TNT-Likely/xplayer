@@ -46,6 +46,12 @@ def run(*args, **kwargs):
     return subprocess.run(args, check=True, **kwargs)
 
 
+def meson_command(environment, *args):
+    # Console scripts retain an absolute shebang when a checkout is moved.
+    # The interpreter resolves the current venv and works with relocated caches.
+    return [str(environment / 'bin/python'), '-m', 'mesonbuild.mesonmain', *args]
+
+
 def main():
     CACHE.mkdir(parents=True, exist_ok=True)
     pkg_config = shutil.which('pkg-config')
@@ -95,7 +101,7 @@ def main():
     environment = CACHE / 'venv'
     if not (environment / 'bin/meson').exists():
         venv.create(environment, with_pip=True)
-        run(str(environment / 'bin/pip'), 'install', 'meson==1.12.1', 'ninja==1.13.2')
+        run(str(environment / 'bin/python'), '-m', 'pip', 'install', 'meson==1.12.1', 'ninja==1.13.2')
     env = dict(os.environ, PKG_CONFIG_LIBDIR=str(pkgconfig),
                PATH=f'{environment}/bin:' + os.environ.get('PATH', ''))
     env.pop('PKG_CONFIG_PATH', None)
@@ -117,12 +123,12 @@ def main():
         build = CACHE / f'build-{arch}'
         if build.exists():
             shutil.rmtree(build)
-        run(str(environment / 'bin/meson'), 'setup', str(build), str(source),
+        run(*meson_command(environment, 'setup', str(build), str(source),
             '--cross-file', str(cross), '--auto-features=disabled',
             '-Dgpl=false', '-Dlibmpv=true', '-Dcplayer=false',
             '-Daudiounit=enabled', '-Dgl=enabled', '-Dplain-gl=enabled',
-            '-Diconv=enabled', '-Dzlib=enabled', '-Duchardet=enabled', env=env)
-        run(str(environment / 'bin/meson'), 'compile', '-C', str(build), '-j', '6', env=env)
+            '-Diconv=enabled', '-Dzlib=enabled', '-Duchardet=enabled'), env=env)
+        run(*meson_command(environment, 'compile', '-C', str(build), '-j', '6'), env=env)
         outputs.append(str(build / 'libmpv.2.dylib'))
     target = FRAMEWORKS / 'Mpv.xcframework/ios-arm64_x86_64-simulator/Mpv.framework/Mpv'
     staged = CACHE / 'Mpv'

@@ -165,7 +165,7 @@ swiftc -parse-as-library packages/xplayer_player/tool/system_audio_meter.swift \
 
 参见 [独立分发文档](DISTRIBUTION.md)。`tool/package_player.py --verify` 在仓库外检查两个包与独立示例，输出 HTML 和归档校验值。`tool/run_device_validation.py` 将示例作为宿主执行自动/强制软解矩阵，逐项保存 `complete: false` 检查点，结束后写 `complete: true`；缺项、超时、失败和无结果均以非零退出。设备运行仍应额外确认真实画面和音频。
 
-设备编排会检查桌面和 iOS 控制台进程退出；90 秒没有完成任何新样本时按原生启动或销毁停滞失败，保留日志。iOS 使用 `simctl launch --console` 收集原生错误，避免应用崩溃后一直读取旧的 `0/0` 检查点。
+设备编排会检查桌面和 iOS 控制台进程退出；90 秒没有新的完成项或活动采样时按原生启动或销毁停滞失败，保留日志。iOS 使用 `simctl launch --console` 收集原生错误，避免应用崩溃后一直读取旧的 `0/0` 检查点。macOS 保持测试窗口前台、用自己的 `caffeinate` 子进程防止显示器休眠；停滞时先保存 3 秒原生堆栈，再终止测试进程。该前台条件不能代替后台和休眠恢复专项验收。
 
 长稳配置在私有样本目录的 `manifest.json` 中使用 `url` 指定直播，`headers` 指定请求头，`holdSeconds` 指定连续推进时长（默认 1 秒，上限 2 小时）。`testPauseResume: true` 在播放观察后检查一次暂停恢复。循环列出多个不同名称的源可检查反复切台与实例释放；不要把 100 个不同实例的短播当成连续长播。
 
