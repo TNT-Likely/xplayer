@@ -1,51 +1,38 @@
 name: Playback decoder compatibility
 
+# Expensive native matrices are opt-in. Ordinary PRs use player-checks.yml.
 on:
-  pull_request:
-    paths:
-      - 'packages/**'
-      - 'tool/**'
-      - 'pubspec.*'
-      - 'android/**'
-      - 'ios/**'
-      - 'macos/**'
-      - 'linux/**'
-      - 'windows/**'
-      - 'lib/services/player/**'
-      - 'test/player/**'
-      - '.github/workflows/playback-compatibility.yml'
-  push:
-    paths:
-      - 'packages/**'
-      - 'tool/**'
-      - 'pubspec.*'
-      - 'android/**'
-      - 'ios/**'
-      - 'macos/**'
-      - 'linux/**'
-      - 'windows/**'
-      - 'lib/services/player/**'
-      - 'test/player/**'
-      - '.github/workflows/playback-compatibility.yml'
   workflow_call:
+    inputs:
+      suite:
+        description: '发布门禁固定使用 full；定向复测可选择 windows / decoders / distribution / android'
+        type: string
+        default: full
   workflow_dispatch:
+    inputs:
+      suite:
+        description: '选择本次验证范围，避免重复启动完整矩阵'
+        type: choice
+        default: windows
+        options: [windows, decoders, distribution, android, full]
 
 permissions:
   contents: read
 
 concurrency:
-  group: ${{ github.workflow }}-${{ github.event.pull_request.head.repo.full_name || github.repository }}-${{ github.head_ref || github.ref_name }}
+  group: ${{ github.workflow }}-${{ github.ref }}-${{ inputs.suite || 'full' }}
   cancel-in-progress: true
 
 jobs:
   decoders:
+    if: contains(fromJSON('["windows", "decoders", "full"]'), inputs.suite)
     defaults:
       run:
         working-directory: packages/xplayer_player
     strategy:
       fail-fast: false
       matrix:
-        os: [ubuntu-latest, macos-latest, windows-latest]
+        os: ${{ fromJSON(inputs.suite == 'windows' && '["windows-latest"]' || '["ubuntu-latest","macos-latest","windows-latest"]') }}
     runs-on: ${{ matrix.os }}
     timeout-minutes: 20
     steps:
@@ -61,6 +48,11 @@ jobs:
         if: runner.os == 'Linux'
         run: sudo apt-get update && sudo apt-get install -y libmpv-dev
       - run: flutter pub get
+      - name: Cache verified native probe artifacts
+        uses: actions/cache@v4
+        with:
+          path: ${{ runner.temp }}/xplayer-native-probe
+          key: native-probe-${{ runner.os }}-${{ runner.arch }}-${{ hashFiles('packages/libmpv_xplayer/native_builds.json', 'packages/xplayer_player/tool/check_decoder_compatibility.py', 'packages/libmpv_xplayer/tool/download_artifact.py') }}
       - name: Check native build contracts
         run: flutter test ../libmpv_xplayer/test
       - name: Install fixture encoder
@@ -76,11 +68,11 @@ jobs:
       - name: Verify audio and video decoding
         id: decode
         shell: bash
-        run: python tool/check_decoder_compatibility.py --fixtures "${RUNNER_TEMP}/codec-fixtures" --report "${RUNNER_TEMP}/decoder-report.json" --probe-executable "${RUNNER_TEMP}/decoder-probe.exe" --native-log
+        run: python tool/check_decoder_compatibility.py --fixtures "${RUNNER_TEMP}/codec-fixtures" --report "${RUNNER_TEMP}/decoder-report.json" --probe-executable "${RUNNER_TEMP}/decoder-probe.exe" --native-log --cache "${RUNNER_TEMP}/xplayer-native-probe"
       - name: Verify HTTP and HLS playback regressions
         if: ${{ !cancelled() && (success() || steps.decode.outcome == 'failure') }}
         shell: bash
-        run: python tool/check_stream_transport.py --fixtures "${RUNNER_TEMP}/codec-fixtures" --report "${RUNNER_TEMP}/transport-report.json" --probe-executable "${RUNNER_TEMP}/decoder-probe.exe" --native-log
+        run: python tool/check_stream_transport.py --fixtures "${RUNNER_TEMP}/codec-fixtures" --report "${RUNNER_TEMP}/transport-report.json" --probe-executable "${RUNNER_TEMP}/decoder-probe.exe" --native-log --cache "${RUNNER_TEMP}/xplayer-native-probe"
       - uses: actions/upload-artifact@v4
         if: always()
         with:
@@ -90,6 +82,7 @@ jobs:
             ${{ runner.temp }}/transport-report.json
 
   application:
+    if: contains(fromJSON('["windows", "full"]'), inputs.suite)
     runs-on: windows-latest
     timeout-minutes: 25
     steps:
@@ -105,19 +98,12 @@ jobs:
         run: flutter build windows --debug
 
   distribution:
+    if: contains(fromJSON('["windows", "distribution", "full"]'), inputs.suite)
     name: Independent packages (${{ matrix.platform }})
     strategy:
       fail-fast: false
       matrix:
-        include:
-          - os: ubuntu-latest
-            platform: linux
-          - os: windows-latest
-            platform: windows
-          - os: macos-latest
-            platform: macos
-          - os: macos-latest
-            platform: ios
+        include: ${{ fromJSON(inputs.suite == 'windows' && '[{"os":"windows-latest","platform":"windows"}]' || '[{"os":"ubuntu-latest","platform":"linux"},{"os":"windows-latest","platform":"windows"},{"os":"macos-latest","platform":"macos"},{"os":"macos-latest","platform":"ios"}]') }}
     runs-on: ${{ matrix.os }}
     timeout-minutes: 35
     steps:
@@ -154,6 +140,7 @@ jobs:
           path: ${{ runner.temp }}/player-packages/*
 
   minimum-dependencies:
+    if: inputs.suite == 'full'
     runs-on: ubuntu-latest
     timeout-minutes: 15
     steps:
@@ -174,6 +161,7 @@ jobs:
           path: ${{ runner.temp }}/minimum-packages/*
 
   android-device:
+    if: contains(fromJSON('["android", "full"]'), inputs.suite)
     runs-on: ubuntu-latest
     timeout-minutes: 35
     steps:

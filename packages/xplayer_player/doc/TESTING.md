@@ -97,6 +97,30 @@ dart --packages=.dart_tool/package_config.json tool/probe_decoder.dart \
 
 ## 5. 发布门槛
 
+### CI 执行范围与额度
+
+日常播放器源码 PR 使用 `Player source checks`：仅面向 `main` 的非草稿 PR，匹配包内实现、测试、原生构建脚本或播放器适配器时执行一个 Linux 任务，检查格式、静态分析、单测与源码打包。普通 UI、设计稿、文档、验收报告和宿主平台工程变动不启动完整解码矩阵；草稿转为待审时才开始轻量检查。同一 PR 的新提交取消旧的轻量任务。
+
+`Playback decoder compatibility` **仅支持手动运行和发布流程调用**，没有 push、pull_request 或定时触发。手动 `suite` 默认 `windows`，按需选择：
+
+| suite | 实际范围 |
+| --- | --- |
+| `windows` | Windows 解码/传输、应用构建、独立包构建，共 3 个任务 |
+| `decoders` | Linux / macOS / Windows 解码与传输，共 3 个任务 |
+| `distribution` | 四个平台仓库外构建，Apple 附带设备播放，共 4 个任务 |
+| `android` | Android 模拟器完整播放矩阵，1 个任务 |
+| `full` | 全部 10 个任务，包含最低依赖检查 |
+
+在 Actions 页面选定分支与 suite，或使用 GitHub CLI：
+
+```sh
+gh workflow run playback-compatibility.yml --ref YOUR_BRANCH -f suite=windows
+```
+
+完整矩阵不再作为日常 PR 自动检查。涉及原生库、渲染、协议或恢复策略的变动，按下面的验证要求在本地执行或手动选择相关 suite，并将执行链接附在 PR 中。Release 工作流显式传入 `suite: full`，发布任务仍依赖整套门禁成功；不要用默认的 Windows 定向检查代替发布验收。
+
+原生探针缓存按系统、架构和固定清单区分，使用前继续校验 SHA-256。原生构建输入遇到连接中断、429 或 5xx 时最多尝试 3 次；校验不符、404 等不盲目重试。SHA 不匹配先核对上游 asset ID、更新时间、官方 digest 与实际下载，再修改固定值；不关闭校验或在 CI 自动接受新散列。
+
 修改协议、默认请求头、HLS 选择、超时或库版本，运行包测试、传输原生回归、完整 decoder 矩阵（当前 36 组）；修改渲染/会话还运行 Android TV 与 iPad 测试，并做可用真机验证。最终接入应用时再运行根目录测试与平台构建。没有对应系统的实际执行环境时，标记为“CI 配置/待验证”，不填“通过”。
 
 新增格式应明确容器、视频编码/profile/位深、音频编码/声道，生成或保存可公开再现的最小样本，加入矩阵，记录预期成功或受限原因。避免只加扩展名正则而没有 decoder 证据。
@@ -141,4 +165,8 @@ swiftc -parse-as-library packages/xplayer_player/tool/system_audio_meter.swift \
 
 参见 [独立分发文档](DISTRIBUTION.md)。`tool/package_player.py --verify` 在仓库外检查两个包与独立示例，输出 HTML 和归档校验值。`tool/run_device_validation.py` 将示例作为宿主执行自动/强制软解矩阵，逐项保存 `complete: false` 检查点，结束后写 `complete: true`；缺项、超时、失败和无结果均以非零退出。设备运行仍应额外确认真实画面和音频。
 
-设备编排会检查桌面和 iOS 控制台进程退出；90 秒没有完成任何新样本时按原生启动或销毁停滞失败，保留日志。iOS 使用 `simctl launch --console` 收集原生错误，避免应用崩溃后一直读取旧的 `0/0` 检查点。
+设备编排会检查桌面和 iOS 控制台进程退出；90 秒没有新的完成项或活动采样时按原生启动或销毁停滞失败，保留日志。iOS 使用 `simctl launch --console` 收集原生错误，避免应用崩溃后一直读取旧的 `0/0` 检查点。macOS 保持测试窗口前台、用自己的 `caffeinate` 子进程防止显示器休眠；停滞时先保存 3 秒原生堆栈，再终止测试进程。该前台条件不能代替后台和休眠恢复专项验收。
+
+长稳配置在私有样本目录的 `manifest.json` 中使用 `url` 指定直播，`headers` 指定请求头，`holdSeconds` 指定连续推进时长（默认 1 秒，上限 2 小时）。`testPauseResume: true` 在播放观察后检查一次暂停恢复。循环列出多个不同名称的源可检查反复切台与实例释放；不要把 100 个不同实例的短播当成连续长播。
+
+长播每 5 秒保存 `activeCase` 检查点，20 秒时钟不推进即失败。编排器只在新采样到达时延长 90 秒的进度监控，整体仍受 `--timeout` 限制。macOS 每 10 秒记录进程 RSS/CPU 到 `.metrics.jsonl`，报告包含初始、峰值和结束 RSS；这些采样不等同于已经证明无泄漏。`--audible` 验证系统输出状态，真实 PCM 能量仍按声音验收步骤检查。

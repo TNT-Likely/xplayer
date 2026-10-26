@@ -50,6 +50,7 @@ def main():
     target.write_bytes((ROOT / 'tool/playback_device_probe.dart').read_bytes())
     log = output.with_suffix('.log'); desktop = None; reverse = False; app_id = None
     device_logger = None; device_log_stream = None
+    awake = None
     server = None; server_thread = None
     def command(parts, *, capture=False, cwd=example, timeout=600):
         if capture:
@@ -64,7 +65,7 @@ def main():
             def log_message(self, *_args): pass
             def do_GET(self):
                 if self.path == '/probe-config.json':
-                    sources = [{**e, 'url': f'http://127.0.0.1:{server.server_port}/' + e['file']} for e in entries]
+                    sources = [{**e, 'url': e.get('url') or f'http://127.0.0.1:{server.server_port}/' + e['file']} for e in entries]
                     body = json.dumps({'sources': sources}).encode()
                     self.send_response(200); self.send_header('Content-Type', 'application/json')
                     self.send_header('Content-Length', str(len(body))); self.end_headers(); self.wfile.write(body)
@@ -127,9 +128,16 @@ def main():
                 for file in container.rglob('codec_probe.json'): file.unlink()
             with log.open('a', encoding="utf-8") as stream:
                 desktop = subprocess.Popen([str(app / 'Contents/MacOS' / info['CFBundleExecutable'])], stdout=stream, stderr=subprocess.STDOUT)
+            # A visible foreground window and an awake display are prerequisites
+            # for measuring rendered playback, rather than App Nap/occlusion.
+            time.sleep(1)
+            subprocess.run(['open', '-a', str(app)], check=True, timeout=20)
+            awake = subprocess.Popen(['caffeinate', '-di', '-w', str(desktop.pid)])
             def read_checkpoint():
                 return json.loads(next(container.rglob('codec_probe.json')).read_text(encoding="utf-8"))
         last = -1; deadline = time.monotonic() + args.timeout
+        last_active = None; last_metric = 0
+        metrics = []
         progress_deadline = time.monotonic() + 90
         while time.monotonic() < deadline:
             if desktop and desktop.poll() is not None:
@@ -137,12 +145,37 @@ def main():
             if args.platform == 'ios' and device_logger and device_logger.poll() is not None:
                 raise RuntimeError(f'Simulator probe exited before completing the matrix ({device_logger.returncode}); see .log')
             if time.monotonic() >= progress_deadline:
+                if desktop and desktop.poll() is None:
+                    with output.with_suffix('.sample.log').open('w', encoding='utf-8') as stream:
+                        try:
+                            subprocess.run(['sample', str(desktop.pid), '3', '-file', str(output.with_suffix('.sample.txt'))],
+                                           stdout=stream, stderr=subprocess.STDOUT, timeout=15)
+                        except subprocess.SubprocessError:
+                            report.setdefault('cleanupWarnings', []).append('Native stack sampling failed')
                 raise TimeoutError('No completed fixture for 90s; native startup or teardown stalled; see .log')
             try:
                 current = read_checkpoint()
                 report.update(current)
             except (OSError, ValueError, StopIteration, subprocess.CalledProcessError):
                 time.sleep(2); continue
+            active = current.get('activeCase')
+            active_key = (current['total'], active.get('sample')) if active else None
+            if active_key != last_active:
+                last_active = active_key
+                if active:
+                    progress_deadline = time.monotonic() + 90
+                    output.write_text(json.dumps(report, ensure_ascii=False, indent=2) + '\n', encoding='utf-8')
+            if desktop and time.monotonic() - last_metric >= 10:
+                last_metric = time.monotonic()
+                try:
+                    values = subprocess.check_output(['ps', '-o', 'rss=,%cpu=', '-p', str(desktop.pid)], text=True, timeout=5).split()
+                    metric = {'time': time.time(), 'rssKiB': int(values[0]), 'cpuPercent': float(values[1]),
+                              'completed': current['total'], 'active': active}
+                    metrics.append(metric)
+                    with output.with_suffix('.metrics.jsonl').open('a', encoding='utf-8') as stream:
+                        stream.write(json.dumps(metric, ensure_ascii=False) + '\n')
+                except (subprocess.SubprocessError, ValueError, IndexError) as error:
+                    report.setdefault('metricWarnings', []).append(type(error).__name__)
             if current['total'] != last:
                 last = current['total']; print(f"{args.platform}: {current['passed']}/{last}, expected {expected}", flush=True)
                 progress_deadline = time.monotonic() + 90
@@ -152,6 +185,9 @@ def main():
                 break
             time.sleep(2)
         else: raise TimeoutError('Device matrix did not complete within its budget')
+        if metrics:
+            report['processMetrics'] = {'samples': len(metrics), 'firstRssKiB': metrics[0]['rssKiB'],
+                'lastRssKiB': metrics[-1]['rssKiB'], 'peakRssKiB': max(m['rssKiB'] for m in metrics)}
     except Exception as error:
         report['error'] = str(error); report['complete'] = False
         print(str(error), flush=True)
@@ -175,6 +211,10 @@ def main():
             desktop.terminate()
             try: desktop.wait(timeout=10)
             except subprocess.TimeoutExpired: desktop.kill()
+        if awake:
+            awake.terminate()
+            try: awake.wait(timeout=5)
+            except subprocess.TimeoutExpired: awake.kill()
         if reverse:
             try:
                 subprocess.run([args.adb, '-s', args.device, 'reverse', '--remove', f'tcp:{server.server_port}'], capture_output=True, timeout=20)

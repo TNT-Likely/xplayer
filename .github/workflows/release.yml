@@ -36,6 +36,8 @@ jobs:
   player-quality:
     name: Player package release gate
     uses: ./.github/workflows/playback-compatibility.yml
+    with:
+      suite: full
     permissions:
       contents: read
 

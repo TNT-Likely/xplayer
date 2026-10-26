@@ -36,6 +36,8 @@ Darwin 原生适配器基于上游 1.1.4，Android 基于 1.3.8，Windows 基于
 
 原生库版本升级时，更新清单、各平台适配器中的固定值并重新运行矩阵。Windows 解压目录使用 SHA-256 标记，避免复用旧的裁剪 DLL；所有平台不应切回 `default` 构建来缩小包体。
 
+上游可能重新上传同一 tag、同一名称的 Windows 日构建。清单额外记录 release asset ID 与更新时间；发生 SHA-256 不符时必须核对官方 digest 和实际下载，不能仅因 URL 未变就沿用旧散列，也不自动接受新资产。构建诊断同时输出预期与实际散列，失败文件不会安装。iOS 模拟器源码和原生探针共用 `tool/download_artifact.py`，临时传输错误最多尝试 3 次，验证成功后原子替换缓存；校验失败直接退出。
+
 ### Android EGL 上下文兼容
 
 部分 Android EGL 驱动拒绝固定版本 mpv 提交的零 `EGL_CONTEXT_FLAGS_KHR` 属性，即使基础 GLES 和 DEBUG 上下文均可创建，也会出现 `EGL_BAD_ATTRIBUTE` 和视频输出初始化失败。原生适配器在独立线程探测这三种请求，将结果通过 `com.tntlikely.xplayer/decoder_capabilities` 返回核心包，只有命中此驱动行为才启用 `gpu-debug=yes`。普通驱动保留原设置；DEBUG 上下文可能增加驱动检查开销，仅用于已证实失败的路径。
