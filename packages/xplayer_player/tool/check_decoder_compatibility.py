@@ -1,12 +1,12 @@
 """Run the pinned native decoder against generated media on macOS/Windows/Linux."""
 import argparse
 import ctypes.util
-import hashlib
 import json
 import os
 from pathlib import Path
 import platform
 import re
+import runpy
 import shutil
 import subprocess
 import sys
@@ -20,16 +20,8 @@ ROOT = Path(__file__).resolve().parent.parent
 
 def download(artifact, cache):
     archive = cache / artifact["url"].rsplit("/", 1)[-1]
-    if not archive.exists() or hashlib.sha256(archive.read_bytes()).hexdigest() != artifact["sha256"]:
-        temporary = archive.with_suffix(archive.suffix + ".part")
-        request = urllib.request.Request(artifact["url"], headers={"User-Agent": "XPlayer decoder check"})
-        with urllib.request.urlopen(request, timeout=90) as response, temporary.open("wb") as output:
-            shutil.copyfileobj(response, output)
-        if hashlib.sha256(temporary.read_bytes()).hexdigest() != artifact["sha256"]:
-            temporary.unlink()
-            raise RuntimeError("Native artifact SHA-256 mismatch")
-        temporary.replace(archive)
-    return archive
+    fetch = runpy.run_path(str(native_package_root() / 'tool/download_artifact.py'))['download_artifact']
+    return fetch(artifact['url'], artifact['sha256'], archive)
 
 
 def native_library(manifest, cache, env):

@@ -1,5 +1,6 @@
 ## 0.1.0-beta.1
 
+- 核对上游重新上传的 Windows 完整库，更新固定散列并记录 asset ID；iOS 源码和探针输入增加有界下载重试与原子校验，Windows 输出可定位的完整性诊断。
 - 将四个本地原生适配器合并为自包含插件，使用独立注册名称与随包构建清单。
 - 保留完整解码构建、固定 SHA-256、iOS 模拟器 AudioUnit 与 Android EGL 兼容探测。
 - 保留 Android helper 的 JNI ABI，以及 Windows 视频插件需要的构建顺序和目录布局。

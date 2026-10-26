@@ -46,6 +46,7 @@ class _PlaybackProbeState extends State<_PlaybackProbe> {
               )
               as Map;
       final results = <Map<String, Object?>>[];
+      Map<String, Object?>? activeCase;
       final directory = await getApplicationSupportDirectory();
       Future<void> checkpoint({required bool complete}) async {
         await File('${directory.path}/codec_probe.json').writeAsString(
@@ -57,6 +58,7 @@ class _PlaybackProbeState extends State<_PlaybackProbe> {
             'passed': results.where((r) => r['passed'] == true).length,
             'total': results.length,
             'results': results,
+            'activeCase': activeCase,
           }),
           flush: true,
         );
@@ -108,8 +110,18 @@ class _PlaybackProbeState extends State<_PlaybackProbe> {
           var forwardProgress = Duration.zero;
           VoidCallback? progressListener;
           try {
+            final holdSeconds = (entry['holdSeconds'] as int? ?? 1).clamp(
+              1,
+              7200,
+            );
+            final minimumPlayback = Duration(seconds: holdSeconds);
             await backend
-                .initialize(entry['url'] as String)
+                .initialize(
+                  entry['url'] as String,
+                  headers: Map<String, String>.from(
+                    entry['headers'] as Map? ?? {},
+                  ),
+                )
                 .timeout(const Duration(seconds: 25));
             var previousPosition = backend.notifier.value.position;
             progressListener = () {
@@ -124,13 +136,46 @@ class _PlaybackProbeState extends State<_PlaybackProbe> {
             backend.notifier.addListener(progressListener);
             playingWatch.start();
             await backend.play();
-            final deadline = DateTime.now().add(const Duration(seconds: 15));
+            final deadline = DateTime.now().add(
+              minimumPlayback + const Duration(seconds: 30),
+            );
+            var lastSample = const Duration(seconds: -5);
+            var lastAdvance = Duration.zero;
+            var lastProgress = Duration.zero;
+            var samples = 0;
+            var bufferingSamples = 0;
             while (DateTime.now().isBefore(deadline)) {
               final value = backend.notifier.value;
               if (value.hasError) {
                 throw StateError(value.errorDescription ?? 'Playback error');
               }
               final diag = backend.diagnostics.value;
+              if (forwardProgress > lastProgress) {
+                lastAdvance = playingWatch.elapsed;
+                lastProgress = forwardProgress;
+              }
+              if (playingWatch.elapsed - lastAdvance >
+                  const Duration(seconds: 20)) {
+                throw StateError(
+                  'Playback clock stalled for more than 20 seconds',
+                );
+              }
+              if (playingWatch.elapsed - lastSample >=
+                  const Duration(seconds: 5)) {
+                lastSample = playingWatch.elapsed;
+                samples++;
+                if (value.isBuffering) bufferingSamples++;
+                activeCase = {
+                  'name': entry['name'],
+                  'mode': software ? 'software' : 'auto',
+                  'sample': samples,
+                  'elapsedMs': playingWatch.elapsedMilliseconds,
+                  'positionMs': value.position.inMilliseconds,
+                  'forwardProgressMs': forwardProgress.inMilliseconds,
+                  'buffering': value.isBuffering,
+                };
+                await checkpoint(complete: false);
+              }
               final videoReady =
                   entry['expectVideo'] == false ||
                   (diag['firstFrameRendered'] == true &&
@@ -148,8 +193,22 @@ class _PlaybackProbeState extends State<_PlaybackProbe> {
                                   .isNotEmpty)));
               if (videoReady &&
                   audioReady &&
-                  playingWatch.elapsed >= const Duration(seconds: 1) &&
-                  forwardProgress >= const Duration(seconds: 1)) {
+                  playingWatch.elapsed >= minimumPlayback &&
+                  forwardProgress >= minimumPlayback) {
+                if (entry['testPauseResume'] == true) {
+                  await backend.pause();
+                  await Future<void>.delayed(const Duration(milliseconds: 400));
+                  final beforeResume = backend.notifier.value.position;
+                  await backend.play();
+                  await Future<void>.delayed(const Duration(seconds: 3));
+                  final resumed = backend.notifier.value;
+                  if (resumed.hasError ||
+                      !resumed.isPlaying ||
+                      resumed.position == beforeResume) {
+                    throw StateError('Pause/resume did not restore playback');
+                  }
+                  result['pauseResumePassed'] = true;
+                }
                 result.addAll({
                   'passed': true,
                   'width': value.size.width,
@@ -162,6 +221,10 @@ class _PlaybackProbeState extends State<_PlaybackProbe> {
                   'hlsSelection': diag['hlsSelection'],
                   'durationMs': value.duration.inMilliseconds,
                   'elapsedMs': watch.elapsedMilliseconds,
+                  'observedSeconds': playingWatch.elapsed.inSeconds,
+                  'forwardProgressMs': forwardProgress.inMilliseconds,
+                  'samples': samples,
+                  'bufferingSamples': bufferingSamples,
                   'audioOutputDriver': diag['audioOutputDriver'],
                   'audioOutputParams': diag['audioOutputParams'],
                   'audioOutputMs': diag['audioOutputMs'],
@@ -208,6 +271,7 @@ class _PlaybackProbeState extends State<_PlaybackProbe> {
             await backend.dispose();
           }
           results.add(result);
+          activeCase = null;
           await checkpoint(complete: false);
           // Machine-readable results are collected via adb logcat.
           // ignore: avoid_print

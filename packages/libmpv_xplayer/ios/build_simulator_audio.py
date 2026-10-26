@@ -4,15 +4,17 @@
 The pinned full FFmpeg/frameworks and the device slice stay unchanged. Build
 products, sources and the isolated Meson/Ninja environment live in .cache/.
 """
-import hashlib
 import os
 from pathlib import Path
 import shutil
 import subprocess
-import urllib.request
+import sys
 import venv
 
 ROOT = Path(__file__).resolve().parent
+sys.path.insert(0, str(ROOT.parent / 'tool'))
+from download_artifact import download_artifact
+
 CACHE = ROOT / '.cache' / 'simulator-audio'
 FRAMEWORKS = ROOT / 'Frameworks'
 INPUTS = {
@@ -50,15 +52,7 @@ def main():
     if not pkg_config:
         raise SystemExit('Simulator audio build requires pkg-config on PATH')
     for name, (url, digest) in INPUTS.items():
-        target = CACHE / name
-        if not target.exists():
-            request = urllib.request.Request(url, headers={'User-Agent': 'XPlayer-native-build'})
-            with urllib.request.urlopen(request, timeout=120) as response:
-                temp = target.with_suffix('.download')
-                temp.write_bytes(response.read())
-            temp.replace(target)
-        if hashlib.sha256(target.read_bytes()).hexdigest() != digest:
-            raise SystemExit(f'SHA-256 mismatch: {name}; remove the cache and retry')
+        download_artifact(url, digest, CACHE / name)
     source = CACHE / 'mpv-0.36.0'
     if source.exists():
         shutil.rmtree(source)

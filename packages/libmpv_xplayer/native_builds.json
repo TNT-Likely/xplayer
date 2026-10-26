@@ -19,7 +19,7 @@
         ],
         "output": "AudioUnit",
         "recipe": "ios/build_simulator_audio.py",
-        "recipe_sha256": "2288ec5261cc08ea1f01cc478ed5b740947a690f88e1005891f126a618fe76f1",
+        "recipe_sha256": "01fe2a28afef28eab5f071a5170f387f2b6542e38b67e1406b3ed7c72f2a2b60",
         "note": "Only simulator mpv is rebuilt; pinned full FFmpeg/frameworks and the device slice are retained."
       }
     }
@@ -55,12 +55,14 @@
     "flavor": "lgpl-full",
     "name": "mpv-dev-lgpl-x86_64-20261025-git-baa3e11d42.7z",
     "url": "https://github.com/zhongfly/mpv-winbuild/releases/download/2026-10-25-baa3e11d42/mpv-dev-lgpl-x86_64-20261025-git-baa3e11d42.7z",
-    "sha256": "89f170d8eb6594a3cd6ffbf75e7d412995aba0107f8297deb3c6ec026d67191a",
+    "sha256": "6429ebba4b6bfc5dd18ac5ac084f00776db0db4e767ef1bfb815fc78ec5bda2a",
     "source": "https://github.com/zhongfly/mpv-winbuild",
     "angle": {
       "url": "https://github.com/alexmercerind/flutter-windows-ANGLE-OpenGL-ES/releases/download/v1.0.1/ANGLE.7z",
       "sha256": "cc5911bb15d596fd5a2b362613ad35b7093b427117269a7359054a65746a5f9a"
-    }
+    },
+    "release_asset_id": 674997545,
+    "asset_updated_at": "2026-10-25T12:30:52Z"
   },
   "darwin_renderer": {
     "source": "https://pub.dev/packages/media_kit_video/versions/2.0.1",
