@@ -88,6 +88,34 @@ class MediaKitBackend implements XPlayerBackend {
   @override
   ValueListenable<Map<String, dynamic>> get diagnostics => _diagnostics;
 
+  /// On-demand playback clock, A/V offset, cache and frame-drop measurements.
+  /// The native engine can omit properties that are unavailable for a stream.
+  /// This does not start a background poll or change the playback state.
+  Future<Map<String, int>> readPlaybackMetrics() async {
+    final player = _player;
+    if (_disposed || player == null || !_notifier.value.isInitialized) {
+      return const {};
+    }
+    final native = player.platform as mk.NativePlayer;
+    final metrics = <String, int>{};
+    for (final (property, key, scale) in const [
+      ('audio-pts', 'audioPtsMs', 1000),
+      ('avsync', 'avSyncMs', 1000),
+      ('demuxer-cache-duration', 'demuxerCacheMs', 1000),
+      ('frame-drop-count', 'videoOutputDroppedFrames', 1),
+      ('decoder-frame-drop-count', 'videoDecoderDroppedFrames', 1),
+    ]) {
+      if (_disposed) return const {};
+      final value = double.tryParse(
+        await native.getProperty(property, waitForInitialization: false),
+      );
+      if (value != null && value.isFinite) {
+        metrics[key] = (value * scale).round();
+      }
+    }
+    return _disposed ? const {} : metrics;
+  }
+
   void _update(XPlayerValue value) {
     if (!_disposed) _notifier.value = value;
   }
@@ -504,6 +532,18 @@ class MediaKitBackend implements XPlayerBackend {
       if (_disposed) throw StateError('Playback cancelled');
       if (source.format == StreamFormat.hls) {
         await native.setProperty('demuxer-lavf-analyzeduration', '1');
+        final startSegments = configuration.hlsLiveStartSegments;
+        if (startSegments != null &&
+            const ['http', 'https'].contains(Uri.parse(prepared.url).scheme)) {
+          // Preserve the protocol whitelist and segment retry options that
+          // media_kit has already put in the demuxer's key/value list.
+          await native.command([
+            'change-list',
+            'demuxer-lavf-o',
+            'append',
+            'live_start_index=-$startSegments',
+          ]);
+        }
       }
       _diagnostics.value = {
         ..._diagnostics.value,

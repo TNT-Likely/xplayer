@@ -45,6 +45,20 @@ def main():
     report = {'platform': args.platform, 'device': args.device, 'expectedTotal': expected,
               'complete': False, 'passed': 0, 'total': 0, 'results': [],
               'audioMode': 'system (audible)' if args.audible else 'system (muted)'}
+    live_routes = {}
+    live_cases = {}
+    for index, entry in enumerate(entries):
+        if 'liveHlsScenario' not in entry:
+            continue
+        from live_hls_fixture import LiveHlsFixture
+        segments = sorted((fixtures / 'live-hls-segments').glob('segment-*.ts'))
+        for mode in ('auto', 'software') if args.mode == 'both' else (args.mode,):
+            route = f'/_live-hls/{index}/{mode}'
+            fixture = LiveHlsFixture(entry['liveHlsScenario'], segments)
+            live_routes[route] = fixture
+            live_cases[entry['name'], mode] = fixture, entry.get('hlsLiveStartSegments')
+    if len(live_cases) != len(live_routes):
+        parser.error('Live HLS fixture names must be unique')
     example = ROOT / 'example'; target = example / f'tool/playback_probe_{args.platform}.g.dart'; target.parent.mkdir(exist_ok=True)
     previous = target.read_bytes() if target.exists() else None
     target.write_bytes((ROOT / 'tool/playback_device_probe.dart').read_bytes())
@@ -65,11 +79,36 @@ def main():
             def log_message(self, *_args): pass
             def do_GET(self):
                 if self.path == '/probe-config.json':
-                    sources = [{**e, 'url': e.get('url') or f'http://127.0.0.1:{server.server_port}/' + e['file']} for e in entries]
+                    origin = f'http://127.0.0.1:{server.server_port}'
+                    sources = []
+                    for index, entry in enumerate(entries):
+                        if 'liveHlsScenario' in entry:
+                            urls = {mode: origin + route + '/index.m3u8'
+                                    for mode in ('auto', 'software')
+                                    if (route := f'/_live-hls/{index}/{mode}') in live_routes}
+                            sources.append({**entry, 'urlsByMode': urls})
+                        else:
+                            sources.append({**entry, 'url': entry.get('url') or f"{origin}/{entry['file']}"})
                     body = json.dumps({'sources': sources}).encode()
-                    self.send_response(200); self.send_header('Content-Type', 'application/json')
-                    self.send_header('Content-Length', str(len(body))); self.end_headers(); self.wfile.write(body)
-                else: super().do_GET()
+                    content_type = 'application/json'
+                elif (route := self.path.rsplit('/', 1)[0]) in live_routes:
+                    payload = live_routes[route].payload(self.path.rsplit('/', 1)[1])
+                    if payload is None:
+                        self.send_error(404)
+                        return
+                    body, content_type = payload
+                else:
+                    super().do_GET()
+                    return
+                self.send_response(200)
+                self.send_header('Content-Type', content_type)
+                self.send_header('Content-Length', str(len(body)))
+                self.send_header('Cache-Control', 'no-store')
+                self.end_headers()
+                try:
+                    self.wfile.write(body)
+                except (BrokenPipeError, ConnectionResetError):
+                    pass
         server = ThreadingHTTPServer(('127.0.0.1', 0), partial(Handler, directory=str(fixtures)))
         server_thread = threading.Thread(target=server.serve_forever, daemon=True); server_thread.start()
         defines = ['--dart-define=PLAYBACK_PROBE_CONFIG=http://127.0.0.1:' + str(server.server_port) + '/probe-config.json']
@@ -234,6 +273,17 @@ def main():
             server.shutdown(); server.server_close(); server_thread.join(timeout=5)
         if previous is None: target.unlink(missing_ok=True)
         else: target.write_bytes(previous)
+        if live_cases:
+            for result in report['results']:
+                case = live_cases.get((result['name'], result['mode']))
+                if case is None:
+                    continue
+                fixture, start_segments = case
+                evidence = fixture.evidence(start_segments)
+                result['liveHlsEvidence'] = evidence
+                if result['passed'] and not (evidence['faultObserved'] and evidence['startObserved']):
+                    result.update(passed=False, message='Live HLS fixture did not exercise the expected start and fault')
+            report['passed'] = sum(result['passed'] for result in report['results'])
         output.write_text(json.dumps(report, ensure_ascii=False, indent=2) + '\n', encoding="utf-8")
         render(report, output.with_suffix('.html'))
     return 0 if report.get('complete') and report.get('total') == expected and report.get('passed') == expected else 1

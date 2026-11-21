@@ -51,7 +51,7 @@ class _PlaybackProbeState extends State<_PlaybackProbe> {
       Future<void> checkpoint({required bool complete}) async {
         await File('${directory.path}/codec_probe.json').writeAsString(
           jsonEncode({
-            'probeVersion': 3,
+            'probeVersion': 4,
             'platform': Platform.operatingSystem,
             'version': Platform.operatingSystemVersion,
             'complete': complete,
@@ -80,6 +80,7 @@ class _PlaybackProbeState extends State<_PlaybackProbe> {
           final backend = MediaKitBackend(
             softwareDecoding: software,
             configuration: PlaybackConfiguration(
+              hlsLiveStartSegments: entry['hlsLiveStartSegments'] as int?,
               audioPacketErrorLimit:
                   entry['audioPacketErrorLimit'] as int? ?? 8,
             ),
@@ -111,7 +112,15 @@ class _PlaybackProbeState extends State<_PlaybackProbe> {
           };
           final watch = Stopwatch()..start();
           final playingWatch = Stopwatch();
-          var forwardProgress = Duration.zero;
+          final observation = _PlaybackObservation();
+          final continuity = entry['continuity'] as Map<String, dynamic>?;
+          final maxAvSyncMs = continuity?['maxAvSyncMs'] as int? ?? 150;
+          final requiredJumps =
+              continuity?['minClockDiscontinuities'] as int? ?? 0;
+          final requiredSyncedAudioMs =
+              continuity?['minSyncedAudioMs'] as int? ?? 0;
+          final maxResyncMs = continuity?['maxResyncMs'] as int?;
+          var lastTelemetry = const Duration(seconds: -1);
           VoidCallback? progressListener;
           try {
             final holdSeconds = (entry['holdSeconds'] as int? ?? 1).clamp(
@@ -119,73 +128,50 @@ class _PlaybackProbeState extends State<_PlaybackProbe> {
               7200,
             );
             final minimumPlayback = Duration(seconds: holdSeconds);
+            final mode = software ? 'software' : 'auto';
             await backend
                 .initialize(
-                  entry['url'] as String,
+                  (entry['urlsByMode']?[mode] ?? entry['url']) as String,
                   headers: Map<String, String>.from(
                     entry['headers'] as Map? ?? {},
                   ),
                 )
                 .timeout(const Duration(seconds: 25));
-            var previousPosition = backend.notifier.value.position;
             progressListener = () {
-              final value = backend.notifier.value;
-              if (!value.isPlaying || value.isBuffering) return;
-              final delta = value.position - previousPosition;
-              if (delta > Duration.zero && delta < const Duration(seconds: 2)) {
-                forwardProgress += delta;
+              if (playingWatch.isRunning) {
+                observation.onPlaybackState(
+                  backend.notifier.value,
+                  playingWatch.elapsed,
+                );
               }
-              previousPosition = value.position;
             };
             backend.notifier.addListener(progressListener);
             playingWatch.start();
             await backend.play();
-            final deadline = DateTime.now().add(
-              minimumPlayback + const Duration(seconds: 30),
-            );
+            final wallBudget = minimumPlayback + const Duration(seconds: 30);
             var lastSample = const Duration(seconds: -5);
-            var lastAdvance = Duration.zero;
-            var lastProgress = Duration.zero;
             var samples = 0;
             var bufferingSamples = 0;
-            while (DateTime.now().isBefore(deadline)) {
+            var videoReady = false;
+            var audioReady = false;
+            while (playingWatch.elapsed < wallBudget) {
               final value = backend.notifier.value;
               if (value.hasError) {
                 throw StateError(value.errorDescription ?? 'Playback error');
               }
               final diag = backend.diagnostics.value;
-              if (forwardProgress > lastProgress) {
-                lastAdvance = playingWatch.elapsed;
-                lastProgress = forwardProgress;
-              }
-              if (playingWatch.elapsed - lastAdvance >
+              if (playingWatch.elapsed - observation.lastAdvance >
                   const Duration(seconds: 20)) {
                 throw StateError(
                   'Playback clock stalled for more than 20 seconds',
                 );
               }
-              if (playingWatch.elapsed - lastSample >=
-                  const Duration(seconds: 5)) {
-                lastSample = playingWatch.elapsed;
-                samples++;
-                if (value.isBuffering) bufferingSamples++;
-                activeCase = {
-                  'name': entry['name'],
-                  'mode': software ? 'software' : 'auto',
-                  'sample': samples,
-                  'elapsedMs': playingWatch.elapsedMilliseconds,
-                  'positionMs': value.position.inMilliseconds,
-                  'forwardProgressMs': forwardProgress.inMilliseconds,
-                  'buffering': value.isBuffering,
-                };
-                await checkpoint(complete: false);
-              }
-              final videoReady =
+              videoReady =
                   entry['expectVideo'] == false ||
                   (diag['firstFrameRendered'] == true &&
                       diag['videoOutputConfigured'] == 'yes' &&
                       '${diag['videoOutputParams'] ?? ''}'.isNotEmpty);
-              final audioReady =
+              audioReady =
                   entry['expectAudio'] == false ||
                   (diag['audioSampleFormat'] != null &&
                       (const bool.fromEnvironment(
@@ -195,10 +181,45 @@ class _PlaybackProbeState extends State<_PlaybackProbe> {
                               diag['audioOutputDriver'] != 'null' &&
                               '${diag['audioOutputParams'] ?? ''}'
                                   .isNotEmpty)));
+              if (continuity != null &&
+                  videoReady &&
+                  audioReady &&
+                  playingWatch.elapsed - lastTelemetry >=
+                      const Duration(milliseconds: 500)) {
+                lastTelemetry = playingWatch.elapsed;
+                final metrics = await backend.readPlaybackMetrics();
+                final current = backend.notifier.value;
+                observation.onMetrics(
+                  metrics,
+                  elapsed: playingWatch.elapsed,
+                  advancing: current.isPlaying && !current.isBuffering,
+                  maxAvSyncMs: maxAvSyncMs,
+                );
+              }
+              if (playingWatch.elapsed - lastSample >=
+                  const Duration(seconds: 5)) {
+                lastSample = playingWatch.elapsed;
+                samples++;
+                if (value.isBuffering) bufferingSamples++;
+                activeCase = {
+                  'name': entry['name'],
+                  'mode': mode,
+                  'sample': samples,
+                  'elapsedMs': playingWatch.elapsedMilliseconds,
+                  'positionMs': value.position.inMilliseconds,
+                  'forwardProgressMs': observation.progress.inMilliseconds,
+                  'buffering': value.isBuffering,
+                  if (continuity != null)
+                    'continuity': observation.metrics(playingWatch.elapsed),
+                };
+                await checkpoint(complete: false);
+              }
               if (videoReady &&
                   audioReady &&
                   playingWatch.elapsed >= minimumPlayback &&
-                  forwardProgress >= minimumPlayback &&
+                  observation.progress >= minimumPlayback &&
+                  observation.clockDiscontinuities >= requiredJumps &&
+                  observation.syncedAudioMs >= requiredSyncedAudioMs &&
                   diag['audioRecoveryState'] != 'pending') {
                 if (entry['expectFailure'] == true) {
                   throw StateError('Expected decoding failure did not happen');
@@ -207,6 +228,14 @@ class _PlaybackProbeState extends State<_PlaybackProbe> {
                     (entry['minAudioRecoveries'] as int? ?? 0)) {
                   throw StateError('Expected audio recovery was not observed');
                 }
+                if (maxResyncMs != null &&
+                    (observation.resyncMs == null ||
+                        observation.resyncMs! > maxResyncMs)) {
+                  throw StateError(
+                    'Audio/video resynchronization exceeded ${maxResyncMs}ms',
+                  );
+                }
+                playingWatch.stop();
                 if (entry['testPauseResume'] == true) {
                   await backend.pause();
                   await Future<void>.delayed(const Duration(milliseconds: 400));
@@ -234,7 +263,6 @@ class _PlaybackProbeState extends State<_PlaybackProbe> {
                   'durationMs': value.duration.inMilliseconds,
                   'elapsedMs': watch.elapsedMilliseconds,
                   'observedSeconds': playingWatch.elapsed.inSeconds,
-                  'forwardProgressMs': forwardProgress.inMilliseconds,
                   'audioRecoveries': diag['audioRecoveries'] ?? 0,
                   'audioPacketErrors': diag['audioPacketErrors'] ?? 0,
                   'audioRecoveryEvidence': diag['audioRecoveryEvidence'],
@@ -255,8 +283,17 @@ class _PlaybackProbeState extends State<_PlaybackProbe> {
               await Future<void>.delayed(const Duration(milliseconds: 100));
             }
             if (result['passed'] != true) {
+              if (videoReady && audioReady) {
+                throw TimeoutException(
+                  'Playback advanced ${observation.progress.inMilliseconds}ms '
+                  'of ${minimumPlayback.inMilliseconds}ms in '
+                  '${playingWatch.elapsedMilliseconds}ms '
+                  '(clock jumps: ${observation.clockDiscontinuities}, '
+                  'synchronized audio: ${observation.syncedAudioMs}ms)',
+                );
+              }
               throw TimeoutException(
-                'Rendered frame, audio and advancing clock did not become ready',
+                'Rendered frame and audio did not become ready',
               );
             }
           } catch (e) {
@@ -280,10 +317,16 @@ class _PlaybackProbeState extends State<_PlaybackProbe> {
               'isBuffering': backend.notifier.value.isBuffering,
               'width': backend.notifier.value.size.width,
               'height': backend.notifier.value.size.height,
-              'forwardProgressMs': forwardProgress.inMilliseconds,
-              'playingWallMs': playingWatch.elapsedMilliseconds,
             });
           } finally {
+            playingWatch.stop();
+            result.addAll({
+              'forwardProgressMs': observation.progress.inMilliseconds,
+              'playingWallMs': playingWatch.elapsedMilliseconds,
+              'hlsLiveStartSegments': entry['hlsLiveStartSegments'],
+              if (continuity != null)
+                'continuity': observation.metrics(playingWatch.elapsed),
+            });
             if (progressListener != null) {
               backend.notifier.removeListener(progressListener);
             }
@@ -342,4 +385,131 @@ class _PlaybackProbeState extends State<_PlaybackProbe> {
       ],
     ),
   );
+}
+
+class _PlaybackObservation {
+  static const _jumpThreshold = Duration(seconds: 2);
+  Duration progress = Duration.zero;
+  Duration lastAdvance = Duration.zero;
+  Duration? _previousPosition;
+  bool _previouslyBuffering = false;
+  Duration? _bufferingSince;
+  Duration _bufferingTotal = Duration.zero;
+  Duration _longestBuffering = Duration.zero;
+  int _bufferingEvents = 0;
+  int clockDiscontinuities = 0;
+  Duration? _lastJumpAt;
+  int? _lastJumpMs;
+  int? _previousAudioPtsMs;
+  int syncedAudioMs = 0;
+  int? resyncMs;
+  int? _firstSyncedAtMs;
+  int _avSamples = 0;
+  int _avSamplesOverLimit = 0;
+  int? _peakAvSyncMs;
+  Map<String, int> _lastMetrics = const {};
+
+  void onPlaybackState(XPlayerValue value, Duration elapsed) {
+    final playing = value.isPlaying && !value.hasError;
+    final buffering = playing && value.isBuffering;
+    final previous = _previousPosition;
+    _previousPosition = playing ? value.position : null;
+    if (playing && previous != null) {
+      final delta = value.position - previous;
+      if (delta >= _jumpThreshold ||
+          delta <= const Duration(milliseconds: -500)) {
+        if (progress > Duration.zero) {
+          clockDiscontinuities++;
+          _lastJumpAt = elapsed;
+          _lastJumpMs = delta.inMilliseconds;
+          resyncMs = null;
+          _resetSync();
+        }
+      } else if (delta > Duration.zero && !buffering && !_previouslyBuffering) {
+        progress += delta;
+        lastAdvance = elapsed;
+      }
+    }
+    _previouslyBuffering = buffering;
+    if (buffering && progress > Duration.zero) {
+      if (_bufferingSince == null) {
+        _bufferingSince = elapsed;
+        _bufferingEvents++;
+        _resetSync();
+      }
+    } else if (_bufferingSince case final start?) {
+      final length = elapsed - start;
+      _bufferingTotal += length;
+      if (length > _longestBuffering) _longestBuffering = length;
+      _bufferingSince = null;
+    }
+  }
+
+  void onMetrics(
+    Map<String, int> metrics, {
+    required Duration elapsed,
+    required bool advancing,
+    required int maxAvSyncMs,
+  }) {
+    _lastMetrics = metrics;
+    final audioPtsMs = metrics['audioPtsMs'];
+    final offset = metrics['avSyncMs']?.abs();
+    if (!advancing || audioPtsMs == null || offset == null) {
+      _resetSync();
+      return;
+    }
+    _avSamples++;
+    if (_peakAvSyncMs == null || offset > _peakAvSyncMs!) {
+      _peakAvSyncMs = offset;
+    }
+    if (offset > maxAvSyncMs) {
+      _avSamplesOverLimit++;
+      _resetSync();
+      return;
+    }
+    final previousAudioPtsMs = _previousAudioPtsMs;
+    if (previousAudioPtsMs != null) {
+      final delta = audioPtsMs - previousAudioPtsMs;
+      if (delta > 0 && delta < _jumpThreshold.inMilliseconds) {
+        syncedAudioMs += delta;
+        if (syncedAudioMs >= 1000 && _lastJumpAt != null) {
+          resyncMs ??= _firstSyncedAtMs! - _lastJumpAt!.inMilliseconds;
+        }
+      } else {
+        _resetSync();
+      }
+    }
+    _firstSyncedAtMs ??= elapsed.inMilliseconds;
+    _previousAudioPtsMs = audioPtsMs;
+  }
+
+  void _resetSync() {
+    _previousAudioPtsMs = null;
+    _firstSyncedAtMs = null;
+    syncedAudioMs = 0;
+  }
+
+  Map<String, Object?> metrics(Duration elapsed) {
+    final ongoingBuffering = _bufferingSince == null
+        ? Duration.zero
+        : elapsed - _bufferingSince!;
+    return {
+      'bufferingEvents': _bufferingEvents,
+      'bufferingMs': (_bufferingTotal + ongoingBuffering).inMilliseconds,
+      'maxBufferingMs':
+          (ongoingBuffering > _longestBuffering
+                  ? ongoingBuffering
+                  : _longestBuffering)
+              .inMilliseconds,
+      'clockDiscontinuities': clockDiscontinuities,
+      'lastClockDiscontinuityAtMs': _lastJumpAt?.inMilliseconds,
+      'lastClockDiscontinuityDeltaMs': _lastJumpMs,
+      'avSyncSamples': _avSamples,
+      'avSyncSamplesOverLimit': _avSamplesOverLimit,
+      'peakAvSyncMs': _peakAvSyncMs,
+      'syncedAudioMs': syncedAudioMs,
+      'resyncMs': resyncMs,
+      ..._lastMetrics,
+    };
+  }
 }

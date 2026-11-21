@@ -7,6 +7,7 @@ class PlaybackConfiguration {
     this.hlsProbeTimeout = const Duration(seconds: 3),
     this.resolveHlsVariants = true,
     this.lowerBandwidthOnSoftwareFallback = true,
+    this.hlsLiveStartSegments,
     this.audioPacketRecoveryTimeout = const Duration(seconds: 3),
     this.audioPacketErrorLimit = 8,
   });
@@ -16,6 +17,11 @@ class PlaybackConfiguration {
   final Duration hlsProbeTimeout;
   final bool resolveHlsVariants;
   final bool lowerBandwidthOnSoftwareFallback;
+
+  /// How many segments back from the HLS live edge to start. A larger value
+  /// can absorb short reads at the cost of live latency. Null keeps the native
+  /// default. The server must still list the requested segments.
+  final int? hlsLiveStartSegments;
   final Duration audioPacketRecoveryTimeout;
   final int audioPacketErrorLimit;
 
@@ -39,6 +45,16 @@ class PlaybackConfiguration {
     }
     if (hlsProbeTimeout >= initializationTimeout) {
       throw ArgumentError('hlsProbeTimeout must leave time for native startup');
+    }
+    final startSegments = hlsLiveStartSegments;
+    if (startSegments != null &&
+        (startSegments < 1 || startSegments > 0x7fffffff)) {
+      throw RangeError.range(
+        startSegments,
+        1,
+        0x7fffffff,
+        'hlsLiveStartSegments',
+      );
     }
   }
 
