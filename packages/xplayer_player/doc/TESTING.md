@@ -97,6 +97,28 @@ dart --packages=.dart_tool/package_config.json tool/probe_decoder.dart \
 
 ## 5. 发布门槛
 
+### 坏包恢复与隐藏窗口回归
+
+`Error decoding audio.` 在 mpv 中也可能来自单个损坏包，不等同于整个文件无法解码。核心仅为这一明确消息提供有界恢复验证。默认累计 3 秒未在缓冲的播放时间内，必须观察到输出驱动存在且 `audio-pts` 连续向前累计至少 250 毫秒。缓冲开始会清除本次音频采样基线，恢复供数后重新取证。每次恢复还受 `audioPacketRecoveryTimeout + networkTimeout` 的墙钟上限约束，默认 18 秒。10 秒内超过 8 次该错误立即失败，连续错误和反复缓冲都不能重置预算。缺少解码器、HTTP、设备输出失败及未知错误沿用失败路径。
+
+可通过 `PlaybackConfiguration.audioPacketRecoveryTimeout` 和 `audioPacketErrorLimit` 配置预算，两个值均必须为正。暂停期间不把无进展判为失败，恢复播放后重新计时；跳转后的 PTS 大跳也不能作为恢复成功的依据。诊断中的 `audioPacketErrors`、`audioRecoveries`、`audioRecoveryState`、`audioRecoveryEvidence` 保留错误次数与实际音频时钟采样。正常播放不轮询这些属性。
+
+生成固定故障位置的合成样本，在独立示例中验证真实解码和输出：
+
+```sh
+python3 packages/xplayer_player/tool/generate_recovery_fixtures.py \
+  --ffmpeg /path/to/ffmpeg --output /tmp/xplayer-recovery
+python3 packages/xplayer_player/tool/run_device_validation.py \
+  --platform macos --device macos --fixtures /tmp/xplayer-recovery \
+  --report /tmp/xplayer-recovery-report.json --audible
+```
+
+这组样本独立于 36 组格式矩阵：正常音视频、两个损坏音频包、持续损坏触发数量上限、持续无有效音频触发时间上限。最后一项仅在探针中提高数量上限，以独立验证 3 秒超时路径。每组运行自动/软解两种模式。孤立坏包要求发生至少一次真实恢复；后两项必须以指定错误失败，报告显示“预期失败已验证”，不把它们当成正常播放成功。生成清单记录本次文件 SHA-256；FFmpeg 版本不同可能改变编码字节，但故障包位置与期望不变。
+
+实现依据为固定版本的 [mpv 音频解码路径](https://github.com/mpv-player/mpv/blob/v0.36.0/audio/decode/ad_lavc.c) 与 [audio-pts 定义](https://github.com/mpv-player/mpv/blob/v0.36.0/DOCS/man/input.rst)。恢复期间沿用当前解码实例，重新打开和切源仍由宿主管理。手动／发布的 Apple、Android 设备矩阵会额外执行这 8 项故障回归；日常 PR 仍只跑轻量检查。
+
+视频控制器的上游初始化依赖下一帧回调。普通帧未到来且平台控制器仍未完成时，核心补一次 warm-up frame，避免隐藏窗口卡在视频控制器初始化；这不会持续强制后台渲染。单测通过隐藏生命周期检查该分支。清理前探针写入 `stage: disposing` 和当前结果，等帧最多 2 秒，便于区分播放失败与清理失败。
+
 ### CI 执行范围与额度
 
 日常播放器源码 PR 使用 `Player source checks`：仅面向 `main` 的非草稿 PR，匹配包内实现、测试、原生构建脚本或播放器适配器时执行一个 Linux 任务，检查格式、静态分析、单测与源码打包。普通 UI、设计稿、文档、验收报告和宿主平台工程变动不启动完整解码矩阵；草稿转为待审时才开始轻量检查。同一 PR 的新提交取消旧的轻量任务。
@@ -170,3 +192,23 @@ swiftc -parse-as-library packages/xplayer_player/tool/system_audio_meter.swift \
 长稳配置在私有样本目录的 `manifest.json` 中使用 `url` 指定直播，`headers` 指定请求头，`holdSeconds` 指定连续推进时长（默认 1 秒，上限 2 小时）。`testPauseResume: true` 在播放观察后检查一次暂停恢复。循环列出多个不同名称的源可检查反复切台与实例释放；不要把 100 个不同实例的短播当成连续长播。
 
 长播每 5 秒保存 `activeCase` 检查点，20 秒时钟不推进即失败。编排器只在新采样到达时延长 90 秒的进度监控，整体仍受 `--timeout` 限制。macOS 每 10 秒记录进程 RSS/CPU 到 `.metrics.jsonl`，报告包含初始、峰值和结束 RSS；这些采样不等同于已经证明无泄漏。`--audible` 验证系统输出状态，真实 PCM 能量仍按声音验收步骤检查。
+
+### HLS 直播故障与长稳验收
+
+下面的专项使用本机 HTTP 服务。它生成 H.264/MP2 的两秒 TS 分片，每种起播配置和解码模式都使用独立的清单时钟。
+
+```sh
+python3 packages/xplayer_player/tool/live_hls_fixture.py \
+  --output /tmp/xplayer-live-hls --ffmpeg /path/to/ffmpeg
+python3 packages/xplayer_player/tool/run_device_validation.py \
+  --platform macos --device macos --fixtures /tmp/xplayer-live-hls \
+  --report /tmp/xplayer-live-hls.json --audible --debug
+```
+
+- `late-segments` 连续拖慢六个分片的首字节。核对服务确实应用了延迟，记录首帧、播放后的缓冲次数和总时长。
+- `expired-segments` 冻结清单后跳过两个分片。核对请求进入新窗口并实际观察到时钟跳变，验证恢复后的音频时钟连续推进至少 2 秒且采样音画偏差不超过 150 毫秒。首次进入随后维持至少 1 秒的同步区间，须在最后一次跳变后的 8 秒内。跳过的媒体时间不计入有效播放。
+- 两种场景对比内核默认与 `hlsLiveStartSegments: 5`，服务校验首个请求分片。提前起播可以保留更多短暂缺流余量，也会增加到直播边缘的距离。已经过期的分片无法靠这个选项补回。此专项按需本地运行。
+
+私有长稳清单可用 `"continuity": {}` 启用同一套观测。探针每 500 毫秒在音画就绪后读取内核数据，记录 `continuity` 中的缓存、丢帧、时钟跳变、缓冲总时长和音画偏差。不可用指标省略。`avSyncMs` 是 libmpv 的采样值，物理输出的口型同步需另测。有效播放时间只计正常播放的向前位置增量，默认给目标时长额外 30 秒墙钟余量，达到目标后才执行暂停恢复。对真源应分别保留故障恢复、有效播放和系统声音证据。
+
+内核行为参考 [FFmpeg HLS 起播与窗口处理](https://github.com/FFmpeg/FFmpeg/blob/n6.1.2/libavformat/hls.c) 和 [mpv 属性说明](https://github.com/mpv-player/mpv/blob/v0.36.0/DOCS/man/input.rst)。

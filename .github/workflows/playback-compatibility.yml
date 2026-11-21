@@ -133,6 +133,8 @@ jobs:
           FFMPEG_BIN=$(python -c 'import imageio_ffmpeg; print(imageio_ffmpeg.get_ffmpeg_exe())')
           python packages/xplayer_player/tool/generate_playback_fixtures.py --output "${RUNNER_TEMP}/device-fixtures" --ffmpeg "$FFMPEG_BIN"
           python tool/verify_darwin_distribution.py --platform "${{ matrix.platform }}" --packages "${RUNNER_TEMP}/player-packages" --fixtures "${RUNNER_TEMP}/device-fixtures"
+          python packages/xplayer_player/tool/generate_recovery_fixtures.py --output "${RUNNER_TEMP}/recovery-fixtures" --ffmpeg "$FFMPEG_BIN"
+          python tool/verify_darwin_distribution.py --platform "${{ matrix.platform }}" --packages "${RUNNER_TEMP}/player-packages" --fixtures "${RUNNER_TEMP}/recovery-fixtures" --report-prefix recovery
       - uses: actions/upload-artifact@v4
         if: always()
         with:
@@ -184,6 +186,7 @@ jobs:
           python -m pip install imageio-ffmpeg==0.6.0
           FFMPEG_BIN=$(python -c 'import imageio_ffmpeg; print(imageio_ffmpeg.get_ffmpeg_exe())')
           python packages/xplayer_player/tool/generate_playback_fixtures.py --output "${RUNNER_TEMP}/device-fixtures" --ffmpeg "$FFMPEG_BIN"
+          python packages/xplayer_player/tool/generate_recovery_fixtures.py --output "${RUNNER_TEMP}/recovery-fixtures" --ffmpeg "$FFMPEG_BIN"
       - name: Enable KVM
         run: |
           echo 'KERNEL=="kvm", GROUP="kvm", MODE="0666", OPTIONS+="static_node=kvm"' | sudo tee /etc/udev/rules.d/99-kvm4all.rules
@@ -197,7 +200,9 @@ jobs:
           arch: x86_64
           disable-animations: true
           emulator-options: -no-window -gpu swiftshader_indirect -noaudio -no-boot-anim -camera-back none
-          script: python packages/xplayer_player/tool/run_device_validation.py --platform android --device emulator-5554 --fixtures "${{ runner.temp }}/device-fixtures" --report "${{ runner.temp }}/android-codecs.json"
+          script: |
+            python packages/xplayer_player/tool/run_device_validation.py --platform android --device emulator-5554 --fixtures "${{ runner.temp }}/device-fixtures" --report "${{ runner.temp }}/android-codecs.json"
+            python packages/xplayer_player/tool/run_device_validation.py --platform android --device emulator-5554 --fixtures "${{ runner.temp }}/recovery-fixtures" --report "${{ runner.temp }}/android-recovery.json"
       - uses: actions/upload-artifact@v4
         if: always()
         with:
@@ -207,3 +212,4 @@ jobs:
             ${{ runner.temp }}/android-codecs.html
             ${{ runner.temp }}/android-codecs.log
             ${{ runner.temp }}/android-codecs.device.log
+            ${{ runner.temp }}/android-recovery*
