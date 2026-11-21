@@ -99,7 +99,7 @@ dart --packages=.dart_tool/package_config.json tool/probe_decoder.dart \
 
 ### 坏包恢复与隐藏窗口回归
 
-`Error decoding audio.` 在 mpv 中也可能来自单个损坏包，不等同于整个文件无法解码。核心仅为这一明确消息提供有界恢复验证：默认 3 秒内必须观察到输出驱动存在且 `audio-pts` 连续向前累计至少 250 毫秒；仅视频时钟推进不算音频恢复。10 秒内超过 8 次该错误立即失败，连续错误不能延长原恢复期限。缺少解码器、HTTP、设备输出失败及未知错误沿用失败路径。
+`Error decoding audio.` 在 mpv 中也可能来自单个损坏包，不等同于整个文件无法解码。核心仅为这一明确消息提供有界恢复验证。默认累计 3 秒未在缓冲的播放时间内，必须观察到输出驱动存在且 `audio-pts` 连续向前累计至少 250 毫秒。缓冲开始会清除本次音频采样基线，恢复供数后重新取证。每次恢复还受 `audioPacketRecoveryTimeout + networkTimeout` 的墙钟上限约束，默认 18 秒。10 秒内超过 8 次该错误立即失败，连续错误和反复缓冲都不能重置预算。缺少解码器、HTTP、设备输出失败及未知错误沿用失败路径。
 
 可通过 `PlaybackConfiguration.audioPacketRecoveryTimeout` 和 `audioPacketErrorLimit` 配置预算，两个值均必须为正。暂停期间不把无进展判为失败，恢复播放后重新计时；跳转后的 PTS 大跳也不能作为恢复成功的依据。诊断中的 `audioPacketErrors`、`audioRecoveries`、`audioRecoveryState`、`audioRecoveryEvidence` 保留错误次数与实际音频时钟采样。正常播放不轮询这些属性。
 

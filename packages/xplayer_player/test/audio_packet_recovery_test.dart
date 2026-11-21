@@ -3,8 +3,11 @@ import 'package:xplayer_player/src/audio_packet_recovery.dart';
 import 'package:xplayer_player/xplayer_player.dart';
 
 void main() {
-  AudioPacketRecovery guard() =>
-      AudioPacketRecovery(timeout: const Duration(seconds: 3), errorLimit: 8);
+  AudioPacketRecovery guard() => AudioPacketRecovery(
+    timeout: const Duration(seconds: 3),
+    errorLimit: 8,
+    bufferingAllowance: const Duration(seconds: 15),
+  );
   Duration ms(int value) => Duration(milliseconds: value);
 
   test('only the known packet error enters the recovery path', () {
@@ -61,7 +64,7 @@ void main() {
     );
     expect(
       recovery.checkDeadline(ms(3000), playing: true),
-      AudioRecoveryDecision.failed,
+      AudioRecoveryDecision.timedOut,
     );
   });
 
@@ -81,7 +84,7 @@ void main() {
     }
     expect(
       recovery.checkDeadline(ms(3000), playing: true),
-      AudioRecoveryDecision.failed,
+      AudioRecoveryDecision.timedOut,
     );
   });
 
@@ -95,7 +98,7 @@ void main() {
     }
     expect(
       recovery.record(ms(3000), playing: true),
-      AudioRecoveryDecision.failed,
+      AudioRecoveryDecision.timedOut,
     );
   });
 
@@ -127,7 +130,7 @@ void main() {
       }
       expect(
         recovery.record(ms(4000), playing: true),
-        AudioRecoveryDecision.failed,
+        AudioRecoveryDecision.errorLimitExceeded,
       );
       expect(
         recovery.record(ms(15000), playing: true),
@@ -155,10 +158,78 @@ void main() {
       );
       expect(
         recovery.checkDeadline(ms(34000), playing: true),
-        AudioRecoveryDecision.failed,
+        AudioRecoveryDecision.timedOut,
       );
     },
   );
+
+  test('buffering leaves time to verify audio from the next packets', () {
+    final recovery = guard();
+    recovery.record(ms(0), playing: true);
+    recovery.sample(
+      ms(250),
+      playing: true,
+      outputReady: true,
+      audioPosition: 2,
+    );
+    recovery.checkDeadline(ms(500), playing: true, buffering: true);
+    expect(
+      recovery.sample(
+        ms(5000),
+        playing: true,
+        buffering: true,
+        outputReady: true,
+        audioPosition: 2.6,
+      ),
+      AudioRecoveryDecision.pending,
+    );
+    expect(
+      recovery.sample(
+        ms(5500),
+        playing: true,
+        outputReady: true,
+        audioPosition: 8,
+      ),
+      AudioRecoveryDecision.pending,
+    );
+    expect(
+      recovery.sample(
+        ms(5800),
+        playing: true,
+        outputReady: true,
+        audioPosition: 8.3,
+      ),
+      AudioRecoveryDecision.recovered,
+    );
+  });
+
+  test('buffering transitions do not refill the active decoding budget', () {
+    final recovery = guard();
+    recovery.record(ms(0), playing: true);
+    recovery.checkDeadline(ms(1500), playing: true, buffering: true);
+    recovery.checkDeadline(ms(5000), playing: true);
+    expect(
+      recovery.checkDeadline(ms(6499), playing: true),
+      AudioRecoveryDecision.pending,
+    );
+    expect(
+      recovery.checkDeadline(ms(6500), playing: true),
+      AudioRecoveryDecision.timedOut,
+    );
+  });
+
+  test('a recovery also times out if the stream stays buffered', () {
+    final recovery = guard();
+    recovery.record(ms(0), playing: true, buffering: true);
+    expect(
+      recovery.checkDeadline(ms(17999), playing: true, buffering: true),
+      AudioRecoveryDecision.pending,
+    );
+    expect(
+      recovery.checkDeadline(ms(18000), playing: true, buffering: true),
+      AudioRecoveryDecision.timedOut,
+    );
+  });
 
   test('seek and timestamp discontinuities do not falsely prove recovery', () {
     final recovery = guard();

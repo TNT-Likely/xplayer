@@ -75,6 +75,7 @@ class MediaKitBackend implements XPlayerBackend {
   late final _audioRecovery = AudioPacketRecovery(
     timeout: configuration.audioPacketRecoveryTimeout,
     errorLimit: configuration.audioPacketErrorLimit,
+    bufferingAllowance: configuration.networkTimeout,
   );
   Timer? _audioRecoveryTimer;
   bool _audioRecoveryPollInFlight = false;
@@ -139,11 +140,15 @@ class MediaKitBackend implements XPlayerBackend {
     }
   }
 
-  void _cancelAudioRecovery() {
+  void _invalidateAudioRecoveryPoll() {
     _audioRecoveryGeneration++;
+    _audioRecoveryPollInFlight = false;
+  }
+
+  void _cancelAudioRecovery() {
+    _invalidateAudioRecoveryPoll();
     _audioRecoveryTimer?.cancel();
     _audioRecoveryTimer = null;
-    _audioRecoveryPollInFlight = false;
     _audioRecovery.cancel();
   }
 
@@ -157,9 +162,9 @@ class MediaKitBackend implements XPlayerBackend {
     final decision = _audioRecovery.record(
       _startupWatch.elapsed,
       playing: _playRequested,
+      buffering: _notifier.value.isBuffering,
     );
-    _audioRecoveryGeneration++;
-    _audioRecoveryPollInFlight = false;
+    _invalidateAudioRecoveryPoll();
     _diagnostics.value = {
       ..._diagnostics.value,
       'audioPacketErrors':
@@ -167,8 +172,12 @@ class MediaKitBackend implements XPlayerBackend {
       'audioRecoveryState': 'pending',
       'lastAudioPacketError': message.trim(),
     };
-    if (decision == AudioRecoveryDecision.failed) {
+    if (decision == AudioRecoveryDecision.errorLimitExceeded) {
       _failAudioRecovery('Audio packet error budget exceeded');
+      return;
+    }
+    if (decision == AudioRecoveryDecision.timedOut) {
+      _failAudioRecoveryTimeout();
       return;
     }
     _startAudioRecoveryPolling();
@@ -185,10 +194,9 @@ class MediaKitBackend implements XPlayerBackend {
 
   void _suspendAudioRecovery() {
     _audioRecovery.pause();
-    _audioRecoveryGeneration++;
+    _invalidateAudioRecoveryPoll();
     _audioRecoveryTimer?.cancel();
     _audioRecoveryTimer = null;
-    _audioRecoveryPollInFlight = false;
   }
 
   void _failAudioRecovery(String message) {
@@ -199,17 +207,37 @@ class MediaKitBackend implements XPlayerBackend {
     _reportError(message);
   }
 
-  Future<void> _pollAudioRecovery() async {
-    if (_disposed || !_audioRecovery.pending) return;
-    final deadline = _audioRecovery.checkDeadline(
+  void _failAudioRecoveryTimeout() =>
+      _failAudioRecovery('Audio did not recover after a packet decoding error');
+
+  bool _audioRecoveryExpired() {
+    final decision = _audioRecovery.checkDeadline(
       _startupWatch.elapsed,
       playing: _playRequested,
+      buffering: _notifier.value.isBuffering,
     );
-    if (deadline == AudioRecoveryDecision.failed) {
-      _failAudioRecovery('Audio did not recover after a packet decoding error');
+    if (decision == AudioRecoveryDecision.timedOut) {
+      _failAudioRecoveryTimeout();
+      return true;
+    }
+    return false;
+  }
+
+  void _onBuffering(bool buffering) {
+    final changed = buffering != _notifier.value.isBuffering;
+    _update(_notifier.value.copyWith(isBuffering: buffering));
+    if (_disposed || !changed || !_audioRecovery.pending) return;
+    _invalidateAudioRecoveryPoll();
+    _audioRecoveryExpired();
+  }
+
+  Future<void> _pollAudioRecovery() async {
+    if (_disposed || !_audioRecovery.pending || _audioRecoveryExpired()) return;
+    if (!_playRequested ||
+        _notifier.value.isBuffering ||
+        _audioRecoveryPollInFlight) {
       return;
     }
-    if (!_playRequested || _audioRecoveryPollInFlight) return;
     final player = _player;
     if (player == null) return;
     final generation = _audioRecoveryGeneration;
@@ -243,6 +271,7 @@ class MediaKitBackend implements XPlayerBackend {
       final decision = _audioRecovery.sample(
         _startupWatch.elapsed,
         playing: _playRequested,
+        buffering: _notifier.value.isBuffering,
         outputReady: outputReady,
         audioPosition: double.tryParse(text),
       );
@@ -254,10 +283,8 @@ class MediaKitBackend implements XPlayerBackend {
           'audioRecoveries':
               (_diagnostics.value['audioRecoveries'] as int? ?? 0) + 1,
         };
-      } else if (decision == AudioRecoveryDecision.failed) {
-        _failAudioRecovery(
-          'Audio did not recover after a packet decoding error',
-        );
+      } else if (decision == AudioRecoveryDecision.timedOut) {
+        _failAudioRecoveryTimeout();
       }
     } on TimeoutException {
       // The independent deadline remains active if the native query stalls.
@@ -387,9 +414,7 @@ class MediaKitBackend implements XPlayerBackend {
       player.stream.playing.listen(
         (v) => _update(_notifier.value.copyWith(isPlaying: v)),
       ),
-      player.stream.buffering.listen(
-        (v) => _update(_notifier.value.copyWith(isBuffering: v)),
-      ),
+      player.stream.buffering.listen(_onBuffering),
       player.stream.position.listen((v) {
         _startupEofRecovery.observePosition(v);
         _update(_notifier.value.copyWith(position: v));
