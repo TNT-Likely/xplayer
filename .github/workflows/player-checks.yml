@@ -1,0 +1,62 @@
+name: Player source checks
+
+on:
+  pull_request:
+    branches: [main]
+    types: [opened, synchronize, reopened, ready_for_review]
+    paths:
+      - 'packages/libmpv_xplayer/lib/**'
+      - 'packages/libmpv_xplayer/test/**'
+      - 'packages/libmpv_xplayer/android/**'
+      - 'packages/libmpv_xplayer/ios/**'
+      - 'packages/libmpv_xplayer/macos/**'
+      - 'packages/libmpv_xplayer/windows/**'
+      - 'packages/libmpv_xplayer/darwin/**'
+      - 'packages/libmpv_xplayer/tool/**'
+      - 'packages/libmpv_xplayer/native_builds.json'
+      - 'packages/libmpv_xplayer/pubspec.yaml'
+      - 'packages/xplayer_player/lib/**'
+      - 'packages/xplayer_player/test/**'
+      - 'packages/xplayer_player/tool/**'
+      - 'packages/xplayer_player/pubspec.yaml'
+      - 'lib/services/player/**'
+      - 'test/player/**'
+      - 'tool/package_player.py'
+      - 'tool/test_*.py'
+      - 'tool/verify_darwin_distribution.py'
+      - '.github/workflows/player-checks.yml'
+      - '.github/workflows/playback-compatibility.yml'
+      - '.github/workflows/release.yml'
+
+permissions:
+  contents: read
+
+concurrency:
+  group: player-source-pr-${{ github.event.pull_request.number }}
+  cancel-in-progress: true
+
+jobs:
+  source:
+    if: github.event.pull_request.draft == false
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.13'
+      - uses: subosito/flutter-action@v2
+        with:
+          flutter-version: '3.41.9'
+          cache: true
+      - run: flutter pub get
+      - name: Check player source formatting
+        run: dart format --output=none --set-exit-if-changed packages/libmpv_xplayer/lib packages/libmpv_xplayer/test packages/xplayer_player/lib packages/xplayer_player/test packages/xplayer_player/example/lib packages/xplayer_player/example/test
+      - name: Analyze playback packages
+        run: |
+          flutter analyze packages/libmpv_xplayer
+          flutter analyze packages/xplayer_player
+      - name: Check native downloads and source packaging
+        run: python -m unittest discover -s tool -p 'test_*.py'
+      - name: Test playback packages and host adapters
+        run: flutter test packages/libmpv_xplayer/test packages/xplayer_player/test test/player

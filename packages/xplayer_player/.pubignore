@@ -12,6 +12,7 @@ example/android/local.properties
 example/android/.gradle/
 example/android/app/src/main/java/io/flutter/plugins/GeneratedPluginRegistrant.java
 example/tool/playback_probe.g.dart
+example/tool/playback_probe_*.g.dart
 example/ios/Flutter/Generated.xcconfig
 example/ios/Flutter/flutter_export_environment.sh
 example/**/xcuserdata/

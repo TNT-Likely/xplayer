@@ -36,6 +36,8 @@ jobs:
   player-quality:
     name: Player package release gate
     uses: ./.github/workflows/playback-compatibility.yml
+    with:
+      suite: full
     permissions:
       contents: read
 
@@ -76,6 +78,8 @@ jobs:
 
       - name: Setup Android SDK
         uses: android-actions/setup-android@v3
+        with:
+          packages: '' # SDK 包由下一步显式安装，跳过默认的旧 tools 包。
 
       - name: Install Android build-tools and platforms
         run: |

@@ -7,10 +7,12 @@ import 'package:media_kit_video/media_kit_video.dart';
 import 'package:audio_session/audio_session.dart';
 
 import 'audio_session_coordinator.dart';
+import 'audio_packet_recovery.dart';
 import 'android_gpu_capabilities.dart';
 import 'hls_startup.dart';
 import 'playback_configuration.dart';
 import 'playback_log.dart';
+import 'playback_frame_bootstrap.dart';
 import 'playback_source.dart';
 import 'startup_eof_recovery.dart';
 import 'x_player_backend.dart';
@@ -70,11 +72,50 @@ class MediaKitBackend implements XPlayerBackend {
   final _startupEofRecovery = StartupEofRecovery();
   Future<void>? _startupReload;
   bool _playRequested = false;
+  late final _audioRecovery = AudioPacketRecovery(
+    timeout: configuration.audioPacketRecoveryTimeout,
+    errorLimit: configuration.audioPacketErrorLimit,
+    bufferingAllowance: configuration.networkTimeout,
+  );
+  Timer? _audioRecoveryTimer;
+  bool _audioRecoveryPollInFlight = false;
+  int _audioRecoveryGeneration = 0;
+  final _audioRecoveryEvidence = <Map<String, Object?>>[];
+  Future<void>? _disposal;
+  Timer? _videoBootstrap;
 
   @override
   ValueListenable<XPlayerValue> get notifier => _notifier;
   @override
   ValueListenable<Map<String, dynamic>> get diagnostics => _diagnostics;
+
+  /// On-demand playback clock, A/V offset, cache and frame-drop measurements.
+  /// The native engine can omit properties that are unavailable for a stream.
+  /// This does not start a background poll or change the playback state.
+  Future<Map<String, int>> readPlaybackMetrics() async {
+    final player = _player;
+    if (_disposed || player == null || !_notifier.value.isInitialized) {
+      return const {};
+    }
+    final native = player.platform as mk.NativePlayer;
+    final metrics = <String, int>{};
+    for (final (property, key, scale) in const [
+      ('audio-pts', 'audioPtsMs', 1000),
+      ('avsync', 'avSyncMs', 1000),
+      ('demuxer-cache-duration', 'demuxerCacheMs', 1000),
+      ('frame-drop-count', 'videoOutputDroppedFrames', 1),
+      ('decoder-frame-drop-count', 'videoDecoderDroppedFrames', 1),
+    ]) {
+      if (_disposed) return const {};
+      final value = double.tryParse(
+        await native.getProperty(property, waitForInitialization: false),
+      );
+      if (value != null && value.isFinite) {
+        metrics[key] = (value * scale).round();
+      }
+    }
+    return _disposed ? const {} : metrics;
+  }
 
   void _update(XPlayerValue value) {
     if (!_disposed) _notifier.value = value;
@@ -88,6 +129,7 @@ class MediaKitBackend implements XPlayerBackend {
 
   void _reportError(String message) {
     if (_disposed || _notifier.value.hasError) return;
+    _cancelAudioRecovery();
     final status = _diagnostics.value['httpStatus'];
     final description = status == null ? message : 'HTTP $status: $message';
     _update(
@@ -95,6 +137,168 @@ class MediaKitBackend implements XPlayerBackend {
     );
     if (!(_ready?.isCompleted ?? true)) {
       _ready!.completeError(StateError(description));
+    }
+  }
+
+  void _invalidateAudioRecoveryPoll() {
+    _audioRecoveryGeneration++;
+    _audioRecoveryPollInFlight = false;
+  }
+
+  void _cancelAudioRecovery() {
+    _invalidateAudioRecoveryPoll();
+    _audioRecoveryTimer?.cancel();
+    _audioRecoveryTimer = null;
+    _audioRecovery.cancel();
+  }
+
+  void _onPlayerError(String message) {
+    if (_disposed || _notifier.value.hasError) return;
+    if (!AudioPacketRecovery.handles(message)) {
+      _reportError(message);
+      return;
+    }
+    if (!_audioRecovery.pending) _audioRecoveryEvidence.clear();
+    final decision = _audioRecovery.record(
+      _startupWatch.elapsed,
+      playing: _playRequested,
+      buffering: _notifier.value.isBuffering,
+    );
+    _invalidateAudioRecoveryPoll();
+    _diagnostics.value = {
+      ..._diagnostics.value,
+      'audioPacketErrors':
+          (_diagnostics.value['audioPacketErrors'] as int? ?? 0) + 1,
+      'audioRecoveryState': 'pending',
+      'lastAudioPacketError': message.trim(),
+    };
+    if (decision == AudioRecoveryDecision.errorLimitExceeded) {
+      _failAudioRecovery('Audio packet error budget exceeded');
+      return;
+    }
+    if (decision == AudioRecoveryDecision.timedOut) {
+      _failAudioRecoveryTimeout();
+      return;
+    }
+    _startAudioRecoveryPolling();
+  }
+
+  void _startAudioRecoveryPolling() {
+    if (!_disposed && _playRequested && _audioRecovery.pending) {
+      _audioRecoveryTimer ??= Timer.periodic(
+        const Duration(milliseconds: 250),
+        (_) => unawaited(_pollAudioRecovery()),
+      );
+    }
+  }
+
+  void _suspendAudioRecovery() {
+    _audioRecovery.pause();
+    _invalidateAudioRecoveryPoll();
+    _audioRecoveryTimer?.cancel();
+    _audioRecoveryTimer = null;
+  }
+
+  void _failAudioRecovery(String message) {
+    _diagnostics.value = {
+      ..._diagnostics.value,
+      'audioRecoveryState': 'failed',
+    };
+    _reportError(message);
+  }
+
+  void _failAudioRecoveryTimeout() =>
+      _failAudioRecovery('Audio did not recover after a packet decoding error');
+
+  bool _audioRecoveryExpired() {
+    final decision = _audioRecovery.checkDeadline(
+      _startupWatch.elapsed,
+      playing: _playRequested,
+      buffering: _notifier.value.isBuffering,
+    );
+    if (decision == AudioRecoveryDecision.timedOut) {
+      _failAudioRecoveryTimeout();
+      return true;
+    }
+    return false;
+  }
+
+  void _onBuffering(bool buffering) {
+    final changed = buffering != _notifier.value.isBuffering;
+    _update(_notifier.value.copyWith(isBuffering: buffering));
+    if (_disposed || !changed || !_audioRecovery.pending) return;
+    _invalidateAudioRecoveryPoll();
+    _audioRecoveryExpired();
+  }
+
+  Future<void> _pollAudioRecovery() async {
+    if (_disposed || !_audioRecovery.pending || _audioRecoveryExpired()) return;
+    if (!_playRequested ||
+        _notifier.value.isBuffering ||
+        _audioRecoveryPollInFlight) {
+      return;
+    }
+    final player = _player;
+    if (player == null) return;
+    final generation = _audioRecoveryGeneration;
+    _audioRecoveryPollInFlight = true;
+    try {
+      final text = await (player.platform as mk.NativePlayer)
+          .getProperty('audio-pts')
+          .timeout(const Duration(milliseconds: 500));
+      if (_disposed || generation != _audioRecoveryGeneration) return;
+      final driver = _diagnostics.value['audioOutputDriver'];
+      final outputReady =
+          driver is String &&
+          driver.isNotEmpty &&
+          (driver != 'null' || audioOutputDriver == 'null') &&
+          _diagnostics.value['audioSampleFormat'] != null &&
+          '${_diagnostics.value['audioOutputParams'] ?? ''}'.isNotEmpty;
+      _audioRecoveryEvidence.add({
+        'elapsedMs': _startupWatch.elapsedMilliseconds,
+        'audioPts': double.tryParse(text),
+        'outputReady': outputReady,
+      });
+      if (_audioRecoveryEvidence.length > 12) {
+        _audioRecoveryEvidence.removeAt(0);
+      }
+      _diagnostics.value = {
+        ..._diagnostics.value,
+        'audioRecoveryEvidence': List<Map<String, Object?>>.of(
+          _audioRecoveryEvidence,
+        ),
+      };
+      final decision = _audioRecovery.sample(
+        _startupWatch.elapsed,
+        playing: _playRequested,
+        buffering: _notifier.value.isBuffering,
+        outputReady: outputReady,
+        audioPosition: double.tryParse(text),
+      );
+      if (decision == AudioRecoveryDecision.recovered) {
+        _cancelAudioRecovery();
+        _diagnostics.value = {
+          ..._diagnostics.value,
+          'audioRecoveryState': 'recovered',
+          'audioRecoveries':
+              (_diagnostics.value['audioRecoveries'] as int? ?? 0) + 1,
+        };
+      } else if (decision == AudioRecoveryDecision.timedOut) {
+        _failAudioRecoveryTimeout();
+      }
+    } on TimeoutException {
+      // The independent deadline remains active if the native query stalls.
+    } catch (error) {
+      if (!_disposed && generation == _audioRecoveryGeneration) {
+        _diagnostics.value = {
+          ..._diagnostics.value,
+          'audioRecoveryProbeError': redactPlaybackLog('$error'),
+        };
+      }
+    } finally {
+      if (generation == _audioRecoveryGeneration) {
+        _audioRecoveryPollInFlight = false;
+      }
     }
   }
 
@@ -151,7 +355,9 @@ class MediaKitBackend implements XPlayerBackend {
     // VideoController defers native setup with addPostFrameCallback. An async
     // audio-session acquisition may finish after the last scheduled UI frame;
     // explicitly request one so static/loading screens cannot deadlock setup.
-    WidgetsBinding.instance.ensureVisualUpdate();
+    _videoBootstrap = requestPlaybackFrame(
+      () => _video?.platform.isCompleted == false,
+    );
     _diagnostics.value = {
       ..._diagnostics.value,
       'decodeMode': softwareDecoding ? 'software' : 'auto',
@@ -170,15 +376,7 @@ class MediaKitBackend implements XPlayerBackend {
         },
         onError: (Object error, StackTrace stack) {
           if (_disposed) return;
-          _update(
-            _notifier.value.copyWith(
-              hasError: true,
-              errorDescription: '$error',
-            ),
-          );
-          if (!(_ready?.isCompleted ?? true)) {
-            _ready!.completeError(error, stack);
-          }
+          _reportError('$error');
         },
       ),
     );
@@ -216,9 +414,7 @@ class MediaKitBackend implements XPlayerBackend {
       player.stream.playing.listen(
         (v) => _update(_notifier.value.copyWith(isPlaying: v)),
       ),
-      player.stream.buffering.listen(
-        (v) => _update(_notifier.value.copyWith(isBuffering: v)),
-      ),
+      player.stream.buffering.listen(_onBuffering),
       player.stream.position.listen((v) {
         _startupEofRecovery.observePosition(v);
         _update(_notifier.value.copyWith(position: v));
@@ -297,7 +493,7 @@ class MediaKitBackend implements XPlayerBackend {
           if (audio.isNotEmpty) 'audioDecoder': audio.first.decoder,
         };
       }),
-      player.stream.error.listen(_reportError),
+      player.stream.error.listen(_onPlayerError),
     ]);
     Future<void> open() async {
       await _video!.platform.future;
@@ -361,6 +557,18 @@ class MediaKitBackend implements XPlayerBackend {
       if (_disposed) throw StateError('Playback cancelled');
       if (source.format == StreamFormat.hls) {
         await native.setProperty('demuxer-lavf-analyzeduration', '1');
+        final startSegments = configuration.hlsLiveStartSegments;
+        if (startSegments != null &&
+            const ['http', 'https'].contains(Uri.parse(prepared.url).scheme)) {
+          // Preserve the protocol whitelist and segment retry options that
+          // media_kit has already put in the demuxer's key/value list.
+          await native.command([
+            'change-list',
+            'demuxer-lavf-o',
+            'append',
+            'live_start_index=-$startSegments',
+          ]);
+        }
       }
       _diagnostics.value = {
         ..._diagnostics.value,
@@ -390,10 +598,15 @@ class MediaKitBackend implements XPlayerBackend {
       }
     }
 
-    await Future.wait([
-      open(),
-      _ready!.future,
-    ], eagerError: true).timeout(configuration.initializationTimeout);
+    try {
+      await Future.wait([
+        open(),
+        _ready!.future,
+      ], eagerError: true).timeout(configuration.initializationTimeout);
+    } catch (error) {
+      _reportError(redactPlaybackLog('$error'));
+      rethrow;
+    }
     if (!_disposed) {
       _diagnostics.value = {
         ..._diagnostics.value,
@@ -414,20 +627,27 @@ class MediaKitBackend implements XPlayerBackend {
       if (_disposed) return;
     }
     await _player?.play();
+    _startAudioRecoveryPolling();
   }
 
   @override
   Future<void> pause() async {
     _playRequested = false;
+    _suspendAudioRecovery();
     await _player?.pause();
   }
 
   @override
   Future<void> seekTo(Duration position) async {
     _startupEofRecovery.userSeek();
+    _suspendAudioRecovery();
     await _startupReload;
     if (_disposed) return;
-    await _player?.seek(position);
+    try {
+      await _player?.seek(position);
+    } finally {
+      _startAudioRecoveryPolling();
+    }
   }
 
   @override
@@ -475,9 +695,12 @@ class MediaKitBackend implements XPlayerBackend {
   }
 
   @override
-  Future<void> dispose() async {
+  Future<void> dispose() => _disposal ??= _dispose();
+
+  Future<void> _dispose() async {
     if (_disposed) return;
     _disposed = true;
+    _cancelAudioRecovery();
     if (_ready != null && !_ready!.isCompleted) {
       _ready!.completeError(StateError('Playback cancelled'));
     }
@@ -493,6 +716,7 @@ class MediaKitBackend implements XPlayerBackend {
       } catch (_) {}
       _player = null;
       _video = null;
+      _videoBootstrap?.cancel();
       _videoOutput.dispose();
       _notifier.dispose();
       _diagnostics.dispose();

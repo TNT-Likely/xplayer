@@ -12,6 +12,7 @@ def main():
     parser.add_argument('--packages', required=True)
     parser.add_argument('--fixtures', required=True)
     parser.add_argument('--platform', required=True, choices=['ios', 'macos'])
+    parser.add_argument('--report-prefix', choices=['device', 'recovery'], default='device')
     args = parser.parse_args()
     output = Path(args.packages).resolve()
     stage = Path(json.loads((output / 'packaging-report.json').read_text(encoding="utf-8"))['stagingPath'])
@@ -35,7 +36,7 @@ def main():
         return subprocess.run([
             sys.executable, str(runner), '--platform', args.platform, '--device', device,
             '--fixtures', str(Path(args.fixtures).resolve()), '--report',
-            str(output / ('device-' + args.platform + '.json'))], timeout=1800).returncode
+            str(output / (args.report_prefix + '-' + args.platform + '.json'))], timeout=1800).returncode
     finally:
         if owned:
             subprocess.run(['xcrun', 'simctl', 'shutdown', owned], capture_output=True, timeout=60)

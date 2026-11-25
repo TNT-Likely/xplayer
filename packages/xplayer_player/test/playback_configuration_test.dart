@@ -15,6 +15,8 @@ void main() {
     for (final configuration in [
       const PlaybackConfiguration(networkTimeout: Duration.zero),
       const PlaybackConfiguration(hlsProbeTimeout: Duration.zero),
+      const PlaybackConfiguration(hlsLiveStartSegments: 0),
+      const PlaybackConfiguration(hlsLiveStartSegments: 0x80000000),
       const PlaybackConfiguration(initializationTimeout: Duration.zero),
       const PlaybackConfiguration(initializationTimeout: Duration(seconds: 2)),
     ]) {

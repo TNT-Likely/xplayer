@@ -22,46 +22,14 @@ project(${PROJECT_NAME} LANGUAGES CXX)
 add_compile_definitions(_DISABLE_CONSTEXPR_MUTEX_CONSTRUCTOR)
 
 # ------------------------------------------------------------------------------
-function(download_and_verify url sha256 locationForArchive)
-  # Check if the archive exists.
-  if(EXISTS "${locationForArchive}")
-    file(SHA256 "${locationForArchive}" ARCHIVE_SHA256)
-
-    # If SHA-256 doesn't match, delete the archive to download again.
-    if(NOT sha256 STREQUAL ARCHIVE_SHA256)
-      file(REMOVE "${locationForArchive}")
-      message(STATUS "SHA-256 mismatch. File deleted.")
-    endif()
-  endif()
-
-  # Download the archive if it doesn't exist.
-  if(NOT EXISTS "${locationForArchive}")
-    message(STATUS "Downloading archive from ${url}...")
-    file(DOWNLOAD "${url}" "${locationForArchive}" TLS_VERIFY ON STATUS DOWNLOAD_STATUS)
-    list(GET DOWNLOAD_STATUS 0 DOWNLOAD_CODE)
-    if(NOT DOWNLOAD_CODE EQUAL 0)
-      file(REMOVE "${locationForArchive}")
-      message(FATAL_ERROR "Native library download failed: ${DOWNLOAD_STATUS}")
-    endif()
-    message(STATUS "Downloaded archive to ${locationForArchive}.")
-
-    # Verify SHA-256 of the newly downloaded file.
-    file(SHA256 "${locationForArchive}" ARCHIVE_SHA256)
-
-    if(sha256 STREQUAL ARCHIVE_SHA256)
-      message(STATUS "${locationForArchive} Verification successful.")
-    else()
-      message(FATAL_ERROR "${locationForArchive} Integrity check failed, please try to re-build project again.")
-    endif()
-  endif()
-endfunction()
+include("${CMAKE_CURRENT_SOURCE_DIR}/download_and_verify.cmake")
 
 # libmpv archive containing the pre-built shared libraries & headers.
 set(LIBMPV "mpv-dev-lgpl-x86_64-20261025-git-baa3e11d42.7z")
 
 # Download URL & SHA-256 hash of the libmpv archive.
 set(LIBMPV_URL "https://github.com/zhongfly/mpv-winbuild/releases/download/2026-10-25-baa3e11d42/mpv-dev-lgpl-x86_64-20261025-git-baa3e11d42.7z")
-set(LIBMPV_SHA256 "89f170d8eb6594a3cd6ffbf75e7d412995aba0107f8297deb3c6ec026d67191a")
+set(LIBMPV_SHA256 "6429ebba4b6bfc5dd18ac5ac084f00776db0db4e767ef1bfb815fc78ec5bda2a")
 
 # Download location of the libmpv archive.
 set(LIBMPV_ARCHIVE "${CMAKE_BINARY_DIR}/${LIBMPV}")

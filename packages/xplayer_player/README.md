@@ -28,6 +28,8 @@ XPlayer 的本地 Flutter 播放兼容包，集中管理源地址、请求头、
 
 HTTP(S) 使用浏览器兼容的默认 User-Agent，显式请求头优先；libmpv 网络超时默认为 15 秒，缓存保留在内存中。对没有外置音轨/字幕或共享状态的复用 HLS master，先在有界预算内选择一条变体，避免逐一探测全部码率；软解恢复可选择低带宽变体。`PlaybackConfiguration` 可调整时间预算、关闭变体预选或保留恢复时的原画质。
 
+对容易短暂缺流的 HLS 直播，可按源设置 `PlaybackConfiguration(hlsLiveStartSegments: 5)`，让 libmpv 从清单中距直播边缘较远的分片起播。新增的播放余量取决于清单中的实际分片时长，直播延迟也会相应增加。未指定时使用内核默认起播位置。`MediaKitBackend.readPlaybackMetrics()` 可按需读取音频时钟、音画偏差、缓存和丢帧指标，详见[长稳验收](doc/TESTING.md#hls-直播故障与长稳验收)。
+
 iOS 在准备媒体前配置并激活系统音频会话，恢复播放时重新激活，以处理会话被系统中断或其他插件停用的情况。共享会话通过串行引用计数管理，只有最后一个播放器释放后才停用，避免并发加载或小窗交接时关闭其他播放器的会话。生产播放默认使用系统音频输出；显式的 `audioOutputDriver: 'null'` 仅用于无音频输出的解码验证。模拟器 AudioUnit 构建方法见 [原生适配器说明](https://github.com/TNT-Likely/xplayer/tree/main/packages/libmpv_xplayer)。
 
 诊断中的 `audioSampleFormat` 表示解码后的音频，`audioOutputDriver` / `audioOutputParams` 则表示实际打开的音频输出。两者不能混为一谈。`firstFrameMs`、`audioOutputMs`、`manifestReadyMs`、`initializedMs` 可帮助区分网络、解码、画面和声音的启动耗时。设备音频输出失败时会跳过使用同一输出驱动的软解重试，直接尝试其他平台后端。
