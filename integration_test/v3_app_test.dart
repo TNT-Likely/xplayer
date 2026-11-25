@@ -1,7 +1,9 @@
 import 'dart:io';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:integration_test/integration_test.dart';
+import 'package:path_provider/path_provider.dart';
 import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:xplayer/main.dart' as app;
@@ -56,7 +58,9 @@ void main() {
 
     Future<void> shot(String name) async {
       await tester.pump(const Duration(milliseconds: 350));
-      await binding.takeScreenshot('$device-$name');
+      if (Platform.isIOS || Platform.isAndroid) {
+        await binding.takeScreenshot('$device-$name');
+      }
     }
 
     Future<void> nav(String name) async {
@@ -67,8 +71,19 @@ void main() {
       await tester.pump(const Duration(milliseconds: 350));
     }
 
+    if (Platform.isMacOS) {
+      const qaBundleId = String.fromEnvironment('QA_MACOS_BUNDLE_ID');
+      final documents = await getApplicationDocumentsDirectory();
+      expect(
+        qaBundleId.isNotEmpty &&
+            qaBundleId != 'com.tntlikely.xplayer' &&
+            documents.path.contains('/Library/Containers/$qaBundleId/Data/'),
+        isTrue,
+        reason: 'macOS 验收会清除应用数据，需要使用独立的验收包标识和沙盒。',
+      );
+    }
     final prefs = await SharedPreferences.getInstance();
-    // 仅针对本轮创建的专用模拟器运行；清理的是该模拟器的验收应用数据。
+    // 使用专用模拟器或独立 macOS 沙盒，清理其验收应用数据。
     await prefs.clear();
     await prefs.setBool('seeded_default_preset', true);
     await prefs.setBool('auto_refresh_channels', false);
@@ -95,7 +110,7 @@ void main() {
     }
     await shot('empty');
     debugPrint('V3 checkpoint: ${steps.length}');
-    steps.add('专用模拟器以真实空数据库启动');
+    steps.add('专用验收环境以真实空数据库启动');
     await tester.tap(find.byTooltip('添加播放列表'));
     await tester.pump(const Duration(milliseconds: 500));
     Finder input(String key) => find.descendant(
@@ -148,13 +163,33 @@ void main() {
     steps.add('M3U 与文件头 XMLTV 通过现有仓库真实导入');
     await shot('home');
     await nav('channels');
+    final searchField = find.byType(XpSearchField);
     final search = find.descendant(
-      of: find.byType(XpSearchField),
+      of: searchField,
       matching: find.byType(TextField),
     );
+    if (device == 'tv') {
+      // TV 搜索需先从遥控浏览切换到文本编辑，再输入关键词。
+      await tester.tap(searchField);
+      await tester.pump();
+    }
     await tester.enterText(search, '一台');
     await tester.pump(const Duration(milliseconds: 500));
-    expect(media.filteredChannels.single.id.toLowerCase(), 'qa-one');
+    expect(
+      media.filteredChannels.map((channel) => channel.id.toLowerCase()),
+      ['qa-one'],
+    );
+    if (device == 'tv') {
+      final editor = tester.widget<EditableText>(
+        find.descendant(of: searchField, matching: find.byType(EditableText)),
+      );
+      expect(editor.focusNode.hasPrimaryFocus, isTrue);
+      await tester.sendKeyEvent(LogicalKeyboardKey.arrowDown);
+      await tester.pump(const Duration(milliseconds: 500));
+      expect(editor.focusNode.hasFocus, isFalse);
+      expect(editor.controller.text, '一台');
+      steps.add('TV 方向键退出搜索编辑并保留关键词');
+    }
     FocusManager.instance.primaryFocus?.unfocus();
     await tester.pump(const Duration(milliseconds: 500));
     final favorite = find.byTooltip('收藏 验收一台');

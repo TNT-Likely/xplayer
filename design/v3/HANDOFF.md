@@ -1,8 +1,20 @@
 # v3 交接与恢复入口
 
-交接日期：2026-10-26（验收主要完成于 10 月 25 日）。用户要求先开 PR、暂不合并，后续再恢复；本轮结束时清理专用测试资源。保留独立工作区和 `v3` 分支。
+## 2026-11-25 续作
 
-## 当前状态
+- `v3` 已合入 `main@651157c`。合并提交为 `17b7d07`，包含主线的直播恢复、Windows 播放视图释放、原生资产下载和 Android 发版初始化修复。
+- 播放列表表单继续使用静夜组件。Windows 键盘复制粘贴覆盖名称、M3U 地址和节目单地址，Android 方向键可以在名称、地址和文件选取按钮之间移动焦点。
+- `af6794e` 补齐首页、频道、节目单、播放、设置、播放列表、远程控制和同步预览的英文文案。最近播放的清空操作和组件的语义提示随应用语言切换。
+- 主应用 212 项、组件包 23 项、组件目录四个视口通过。播放器包和主应用播放器相关测试合计 247 项通过，其中部分与主应用测试重叠。新增回归覆盖英文首页、清空播放历史和切回中文。
+- iPhone 17 Pro 和 iPad Pro 11 模拟器、macOS arm64 原生合成源测试通过。三端均从 M3U 导入 XMLTV，验证节目单错误和过期状态、MediaKit 640×360 视频的播放推进及同后端小窗续播。
+- iPad 本地 HTTP 404 验收通过。重试会发出新请求，来源与频道面板可打开，从失败页退出不会出现小窗。
+- Android TV API 36 模拟器的合成源和 HTTP 404 流程通过。覆盖遥控退出搜索编辑并保留关键词、NativePlayerBackend 640×360 播放续播，以及失败重试与来源面板。
+- Windows 的滚动构建下载已失效，改用带 SHA-256 校验的 mpv 官方 LGPLv3 x86_64 开发包。[mpv v0.42.0 发布](https://github.com/mpv-player/mpv/releases/tag/v0.42.0)
+- 合并和实现进度见 [草稿 PR #54](https://github.com/TNT-Likely/xplayer/pull/54)。
+
+## 2026-10-26 初次交接状态
+
+初次验收主要完成于 10 月 25 日。用户要求先开 PR、暂不合并，后续再恢复。专用测试资源已清理，独立工作区和 `v3` 分支已保留。
 
 - 工作区：`/Users/sunxiao/.codex/worktrees/xplayer-design-resources/xplayer`，分支 `v3`，应用版本 `3.0.0+1`。
 - 基于 `main@b215395e3f06947b9c1dc735de4ebc995bdc77d6`。主工作区 `/Users/sunxiao/code/mine/xplayer` 保持 main 且干净。
@@ -40,7 +52,7 @@ HTML 与 Figma 是设计资源快照；播放器状态和 TV 焦点的最新实�
 
 ## 验证证据与实际边界
 
-最新全量记录为主应用 **208 项**、UI 包 **23 项**、组件目录 **4 个视口 × 7 类**通过。最终定向回归为主页 11 项和 TV 导航 2 项通过；归档摘要见 [handoff-checks.json](validation/handoff-checks.json)。最终改动文件静态分析通过，旧播放器仍有既存 deprecated API 等 info，不能据此宣称整个仓库零 lint。
+初次交接的全量记录为主应用 **208 项**、UI 包 **23 项**、组件目录 **4 个视口 × 7 类**通过。最终定向回归为主页 11 项和 TV 导航 2 项通过，归档见 [handoff-checks.json](validation/handoff-checks.json)。当时的改动文件静态分析通过，旧播放器仍有既存 deprecated API 等 info。
 
 | 平台 / 场景 | 已验证 | 后续仍需验证 |
 | --- | --- | --- |
@@ -50,7 +62,7 @@ HTML 与 Figma 是设计资源快照；播放器状态和 TV 焦点的最新实�
 | 桌面 / Web | 共享逻辑、四视口目录；macOS arm64 Debug 未签名构建 | 桌面原生运行、Windows/Linux 原生构建；Web FLV 能力 |
 | 跨设备功能 | 真实回环 WebSocket、页面适配 | 真机局域网权限、Bonjour、DLNA、系统 PIP 等完整跨设备流程 |
 
-新 A 页面以中文为基线，英文新文案尚未全部补齐。初次局域网测试使用过期 XMLTV；后续找到的 EPG 与订阅是独立配置交付，不内置为应用默认源。详情和脱敏截图见 [验收入口](validation/README.md)。
+初次局域网测试使用过期 XMLTV；后续找到的 EPG 与订阅作为独立配置交付。详情和脱敏截图见 [验收入口](validation/README.md)。
 
 ## 恢复开发
 
@@ -103,6 +115,7 @@ iPad 无声曾是 Simulator 的音频输出固定到了旧显示器；将 Simula
 ### 原生数据与播放验收
 
 - 合成源与三端流程：[集成说明](README.md)，入口 `integration_test/v3_app_test.dart`。该流程会清专用设备应用数据，必须新建专用设备。
+- macOS 复用同一合成源测试。在临时 Xcode 配置中为 Runner 指定独立 bundle ID、ad-hoc 签名和 QA entitlements。QA entitlements 从 DebugProfile 复制，保留 App Sandbox 并移除需要开发证书的组播授权。通过 `XCODE_XCCONFIG_FILE` 传入配置，运行 `flutter drive -d macos` 时传入 `QA_DEVICE=macos` 和 `QA_MACOS_BUNDLE_ID`。测试在清理数据前校验应用文档目录来自该 ID 对应的沙盒。
 - 私人局域网：`integration_test/v3_lan_test.dart`，通过 `QA_PLAYLIST_URL`、`QA_CHANNEL_NAME` 传参；私人地址不提交到源码。
 - 平台直播：[FLV 验收](validation/LIVE-SOURCES.md)，即时生成案例 JSON 后启动 `tool/live_source_fixture_server.py`。
 - 保存测试播放列表：[导入步骤](validation/QA-PLAYLISTS.md)，入口 `integration_test/qa_playlists_test.dart`。
@@ -126,4 +139,4 @@ iPad 无声曾是 Simulator 的音频输出固定到了旧显示器；将 Simula
 1. 阅读本页与交付状态，确认 PR 仍保持草稿、分支已同步；拉取最新 main 后处理差异。
 2. 恢复依赖，跑应用、组件包和目录检查；按需重建专用模拟器。
 3. 先复测 TV 首页、搜索、播放器失败与重试，再做 iOS 最新正常入口回归。
-4. 补齐英文文案、真机与跨设备验收，决定是否继续对齐云端设计稿；获得用户合并指令后再 Squash merge。
+4. 补齐真机和跨设备验收，决定是否继续对齐云端设计稿。获得用户合并指令后再 Squash merge。

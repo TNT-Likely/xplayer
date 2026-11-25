@@ -90,6 +90,12 @@ void main() {
           .focusNode;
       final name = focusOf('playlist-name');
       final url = focusOf('playlist-url');
+      final localizations = AppLocalizations.of(
+        tester.element(find.byType(PlaylistDialog)),
+      )!;
+      final picker = Focus.of(
+        tester.element(find.text(localizations.pickLocalM3u)),
+      );
 
       expect(name.hasPrimaryFocus, isTrue);
       await tester.sendKeyEvent(LogicalKeyboardKey.arrowDown);
@@ -98,7 +104,7 @@ void main() {
 
       await tester.sendKeyEvent(LogicalKeyboardKey.arrowDown);
       await tester.pump();
-      expect(url.hasFocus, isFalse);
+      expect(picker.hasFocus, isTrue);
 
       await tester.sendKeyEvent(LogicalKeyboardKey.arrowUp);
       await tester.pump();
