@@ -12,7 +12,7 @@
 | Android libmpv / FFmpeg | [v1.1.11 发布](https://github.com/media-kit/libmpv-android-video-build/releases/tag/v1.1.11)，四种 ABI 的 full JAR；[mpv 配方](https://github.com/media-kit/libmpv-android-video-build/blob/1ecf5100ec0f75e1d0630f48851b85769c92eed2/buildscripts/scripts/mpv.sh)禁用 GPL，[FFmpeg full 配方](https://github.com/media-kit/libmpv-android-video-build/blob/1ecf5100ec0f75e1d0630f48851b85769c92eed2/buildscripts/flavors/full.sh)禁用 GPL/nonfree、启用 version3 |
 | Darwin libmpv / FFmpeg 等 | [v0.6.0 发布与组件说明](https://github.com/media-kit/libmpv-darwin-build/tree/v0.6.0)，使用 video-full；上游说明列出 mpv/FFmpeg、libass、字体/文本库、TLS 与 XML 等组件及各自许可 |
 | iOS 模拟器 mpv | 同一 mpv 0.36.0 源码重编 AudioUnit 切片；精确源码、依赖与补丁散列由 `ios/build_simulator_audio.py` 固定，FFmpeg 和真机切片沿用上述 Darwin 构建 |
-| Windows libmpv | [zhongfly/mpv-winbuild 固定发布](https://github.com/zhongfly/mpv-winbuild/releases/tag/2026-10-25-baa3e11d42)，使用 LGPL 普通 x86_64 构建，精确资产和散列见清单 |
+| Windows libmpv | 使用 mpv 官方 v0.42.0 的 LGPLv3 x86_64 开发包，精确资产和散列见构建清单。[上游发布与构建说明](https://github.com/mpv-player/mpv/releases/tag/v0.42.0) |
 | Windows ANGLE | [固定 ANGLE 发布](https://github.com/alexmercerind/flutter-windows-ANGLE-OpenGL-ES/releases/tag/v1.0.1)，ANGLE 及随附组件使用各自许可 |
 | Linux libmpv / FFmpeg | 系统发行版提供，版本、编译选项和许可取决于发行版，本包不分发系统 `.so` |
 

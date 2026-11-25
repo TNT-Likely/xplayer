@@ -63,6 +63,7 @@ void main() {
       '${root.path}/windows/CMakeLists.txt',
     ).readAsStringSync();
     final expected = builds['windows'] as Map;
+    expect(cmake, contains('set(LIBMPV "${expected['name']}")'));
     expect(cmake, contains('set(LIBMPV_URL "${expected['url']}")'));
     expect(cmake, contains('set(LIBMPV_SHA256 "${expected['sha256']}")'));
     expect(

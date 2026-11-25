@@ -11,7 +11,7 @@
 | Android / TV | media-kit/libmpv-android-video-build v1.1.11，full，arm64-v8a / armeabi-v7a / x86_64 / x86 | Gradle 下载并校验 JAR，声明生成任务依赖，避免与应用 desugar/JNI 合并竞争 |
 | iOS / iPadOS | media-kit/libmpv-darwin-build v0.6.0，video-full | CocoaPods / Make，保持现有原生库的最低系统基线 |
 | macOS | media-kit/libmpv-darwin-build v0.6.0，video-full | CocoaPods / Make，保留 Universal Intel / Apple Silicon 构建 |
-| Windows x64 | zhongfly/mpv-winbuild 2026-10-25-baa3e11d42，LGPL，普通 x86_64 构建 | CMake 固定 SHA-256；保留 media_kit_video 需要的目录与导入库，替换旧的裁剪构建 |
+| Windows x64 | mpv 官方 v0.42.0，LGPLv3，普通 x86_64 构建 | CMake 校验固定 SHA-256，整理 media_kit_video 需要的头文件目录 |
 | Linux | 系统发行版 libmpv / FFmpeg | Ubuntu/Debian 安装 `libmpv-dev`；通过同一解码矩阵检查实际能力 |
 
 完整构建补齐旧默认构建未包含的 TrueHD / MLP 等解码器。`hwdec=no` 只切换解码执行路径，不能补上未编译的解码器。音频默认解码为 PCM；这里不把基础 TrueHD 解码等同于 Atmos 对象渲染或 HDMI 原码透传。
@@ -36,7 +36,7 @@ Darwin 原生适配器基于上游 1.1.4，Android 基于 1.3.8，Windows 基于
 
 原生库版本升级时，更新清单、各平台适配器中的固定值并重新运行矩阵。Windows 解压目录使用 SHA-256 标记，避免复用旧的裁剪 DLL；所有平台不应切回 `default` 构建来缩小包体。
 
-上游可能重新上传同一 tag、同一名称的 Windows 日构建。清单额外记录 release asset ID 与更新时间；发生 SHA-256 不符时必须核对官方 digest 和实际下载，不能仅因 URL 未变就沿用旧散列，也不自动接受新资产。构建诊断同时输出预期与实际散列，失败文件不会安装。iOS 模拟器源码和原生探针共用 `tool/download_artifact.py`，临时传输错误最多尝试 3 次，验证成功后原子替换缓存；校验失败直接退出。
+Windows 使用正式发布标签固定下载地址，清单同时记录 release asset ID 与更新时间。若 SHA-256 不符，核对官方 digest 和实际下载，构建会输出两份散列并拒绝安装该文件。iOS 模拟器源码和原生探针共用 `tool/download_artifact.py`，临时传输错误最多尝试 3 次，验证通过后原子替换缓存。
 
 ### Android EGL 上下文兼容
 
