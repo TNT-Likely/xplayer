@@ -1,0 +1,2 @@
+Building Windows application...                                    56.2s
+√ Built build\windows\x64\runner\Debug\xplayer_player_example.exe

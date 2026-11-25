@@ -1,5 +1,7 @@
 # v3 原生验收记录
 
+[PR #54 全部验收截图、GIF 与测试用例](pr-54/README.md)
+
 [补充：平台直播、HTTP FLV 与两端原生解码](LIVE-SOURCES.md)
 
 [专用测试应用的局域网与 FLV 播放列表](QA-PLAYLISTS.md)

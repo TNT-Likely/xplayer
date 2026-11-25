@@ -1,0 +1,136 @@
+
+✅ /<package-staging>/sdk/player_api/test/audio_packet_recovery_test.dart: only the known packet error enters the recovery path
+✅ /<package-staging>/sdk/player_api/test/audio_packet_recovery_test.dart: requires fresh audio timestamps and an active output to recover
+✅ /<package-staging>/sdk/player_api/test/audio_packet_recovery_test.dart: video progress cannot stand in for absent or silent audio output
+✅ /<package-staging>/sdk/player_api/test/audio_packet_recovery_test.dart: a frozen audio clock fails within the recovery deadline
+✅ /<package-staging>/sdk/player_api/test/audio_packet_recovery_test.dart: repeated errors never extend the first recovery deadline
+✅ /<package-staging>/sdk/player_api/test/audio_packet_recovery_test.dart: recovered but excessive packet errors still exhaust a bounded budget
+✅ /<package-staging>/sdk/player_api/test/audio_packet_recovery_test.dart: user pause suspends recovery without mistaking it for a stalled decoder
+✅ /<package-staging>/sdk/player_api/test/audio_packet_recovery_test.dart: buffering leaves time to verify audio from the next packets
+✅ /<package-staging>/sdk/player_api/test/audio_packet_recovery_test.dart: buffering transitions do not refill the active decoding budget
+✅ /<package-staging>/sdk/player_api/test/audio_packet_recovery_test.dart: a recovery also times out if the stream stays buffered
+✅ /<package-staging>/sdk/player_api/test/audio_packet_recovery_test.dart: seek and timestamp discontinuities do not falsely prove recovery
+✅ /<package-staging>/sdk/player_api/test/audio_packet_recovery_test.dart: a new bad packet invalidates earlier recovery evidence
+✅ /<package-staging>/sdk/player_api/test/audio_packet_recovery_test.dart: nonfinite timestamps and cancellation cannot complete recovery
+✅ /<package-staging>/sdk/player_api/test/audio_packet_recovery_test.dart: invalid recovery configuration fails before allocating the native player
+✅ /<package-staging>/sdk/player_api/test/audio_packet_recovery_test.dart: concurrent disposal callers wait on the same completion
+✅ /<package-staging>/sdk/player_api/test/audio_session_coordinator_test.dart: resume restores an interrupted session without leaking an owner
+✅ /<package-staging>/sdk/player_api/test/audio_session_coordinator_test.dart: resume waits for the previous release and new acquisition
+✅ /<package-staging>/sdk/player_api/test/audio_session_coordinator_test.dart: concurrent duplicate releases share one deactivation future
+✅ /<package-staging>/sdk/player_api/test/audio_session_coordinator_test.dart: a failed deactivation does not poison the next player
+✅ /<package-staging>/sdk/player_api/test/audio_session_coordinator_test.dart: concurrent players share one activation until the last release
+✅ /<package-staging>/sdk/player_api/test/audio_session_coordinator_test.dart: new activation waits for asynchronous previous deactivation
+✅ /<package-staging>/sdk/player_api/test/audio_session_coordinator_test.dart: denied activation does not poison the queue or leak a reference
+✅ /<package-staging>/sdk/player_api/test/audio_track_test.dart: AudioTrack holds fields
+✅ /<package-staging>/sdk/player_api/test/audio_track_test.dart: displayName falls back label>language>codec>id
+✅ /<package-staging>/sdk/player_api/test/buffer_profile_test.dart: live profile values
+✅ /<package-staging>/sdk/player_api/test/buffer_profile_test.dart: vod profile values
+✅ /<package-staging>/sdk/player_api/test/buffer_profile_test.dart: forUrl: m3u8 → live, else vod
+✅ /<package-staging>/sdk/player_api/test/buffer_profile_test.dart: id is stable wire string
+✅ /<package-staging>/sdk/player_api/test/buffer_profile_test.dart: FLV, MPEG-TS and extensionless channel endpoints use live buffering
+✅ /<package-staging>/sdk/player_api/test/hls_startup_test.dart: selects one muxed rendition and preserves signed query bytes
+✅ /<package-staging>/sdk/player_api/test/hls_startup_test.dart: recovery can choose lower bandwidth even at the same resolution
+✅ /<package-staging>/sdk/player_api/test/hls_startup_test.dart: redirect base, browser agent and explicit credentials survive
+✅ /<package-staging>/sdk/player_api/test/hls_startup_test.dart: keeps master shared state: #EXT-X-MEDIA
+✅ /<package-staging>/sdk/player_api/test/hls_startup_test.dart: keeps master shared state: #EXT-X-MEDIA
+✅ /<package-staging>/sdk/player_api/test/hls_startup_test.dart: keeps master shared state: #EXT-X-SESSION-KEY
+✅ /<package-staging>/sdk/player_api/test/hls_startup_test.dart: keeps master shared state: #EXT-X-DEFINE
+✅ /<package-staging>/sdk/player_api/test/hls_startup_test.dart: unresolved rendition groups never lose the external audio
+✅ /<package-staging>/sdk/player_api/test/hls_startup_test.dart: leaves media/invalid/incomplete manifests to the native stack: #EXTM3U
+#EXT-X-TARGETDURATION:6
+#EXTINF:6,
+segment.ts
+
+✅ /<package-staging>/sdk/player_api/test/hls_startup_test.dart: leaves media/invalid/incomplete manifests to the native stack: <html>Upstream error</html>
+✅ /<package-staging>/sdk/player_api/test/hls_startup_test.dart: leaves media/invalid/incomplete manifests to the native stack: #EXTM3U
+#EXT-X-STREAM-INF:BANDWIDTH=1000
+file:///private/file
+
+✅ /<package-staging>/sdk/player_api/test/hls_startup_test.dart: leaves media/invalid/incomplete manifests to the native stack: #EXTM3U
+#EXT-X-STREAM-INF:BANDWIDTH=1000
+
+✅ /<package-staging>/sdk/player_api/test/hls_startup_test.dart: leaves media/invalid/incomplete manifests to the native stack: #EXTM3U
+#EXT-X-STREAM-INF:RESOLUTION=1920x1080
+high.m3u8
+
+✅ /<package-staging>/sdk/player_api/test/hls_startup_test.dart: 403 is not treated as a successful manifest rewrite
+✅ /<package-staging>/sdk/player_api/test/hls_startup_test.dart: slow metadata has a total deadline and original URL remains usable
+✅ /<package-staging>/sdk/player_api/test/hls_startup_test.dart: oversized metadata is bounded rather than buffered indefinitely
+✅ /<package-staging>/sdk/player_api/test/hls_startup_test.dart: non-HLS and native protocols do not create metadata requests
+✅ /<package-staging>/sdk/player_api/test/playback_configuration_test.dart: default startup budget leaves time after the metadata probe
+✅ /<package-staging>/sdk/player_api/test/playback_configuration_test.dart: invalid budgets fail before native playback allocation
+✅ /<package-staging>/sdk/player_api/test/playback_configuration_test.dart: custom network budget is expressed in libmpv seconds
+✅ /<package-staging>/sdk/player_api/test/playback_log_test.dart: redacts signed absolute URLs and relative HTTP request targets
+✅ /<package-staging>/sdk/player_api/test/playback_log_test.dart: redacts credential headers including prefixed native log lines
+✅ /<package-staging>/sdk/player_api/test/playback_log_test.dart: keeps actionable HTTP statuses and decoder messages
+✅ /<package-staging>/sdk/player_api/test/playback_frame_bootstrap_test.dart: a hidden view can finish deferred video setup without vsync
+✅ /<package-staging>/sdk/player_api/test/playback_frame_bootstrap_test.dart: completed setup does not request another warm-up frame
+✅ /<package-staging>/sdk/player_api/test/playback_source_test.dart: common audio and legacy video files retain on-demand buffering
+✅ /<package-staging>/sdk/player_api/test/playback_source_test.dart: HTTP uses browser UA but leaves explicit agents and native protocols alone
+✅ /<package-staging>/sdk/player_api/test/playback_source_test.dart: signed queries are not normalized or re-encoded
+✅ /<package-staging>/sdk/player_api/test/playback_source_test.dart: explicit header precedence is case insensitive and rejects line injection
+✅ /<package-staging>/sdk/player_api/test/playback_source_test.dart: Huya referer is scoped and never overrides explicit values
+✅ /<package-staging>/sdk/player_api/test/playback_source_test.dart: format hints do not corrupt the actual URL or consume query suffixes
+✅ /<package-staging>/sdk/player_api/test/playback_source_test.dart: M3U comments and optional headers cannot become channel URLs
+✅ /<package-staging>/sdk/player_api/test/player_backend_selector_test.dart: desktop occlusion preserves audio; mobile backgrounding pauses
+✅ /<package-staging>/sdk/player_api/test/player_backend_selector_test.dart: Android/TV HLS preserves SurfaceView and can reach a different decoder
+✅ /<package-staging>/sdk/player_api/test/player_backend_selector_test.dart: disabled native engine is never included in fallback
+✅ /<package-staging>/sdk/player_api/test/player_backend_selector_test.dart: PlaybackPlatform.android routes http://test/live.flv through the compatibility decoder first
+✅ /<package-staging>/sdk/player_api/test/player_backend_selector_test.dart: PlaybackPlatform.android routes http://test/live/huya/123 through the compatibility decoder first
+✅ /<package-staging>/sdk/player_api/test/player_backend_selector_test.dart: PlaybackPlatform.android routes http://test/live.mpd through the compatibility decoder first
+✅ /<package-staging>/sdk/player_api/test/player_backend_selector_test.dart: PlaybackPlatform.android routes rtmp://test/live/room through the compatibility decoder first
+✅ /<package-staging>/sdk/player_api/test/player_backend_selector_test.dart: PlaybackPlatform.android routes rtsp://test/camera through the compatibility decoder first
+✅ /<package-staging>/sdk/player_api/test/player_backend_selector_test.dart: PlaybackPlatform.android routes http://test/live.ts through the compatibility decoder first
+✅ /<package-staging>/sdk/player_api/test/player_backend_selector_test.dart: PlaybackPlatform.android routes http://test/video.mkv through the compatibility decoder first
+✅ /<package-staging>/sdk/player_api/test/player_backend_selector_test.dart: PlaybackPlatform.ios routes http://test/live.flv through the compatibility decoder first
+✅ /<package-staging>/sdk/player_api/test/player_backend_selector_test.dart: PlaybackPlatform.ios routes http://test/live/huya/123 through the compatibility decoder first
+✅ /<package-staging>/sdk/player_api/test/player_backend_selector_test.dart: PlaybackPlatform.ios routes http://test/live.mpd through the compatibility decoder first
+✅ /<package-staging>/sdk/player_api/test/player_backend_selector_test.dart: PlaybackPlatform.ios routes rtmp://test/live/room through the compatibility decoder first
+✅ /<package-staging>/sdk/player_api/test/player_backend_selector_test.dart: PlaybackPlatform.ios routes rtsp://test/camera through the compatibility decoder first
+✅ /<package-staging>/sdk/player_api/test/player_backend_selector_test.dart: PlaybackPlatform.ios routes http://test/live.ts through the compatibility decoder first
+✅ /<package-staging>/sdk/player_api/test/player_backend_selector_test.dart: PlaybackPlatform.ios routes http://test/video.mkv through the compatibility decoder first
+✅ /<package-staging>/sdk/player_api/test/player_backend_selector_test.dart: PlaybackPlatform.macos routes http://test/live.flv through the compatibility decoder first
+✅ /<package-staging>/sdk/player_api/test/player_backend_selector_test.dart: PlaybackPlatform.macos routes http://test/live/huya/123 through the compatibility decoder first
+✅ /<package-staging>/sdk/player_api/test/player_backend_selector_test.dart: PlaybackPlatform.macos routes http://test/live.mpd through the compatibility decoder first
+✅ /<package-staging>/sdk/player_api/test/player_backend_selector_test.dart: PlaybackPlatform.macos routes rtmp://test/live/room through the compatibility decoder first
+✅ /<package-staging>/sdk/player_api/test/player_backend_selector_test.dart: PlaybackPlatform.macos routes rtsp://test/camera through the compatibility decoder first
+✅ /<package-staging>/sdk/player_api/test/player_backend_selector_test.dart: PlaybackPlatform.macos routes http://test/live.ts through the compatibility decoder first
+✅ /<package-staging>/sdk/player_api/test/player_backend_selector_test.dart: PlaybackPlatform.macos routes http://test/video.mkv through the compatibility decoder first
+✅ /<package-staging>/sdk/player_api/test/player_backend_selector_test.dart: PlaybackPlatform.windows routes http://test/live.flv through the compatibility decoder first
+✅ /<package-staging>/sdk/player_api/test/player_backend_selector_test.dart: PlaybackPlatform.windows routes http://test/live/huya/123 through the compatibility decoder first
+✅ /<package-staging>/sdk/player_api/test/player_backend_selector_test.dart: PlaybackPlatform.windows routes http://test/live.mpd through the compatibility decoder first
+✅ /<package-staging>/sdk/player_api/test/player_backend_selector_test.dart: PlaybackPlatform.windows routes rtmp://test/live/room through the compatibility decoder first
+✅ /<package-staging>/sdk/player_api/test/player_backend_selector_test.dart: PlaybackPlatform.windows routes rtsp://test/camera through the compatibility decoder first
+✅ /<package-staging>/sdk/player_api/test/player_backend_selector_test.dart: PlaybackPlatform.windows routes http://test/live.ts through the compatibility decoder first
+✅ /<package-staging>/sdk/player_api/test/player_backend_selector_test.dart: PlaybackPlatform.windows routes http://test/video.mkv through the compatibility decoder first
+✅ /<package-staging>/sdk/player_api/test/player_backend_selector_test.dart: PlaybackPlatform.linux routes http://test/live.flv through the compatibility decoder first
+✅ /<package-staging>/sdk/player_api/test/player_backend_selector_test.dart: PlaybackPlatform.linux routes http://test/live/huya/123 through the compatibility decoder first
+✅ /<package-staging>/sdk/player_api/test/player_backend_selector_test.dart: PlaybackPlatform.linux routes http://test/live.mpd through the compatibility decoder first
+✅ /<package-staging>/sdk/player_api/test/player_backend_selector_test.dart: PlaybackPlatform.linux routes rtmp://test/live/room through the compatibility decoder first
+✅ /<package-staging>/sdk/player_api/test/player_backend_selector_test.dart: PlaybackPlatform.linux routes rtsp://test/camera through the compatibility decoder first
+✅ /<package-staging>/sdk/player_api/test/player_backend_selector_test.dart: PlaybackPlatform.linux routes http://test/live.ts through the compatibility decoder first
+✅ /<package-staging>/sdk/player_api/test/player_backend_selector_test.dart: PlaybackPlatform.linux routes http://test/video.mkv through the compatibility decoder first
+✅ /<package-staging>/sdk/player_api/test/player_backend_selector_test.dart: PlaybackPlatform.ios uses full decoders for HLS/MP4 to avoid silently missing audio
+✅ /<package-staging>/sdk/player_api/test/player_backend_selector_test.dart: PlaybackPlatform.macos uses full decoders for HLS/MP4 to avoid silently missing audio
+✅ /<package-staging>/sdk/player_api/test/player_backend_selector_test.dart: Linux never falls back to an unregistered video_player plugin
+✅ /<package-staging>/sdk/player_api/test/player_backend_selector_test.dart: audio output failures skip the identical software audio output
+✅ /<package-staging>/sdk/player_api/test/player_backend_selector_test.dart: audio output failure still reaches the Android native audio sink
+✅ /<package-staging>/sdk/player_api/test/player_backend_selector_test.dart: video decoder failures retain the software recovery path
+✅ /<package-staging>/sdk/player_api/test/player_backend_selector_test.dart: AVPlayer live positions cannot trigger reconnect loops
+✅ /<package-staging>/sdk/player_api/test/player_backend_selector_test.dart: compatibility playback on Apple and desktop still detects a frozen clock
+✅ /<package-staging>/sdk/player_api/test/stall_detector_test.dart: StallDetector 位置持续推进 → 永不判定卡死
+✅ /<package-staging>/sdk/player_api/test/stall_detector_test.dart: StallDetector 位置冻结:满阈值(8s)才判定卡死,期间不误报
+✅ /<package-staging>/sdk/player_api/test/stall_detector_test.dart: StallDetector 缓冲/暂停(eligible=false)期间重置计时,不把正常停滞算作卡死
+✅ /<package-staging>/sdk/player_api/test/stall_detector_test.dart: StallDetector 触发一次后计时重置,不会每次采样连环触发
+✅ /<package-staging>/sdk/player_api/test/stall_detector_test.dart: StallDetector 位置恢复推进 → 计时清零,之后再冻结要重新满阈值
+✅ /<package-staging>/sdk/player_api/test/stall_detector_test.dart: StallDetector 直播卡死实测形态:位置只倒跳不前进 → 照样累计并触发(倒跳不算进展)
+✅ /<package-staging>/sdk/player_api/test/stall_detector_test.dart: StallDetector 正常直播抖动:位置前后摆动但周期性向前 → 不误报(生产阈值 6s)
+✅ /<package-staging>/sdk/player_api/test/stall_detector_test.dart: StallDetector reset() 后从头建立基线(切台/重连后不残留旧计时)
+✅ /<package-staging>/sdk/player_api/test/startup_eof_recovery_test.dart: EOF jump during initial output transition permits only one reload
+✅ /<package-staging>/sdk/player_api/test/startup_eof_recovery_test.dart: normal clock progress disarms startup recovery
+✅ /<package-staging>/sdk/player_api/test/startup_eof_recovery_test.dart: user seeking and short items do not restart playback
+✅ /<package-staging>/sdk/player_api/test/x_player_value_test.dart: default value is uninitialized & idle
+✅ /<package-staging>/sdk/player_api/test/x_player_value_test.dart: aspectRatio from size
+✅ /<package-staging>/sdk/player_api/test/x_player_value_test.dart: copyWith overrides only given fields
+
+🎉 121 tests passed.

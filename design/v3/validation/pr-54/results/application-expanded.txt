@@ -1,0 +1,214 @@
+00:00 +0: loading test/filtered_channels_test.dart
+00:00 +0: test/epg_metrics_test.dart: xForTime / contentWidth 按分钟×像素
+00:00 +1: test/mini/mini_player_controller_test.dart: 初始 none
+00:00 +2: test/mini/mini_player_controller_test.dart: 初始 none
+00:00 +3: test/mini/mini_player_controller_test.dart: 初始 none
+00:00 +4: test/mini/mini_player_controller_test.dart: 初始 none
+00:00 +5: test/mini/mini_player_controller_test.dart: 初始 none
+00:00 +6: test/mini/mini_player_controller_test.dart: 初始 none
+00:00 +7: test/epg_metrics_test.dart: upcomingProgrammes: now 起的当前+后续, 升序, 过滤已结束, 限 count
+00:00 +8: test/mini/mini_player_controller_test.dart: enterMini 持有 backend 且 mode=mini
+00:00 +9: test/mini/mini_player_controller_test.dart: take 取回 backend 并回 fullscreen(不销毁)
+00:00 +10: test/mini/mini_player_controller_test.dart: close 销毁并清空
+00:00 +11: test/filtered_channels_test.dart: query 按名称/ID 模糊匹配(不区分大小写)
+00:00 +12: test/filtered_channels_test.dart: group 按 groupTitle 过滤
+00:00 +13: test/filtered_channels_test.dart: query + group 同时生效 (AND)
+00:00 +14: test/filtered_channels_test.dart: group 为 null / 空表示全部
+00:00 +15: test/filtered_channels_test.dart: distinctGroups 去重且保持顺序
+00:00 +16: test/cast/dlna_xml_test.dart: parseDeviceDescription 解析 friendlyName + 相对 controlURL
+00:00 +17: test/cast/dlna_xml_test.dart: parseDeviceDescription URLBase 优先于 location 解析 controlURL
+00:00 +18: test/cast/dlna_xml_test.dart: parseDeviceDescription 无 AVTransport 服务返回 null
+00:00 +19: test/cast/dlna_xml_test.dart: parseDeviceDescription 非法 XML 返回 null
+00:00 +20: test/cast/dlna_xml_test.dart: parseSsdpLocation 大小写不敏感取 LOCATION
+00:00 +21: test/cast/dlna_xml_test.dart: parseSsdpLocation 无 LOCATION 返回 null
+00:00 +22: test/cast/dlna_xml_test.dart: SOAP 构造 SetAVTransportURI 含转义后的 URL 与内嵌 DIDL
+00:00 +23: test/cast/dlna_xml_test.dart: SOAP 构造 soapAction 头值格式
+00:00 +24: test/cast/dlna_xml_test.dart: 响应解析 parseTransportState
+00:00 +25: test/cast/dlna_xml_test.dart: 响应解析 parsePositionRelTime 解析 H:MM:SS
+00:00 +26: test/cast/ssdp_scan_test.dart: buildMSearch 多播报文:HOST 指向 SSDP 组播地址,带 MX 让设备错开回包
+00:00 +27: test/cast/ssdp_scan_test.dart: buildMSearch 单播报文:HOST 指向目标设备,且不含 MX(UPnP 1.1 要求单播省略)
+00:00 +28: test/cast/ssdp_scan_test.dart: subnetHostsFor 推出同 /24 网段全部主机,排除自身/网络号/广播号
+00:00 +29: test/unit_test.dart: Plus Operator should add two numbers together
+00:00 +30: test/unit_test.dart: Plus Operator should add two numbers together
+00:00 +31: test/unit_test.dart: Plus Operator should add two numbers together
+00:00 +32: test/unit_test.dart: Plus Operator should add two numbers together
+00:00 +33: test/unit_test.dart: Plus Operator should add two numbers together
+00:00 +34: test/unit_test.dart: Plus Operator should add two numbers together
+00:00 +35: test/unit_test.dart: Plus Operator should add two numbers together
+00:01 +36: test/widget_test.dart: MyWidget should display a string of text
+00:01 +37: test/widget_test.dart: MyWidget should display a string of text
+00:01 +38: test/widget_test.dart: MyWidget should display a string of text
+00:01 +39: test/widget_test.dart: MyWidget should display a string of text
+00:01 +40: test/widget_test.dart: MyWidget should display a string of text
+00:01 +41: test/widget_test.dart: MyWidget should display a string of text
+00:01 +42: test/widget_test.dart: MyWidget should display a string of text
+00:01 +43: test/widget_test.dart: MyWidget should display a string of text
+00:01 +44: test/widget_test.dart: MyWidget should display a string of text
+00:01 +45: test/widget_test.dart: MyWidget should display a string of text
+00:01 +46: test/theme/theme_wiring_test.dart: 换色触发 MaterialApp 重建,Theme.of 取到新主色
+00:01 +47: test/theme/app_palette_test.dart: AppPalette 每个预设色对深色面板的对比度 ≥ 3:1(WCAG 非文本 UI 组件底线)
+00:01 +48: test/theme/app_palette_test.dart: AppPalette 色板无重复色
+00:01 +49: test/theme/app_palette_test.dart: AppPalette v3 默认色采用 A 静夜强调色，持久化选色仍由设置加载
+00:01 +50: test/theme/app_palette_test.dart: AppPalette 色板恰好 8 色(UI 按 4x2 网格布局)
+00:01 +51: test/theme/app_palette_test.dart: AppPalette 预设色必须全不透明(computeLuminance 无视 alpha,半透明会虚报对比度)
+00:01 +52: test/theme/app_palette_test.dart: AppPalette 选中标记色对每个预设色的对比度 ≥ 3:1(否则看不出选了哪个)
+00:01 +53: test/v3/media_loading_test.dart: 快速切换列表时，慢返回的旧请求不能覆盖新列表
+00:01 +54: test/v3/media_loading_test.dart: 删除正在使用的最后一个列表后回到收藏，且清除旧选择
+00:02 +55: test/v3/mini_overlay_test.dart: 手机 小窗在 Navigator Overlay 中显示、不溢出、弹窗期间隐藏
+00:02 +56: test/v3/mini_overlay_test.dart: 手机 小窗在 Navigator Overlay 中显示、不溢出、弹窗期间隐藏
+00:02 +57: test/v3/mini_overlay_test.dart: 手机 小窗在 Navigator Overlay 中显示、不溢出、弹窗期间隐藏
+00:03 +58: test/v3/mini_overlay_test.dart: 手机 小窗在 Navigator Overlay 中显示、不溢出、弹窗期间隐藏
+00:03 +59: test/v3/mini_overlay_test.dart: 手机 小窗在 Navigator Overlay 中显示、不溢出、弹窗期间隐藏
+00:03 +60: test/v3/mini_overlay_test.dart: 手机 小窗在 Navigator Overlay 中显示、不溢出、弹窗期间隐藏
+00:03 +61: test/v3/mini_overlay_test.dart: 手机 小窗在 Navigator Overlay 中显示、不溢出、弹窗期间隐藏
+00:03 +62: test/v3/mini_overlay_test.dart: 手机 小窗在 Navigator Overlay 中显示、不溢出、弹窗期间隐藏
+00:03 +63: test/v3/mini_overlay_test.dart: 手机 小窗在 Navigator Overlay 中显示、不溢出、弹窗期间隐藏
+00:03 +64: test/v3/mini_overlay_test.dart: 手机 小窗在 Navigator Overlay 中显示、不溢出、弹窗期间隐藏
+00:03 +65: test/v3/player_options_test.dart: 选择面板 Size(320.0, 740.0) 长文字、关闭和稳定来源编号
+00:03 +66: test/v3/player_options_test.dart: 选择面板 Size(320.0, 740.0) 长文字、关闭和稳定来源编号
+00:03 +67: test/v3/player_options_test.dart: 选择面板 Size(320.0, 740.0) 长文字、关闭和稳定来源编号
+00:03 +68: test/v3/player_options_test.dart: 选择面板 Size(320.0, 740.0) 长文字、关闭和稳定来源编号
+00:03 +69: test/v3/player_options_test.dart: 选择面板 Size(320.0, 740.0) 长文字、关闭和稳定来源编号
+00:03 +70: test/v3/player_options_test.dart: 选择面板 Size(320.0, 740.0) 长文字、关闭和稳定来源编号
+00:03 +71: test/v3/player_options_test.dart: 选择面板 Size(320.0, 740.0) 长文字、关闭和稳定来源编号
+00:03 +72: test/v3/player_options_test.dart: 选择面板 Size(320.0, 740.0) 长文字、关闭和稳定来源编号
+00:04 +73: test/v3/player_options_test.dart: 选择面板 Size(1194.0, 834.0) 长文字、关闭和稳定来源编号
+00:04 +74: test/v3/adaptive_home_test.dart: 英文首页和组件随应用语言更新，仍可清空最近播放
+00:04 +75: test/v3/adaptive_home_test.dart: 英文首页和组件随应用语言更新，仍可清空最近播放
+00:04 +76: test/v3/adaptive_home_test.dart: 英文首页和组件随应用语言更新，仍可清空最近播放
+00:04 +77: test/v3/adaptive_home_test.dart: 英文首页和组件随应用语言更新，仍可清空最近播放
+00:04 +78: test/v3/adaptive_home_test.dart: 英文首页和组件随应用语言更新，仍可清空最近播放
+00:04 +79: test/v3/adaptive_home_test.dart: 英文首页和组件随应用语言更新，仍可清空最近播放
+00:04 +80: test/v3/adaptive_home_test.dart: 英文首页和组件随应用语言更新，仍可清空最近播放
+00:04 +81: test/v3/adaptive_home_test.dart: 英文首页和组件随应用语言更新，仍可清空最近播放
+00:05 +82: test/v3/adaptive_home_test.dart: 英文首页和组件随应用语言更新，仍可清空最近播放
+00:05 +83: test/v3/adaptive_home_test.dart: 英文首页和组件随应用语言更新，仍可清空最近播放
+00:05 +84: test/v3/adaptive_home_test.dart: 英文首页和组件随应用语言更新，仍可清空最近播放
+00:05 +85: test/v3/adaptive_home_test.dart: TV 真实主页的搜索确认输入、返回与方向键退出不改变频道页
+00:05 +86: test/playlist_dialog_test.dart: Windows playlist fields support keyboard copy and paste (variant: TargetPlatform.windows)
+00:05 +87: test/playlist_dialog_test.dart: Windows playlist fields support keyboard copy and paste (variant: TargetPlatform.windows)
+00:05 +88: test/playlist_dialog_test.dart: Windows playlist fields support keyboard copy and paste (variant: TargetPlatform.windows)
+00:05 +89: test/playlist_dialog_test.dart: Windows playlist fields support keyboard copy and paste (variant: TargetPlatform.windows)
+00:06 +90: test/playlist_dialog_test.dart: Windows playlist fields support keyboard copy and paste (variant: TargetPlatform.windows)
+00:06 +91: test/v3/adaptive_home_test.dart: 真实主页面 Size(1194.0, 834.0) TV=false 字号=1.0
+00:06 +92: test/v3/adaptive_home_test.dart: 真实主页面 Size(1194.0, 834.0) TV=false 字号=1.0
+00:06 +93: test/player/video_player_backend_test.dart: Windows video view detaches while native release is pending
+00:06 +94: test/v3/adaptive_home_test.dart: 真实主页面 Size(1440.0, 960.0) TV=false 字号=1.0
+00:06 +95: test/v3/adaptive_home_test.dart: 真实主页面 Size(1920.0, 1080.0) TV=true 字号=1.0
+00:06 +96: test/v3/adaptive_home_test.dart: 真实主页面 Size(1920.0, 1080.0) TV=true 字号=1.0
+00:06 +97: test/v3/adaptive_home_test.dart: 真实主页面 Size(1920.0, 1080.0) TV=true 字号=1.0
+00:06 +98: test/v3/adaptive_home_test.dart: 真实主页面 Size(1920.0, 1080.0) TV=true 字号=1.0
+00:06 +99: test/v3/adaptive_home_test.dart: 真实主页面 Size(1920.0, 1080.0) TV=true 字号=1.0
+00:06 +100: test/v3/adaptive_home_test.dart: 真实主页面 Size(1920.0, 1080.0) TV=true 字号=1.0
+00:06 +101: test/v3/adaptive_home_test.dart: 真实主页面 Size(1920.0, 1080.0) TV=true 字号=1.0
+00:06 +102: test/v3/adaptive_home_test.dart: 真实主页面 Size(1920.0, 1080.0) TV=true 字号=1.0
+00:06 +103: test/v3/adaptive_home_test.dart: 真实主页面 Size(1920.0, 1080.0) TV=true 字号=1.0
+00:06 +104: test/v3/adaptive_home_test.dart: 真实主页面 Size(1920.0, 1080.0) TV=true 字号=1.0
+00:06 +105: test/v3/adaptive_home_test.dart: 真实主页面 Size(1920.0, 1080.0) TV=true 字号=1.0
+00:06 +106: test/v3/adaptive_home_test.dart: 真实主页面 Size(1920.0, 1080.0) TV=true 字号=1.0
+00:06 +107: test/v3/adaptive_home_test.dart: 真实主页面 Size(1920.0, 1080.0) TV=true 字号=1.0
+00:06 +108: test/v3/adaptive_home_test.dart: 真实主页面 Size(1920.0, 1080.0) TV=true 字号=1.0
+00:06 +109: test/v3/adaptive_home_test.dart: 真实主页面 Size(1920.0, 1080.0) TV=true 字号=1.0
+00:06 +110: test/v3/adaptive_home_test.dart: 真实主页面 Size(1920.0, 1080.0) TV=true 字号=1.0
+00:06 +111: test/v3/adaptive_home_test.dart: 真实主页面 Size(1920.0, 1080.0) TV=true 字号=1.0
+00:06 +112: test/v3/adaptive_home_test.dart: 真实主页面 Size(1920.0, 1080.0) TV=true 字号=1.0
+00:06 +113: test/v3/adaptive_home_test.dart: 真实主页面 Size(1920.0, 1080.0) TV=true 字号=1.0
+00:06 +114: test/v3/adaptive_home_test.dart: 真实主页面 Size(1920.0, 1080.0) TV=true 字号=1.0
+00:06 +115: test/v3/adaptive_home_test.dart: 真实主页面 Size(1920.0, 1080.0) TV=true 字号=1.0
+00:06 +116: test/v3/adaptive_home_test.dart: 真实主页面 Size(1920.0, 1080.0) TV=true 字号=1.0
+00:06 +117: test/v3/adaptive_home_test.dart: 真实主页面 Size(1920.0, 1080.0) TV=true 字号=1.0
+00:06 +118: test/v3/adaptive_home_test.dart: 真实主页面 Size(1920.0, 1080.0) TV=true 字号=1.0
+00:06 +119: test/v3/adaptive_home_test.dart: 真实主页面 Size(1920.0, 1080.0) TV=true 字号=1.0
+00:06 +120: test/v3/adaptive_home_test.dart: 真实主页面 Size(1920.0, 1080.0) TV=true 字号=1.0
+00:06 +121: test/v3/adaptive_home_test.dart: 真实主页面 Size(1920.0, 1080.0) TV=true 字号=1.0
+00:06 +122: test/v3/adaptive_home_test.dart: 真实主页面 Size(1920.0, 1080.0) TV=true 字号=1.0
+00:06 +123: test/v3/adaptive_home_test.dart: 真实主页面 Size(1920.0, 1080.0) TV=true 字号=1.0
+00:06 +124: test/v3/adaptive_home_test.dart: 真实主页面 Size(1920.0, 1080.0) TV=true 字号=1.0
+00:06 +125: test/v3/adaptive_home_test.dart: 真实主页面 Size(1920.0, 1080.0) TV=true 字号=1.0
+00:06 +126: test/v3/adaptive_home_test.dart: 真实主页面 Size(1920.0, 1080.0) TV=true 字号=1.0
+00:06 +127: test/v3/adaptive_home_test.dart: 真实主页面 Size(1920.0, 1080.0) TV=true 字号=1.0
+00:06 +128: test/v3/adaptive_home_test.dart: 真实主页面 Size(1920.0, 1080.0) TV=true 字号=1.0
+00:06 +129: test/v3/adaptive_home_test.dart: 真实主页面 Size(1920.0, 1080.0) TV=true 字号=1.0
+00:06 +130: test/v3/adaptive_home_test.dart: 真实主页面 Size(1920.0, 1080.0) TV=true 字号=1.0
+00:06 +131: test/v3/adaptive_home_test.dart: 真实主页面 Size(1920.0, 1080.0) TV=true 字号=1.0
+00:06 +132: test/v3/adaptive_home_test.dart: 真实主页面 Size(1920.0, 1080.0) TV=true 字号=1.0
+00:06 +133: test/v3/adaptive_home_test.dart: 真实主页面 Size(1920.0, 1080.0) TV=true 字号=1.0
+00:07 +134: test/v3/adaptive_home_test.dart: 真实主页面 Size(1920.0, 1080.0) TV=true 字号=1.0
+00:07 +135: test/v3/adaptive_home_test.dart: 真实主页面 Size(1920.0, 1080.0) TV=true 字号=1.0
+00:07 +136: test/v3/adaptive_home_test.dart: 真实主页面 Size(1920.0, 1080.0) TV=true 字号=1.0
+00:07 +137: test/v3/adaptive_home_test.dart: 真实主页面 Size(1920.0, 1080.0) TV=true 字号=1.0
+00:07 +138: test/v3/adaptive_home_test.dart: 真实主页面 Size(1920.0, 1080.0) TV=true 字号=1.0
+00:07 +139: test/v3/adaptive_home_test.dart: 真实主页面 Size(1920.0, 1080.0) TV=true 字号=1.0
+00:07 +140: test/v3/adaptive_home_test.dart: 真实主页面 Size(1920.0, 1080.0) TV=true 字号=1.0
+00:07 +141: test/v3/adaptive_home_test.dart: 真实主页面 Size(1920.0, 1080.0) TV=true 字号=1.0
+00:07 +142: test/v3/adaptive_home_test.dart: 真实主页面 Size(1920.0, 1080.0) TV=true 字号=1.0
+00:07 +143: test/v3/adaptive_home_test.dart: 真实主页面 Size(1920.0, 1080.0) TV=true 字号=1.0
+00:07 +144: test/v3/adaptive_home_test.dart: 真实主页面 Size(1920.0, 1080.0) TV=true 字号=1.0
+00:07 +145: test/v3/adaptive_home_test.dart: 真实主页面 Size(1920.0, 1080.0) TV=true 字号=1.0
+00:07 +146: test/v3/adaptive_home_test.dart: 真实主页面 Size(1920.0, 1080.0) TV=true 字号=1.0
+00:07 +147: test/v3/adaptive_home_test.dart: 真实主页面 Size(960.0, 540.0) TV=true 字号=1.0
+00:07 +148: test/v3/adaptive_home_test.dart: 真实主页面 Size(960.0, 540.0) TV=true 字号=1.0
+00:07 +149: test/v3/adaptive_home_test.dart: 真实主页面 Size(960.0, 540.0) TV=true 字号=1.0
+00:07 +150: test/v3/adaptive_home_test.dart: 真实主页面 Size(960.0, 540.0) TV=true 字号=1.0
+00:07 +151: test/v3/adaptive_home_test.dart: 真实主页面 Size(960.0, 540.0) TV=true 字号=1.0
+00:07 +152: test/v3/adaptive_home_test.dart: 真实主页面 Size(960.0, 540.0) TV=true 字号=1.0
+00:07 +153: test/v3/adaptive_home_test.dart: 真实主页面 Size(960.0, 540.0) TV=true 字号=1.0
+00:07 +154: test/v3/adaptive_home_test.dart: 真实主页面 Size(960.0, 540.0) TV=true 字号=1.0
+00:07 +155: test/v3/adaptive_home_test.dart: 真实主页面 Size(320.0, 740.0) TV=false 字号=2.0
+00:07 +156: test/player/hls_probe_test.dart: HLS probing preserves headers and resolves renditions after redirect
+00:07 +157: test/v3/adaptive_home_test.dart: 频道卡片 XpEpgStatus.empty 按内容收紧，不预留节目单空白
+00:07 +158: test/v3/adaptive_home_test.dart: 频道卡片 XpEpgStatus.empty 按内容收紧，不预留节目单空白
+00:07 +159: test/v3/adaptive_home_test.dart: 频道卡片 XpEpgStatus.empty 按内容收紧，不预留节目单空白
+00:07 +160: test/player/hls_startup_test.dart: redirect base, browser agent and explicit credentials survive
+00:07 +161: test/v3/adaptive_home_test.dart: 频道卡片 XpEpgStatus.stale 按内容收紧，不预留节目单空白
+00:07 +162: test/v3/adaptive_home_test.dart: 频道卡片 XpEpgStatus.stale 按内容收紧，不预留节目单空白
+00:07 +163: test/v3/adaptive_home_test.dart: 频道卡片 XpEpgStatus.stale 按内容收紧，不预留节目单空白
+00:07 +164: test/v3/adaptive_home_test.dart: 频道卡片 XpEpgStatus.stale 按内容收紧，不预留节目单空白
+00:07 +165: test/v3/adaptive_home_test.dart: 频道卡片 XpEpgStatus.stale 按内容收紧，不预留节目单空白
+00:07 +166: test/v3/adaptive_home_test.dart: 频道卡片 XpEpgStatus.stale 按内容收紧，不预留节目单空白
+00:07 +167: test/v3/adaptive_home_test.dart: 频道卡片 XpEpgStatus.stale 按内容收紧，不预留节目单空白
+00:07 +168: test/v3/adaptive_home_test.dart: 频道卡片 XpEpgStatus.stale 按内容收紧，不预留节目单空白
+00:07 +169: test/v3/adaptive_home_test.dart: 频道卡片 XpEpgStatus.stale 按内容收紧，不预留节目单空白
+00:07 +170: test/v3/adaptive_home_test.dart: 频道卡片 XpEpgStatus.stale 按内容收紧，不预留节目单空白
+00:07 +171: test/v3/adaptive_home_test.dart: 频道卡片 XpEpgStatus.stale 按内容收紧，不预留节目单空白
+00:07 +172: test/v3/adaptive_home_test.dart: 频道卡片 XpEpgStatus.stale 按内容收紧，不预留节目单空白
+00:07 +173: test/player/hls_startup_test.dart: slow metadata has a total deadline and original URL remains usable
+00:07 +174: test/v3/adaptive_home_test.dart: 搜索、分组和收藏连接到真实 Provider 接口
+00:07 +175: test/v3/adaptive_home_test.dart: 搜索、分组和收藏连接到真实 Provider 接口
+00:07 +176: test/v3/adaptive_home_test.dart: 搜索、分组和收藏连接到真实 Provider 接口
+00:07 +177: test/v3/adaptive_home_test.dart: 搜索、分组和收藏连接到真实 Provider 接口
+00:07 +178: test/v3/adaptive_home_test.dart: 搜索、分组和收藏连接到真实 Provider 接口
+00:08 +179: test/player/x_player_value_test.dart: default value is uninitialized & idle
+00:08 +180: test/player/x_player_value_test.dart: aspectRatio from size
+00:08 +181: test/player/x_player_value_test.dart: copyWith overrides only given fields
+00:08 +182: test/player/stall_detector_test.dart: StallDetector 位置持续推进 → 永不判定卡死
+00:08 +183: test/player/stall_detector_test.dart: StallDetector 位置冻结:满阈值(8s)才判定卡死,期间不误报
+00:08 +184: test/player/stall_detector_test.dart: StallDetector 缓冲/暂停(eligible=false)期间重置计时,不把正常停滞算作卡死
+00:08 +185: test/player/stall_detector_test.dart: StallDetector 触发一次后计时重置,不会每次采样连环触发
+00:08 +186: test/player/stall_detector_test.dart: StallDetector 位置恢复推进 → 计时清零,之后再冻结要重新满阈值
+00:08 +187: test/player/stall_detector_test.dart: StallDetector 直播卡死实测形态:位置只倒跳不前进 → 照样累计并触发(倒跳不算进展)
+00:08 +188: test/player/stall_detector_test.dart: StallDetector 正常直播抖动:位置前后摆动但周期性向前 → 不误报(生产阈值 6s)
+00:08 +189: test/player/stall_detector_test.dart: StallDetector reset() 后从头建立基线(切台/重连后不残留旧计时)
+00:08 +190: test/player/native_player_backend_test.dart: load acknowledgement is not readiness; headers and format reach ExoPlayer
+00:08 +191: test/player/native_player_backend_test.dart: asynchronous prepare error rejects initialize, allowing engine fallback
+00:08 +192: test/player/native_player_backend_test.dart: prepare errors are not held behind a pending platform load call
+00:08 +193: test/player/native_player_backend_test.dart: native HTTP status remains distinguishable from decoder failure
+00:08 +194: test/player/audio_session_coordinator_test.dart: resume restores an interrupted session without leaking an owner
+00:08 +195: test/player/audio_session_coordinator_test.dart: resume waits for the previous release and new acquisition
+00:08 +196: test/player/audio_session_coordinator_test.dart: concurrent duplicate releases share one deactivation future
+00:08 +197: test/player/audio_session_coordinator_test.dart: a failed deactivation does not poison the next player
+00:08 +198: test/player/audio_session_coordinator_test.dart: concurrent players share one activation until the last release
+00:08 +199: test/player/audio_session_coordinator_test.dart: new activation waits for asynchronous previous deactivation
+00:08 +200: test/player/audio_session_coordinator_test.dart: denied activation does not poison the queue or leak a reference
+00:08 +201: test/recent/recent_util_test.dart: 新频道插入队首
+00:08 +202: test/recent/recent_util_test.dart: 重复频道去重并置顶
+00:08 +203: test/recent/recent_util_test.dart: 容量上限裁剪
+00:08 +204: test/player/playback_source_test.dart: separates headers without changing signed URL bytes
+00:08 +205: test/player/playback_source_test.dart: header precedence is case insensitive and rejects line injection
+00:08 +206: test/player/playback_source_test.dart: format hints and query strings cannot corrupt routing
+00:08 +207: test/player/playback_source_test.dart: Huya defaults respect explicit headers and host boundaries
+00:08 +208: test/player/playback_source_test.dart: rendition selection keeps headers
+00:08 +209: test/player/playback_source_test.dart: source cache and sync retain headers containing commas and colons
+00:08 +210: test/player/playback_source_test.dart: EXTHTTP supports JSON headers and skips malformed optional metadata
+00:08 +211: test/player/playback_source_test.dart: VLC/Kodi directives produce playable URLs rather than comment URLs
+00:08 +212: All tests passed!

@@ -1,0 +1,345 @@
+{
+  "revision": "372ba310eec9fa83525ce6737e3f811b56655f4c",
+  "runs": [
+    {
+      "kind": "ui-pr",
+      "id": 45626502290,
+      "conclusion": "success",
+      "createdAt": "2026-11-25T13:43:32Z",
+      "event": "pull_request",
+      "headBranch": "v3",
+      "headSha": "372ba310eec9fa83525ce6737e3f811b56655f4c",
+      "status": "completed",
+      "updatedAt": "2026-11-25T13:45:27Z",
+      "url": "https://github.com/TNT-Likely/xplayer/actions/runs/45626502290",
+      "workflowName": "Flutter UI regression",
+      "jobs": [
+        {
+          "name": "widgets",
+          "conclusion": "success",
+          "url": "https://github.com/TNT-Likely/xplayer/actions/runs/45626502290/job/139248003801",
+          "steps": [
+            {
+              "name": "Set up job",
+              "conclusion": "success"
+            },
+            {
+              "name": "Run actions/checkout@v4",
+              "conclusion": "success"
+            },
+            {
+              "name": "Run subosito/flutter-action@v2",
+              "conclusion": "success"
+            },
+            {
+              "name": "Run flutter pub get",
+              "conclusion": "success"
+            },
+            {
+              "name": "Main application regressions",
+              "conclusion": "success"
+            },
+            {
+              "name": "Component package boundary",
+              "conclusion": "success"
+            },
+            {
+              "name": "Four viewport component gallery",
+              "conclusion": "success"
+            },
+            {
+              "name": "Post Run subosito/flutter-action@v2",
+              "conclusion": "success"
+            },
+            {
+              "name": "Post Run actions/checkout@v4",
+              "conclusion": "success"
+            },
+            {
+              "name": "Complete job",
+              "conclusion": "success"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "kind": "ui-push",
+      "id": 45626493965,
+      "conclusion": "success",
+      "createdAt": "2026-11-25T13:43:29Z",
+      "event": "push",
+      "headBranch": "v3",
+      "headSha": "372ba310eec9fa83525ce6737e3f811b56655f4c",
+      "status": "completed",
+      "updatedAt": "2026-11-25T13:45:55Z",
+      "url": "https://github.com/TNT-Likely/xplayer/actions/runs/45626493965",
+      "workflowName": "Flutter UI regression",
+      "jobs": [
+        {
+          "name": "widgets",
+          "conclusion": "success",
+          "url": "https://github.com/TNT-Likely/xplayer/actions/runs/45626493965/job/139247977446",
+          "steps": [
+            {
+              "name": "Set up job",
+              "conclusion": "success"
+            },
+            {
+              "name": "Run actions/checkout@v4",
+              "conclusion": "success"
+            },
+            {
+              "name": "Run subosito/flutter-action@v2",
+              "conclusion": "success"
+            },
+            {
+              "name": "Run flutter pub get",
+              "conclusion": "success"
+            },
+            {
+              "name": "Main application regressions",
+              "conclusion": "success"
+            },
+            {
+              "name": "Component package boundary",
+              "conclusion": "success"
+            },
+            {
+              "name": "Four viewport component gallery",
+              "conclusion": "success"
+            },
+            {
+              "name": "Post Run subosito/flutter-action@v2",
+              "conclusion": "success"
+            },
+            {
+              "name": "Post Run actions/checkout@v4",
+              "conclusion": "success"
+            },
+            {
+              "name": "Complete job",
+              "conclusion": "success"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "kind": "windows",
+      "id": 45626571575,
+      "conclusion": "success",
+      "createdAt": "2026-11-25T13:43:58Z",
+      "event": "workflow_dispatch",
+      "headBranch": "v3",
+      "headSha": "372ba310eec9fa83525ce6737e3f811b56655f4c",
+      "status": "completed",
+      "updatedAt": "2026-11-25T13:51:47Z",
+      "url": "https://github.com/TNT-Likely/xplayer/actions/runs/45626571575",
+      "workflowName": "Playback decoder compatibility",
+      "jobs": [
+        {
+          "name": "Independent packages (windows)",
+          "conclusion": "success",
+          "url": "https://github.com/TNT-Likely/xplayer/actions/runs/45626571575/job/139248260596",
+          "steps": [
+            {
+              "name": "Set up job",
+              "conclusion": "success"
+            },
+            {
+              "name": "Run actions/checkout@v4",
+              "conclusion": "success"
+            },
+            {
+              "name": "Run actions/setup-python@v5",
+              "conclusion": "success"
+            },
+            {
+              "name": "Run subosito/flutter-action@v2",
+              "conclusion": "success"
+            },
+            {
+              "name": "Prepare Linux desktop libraries",
+              "conclusion": "skipped"
+            },
+            {
+              "name": "Verify artifact boundaries and deterministic archives",
+              "conclusion": "success"
+            },
+            {
+              "name": "Check player source formatting",
+              "conclusion": "success"
+            },
+            {
+              "name": "Validate packages outside the repository and build a fresh host",
+              "conclusion": "success"
+            },
+            {
+              "name": "Verify actual Apple video and audio output from the external packages",
+              "conclusion": "skipped"
+            },
+            {
+              "name": "Run actions/upload-artifact@v4",
+              "conclusion": "success"
+            },
+            {
+              "name": "Post Run subosito/flutter-action@v2",
+              "conclusion": "success"
+            },
+            {
+              "name": "Post Run actions/setup-python@v5",
+              "conclusion": "success"
+            },
+            {
+              "name": "Post Run actions/checkout@v4",
+              "conclusion": "success"
+            },
+            {
+              "name": "Complete job",
+              "conclusion": "success"
+            }
+          ]
+        },
+        {
+          "name": "decoders (windows-latest)",
+          "conclusion": "success",
+          "url": "https://github.com/TNT-Likely/xplayer/actions/runs/45626571575/job/139248261112",
+          "steps": [
+            {
+              "name": "Set up job",
+              "conclusion": "success"
+            },
+            {
+              "name": "Run actions/checkout@v4",
+              "conclusion": "success"
+            },
+            {
+              "name": "Run actions/setup-python@v5",
+              "conclusion": "success"
+            },
+            {
+              "name": "Run subosito/flutter-action@v2",
+              "conclusion": "success"
+            },
+            {
+              "name": "Install Linux native decoder",
+              "conclusion": "skipped"
+            },
+            {
+              "name": "Run flutter pub get",
+              "conclusion": "success"
+            },
+            {
+              "name": "Cache verified native probe artifacts",
+              "conclusion": "success"
+            },
+            {
+              "name": "Check native build contracts",
+              "conclusion": "success"
+            },
+            {
+              "name": "Install fixture encoder",
+              "conclusion": "success"
+            },
+            {
+              "name": "Generate codec fixtures",
+              "conclusion": "success"
+            },
+            {
+              "name": "Compile the native probe once for isolated per-fixture checks",
+              "conclusion": "success"
+            },
+            {
+              "name": "Verify audio and video decoding",
+              "conclusion": "success"
+            },
+            {
+              "name": "Verify HTTP and HLS playback regressions",
+              "conclusion": "success"
+            },
+            {
+              "name": "Run actions/upload-artifact@v4",
+              "conclusion": "success"
+            },
+            {
+              "name": "Post Cache verified native probe artifacts",
+              "conclusion": "success"
+            },
+            {
+              "name": "Post Run subosito/flutter-action@v2",
+              "conclusion": "success"
+            },
+            {
+              "name": "Post Run actions/setup-python@v5",
+              "conclusion": "success"
+            },
+            {
+              "name": "Post Run actions/checkout@v4",
+              "conclusion": "success"
+            },
+            {
+              "name": "Complete job",
+              "conclusion": "success"
+            }
+          ]
+        },
+        {
+          "name": "application",
+          "conclusion": "success",
+          "url": "https://github.com/TNT-Likely/xplayer/actions/runs/45626571575/job/139248261164",
+          "steps": [
+            {
+              "name": "Set up job",
+              "conclusion": "success"
+            },
+            {
+              "name": "Run actions/checkout@v4",
+              "conclusion": "success"
+            },
+            {
+              "name": "Run subosito/flutter-action@v2",
+              "conclusion": "success"
+            },
+            {
+              "name": "Run flutter pub get",
+              "conclusion": "success"
+            },
+            {
+              "name": "Check host integration",
+              "conclusion": "success"
+            },
+            {
+              "name": "Build Windows native integration",
+              "conclusion": "success"
+            },
+            {
+              "name": "Post Run subosito/flutter-action@v2",
+              "conclusion": "success"
+            },
+            {
+              "name": "Post Run actions/checkout@v4",
+              "conclusion": "success"
+            },
+            {
+              "name": "Complete job",
+              "conclusion": "success"
+            }
+          ]
+        },
+        {
+          "name": "minimum-dependencies",
+          "conclusion": "skipped",
+          "url": "https://github.com/TNT-Likely/xplayer/actions/runs/45626571575/job/139248263869",
+          "steps": []
+        },
+        {
+          "name": "android-device",
+          "conclusion": "skipped",
+          "url": "https://github.com/TNT-Likely/xplayer/actions/runs/45626571575/job/139248263902",
+          "steps": []
+        }
+      ]
+    }
+  ]
+}

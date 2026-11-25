@@ -1,0 +1,4 @@
+
+✅ a fresh host opens without native media or application data
+
+🎉 1 test passed.

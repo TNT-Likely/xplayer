@@ -1,0 +1,129 @@
+Resolving dependencies in `<runner-temp>/<package-staging>`...
+Downloading packages...
+  clock 1.1.2 (1.1.3 available)
+  code_assets 1.2.1 (2.2.0 available)
+  dbus 0.7.15 (0.8.1 available)
+  flutter_lints 2.0.3 (6.0.0 available)
+  hooks 2.0.2 (2.2.0 available)
+  lints 2.1.1 (6.1.0 available)
+  matcher 0.12.19 (0.12.20 available)
+  material_color_utilities 0.13.0 (0.13.1 available)
+  meta 1.17.0 (1.19.0 available)
+  objective_c 9.5.0 (9.6.4 available)
+  package_info_plus 9.0.1 (10.2.2 available)
+  package_info_plus_platform_interface 3.2.1 (4.1.0 available)
+  petitparser 7.0.2 (7.1.0 available)
+  platform 3.1.6 (3.2.0 available)
+  record_use 0.6.0 (1.1.1 available)
+  stack_trace 1.12.1 (1.12.2 available)
+  synchronized 3.4.0+1 (3.6.1+1 available)
+  test_api 0.7.10 (0.7.15 available)
+  vector_math 2.2.0 (2.4.4 available)
+  wakelock_plus 1.5.2 (1.8.2 available)
+  wakelock_plus_platform_interface 1.6.0 (1.7.0 available)
+  web 1.1.1 (1.1.2 available)
+  win32 5.15.0 (6.4.0 available)
+  xml 7.0.1 (7.1.0 available)
+Got dependencies in `<runner-temp>/<package-staging>`!
+24 packages have newer versions incompatible with dependency constraints.
+Try `flutter pub outdated` for more information.
+Publishing libmpv_xplayer 0.1.0-beta.1 to https://pub.dev:
+├── CHANGELOG.md (1 KB)
+├── LICENSE (1 KB)
+├── README.md (8 KB)
+├── THIRD_PARTY_NOTICES.md (2 KB)
+├── UPSTREAM_LICENSE (1 KB)
+├── analysis_options.yaml (<1 KB)
+├── android
+│   ├── build.gradle (2 KB)
+│   ├── settings.gradle (<1 KB)
+│   └── src
+│       └── main
+│           ├── AndroidManifest.xml (<1 KB)
+│           └── java
+│               └── com
+│                   ├── alexmercerind
+│                   │   └── mediakitandroidhelper
+│                   │       └── MediaKitAndroidHelper.java (1 KB)
+│                   └── tntlikely
+│                       └── libmpv_xplayer
+│                           ├── EglCapabilities.java (3 KB)
+│                           └── LibmpvXplayerPlugin.java (2 KB)
+├── darwin
+│   └── Makefile (1 KB)
+├── ios
+│   ├── Classes
+│   │   ├── LibmpvXplayerPlugin.swift (<1 KB)
+│   │   └── Renderer
+│   │       ├── TextureHW.swift (5 KB)
+│   │       ├── common
+│   │       │   ├── MPVHelpers.swift (<1 KB)
+│   │       │   ├── MPVVideoOutParams.swift (1 KB)
+│   │       │   ├── MediaKitVideoPlugin.swift (4 KB)
+│   │       │   ├── ResizableTextureProtocol.swift (<1 KB)
+│   │       │   ├── SafeResizableTexture.swift (<1 KB)
+│   │       │   ├── SwappableObjectManager.swift (2 KB)
+│   │       │   ├── TextureSW.swift (4 KB)
+│   │       │   ├── TextureSWContext.swift (<1 KB)
+│   │       │   ├── UtilsProtocol.swift (<1 KB)
+│   │       │   ├── VideoOutput.swift (5 KB)
+│   │       │   ├── VideoOutputConfiguration.swift (<1 KB)
+│   │       │   ├── VideoOutputManager.swift (1 KB)
+│   │       │   └── Worker.swift (1 KB)
+│   │       └── gles
+│   │           ├── OpenGLESHelpers.swift (4 KB)
+│   │           └── TextureGLESContext.swift (1 KB)
+│   ├── Makefile (2 KB)
+│   ├── build_simulator_audio.py (6 KB)
+│   ├── create_framework_symlinks.sh (1 KB)
+│   └── libmpv_xplayer.podspec (1 KB)
+├── lib
+│   ├── libmpv_xplayer.dart (<1 KB)
+│   └── src
+│       └── android_gpu_capabilities.dart (1 KB)
+├── macos
+│   ├── Classes
+│   │   ├── LibmpvXplayerPlugin.swift (<1 KB)
+│   │   └── Renderer
+│   │       ├── TextureHW.swift (5 KB)
+│   │       ├── Utils.swift (<1 KB)
+│   │       ├── common
+│   │       │   ├── MPVHelpers.swift (<1 KB)
+│   │       │   ├── MPVVideoOutParams.swift (1 KB)
+│   │       │   ├── MediaKitVideoPlugin.swift (4 KB)
+│   │       │   ├── ResizableTextureProtocol.swift (<1 KB)
+│   │       │   ├── SafeResizableTexture.swift (<1 KB)
+│   │       │   ├── SwappableObjectManager.swift (2 KB)
+│   │       │   ├── TextureSW.swift (4 KB)
+│   │       │   ├── TextureSWContext.swift (<1 KB)
+│   │       │   ├── UtilsProtocol.swift (<1 KB)
+│   │       │   ├── VideoOutput.swift (5 KB)
+│   │       │   ├── VideoOutputConfiguration.swift (<1 KB)
+│   │       │   ├── VideoOutputManager.swift (1 KB)
+│   │       │   └── Worker.swift (1 KB)
+│   │       └── gl
+│   │           ├── OpenGLHelpers.swift (6 KB)
+│   │           └── TextureGLContext.swift (<1 KB)
+│   ├── Makefile (2 KB)
+│   ├── create_framework_symlinks.sh (1 KB)
+│   └── libmpv_xplayer.podspec (1 KB)
+├── native_builds.json (3 KB)
+├── pubspec.yaml (<1 KB)
+├── test
+│   ├── android_gpu_capabilities_test.dart (2 KB)
+│   └── native_library_pins_test.dart (3 KB)
+├── tool
+│   └── download_artifact.py (2 KB)
+└── windows
+    ├── CMakeLists.txt (4 KB)
+    ├── download_and_verify.cmake (1 KB)
+    ├── include
+    │   └── libmpv_xplayer
+    │       └── libmpv_xplayer_plugin_c_api.h (<1 KB)
+    └── libmpv_xplayer_plugin_c_api.cpp (<1 KB)
+
+Total compressed archive size: 43 KB.
+Validating package...
+The server may enforce additional checks.
+
+Package has 0 warnings.
