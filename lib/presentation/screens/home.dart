@@ -78,7 +78,7 @@ class _HomeScreenState extends State<HomeScreen> {
   String _label(AppSection section) {
     final l = AppLocalizations.of(context)!;
     return switch (section) {
-      AppSection.home => '首页',
+      AppSection.home => l.home,
       AppSection.channels => l.allChannels,
       AppSection.guide => l.epg,
       AppSection.favorites => l.favorites,
@@ -141,17 +141,20 @@ class _HomeScreenState extends State<HomeScreen> {
   }
 
   Future<void> _chooseSource() async {
+    final l = AppLocalizations.of(context)!;
     final media = context.read<MediaProvider>();
     final id = await showDialog<int>(
       context: context,
       builder: (ctx) => SimpleDialog(
-        title: const Text('选择播放列表'),
+        title: Text(l.selectPlaylist),
         children: [
           SimpleDialogOption(
             onPressed: () => Navigator.pop(ctx, -1),
             child: Padding(
               padding: const EdgeInsets.all(12),
-              child: Text('收藏 · ${media.favoriteChannels.length} 个频道'),
+              child: Text(
+                l.favoritesChannelCount(media.favoriteChannels.length),
+              ),
             ),
           ),
           for (final list in media.playlists)
@@ -207,6 +210,7 @@ class _HomeScreenState extends State<HomeScreen> {
   }
 
   Widget _channelDetail(Channel channel) {
+    final l = AppLocalizations.of(context)!;
     final media = context.watch<MediaProvider>();
     final presentation = MediaPresentation(media, now: _now, allSources: true);
     final programmes = presentation.index
@@ -221,18 +225,21 @@ class _HomeScreenState extends State<HomeScreen> {
         XpChannelIdentity(channel: presentation.channel(channel)),
         const SizedBox(height: 22),
         XpButton(
-          label: '观看频道直播',
+          label: l.watchChannelLive,
           icon: XpSymbol.play,
           onPressed: () => AppActions.play(context, channel),
         ),
         const SizedBox(height: 18),
         Text(
-          '${channel.source.length} 个播放源',
+          l.playbackSourceCount(channel.source.length),
           style: TextStyle(color: XpTheme.of(context).palette.muted),
         ),
         const SizedBox(height: 22),
         if (programmes.isEmpty)
-          const XpNotice(title: '暂无当前节目信息', description: '频道直播不受节目单影响。')
+          XpNotice(
+            title: l.noCurrentProgramme,
+            description: l.channelStillAvailable,
+          )
         else
           ...programmes.map(
             (programme) => Padding(
@@ -252,6 +259,7 @@ class _HomeScreenState extends State<HomeScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final l = AppLocalizations.of(context)!;
     final media = context.watch<MediaProvider>();
     final isTv = context.watch<GlobalProvider>().isTV;
     final p = XpTheme.of(context).palette;
@@ -293,7 +301,7 @@ class _HomeScreenState extends State<HomeScreen> {
                                 child: XpNavigationItem(
                                   key: ValueKey('nav-${section.name}'),
                                   label: section == AppSection.channels
-                                      ? '频道'
+                                      ? l.channelsShort
                                       : _label(section),
                                   icon: _icon(section),
                                   selected: _section == section,
@@ -350,7 +358,7 @@ class _HomeScreenState extends State<HomeScreen> {
                                         label:
                                             !layout.expandedNavigation &&
                                                 section == AppSection.channels
-                                            ? '频道'
+                                            ? l.channelsShort
                                             : _label(section),
                                         icon: _icon(section),
                                         selected: _section == section,
@@ -360,7 +368,7 @@ class _HomeScreenState extends State<HomeScreen> {
                                     ),
                                   const SizedBox(height: 28),
                                   XpNavigationItem(
-                                    label: '播放列表',
+                                    label: l.playlist,
                                     icon: XpSymbol.sources,
                                     collapsed: !layout.expandedNavigation,
                                     onPressed: () => Navigator.pushNamed(
@@ -375,7 +383,7 @@ class _HomeScreenState extends State<HomeScreen> {
                                         left: 14,
                                       ),
                                       child: Text(
-                                        '${media.channels.length} 个频道 · ${isTv ? '遥控模式' : '随时发现，安心观看'}',
+                                        '${l.playlistChannelCount(media.channels.length)} · ${isTv ? l.remoteModeLabel : l.homeDiscoveryLabel}',
                                         style: TextStyle(
                                           color: p.muted,
                                           fontSize: 12,
@@ -429,7 +437,7 @@ class _HomeScreenState extends State<HomeScreen> {
                                 ),
                                 XpIconButton(
                                   icon: XpSymbol.sources,
-                                  label: '管理播放列表',
+                                  label: l.managePlaylists,
                                   onPressed: () => Navigator.pushNamed(
                                     context,
                                     '/playlists',
@@ -437,7 +445,7 @@ class _HomeScreenState extends State<HomeScreen> {
                                 ),
                                 XpIconButton(
                                   icon: XpSymbol.plus,
-                                  label: '添加播放列表',
+                                  label: l.addPlaylist,
                                   onPressed: () =>
                                       AppActions.editPlaylist(context),
                                 ),
@@ -479,35 +487,40 @@ class _HomeScreenState extends State<HomeScreen> {
   }
 
   Widget _empty(MediaProvider media, {bool favorites = false}) {
+    final l = AppLocalizations.of(context)!;
     if (media.isRefreshingChannels && media.channels.isEmpty && !favorites) {
       return XpEmptyState(
-        title: '正在载入频道',
-        description: '正在读取你的播放列表。',
+        title: l.loadingChannels,
+        description: l.loadingPlaylistHint,
         icon: XpSymbol.channels,
         loading: true,
-        secondaryLabel: '管理播放列表',
+        secondaryLabel: l.managePlaylists,
         onSecondary: () => Navigator.pushNamed(context, '/playlists'),
       );
     }
     if (favorites) {
       return XpEmptyState(
-        title: '把喜欢的频道留在这里',
-        description: '点击频道卡片上的收藏按钮，下次更快找到。',
+        title: l.noFavoritesTitle,
+        description: l.noFavoritesHint,
         icon: XpSymbol.heart,
-        actionLabel: '浏览频道',
+        actionLabel: l.browseChannels,
         onAction: () => _select(AppSection.channels),
       );
     }
     final error = media.playlistError(media.currentPlaylistId);
     return XpEmptyState(
-      title: error != null ? '频道列表暂时获取失败' : '添加一个频道来源',
-      description: error != null ? '检查列表地址或网络连接后重试。' : '导入 M3U 地址或本地文件，开始观看。',
+      title: error != null ? l.openPlaylistFailed : l.addChannelSource,
+      description: error != null
+          ? l.openPlaylistFailedHint
+          : l.addChannelSourceHint,
       icon: XpSymbol.sources,
-      actionLabel: error != null ? '重试加载' : '添加播放列表',
+      actionLabel: error != null ? l.retryLoading : l.addPlaylist,
       onAction: error != null
           ? media.refreshChannels
           : () => AppActions.editPlaylist(context),
-      secondaryLabel: !kStoreBuild ? '推荐来源' : '管理播放列表',
+      secondaryLabel: !kStoreBuild
+          ? l.homeRecommendedSources
+          : l.managePlaylists,
       onSecondary: !kStoreBuild
           ? () => showDialog(
               context: context,
@@ -534,6 +547,7 @@ class _HomeScreenState extends State<HomeScreen> {
     onDetails: () => _detail(channel, inline),
   );
   Widget _overview(MediaProvider media, AppLayout layout) {
+    final l = AppLocalizations.of(context)!;
     if (media.channels.isEmpty) return _empty(media);
     final presentation = MediaPresentation(media, now: _now);
     final ids = media.channels.map((c) => c.id).toSet();
@@ -570,7 +584,7 @@ class _HomeScreenState extends State<HomeScreen> {
                     ),
                   ),
                   XpButton(
-                    label: '切换列表',
+                    label: l.switchPlaylist,
                     onPressed: _chooseSource,
                     variant: XpButtonVariant.ghost,
                   ),
@@ -595,17 +609,22 @@ class _HomeScreenState extends State<HomeScreen> {
                 valueListenable: showRecentModule,
                 builder: (_, show, __) => !show || recent.isEmpty
                     ? const SizedBox.shrink()
-                    : _channelRow('最近播放', recent, presentation, layout),
+                    : _channelRow(recent, presentation, layout, isRecent: true),
               ),
               ValueListenableBuilder<bool>(
                 valueListenable: showFavoritesRow,
                 builder: (_, show, __) => !show || favourites.isEmpty
                     ? const SizedBox.shrink()
-                    : _channelRow('收藏频道', favourites, presentation, layout),
+                    : _channelRow(
+                        favourites,
+                        presentation,
+                        layout,
+                        isRecent: false,
+                      ),
               ),
               XpSectionHeading(
-                title: '正在直播',
-                actionLabel: '全部频道',
+                title: l.liveChannels,
+                actionLabel: l.allChannels,
                 onAction: () => _select(AppSection.channels),
               ),
               const SizedBox(height: 16),
@@ -623,60 +642,67 @@ class _HomeScreenState extends State<HomeScreen> {
   }
 
   Widget _channelRow(
-    String title,
     List<Channel> channels,
     MediaPresentation presentation,
-    AppLayout layout,
-  ) => Column(
-    crossAxisAlignment: CrossAxisAlignment.stretch,
-    children: [
-      XpSectionHeading(
-        title: title,
-        actionLabel: title == '最近播放' ? '清空记录' : '全部收藏',
-        onAction: () async {
-          if (title != '最近播放') {
-            _select(AppSection.favorites);
-            return;
-          }
-          final confirmed = await showDialog<bool>(
-            context: context,
-            builder: (ctx) => XpConfirmDialog(
-              title: '清空播放记录？',
-              confirmLabel: '确认清空',
-              child: const Text('这不会影响你的播放列表和收藏。'),
-              onConfirm: () => Navigator.pop(ctx, true),
-              onCancel: () => Navigator.pop(ctx, false),
-            ),
-          );
-          if (confirmed == true) await presentation.media.clearRecent();
-        },
-      ),
-      const SizedBox(height: 16),
-      SingleChildScrollView(
-        key: PageStorageKey('channel-row-$title'),
-        scrollDirection: Axis.horizontal,
-        child: Row(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            for (final channel in channels.take(12))
-              Padding(
-                padding: const EdgeInsets.only(right: 16),
-                child: SizedBox(
-                  width: layout.isTv ? 360 : 270,
-                  child: _card(channel, presentation),
-                ),
+    AppLayout layout, {
+    required bool isRecent,
+  }) {
+    final l = AppLocalizations.of(context)!;
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        XpSectionHeading(
+          title: isRecent ? l.recentlyPlayed : l.favoriteChannels,
+          actionLabel: isRecent ? l.clearHistory : l.allFavorites,
+          onAction: () async {
+            if (!isRecent) {
+              _select(AppSection.favorites);
+              return;
+            }
+            final confirmed = await showDialog<bool>(
+              context: context,
+              builder: (ctx) => XpConfirmDialog(
+                title: l.clearPlayHistoryTitle,
+                confirmLabel: l.confirmClearHistory,
+                child: Text(l.clearHistoryHint),
+                onConfirm: () => Navigator.pop(ctx, true),
+                onCancel: () => Navigator.pop(ctx, false),
               ),
-          ],
+            );
+            if (confirmed == true) await presentation.media.clearRecent();
+          },
         ),
-      ),
-      const SizedBox(height: 20),
-    ],
-  );
+        const SizedBox(height: 16),
+        SingleChildScrollView(
+          key: PageStorageKey(
+            isRecent ? 'channel-row-recent' : 'channel-row-favorites',
+          ),
+          scrollDirection: Axis.horizontal,
+          child: Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              for (final channel in channels.take(12))
+                Padding(
+                  padding: const EdgeInsets.only(right: 16),
+                  child: SizedBox(
+                    width: layout.isTv ? 360 : 270,
+                    child: _card(channel, presentation),
+                  ),
+                ),
+            ],
+          ),
+        ),
+        const SizedBox(height: 20),
+      ],
+    );
+  }
+
   Widget _channels(
     MediaProvider media,
     AppLayout layout, {
     bool favorites = false,
   }) {
+    final l = AppLocalizations.of(context)!;
     final presentation = MediaPresentation(
       media,
       now: _now,
@@ -708,7 +734,7 @@ class _HomeScreenState extends State<HomeScreen> {
                             children: [
                               Expanded(child: Text(media.currentPlaylist.name)),
                               XpButton(
-                                label: '切换列表',
+                                label: l.switchPlaylist,
                                 onPressed: _chooseSource,
                                 variant: XpButtonVariant.ghost,
                               ),
@@ -717,7 +743,9 @@ class _HomeScreenState extends State<HomeScreen> {
                         const SizedBox(height: 12),
                         XpSearchField(
                           controller: favorites ? _favoritesSearch : _search,
-                          hint: favorites ? '搜索收藏频道' : '搜索频道名称、编号或分组',
+                          hint: favorites
+                              ? l.searchFavorites
+                              : l.searchChannelDetails,
                           onChanged: (value) {
                             if (favorites) {
                               setState(() {});
@@ -735,7 +763,7 @@ class _HomeScreenState extends State<HomeScreen> {
                                 Padding(
                                   padding: const EdgeInsets.only(right: 8),
                                   child: XpChip(
-                                    label: '全部',
+                                    label: l.allGroups,
                                     count: media.channels.length,
                                     selected: media.selectedGroup == null,
                                     onPressed: () =>
@@ -761,33 +789,35 @@ class _HomeScreenState extends State<HomeScreen> {
                           runSpacing: 8,
                           crossAxisAlignment: WrapCrossAlignment.center,
                           children: [
-                            Text('${filtered.length} 个频道'),
+                            Text(l.playlistChannelCount(filtered.length)),
                             if (!favorites) ...[
                               XpIconButton(
                                 icon: XpSymbol.sync,
-                                label: '刷新频道',
+                                label: l.refreshChannels,
                                 onPressed: media.isRefreshingChannels
                                     ? null
                                     : media.refreshChannels,
                               ),
                               XpButton(
                                 label: media.isTesting
-                                    ? '取消测速 ${media.testProgressText}'
-                                    : '频道测速',
+                                    ? l.cancelChannelTest(
+                                        media.testProgressText,
+                                      )
+                                    : l.channelTest,
                                 onPressed: media.isTesting
                                     ? media.cancelTest
                                     : () async {
                                         try {
                                           await media.testAllChannels();
                                         } catch (_) {
-                                          showToast('测速失败，请重试');
+                                          showToast(l.channelTestFailed);
                                         }
                                       },
                                 variant: XpButtonVariant.ghost,
                               ),
                               if (media.hasTestResults)
                                 XpChip(
-                                  label: '隐藏不可播放',
+                                  label: l.hideUnavailableChannels,
                                   selected: media.hideUnplayable,
                                   onPressed: () => media.setHideUnplayable(
                                     !media.hideUnplayable,
@@ -795,7 +825,7 @@ class _HomeScreenState extends State<HomeScreen> {
                                 ),
                               XpIconButton(
                                 icon: XpSymbol.settings,
-                                label: '频道显示大小',
+                                label: l.channelDisplaySize,
                                 onPressed: () => showDialog(
                                   context: context,
                                   builder: (_) => const ChannelSizeDialog(),
@@ -805,19 +835,19 @@ class _HomeScreenState extends State<HomeScreen> {
                           ],
                         ),
                         if (media.isRefreshingChannels && !favorites)
-                          const XpNotice(
-                            title: '正在更新频道',
-                            description: '保留当前频道，更新期间仍可观看。',
+                          XpNotice(
+                            title: l.refreshingChannels,
+                            description: l.refreshingChannelsHint,
                             loading: true,
                           ),
                         if (media.playlistError(media.currentPlaylistId) !=
                                 null &&
                             !favorites)
                           XpNotice(
-                            title: '更新失败，原有频道已保留',
-                            description: '稍后可以重试，已有频道仍可使用。',
+                            title: l.playlistUpdateFailed,
+                            description: l.playlistUpdateFailedHint,
                             tone: XpTone.warning,
-                            actionLabel: '重试更新',
+                            actionLabel: l.retryPlaylistUpdate,
                             onAction: media.refreshChannels,
                           ),
                       ],
@@ -826,10 +856,10 @@ class _HomeScreenState extends State<HomeScreen> {
                   if (filtered.isEmpty)
                     SliverToBoxAdapter(
                       child: XpEmptyState(
-                        title: '没有找到匹配的频道',
-                        description: '尝试其他关键词或清除筛选。',
+                        title: l.noMatchingChannels,
+                        description: l.noMatchingChannelsHint,
                         icon: XpSymbol.search,
-                        actionLabel: '清除筛选',
+                        actionLabel: l.clearFilters,
                         onAction: () {
                           if (favorites) {
                             setState(_favoritesSearch.clear);
@@ -866,7 +896,7 @@ class _HomeScreenState extends State<HomeScreen> {
                           alignment: Alignment.centerRight,
                           child: XpIconButton(
                             icon: XpSymbol.close,
-                            label: '关闭节目详情',
+                            label: l.closeProgrammeDetails,
                             onPressed: () => setState(() => _selected = null),
                           ),
                         ),

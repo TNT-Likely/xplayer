@@ -2,6 +2,7 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:permission_handler/permission_handler.dart';
 import 'package:provider/provider.dart';
+import 'package:xplayer/localization/app_localizations.dart';
 import 'package:xplayer/providers/remote_provider.dart';
 import 'package:xplayer/services/remote/remote_protocol.dart';
 import 'package:xplayer_ui/xplayer_ui.dart';
@@ -48,19 +49,20 @@ class _RemoteInputScreenState extends State<RemoteInputScreen> {
   }
 
   void _manual() {
+    final l = AppLocalizations.of(context)!;
     final uri = Uri.tryParse('ws://${_address.text.trim()}');
     if (uri == null ||
         uri.host.isEmpty ||
         !uri.hasPort ||
         uri.port < 1 ||
         uri.port > 65535) {
-      setState(() => _error = '请输入电视显示的 IP 和端口，例如 192.168.1.8:8080。');
+      setState(() => _error = l.remoteManualAddressInvalid);
       return;
     }
     _connect(
       RemoteDeviceInfo(
         id: 'manual-${uri.host}:${uri.port}',
-        name: '手动连接的电视',
+        name: l.remoteManualTv,
         host: uri.host,
         port: uri.port,
       ),
@@ -79,9 +81,10 @@ class _RemoteInputScreenState extends State<RemoteInputScreen> {
     final provider = context.read<RemoteProvider>();
     final sent = await provider.sendText(_text.text);
     if (mounted) {
+      final l = AppLocalizations.of(context)!;
       setState(() {
         _live = sent;
-        _sent = sent ? '文字已发送，后续修改实时同步。' : '尚未连接电视。';
+        _sent = sent ? l.remoteTextSent : l.remoteNotConnected;
       });
     }
   }
@@ -93,23 +96,36 @@ class _RemoteInputScreenState extends State<RemoteInputScreen> {
       _ => command.name,
     };
     final sent = await context.read<RemoteProvider>().sendKey(key);
-    if (mounted) setState(() => _sent = sent ? '已发送：$key' : '连接已断开，请重新连接。');
+    if (mounted) {
+      final l = AppLocalizations.of(context)!;
+      setState(
+        () => _sent = sent ? l.remoteCommandSent(key) : l.remoteReconnectHint,
+      );
+    }
   }
 
   @override
   Widget build(BuildContext context) {
+    final l = AppLocalizations.of(context)!;
     final provider = context.watch<RemoteProvider>();
+    final connectionError = switch (provider.connectionError) {
+      RemoteConnectionError.discoveryFailed => l.remoteDiscoveryFailed,
+      RemoteConnectionError.connectionLost => l.remoteConnectionLost,
+      RemoteConnectionError.connectionFailed => l.remoteConnectionFailed,
+      RemoteConnectionError.sendFailed => l.remoteReconnectHint,
+      null => null,
+    };
     final status = provider.permissionDenied
         ? XpRemoteStatus.permissionDenied
         : provider.isConnected
         ? XpRemoteStatus.connected
         : provider.isDiscovering
         ? XpRemoteStatus.searching
-        : provider.connectionError != null
+        : connectionError != null
         ? XpRemoteStatus.disconnected
         : XpRemoteStatus.notFound;
     return Scaffold(
-      appBar: AppBar(title: const Text('电视遥控')),
+      appBar: AppBar(title: Text(l.televisionRemote)),
       body: SingleChildScrollView(
         padding: const EdgeInsets.all(24),
         child: Center(
@@ -124,12 +140,12 @@ class _RemoteInputScreenState extends State<RemoteInputScreen> {
                   onPermissionHelp: openAppSettings,
                   onRetry: provider.startDiscovery,
                 ),
-                if (provider.connectionError != null)
+                if (connectionError != null)
                   Padding(
                     padding: const EdgeInsets.only(top: 14),
                     child: XpNotice(
-                      title: '连接提示',
-                      description: provider.connectionError!,
+                      title: l.remoteConnectionNotice,
+                      description: connectionError,
                       tone: XpTone.warning,
                     ),
                   ),
@@ -139,8 +155,8 @@ class _RemoteInputScreenState extends State<RemoteInputScreen> {
                     crossAxisAlignment: CrossAxisAlignment.stretch,
                     children: [
                       XpSectionHeading(
-                        title: '附近设备',
-                        actionLabel: '重新搜索',
+                        title: l.nearbyDevices,
+                        actionLabel: l.searchNearbyAgain,
                         onAction: provider.isDiscovering
                             ? null
                             : provider.startDiscovery,
@@ -155,27 +171,27 @@ class _RemoteInputScreenState extends State<RemoteInputScreen> {
                               : () => _connect(device),
                         ),
                       if (provider.isConnecting)
-                        const XpNotice(
-                          title: '正在连接电视',
-                          description: '正在确认连接，请稍候。',
+                        XpNotice(
+                          title: l.connectingToTv,
+                          description: l.connectingToTvHint,
                           loading: true,
                         ),
                       if (provider.isConnected)
                         XpButton(
-                          label: '断开连接',
+                          label: l.remoteDisconnect,
                           onPressed: provider.disconnect,
                           variant: XpButtonVariant.secondary,
                         ),
                       const SizedBox(height: 18),
                       XpTextField(
                         controller: _address,
-                        label: '电视地址（IP:端口）',
+                        label: l.remoteTvAddress,
                         hint: '192.168.1.8:8080',
                         error: _error,
                       ),
                       const SizedBox(height: 12),
                       XpButton(
-                        label: '通过地址连接',
+                        label: l.remoteConnectByAddress,
                         onPressed: provider.isConnecting ? null : _manual,
                         variant: XpButtonVariant.secondary,
                       ),
@@ -189,14 +205,14 @@ class _RemoteInputScreenState extends State<RemoteInputScreen> {
                     children: [
                       XpTextField(
                         controller: _text,
-                        label: '发送文字到电视',
-                        hint: '列表地址、搜索关键词…',
+                        label: l.remoteTextLabel,
+                        hint: l.remoteTextHint,
                         onChanged: _change,
                         enabled: provider.isConnected,
                       ),
                       const SizedBox(height: 16),
                       XpButton(
-                        label: '发送文字',
+                        label: l.remoteSendText,
                         icon: XpSymbol.keyboard,
                         onPressed: provider.isConnected ? _send : null,
                       ),

@@ -1233,15 +1233,18 @@ class _PlayerScreenState extends State<PlayerScreen>
   }
 
   /// 码流变体小节内容:列出 master 清单里的所有变体并标注最高档。
-  List<Widget> _buildVariantRows(Widget Function(String, String) row) {
+  List<Widget> _buildVariantRows(
+    AppLocalizations l,
+    Widget Function(String, String) row,
+  ) {
     final p = _hlsProbe;
-    if (_hlsProbing && p == null) return [row('', '探测中…')];
+    if (_hlsProbing && p == null) return [row('', l.probeInProgress)];
     if (p == null) return [row('', '—')];
-    if (p.notHls) return [row('', '非 HLS(直链)')];
-    if (p.error != null) return [row('', '探测失败: ${p.error}')];
+    if (p.notHls) return [row('', l.probeNonHls)];
+    if (p.error != null) return [row('', l.probeFailed(p.error!))];
     if (!p.isMaster || p.variants.isEmpty) {
       // 单档清单:没有低清档可选 → ABR 不会是模糊主因
-      return [row('', '单档清单(无多码率可选)')];
+      return [row('', l.probeSingleVariant)];
     }
     // master:列出每个变体,标注最高档
     final best = p.best;
@@ -1253,7 +1256,7 @@ class _PlayerScreenState extends State<PlayerScreen>
         v.bitrateLabel,
         if (v.frameRate != null) '${v.frameRate}fps',
       ].join(' · ');
-      rows.add(row(isBest ? '最高 ★' : '', label));
+      rows.add(row(isBest ? l.probeHighestVariant : '', label));
     }
     return rows;
   }
@@ -1356,8 +1359,8 @@ class _PlayerScreenState extends State<PlayerScreen>
                   if (d == null || d == '' || d == -1) return '—';
                   final hw = i['videoHardware'];
                   return hw == true
-                      ? '$d (硬解)'
-                      : (hw == false ? '$d (软解)' : '$d');
+                      ? l.hardwareDecoder(d.toString())
+                      : (hw == false ? l.softwareDecoder(d.toString()) : '$d');
                 }()),
                 row(l.infoPlayState, _playState.name),
                 // 视频
@@ -1375,8 +1378,8 @@ class _PlayerScreenState extends State<PlayerScreen>
                     _backend is MediaKitBackend
                         ? 'libmpv/FFmpeg'
                         : i['ffmpeg'] == true
-                        ? '已启用(当前音轨软解)'
-                        : (_backend is NativePlayerBackend ? '已启用' : '—')),
+                        ? l.audioSoftwareEnabled
+                        : (_backend is NativePlayerBackend ? l.enabled : '—')),
                 // 缓冲/网络(原生引擎)
                 header(l.secNetwork),
                 row(
@@ -1401,8 +1404,8 @@ class _PlayerScreenState extends State<PlayerScreen>
                 row(
                     l.infoHdr,
                     i['isHdr'] == true
-                        ? '是'
-                        : (i['isHdr'] == false ? '否' : '—')),
+                        ? l.yes
+                        : (i['isHdr'] == false ? l.no : '—')),
                 // 恢复/排障
                 header(l.secRecovery),
                 row(l.infoLastError,
@@ -1410,7 +1413,7 @@ class _PlayerScreenState extends State<PlayerScreen>
                 row(l.infoRetries, '$_retryTimes'),
                 // 码流变体(验证是否因 ABR 选了低清档)
                 header(l.secVariants),
-                ..._buildVariantRows(row),
+                ..._buildVariantRows(l, row),
                 const SizedBox(height: 6),
                 Text(l.infoTier2Hint,
                     style: const TextStyle(
@@ -1483,6 +1486,7 @@ class _PlayerScreenState extends State<PlayerScreen>
 
   @override
   Widget build(BuildContext context) {
+    final l = AppLocalizations.of(context)!;
     return PopScope(
       canPop: false,
       onPopInvokedWithResult: (didPop, _) {
@@ -1576,7 +1580,7 @@ class _PlayerScreenState extends State<PlayerScreen>
                 top: MediaQuery.paddingOf(context).top + 12,
                 child: XpIconButton(
                   icon: XpSymbol.back,
-                  label: '返回频道',
+                  label: l.returnToChannels,
                   onPressed: _handleBack,
                 ),
               ),
@@ -1586,7 +1590,7 @@ class _PlayerScreenState extends State<PlayerScreen>
                   top: MediaQuery.paddingOf(context).top + 12,
                   child: XpIconButton(
                     icon: XpSymbol.info,
-                    label: '播放诊断',
+                    label: l.playbackDiagnostics,
                     onPressed: () => _showStreamInfoSheet(context),
                   ),
                 ),

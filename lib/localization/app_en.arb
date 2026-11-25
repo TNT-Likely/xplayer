@@ -232,5 +232,231 @@
   "infoBitrate": "Bitrate",
   "infoAudioCodec": "Audio Codec",
   "infoAudioDecoder": "Audio Decoder",
-  "infoTier2Hint": "Dropped frames / audio path / A-V sync need a later pass (ExoPlayer analytics)"
+  "infoTier2Hint": "Dropped frames / audio path / A-V sync need a later pass (ExoPlayer analytics)",
+  "home": "Home",
+  "channelsShort": "Channels",
+  "playlistChannelCount": "{count, plural, =1{1 channel} other{{count} channels}}",
+  "@playlistChannelCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "favoritesChannelCount": "Favorites · {count, plural, =1{1 channel} other{{count} channels}}",
+  "@favoritesChannelCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "watchChannelLive": "Watch live",
+  "playbackSourceCount": "{count, plural, =1{1 source} other{{count} sources}}",
+  "@playbackSourceCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "noCurrentProgramme": "No current programme information",
+  "channelStillAvailable": "The live channel is still available.",
+  "remoteModeLabel": "Remote control mode",
+  "homeDiscoveryLabel": "Find something to watch",
+  "managePlaylists": "Manage playlists",
+  "loadingChannels": "Loading channels",
+  "loadingPlaylistHint": "Reading your playlist.",
+  "noFavoritesTitle": "Save your favorite channels here",
+  "noFavoritesHint": "Use the favorite button on a channel card to find it faster next time.",
+  "browseChannels": "Browse channels",
+  "openPlaylistFailed": "Unable to load channels",
+  "openPlaylistFailedHint": "Check the playlist URL or your connection and try again.",
+  "addChannelSource": "Add a channel source",
+  "addChannelSourceHint": "Import an M3U URL or a local file to start watching.",
+  "retryLoading": "Retry loading",
+  "homeRecommendedSources": "Recommended sources",
+  "switchPlaylist": "Switch playlist",
+  "favoriteChannels": "Favorite channels",
+  "liveChannels": "Live now",
+  "clearHistory": "Clear history",
+  "allFavorites": "All favorites",
+  "clearPlayHistoryTitle": "Clear playback history?",
+  "confirmClearHistory": "Clear history",
+  "clearHistoryHint": "Your playlists and favorites will be kept.",
+  "searchFavorites": "Search favorite channels",
+  "searchChannelDetails": "Search by name, number or group",
+  "cancelChannelTest": "Stop testing {progress}",
+  "@cancelChannelTest": {
+    "placeholders": {
+      "progress": {
+        "type": "String"
+      }
+    }
+  },
+  "channelTest": "Test channels",
+  "channelTestFailed": "Channel test failed. Try again.",
+  "hideUnavailableChannels": "Hide unavailable channels",
+  "channelDisplaySize": "Channel display size",
+  "refreshingChannels": "Updating channels",
+  "refreshingChannelsHint": "You can keep watching your current channels while they update.",
+  "playlistUpdateFailed": "Update failed. Existing channels were kept",
+  "playlistUpdateFailedHint": "Try again later. Your channels are still available.",
+  "retryPlaylistUpdate": "Retry update",
+  "noMatchingChannels": "No matching channels",
+  "noMatchingChannelsHint": "Try another search term or clear the filters.",
+  "clearFilters": "Clear filters",
+  "closeProgrammeDetails": "Close programme details",
+  "guideDetailsDescription": "Watch live opens this channel’s current broadcast.",
+  "noMatchingProgrammes": "No matching programmes",
+  "watchNamedChannel": "Watch {channel}",
+  "@watchNamedChannel": {
+    "placeholders": {
+      "channel": {
+        "type": "String"
+      }
+    }
+  },
+  "searchGuide": "Search channel schedules",
+  "programmeList": "Programme list",
+  "programmeTimeline": "Timeline",
+  "currentProgrammes": "Now",
+  "guidePreviousHours": "Previous 3 hours",
+  "guideNextHours": "Next 3 hours",
+  "noGuideMatchingChannel": "No matching channels",
+  "noGuideMatchingChannelHint": "Try a different search term or clear the search.",
+  "clearSearch": "Clear search",
+  "previousPage": "Previous page",
+  "nextPage": "Next page",
+  "done": "Done",
+  "settingsPlaybackRecovery": "Playback and recovery",
+  "settingsAppearanceLanguage": "Appearance and language",
+  "settingsPlaylistsGuide": "Playlists and guide",
+  "settingsAutoUpdateChannels": "Update channels on launch",
+  "settingsAutoUpdateGuide": "Update the TV guide on launch",
+  "settingsDevicesSync": "Devices and sync",
+  "phoneRemoteAddress": "Phone remote connection address",
+  "preparingLanService": "Starting the local network service…",
+  "settingsDiagnosticsSystem": "Diagnostics and system",
+  "removePlaylistTitle": "Remove “{playlist}”?",
+  "@removePlaylistTitle": {
+    "placeholders": {
+      "playlist": {
+        "type": "String"
+      }
+    }
+  },
+  "confirmRemovePlaylist": "Remove",
+  "removePlaylistHint": "This removes the playlist and its cached channels. Favorites will be kept.",
+  "removePlaylistFailed": "Unable to remove the playlist. Try again.",
+  "firstPlaylistTitle": "Add your first playlist",
+  "firstPlaylistHint": "Import an M3U URL or local file to organize your channels.",
+  "playlistNameRequired": "Enter a name for the playlist.",
+  "playlistAddressInvalid": "Enter a valid HTTP or HTTPS URL, or choose a local M3U file.",
+  "guideAddressInvalid": "The TV guide URL must start with HTTP or HTTPS.",
+  "duplicatePlaylistName": "A playlist with this name already exists. Choose another name.",
+  "savePlaylistFailed": "Unable to save the playlist. Try again.",
+  "readPlaylistFileFailed": "Unable to read the file. Choose it again.",
+  "playlistAddress": "Playlist URL",
+  "optionalGuideAddress": "TV guide URL (optional)",
+  "optionalGuideAddressHint": "Leave blank to use the guide URL in the M3U header.",
+  "playlistNotSaved": "Playlist could not be saved",
+  "channelHasNoSource": "This channel has no available playback source",
+  "saveFavoriteFailed": "Unable to save the favorite. Try again.",
+  "savedPlaylistReadFailed": "Playlist saved. You can retry loading it from the Playlists page.",
+  "closePlayerPanel": "Close {title}",
+  "@closePlayerPanel": {
+    "placeholders": {
+      "title": {
+        "type": "String"
+      }
+    }
+  },
+  "numberedSource": "Source {index}",
+  "@numberedSource": {
+    "placeholders": {
+      "index": {
+        "type": "int"
+      }
+    }
+  },
+  "returnToChannels": "Back to channels",
+  "playbackDiagnostics": "Playback diagnostics",
+  "remoteManualAddressInvalid": "Enter the IP address and port shown on the TV, for example 192.168.1.8:8080.",
+  "remoteManualTv": "Manually connected TV",
+  "remoteTextSent": "Text sent. Further edits sync as you type.",
+  "remoteNotConnected": "Connect to a TV first.",
+  "remoteCommandSent": "Sent: {key}",
+  "@remoteCommandSent": {
+    "placeholders": {
+      "key": {
+        "type": "String"
+      }
+    }
+  },
+  "remoteReconnectHint": "Disconnected. Connect again.",
+  "televisionRemote": "TV remote",
+  "remoteConnectionNotice": "Connection notice",
+  "nearbyDevices": "Nearby devices",
+  "searchNearbyAgain": "Search again",
+  "connectingToTv": "Connecting to TV",
+  "connectingToTvHint": "Establishing a connection…",
+  "remoteDisconnect": "Disconnect",
+  "remoteTvAddress": "TV address (IP:port)",
+  "remoteConnectByAddress": "Connect by address",
+  "remoteTextLabel": "Send text to TV",
+  "remoteTextHint": "Playlist URL, search terms…",
+  "remoteSendText": "Send text",
+  "remoteDiscoveryFailed": "Unable to find devices. Check local network permissions and your connection.",
+  "remoteConnectionLost": "The connection to the TV was lost.",
+  "remoteConnectionFailed": "Unable to connect. Check that the TV is still on the same network.",
+  "syncPlaylistExists": "Already added",
+  "syncPlaylistMissing": "Not added",
+  "syncFavoriteMissing": "Not favorited",
+  "syncDefaultValue": "Default",
+  "syncProxyNotConfigured": "Not configured",
+  "syncDevicePreview": "Sync preview · {device}",
+  "@syncDevicePreview": {
+    "placeholders": {
+      "device": {
+        "type": "String"
+      }
+    }
+  },
+  "syncReadFailed": "Unable to read the current settings",
+  "syncReadFailedHint": "Your settings are unchanged. Retry now or return later.",
+  "syncReadAgain": "Read again",
+  "syncAddFavorite": "Add to favorites",
+  "probeInProgress": "Checking…",
+  "probeNonHls": "Direct stream (non-HLS)",
+  "probeFailed": "Check failed: {error}",
+  "@probeFailed": {
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "probeSingleVariant": "Single variant (no other bitrates)",
+  "probeHighestVariant": "Highest ★",
+  "hardwareDecoder": "{decoder} (hardware)",
+  "@hardwareDecoder": {
+    "placeholders": {
+      "decoder": {
+        "type": "String"
+      }
+    }
+  },
+  "softwareDecoder": "{decoder} (software)",
+  "@softwareDecoder": {
+    "placeholders": {
+      "decoder": {
+        "type": "String"
+      }
+    }
+  },
+  "audioSoftwareEnabled": "Enabled (current track uses software decoding)",
+  "enabled": "Enabled",
+  "yes": "Yes",
+  "no": "No"
 }

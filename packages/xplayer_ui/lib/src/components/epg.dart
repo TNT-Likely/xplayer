@@ -1,6 +1,7 @@
 import 'dart:math' as math;
 import 'package:flutter/material.dart';
 import '../../foundation.dart';
+import '../localization/ui_strings.dart';
 import 'channel.dart';
 import 'models.dart';
 
@@ -26,13 +27,17 @@ class XpProgrammeBlock extends StatelessWidget {
   final bool stale;
   @override
   Widget build(BuildContext context) {
+    final l = context.xpStrings;
     final theme = XpTheme.of(context), p = theme.palette;
     final isStale = stale || _EpgScope.isStale(context);
     final current = !isStale && programme.isCurrent(now);
+    final timing = programme.hasValidRange
+        ? l.programmeTimeRange(xpTime(programme.start), xpTime(programme.end))
+        : l.programmeTimeUnavailable;
+    final label = l.programmeSemantics(programme.title, timing);
     return Semantics(
         button: onPressed != null,
-        label:
-            '${programme.title}，${programme.hasValidRange ? '${xpTime(programme.start)} 至 ${xpTime(programme.end)}' : '时间信息不可用'}${isStale ? '，过期缓存' : ''}',
+        label: isStale ? l.cachedProgrammeSemantics(label) : label,
         child: Material(
           color: current ? p.raised : p.background,
           shape: RoundedRectangleBorder(
@@ -59,7 +64,7 @@ class XpProgrammeBlock extends StatelessWidget {
                             Text(
                                 programme.hasValidRange
                                     ? '${xpTime(programme.start)} — ${xpTime(programme.end)}'
-                                    : '时间信息不可用',
+                                    : l.programmeTimeUnavailable,
                                 maxLines: 1,
                                 overflow: TextOverflow.ellipsis,
                                 style: TextStyle(
@@ -76,10 +81,10 @@ class XpProgrammeBlock extends StatelessWidget {
                             const SizedBox(height: 5),
                             Text(
                                 isStale
-                                    ? '缓存节目'
+                                    ? l.cachedProgramme
                                     : current
-                                        ? '正在播出'
-                                        : '节目安排',
+                                        ? l.onAir
+                                        : l.scheduledProgramme,
                                 style: TextStyle(
                                     fontSize: theme.smallSize,
                                     color: current ? p.accent : p.muted))
@@ -110,10 +115,11 @@ class XpEpgTimeline extends StatelessWidget {
   final double pixelsPerMinute;
   @override
   Widget build(BuildContext context) {
+    final l = context.xpStrings;
     if (!end.isAfter(start)) {
-      return const XpNotice(
-          title: '时间范围不可用',
-          description: '请选择结束时间晚于开始时间的节目单区间。',
+      return XpNotice(
+          title: l.invalidDateRange,
+          description: l.invalidDateRangeHint,
           tone: XpTone.warning);
     }
     final theme = XpTheme.of(context), p = theme.palette;
@@ -161,7 +167,7 @@ class XpEpgTimeline extends StatelessWidget {
                             Positioned(
                                 left: 16,
                                 top: 15,
-                                child: Text('频道 / CH.',
+                                child: Text(l.channelHeading,
                                     style: TextStyle(
                                         color: p.muted,
                                         fontSize: theme.smallSize))),
@@ -191,12 +197,12 @@ class XpEpgTimeline extends StatelessWidget {
                                       bottom: 12,
                                       child: Row(children: [
                                         Expanded(
-                                            child: Text('暂无节目信息',
+                                            child: Text(l.noProgrammeInfo,
                                                 style: TextStyle(
                                                     color: p.muted,
                                                     fontSize: theme.bodySize))),
                                         XpButton(
-                                            label: '观看频道',
+                                            label: l.watchChannel,
                                             icon: XpSymbol.play,
                                             onPressed: onWatchChannel == null
                                                 ? null
@@ -237,7 +243,7 @@ class XpEpgTimeline extends StatelessWidget {
                                       top: 0,
                                       bottom: 0,
                                       child: Semantics(
-                                          label: '当前时间 ${xpTime(now)}',
+                                          label: l.currentTime(xpTime(now)),
                                           child: Container(
                                               width: 1, color: p.accent))),
                               ])))),
@@ -268,6 +274,7 @@ class XpEpgStateView extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l = context.xpStrings;
     // 有缓存但覆盖区间已结束时，不把它标成可用的当前节目单。
     final effective = status == XpEpgStatus.errorWithCache &&
             now != null &&
@@ -277,30 +284,42 @@ class XpEpgStateView extends StatelessWidget {
         : status;
     if (effective == XpEpgStatus.ready) return child ?? const SizedBox.shrink();
     final (title, body, action) = switch (effective) {
-      XpEpgStatus.loading => ('正在获取节目单', '频道已经就绪，节目单加载期间仍可观看直播。', '先看频道'),
-      XpEpgStatus.unconfigured => (
-          '为频道连接节目单',
-          '这个播放列表还没有关联 XMLTV 地址。',
-          '配置节目单'
+      XpEpgStatus.loading => (
+          l.loadingGuide,
+          l.loadingGuideHint,
+          l.watchWhileLoading
         ),
-      XpEpgStatus.empty => ('这些频道暂时没有节目单', '已获取数据，但没有匹配的节目；频道直播不受影响。', '刷新节目单'),
-      XpEpgStatus.error => ('节目单暂时获取失败', '目前没有可用缓存。可以稍后重试，或先观看频道。', '重新获取'),
+      XpEpgStatus.unconfigured => (
+          l.noGuideConfigured,
+          l.noGuideConfiguredHint,
+          l.configureGuide
+        ),
+      XpEpgStatus.empty => (l.guideEmpty, l.guideEmptyHint, l.refreshGuide),
+      XpEpgStatus.error => (
+          l.guideUnavailable,
+          l.guideUnavailableHint,
+          l.fetchAgain
+        ),
       XpEpgStatus.errorWithCache => (
-          '更新失败，继续显示已有节目单',
+          l.guideUsingCache,
           cachedAt == null
-              ? '保留覆盖当前时段的缓存，节目安排可能变化。'
-              : '缓存于 ${xpDateTime(cachedAt!)}，节目安排可能变化。',
-          '重试更新'
+              ? l.guideCacheHint
+              : l.guideCacheDateHint(
+                  xpDateTime(cachedAt!, locale: l.localeName)),
+          l.retryUpdate
         ),
       XpEpgStatus.stale => (
-          '这份节目单已经过期',
-          '下方保留${cachedAt == null ? '上次' : xpDateTime(cachedAt!)}的缓存供参考，不标记为当前节目。',
-          '更新节目单'
+          l.guideStale,
+          cachedAt == null
+              ? l.guideStaleHint
+              : l.guideStaleDateHint(
+                  xpDateTime(cachedAt!, locale: l.localeName)),
+          l.updateGuide
         ),
       XpEpgStatus.partial => (
-          '$missingCount 个频道暂时没有节目信息',
-          '已匹配的节目正常显示；缺失频道保留播放入口。',
-          '重新匹配'
+          l.guideMissingChannels(missingCount),
+          l.guideMissingChannelsHint,
+          l.matchAgain
         ),
       XpEpgStatus.ready => ('', '', ''),
     };
@@ -334,7 +353,7 @@ class XpEpgStateView extends StatelessWidget {
         // 加载时仍允许独立的观看操作，不把重试按钮重复提交。
         actionLabel: effective == XpEpgStatus.loading ? null : action,
         onAction: callback,
-        secondaryLabel: '浏览频道',
+        secondaryLabel: l.browseChannels,
         onSecondary: onWatch);
   }
 }

@@ -1,0 +1,4 @@
+arb-dir: lib/src/localization
+template-arb-file: xp_ui_en.arb
+output-localization-file: xp_ui_localizations.dart
+output-class: XpUiLocalizations

@@ -717,4 +717,436 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get infoTier2Hint => '丢帧/卡顿/Audio Path/AV 同步等指标需后续(挂 ExoPlayer 分析器)';
+
+  @override
+  String get home => '首页';
+
+  @override
+  String get channelsShort => '频道';
+
+  @override
+  String playlistChannelCount(int count) {
+    return '$count 个频道';
+  }
+
+  @override
+  String favoritesChannelCount(int count) {
+    return '收藏 · $count 个频道';
+  }
+
+  @override
+  String get watchChannelLive => '观看频道直播';
+
+  @override
+  String playbackSourceCount(int count) {
+    return '$count 个播放源';
+  }
+
+  @override
+  String get noCurrentProgramme => '暂无当前节目信息';
+
+  @override
+  String get channelStillAvailable => '频道直播不受节目单影响。';
+
+  @override
+  String get remoteModeLabel => '遥控模式';
+
+  @override
+  String get homeDiscoveryLabel => '随时发现，安心观看';
+
+  @override
+  String get managePlaylists => '管理播放列表';
+
+  @override
+  String get loadingChannels => '正在载入频道';
+
+  @override
+  String get loadingPlaylistHint => '正在读取你的播放列表。';
+
+  @override
+  String get noFavoritesTitle => '把喜欢的频道留在这里';
+
+  @override
+  String get noFavoritesHint => '点击频道卡片上的收藏按钮，下次更快找到。';
+
+  @override
+  String get browseChannels => '浏览频道';
+
+  @override
+  String get openPlaylistFailed => '频道列表暂时获取失败';
+
+  @override
+  String get openPlaylistFailedHint => '检查列表地址或网络连接后重试。';
+
+  @override
+  String get addChannelSource => '添加一个频道来源';
+
+  @override
+  String get addChannelSourceHint => '导入 M3U 地址或本地文件，开始观看。';
+
+  @override
+  String get retryLoading => '重试加载';
+
+  @override
+  String get homeRecommendedSources => '推荐来源';
+
+  @override
+  String get switchPlaylist => '切换列表';
+
+  @override
+  String get favoriteChannels => '收藏频道';
+
+  @override
+  String get liveChannels => '正在直播';
+
+  @override
+  String get clearHistory => '清空记录';
+
+  @override
+  String get allFavorites => '全部收藏';
+
+  @override
+  String get clearPlayHistoryTitle => '清空播放记录？';
+
+  @override
+  String get confirmClearHistory => '确认清空';
+
+  @override
+  String get clearHistoryHint => '这不会影响你的播放列表和收藏。';
+
+  @override
+  String get searchFavorites => '搜索收藏频道';
+
+  @override
+  String get searchChannelDetails => '搜索频道名称、编号或分组';
+
+  @override
+  String cancelChannelTest(String progress) {
+    return '取消测速 $progress';
+  }
+
+  @override
+  String get channelTest => '频道测速';
+
+  @override
+  String get channelTestFailed => '测速失败，请重试';
+
+  @override
+  String get hideUnavailableChannels => '隐藏不可播放';
+
+  @override
+  String get channelDisplaySize => '频道显示大小';
+
+  @override
+  String get refreshingChannels => '正在更新频道';
+
+  @override
+  String get refreshingChannelsHint => '保留当前频道，更新期间仍可观看。';
+
+  @override
+  String get playlistUpdateFailed => '更新失败，原有频道已保留';
+
+  @override
+  String get playlistUpdateFailedHint => '稍后可以重试，已有频道仍可使用。';
+
+  @override
+  String get retryPlaylistUpdate => '重试更新';
+
+  @override
+  String get noMatchingChannels => '没有找到匹配的频道';
+
+  @override
+  String get noMatchingChannelsHint => '尝试其他关键词或清除筛选。';
+
+  @override
+  String get clearFilters => '清除筛选';
+
+  @override
+  String get closeProgrammeDetails => '关闭节目详情';
+
+  @override
+  String get guideDetailsDescription => '播放入口将打开该频道当前直播。';
+
+  @override
+  String get noMatchingProgrammes => '暂无匹配的节目信息';
+
+  @override
+  String watchNamedChannel(String channel) {
+    return '观看 $channel';
+  }
+
+  @override
+  String get searchGuide => '查找频道节目单';
+
+  @override
+  String get programmeList => '节目列表';
+
+  @override
+  String get programmeTimeline => '时间轴';
+
+  @override
+  String get currentProgrammes => '现在';
+
+  @override
+  String get guidePreviousHours => '前 3 小时';
+
+  @override
+  String get guideNextHours => '后 3 小时';
+
+  @override
+  String get noGuideMatchingChannel => '没有匹配的频道';
+
+  @override
+  String get noGuideMatchingChannelHint => '换一个关键词，或清除搜索。';
+
+  @override
+  String get clearSearch => '清除搜索';
+
+  @override
+  String get previousPage => '上一页';
+
+  @override
+  String get nextPage => '下一页';
+
+  @override
+  String get done => '完成';
+
+  @override
+  String get settingsPlaybackRecovery => '播放与恢复';
+
+  @override
+  String get settingsAppearanceLanguage => '界面与语言';
+
+  @override
+  String get settingsPlaylistsGuide => '列表与节目单';
+
+  @override
+  String get settingsAutoUpdateChannels => '启动时更新频道';
+
+  @override
+  String get settingsAutoUpdateGuide => '启动时更新节目单';
+
+  @override
+  String get settingsDevicesSync => '设备与同步';
+
+  @override
+  String get phoneRemoteAddress => '手机遥控连接地址';
+
+  @override
+  String get preparingLanService => '正在准备局域网服务…';
+
+  @override
+  String get settingsDiagnosticsSystem => '诊断与系统';
+
+  @override
+  String removePlaylistTitle(String playlist) {
+    return '移除「$playlist」？';
+  }
+
+  @override
+  String get confirmRemovePlaylist => '确认移除';
+
+  @override
+  String get removePlaylistHint => '将移除这个列表及其频道缓存，已收藏的频道会保留。';
+
+  @override
+  String get removePlaylistFailed => '移除失败，请重试';
+
+  @override
+  String get firstPlaylistTitle => '添加第一个播放列表';
+
+  @override
+  String get firstPlaylistHint => '导入 M3U 地址或本地文件，开始整理你的频道。';
+
+  @override
+  String get playlistNameRequired => '请填写列表名称。';
+
+  @override
+  String get playlistAddressInvalid => '请输入有效的 http / https 地址，或选择本地 M3U 文件。';
+
+  @override
+  String get guideAddressInvalid => '节目单地址需要使用 http 或 https。';
+
+  @override
+  String get duplicatePlaylistName => '已存在同名列表，请使用其他名称。';
+
+  @override
+  String get savePlaylistFailed => '保存失败，请重试。';
+
+  @override
+  String get readPlaylistFileFailed => '无法读取文件，请重新选择。';
+
+  @override
+  String get playlistAddress => '列表地址';
+
+  @override
+  String get optionalGuideAddress => '节目单地址（可选）';
+
+  @override
+  String get optionalGuideAddressHint => '留空时会读取 M3U 文件头中的节目单地址。';
+
+  @override
+  String get playlistNotSaved => '保存未完成';
+
+  @override
+  String get channelHasNoSource => '这个频道没有可用的播放地址';
+
+  @override
+  String get saveFavoriteFailed => '收藏未保存，请重试';
+
+  @override
+  String get savedPlaylistReadFailed => '列表已保存，加载失败时可在列表页重试';
+
+  @override
+  String closePlayerPanel(String title) {
+    return '关闭$title';
+  }
+
+  @override
+  String numberedSource(int index) {
+    return '源$index';
+  }
+
+  @override
+  String get returnToChannels => '返回频道';
+
+  @override
+  String get playbackDiagnostics => '播放诊断';
+
+  @override
+  String get remoteManualAddressInvalid =>
+      '请输入电视显示的 IP 和端口，例如 192.168.1.8:8080。';
+
+  @override
+  String get remoteManualTv => '手动连接的电视';
+
+  @override
+  String get remoteTextSent => '文字已发送，后续修改实时同步。';
+
+  @override
+  String get remoteNotConnected => '尚未连接电视。';
+
+  @override
+  String remoteCommandSent(String key) {
+    return '已发送：$key';
+  }
+
+  @override
+  String get remoteReconnectHint => '连接已断开，请重新连接。';
+
+  @override
+  String get televisionRemote => '电视遥控';
+
+  @override
+  String get remoteConnectionNotice => '连接提示';
+
+  @override
+  String get nearbyDevices => '附近设备';
+
+  @override
+  String get searchNearbyAgain => '重新搜索';
+
+  @override
+  String get connectingToTv => '正在连接电视';
+
+  @override
+  String get connectingToTvHint => '正在确认连接，请稍候。';
+
+  @override
+  String get remoteDisconnect => '断开连接';
+
+  @override
+  String get remoteTvAddress => '电视地址（IP:端口）';
+
+  @override
+  String get remoteConnectByAddress => '通过地址连接';
+
+  @override
+  String get remoteTextLabel => '发送文字到电视';
+
+  @override
+  String get remoteTextHint => '列表地址、搜索关键词…';
+
+  @override
+  String get remoteSendText => '发送文字';
+
+  @override
+  String get remoteDiscoveryFailed => '无法搜索设备，请检查局域网权限与网络。';
+
+  @override
+  String get remoteConnectionLost => '与电视的连接已断开。';
+
+  @override
+  String get remoteConnectionFailed => '连接失败，请确认电视仍在同一网络中。';
+
+  @override
+  String get syncPlaylistExists => '已存在';
+
+  @override
+  String get syncPlaylistMissing => '未添加';
+
+  @override
+  String get syncFavoriteMissing => '未收藏';
+
+  @override
+  String get syncDefaultValue => '默认值';
+
+  @override
+  String get syncProxyNotConfigured => '未配置';
+
+  @override
+  String syncDevicePreview(String device) {
+    return '同步预览 · $device';
+  }
+
+  @override
+  String get syncReadFailed => '读取本机配置失败';
+
+  @override
+  String get syncReadFailedHint => '当前没有写入任何同步变更。可以重试，或返回稍后处理。';
+
+  @override
+  String get syncReadAgain => '重新读取';
+
+  @override
+  String get syncAddFavorite => '添加到收藏';
+
+  @override
+  String get probeInProgress => '探测中…';
+
+  @override
+  String get probeNonHls => '非 HLS(直链)';
+
+  @override
+  String probeFailed(String error) {
+    return '探测失败: $error';
+  }
+
+  @override
+  String get probeSingleVariant => '单档清单(无多码率可选)';
+
+  @override
+  String get probeHighestVariant => '最高 ★';
+
+  @override
+  String hardwareDecoder(String decoder) {
+    return '$decoder (硬解)';
+  }
+
+  @override
+  String softwareDecoder(String decoder) {
+    return '$decoder (软解)';
+  }
+
+  @override
+  String get audioSoftwareEnabled => '已启用(当前音轨软解)';
+
+  @override
+  String get enabled => '已启用';
+
+  @override
+  String get yes => '是';
+
+  @override
+  String get no => '否';
 }

@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import '../../foundation.dart';
+import '../localization/ui_strings.dart';
 import 'models.dart';
 
 class XpChannelIdentity extends StatelessWidget {
@@ -130,7 +131,7 @@ class XpLiveBadge extends StatelessWidget {
           color: XpTheme.of(context).palette.background.withValues(alpha: .86),
           borderRadius: BorderRadius.circular(5),
         ),
-        child: XpBadge(live ? 'LIVE' : '离线',
+        child: XpBadge(live ? 'LIVE' : context.xpStrings.offline,
             dot: live, tone: live ? XpTone.success : XpTone.warning),
       );
 }
@@ -149,7 +150,9 @@ class XpFavouriteButton extends StatelessWidget {
   @override
   Widget build(BuildContext context) => XpIconButton(
         icon: XpSymbol.heart,
-        label: '${value ? '取消收藏' : '收藏'} $channelName',
+        label: value
+            ? context.xpStrings.removeFavorite(channelName)
+            : context.xpStrings.addFavorite(channelName),
         selected: value,
         focusNode: focusNode,
         onPressed: onChanged == null ? null : () => onChanged!(!value),
@@ -203,7 +206,8 @@ class XpChannelCard extends StatelessWidget {
                         Positioned.fill(
                             child: Semantics(
                                 button: true,
-                                label: '观看 ${channel.name}',
+                                label: context.xpStrings
+                                    .watchNamedChannel(channel.name),
                                 child: Material(
                                     color: Colors.transparent,
                                     child: InkWell(
@@ -245,7 +249,8 @@ class XpChannelCard extends StatelessWidget {
                           if (onDetails != null)
                             XpIconButton(
                                 icon: XpSymbol.info,
-                                label: '查看 ${channel.name} 节目',
+                                label: context.xpStrings
+                                    .viewChannelGuide(channel.name),
                                 onPressed: onDetails),
                           XpFavouriteButton(
                               channelName: channel.name,
@@ -256,8 +261,8 @@ class XpChannelCard extends StatelessWidget {
                           const SizedBox(height: 2),
                           Text(
                               epgStatus == XpEpgStatus.stale
-                                  ? '节目单已过期'
-                                  : '暂无节目单',
+                                  ? context.xpStrings.guideExpired
+                                  : context.xpStrings.noGuide,
                               maxLines: 1,
                               overflow: TextOverflow.ellipsis,
                               style: TextStyle(
@@ -268,7 +273,8 @@ class XpChannelCard extends StatelessWidget {
                             const SizedBox(height: 12),
                             XpProgress(
                                 value: programme.progressAt(now)!,
-                                label: '${programme.title} 节目进度')
+                                label: context.xpStrings
+                                    .programmeProgress(programme.title))
                           ],
                           const SizedBox(height: 9),
                           Text(
@@ -436,21 +442,21 @@ class _XpFeaturedChannelState extends State<XpFeaturedChannel> {
                             programme?.subtitle ??
                                 (programme == null
                                     ? (epgStatus == XpEpgStatus.stale
-                                        ? '节目单已过期 · 频道仍可播放'
-                                        : '暂无节目单 · 频道仍可播放')
+                                        ? context.xpStrings.featuredGuideExpired
+                                        : context.xpStrings.featuredNoGuide)
                                     : ''),
                             style: TextStyle(
                                 color: p.muted, fontSize: theme.bodySize)),
                         const SizedBox(height: 22),
                         Wrap(spacing: 10, runSpacing: 10, children: [
                           XpButton(
-                              label: '立即观看',
+                              label: context.xpStrings.watchNow,
                               focusNode: _play,
                               icon: XpSymbol.play,
                               onPressed: onPlay),
                           if (onDetails != null && programme != null)
                             XpButton(
-                                label: '节目详情',
+                                label: context.xpStrings.programmeDetails,
                                 focusNode: _details,
                                 onPressed: onDetails,
                                 variant: XpButtonVariant.ghost)

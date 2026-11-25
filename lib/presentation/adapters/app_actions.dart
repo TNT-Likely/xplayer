@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:xplayer/data/models/channel_model.dart';
 import 'package:xplayer/data/models/playlist_model.dart';
+import 'package:xplayer/localization/app_localizations.dart';
 import 'package:xplayer/presentation/screens/player.dart';
 import 'package:xplayer/presentation/widgets/playlist_dialog.dart';
 import 'package:xplayer/providers/media_provider.dart';
@@ -11,7 +12,7 @@ import 'package:xplayer/utils/toast.dart';
 abstract final class AppActions {
   static Future<void> play(BuildContext context, Channel channel) async {
     if (channel.source.isEmpty) {
-      showToast('这个频道没有可用的播放地址');
+      showToast(AppLocalizations.of(context)!.channelHasNoSource);
       return;
     }
     final media = context.read<MediaProvider>();
@@ -26,10 +27,11 @@ abstract final class AppActions {
   }
 
   static Future<void> favorite(BuildContext context, Channel channel) async {
+    final l = AppLocalizations.of(context)!;
     try {
       await context.read<MediaProvider>().toggleFavorite(channel);
     } catch (_) {
-      showToast('收藏未保存，请重试');
+      showToast(l.saveFavoriteFailed);
     }
   }
 
@@ -37,6 +39,7 @@ abstract final class AppActions {
     BuildContext context, {
     Playlist? playlist,
   }) async {
+    final l = AppLocalizations.of(context)!;
     final media = context.read<MediaProvider>();
     Playlist? saved;
     await showDialog<void>(
@@ -55,7 +58,7 @@ abstract final class AppActions {
       }
       await media.refreshProgrammes();
     } catch (_) {
-      showToast('列表已保存，加载失败时可在列表页重试');
+      showToast(l.savedPlaylistReadFailed);
     }
   }
 }

@@ -55,6 +55,7 @@ class _PlaylistDialogState extends State<PlaylistDialog> {
 
   Future<void> _save() async {
     if (_saving) return;
+    final l = AppLocalizations.of(context)!;
     final name = _name.text.trim(),
         url = _url.text.trim(),
         epg = _epg.text.trim();
@@ -64,10 +65,10 @@ class _PlaylistDialogState extends State<PlaylistDialog> {
         (epg.isNotEmpty && !_http(epg))) {
       setState(
         () => _error = name.isEmpty
-            ? '请填写列表名称。'
+            ? l.playlistNameRequired
             : (!_http(url) && !local)
-            ? '请输入有效的 http / https 地址，或选择本地 M3U 文件。'
-            : '节目单地址需要使用 http 或 https。',
+            ? l.playlistAddressInvalid
+            : l.guideAddressInvalid,
       );
       return;
     }
@@ -80,7 +81,7 @@ class _PlaylistDialogState extends State<PlaylistDialog> {
       if (existing.any(
         (p) => p.name.trim() == name && p.id != widget.initialPlaylist?.id,
       )) {
-        throw StateError('已存在同名列表，请使用其他名称。');
+        throw StateError(l.duplicatePlaylistName);
       }
       final value = Playlist(
         id: widget.initialPlaylist?.id,
@@ -102,7 +103,9 @@ class _PlaylistDialogState extends State<PlaylistDialog> {
     } catch (error) {
       if (mounted) {
         setState(
-          () => _error = error is StateError ? error.message : '保存失败，请重试。',
+          () => _error = error is StateError
+              ? error.message
+              : l.savePlaylistFailed,
         );
       }
     } finally {
@@ -111,6 +114,7 @@ class _PlaylistDialogState extends State<PlaylistDialog> {
   }
 
   Future<void> _pick() async {
+    final l = AppLocalizations.of(context)!;
     try {
       final result = await FilePicker.platform.pickFiles(
         type: FileType.custom,
@@ -139,7 +143,7 @@ class _PlaylistDialogState extends State<PlaylistDialog> {
         });
       }
     } catch (_) {
-      if (mounted) setState(() => _error = '无法读取文件，请重新选择。');
+      if (mounted) setState(() => _error = l.readPlaylistFileFailed);
     }
   }
 
@@ -192,7 +196,7 @@ class _PlaylistDialogState extends State<PlaylistDialog> {
                 XpTextField(
                   key: const Key('playlist-url'),
                   controller: _url,
-                  label: '列表地址',
+                  label: l.playlistAddress,
                   hint: 'https://example.com/live.m3u',
                   keyboardType: TextInputType.url,
                   enabled: !_saving,
@@ -210,9 +214,9 @@ class _PlaylistDialogState extends State<PlaylistDialog> {
                 XpTextField(
                   key: const Key('playlist-epg'),
                   controller: _epg,
-                  label: '节目单地址（可选）',
+                  label: l.optionalGuideAddress,
                   hint: 'XMLTV / XMLTV.gz',
-                  helper: '留空时会读取 M3U 文件头中的节目单地址。',
+                  helper: l.optionalGuideAddressHint,
                   keyboardType: TextInputType.url,
                   enabled: !_saving,
                 ),
@@ -221,7 +225,7 @@ class _PlaylistDialogState extends State<PlaylistDialog> {
                 Padding(
                   padding: const EdgeInsets.only(top: 16),
                   child: XpNotice(
-                    title: '保存未完成',
+                    title: l.playlistNotSaved,
                     description: _error!,
                     tone: XpTone.error,
                   ),

@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import '../../foundation.dart';
+import '../localization/ui_strings.dart';
 import 'channel.dart';
 import 'models.dart';
 
@@ -28,6 +29,7 @@ class XpPlayerStatusView extends StatelessWidget {
   final FocusNode? retryFocusNode;
   @override
   Widget build(BuildContext context) {
+    final l = context.xpStrings;
     if (phase == XpPlaybackPhase.playing || phase == XpPlaybackPhase.paused) {
       return const SizedBox.shrink();
     }
@@ -42,8 +44,9 @@ class XpPlayerStatusView extends StatelessWidget {
               value: theme.reduceMotion ? .75 : null,
               strokeWidth: 2.5,
               color: Colors.white,
-              semanticsLabel:
-                  phase == XpPlaybackPhase.buffering ? '正在缓冲' : '正在连接频道',
+              semanticsLabel: phase == XpPlaybackPhase.buffering
+                  ? l.buffering
+                  : l.connectingToChannel,
             ),
           ),
         ),
@@ -51,21 +54,24 @@ class XpPlayerStatusView extends StatelessWidget {
     }
     final (title, copy, label, icon) = switch (phase) {
       XpPlaybackPhase.error => (
-          '暂时无法播放',
-          detail ?? (onSwitchSource == null ? '请重试，或切换其他频道。' : '请重试，或更换播放来源。'),
-          '重试播放',
+          l.playbackUnavailable,
+          detail ??
+              (onSwitchSource == null
+                  ? l.retryOrSwitchChannel
+                  : l.retryOrSwitchSource),
+          l.retryPlayback,
           XpSymbol.info
         ),
       XpPlaybackPhase.unsupported => (
-          '当前设备无法播放这个格式',
-          detail ?? '可以尝试兼容模式，或换一个源。',
-          '尝试兼容模式',
+          l.unsupportedFormat,
+          detail ?? l.tryCompatibilityOrSource,
+          l.tryCompatibility,
           XpSymbol.info
         ),
       XpPlaybackPhase.audioOnly => (
-          paused ? '音频已暂停' : '这是一个音频频道',
+          paused ? l.audioPaused : l.audioChannel,
           channelName,
-          paused ? '继续音频' : '暂停音频',
+          paused ? l.resumeAudio : l.pauseAudio,
           XpSymbol.volume
         ),
       _ => ('', '', '', XpSymbol.info),
@@ -109,12 +115,12 @@ class XpPlayerStatusView extends StatelessWidget {
                         onPressed: callback),
                   if (onSwitchSource != null)
                     XpButton(
-                        label: '切换来源',
+                        label: l.switchSource,
                         onPressed: onSwitchSource,
                         variant: XpButtonVariant.secondary),
                   if (onSwitchChannel != null)
                     XpButton(
-                        label: '切换频道',
+                        label: l.switchChannel,
                         onPressed: onSwitchChannel,
                         variant: onSwitchSource == null
                             ? XpButtonVariant.secondary
@@ -153,41 +159,46 @@ class XpPlayerControls extends StatelessWidget {
       onSleep;
   final String? qualityLabel, audioLabel;
   @override
-  Widget build(BuildContext context) => Wrap(
-          spacing: 4,
-          runSpacing: 8,
-          crossAxisAlignment: WrapCrossAlignment.center,
-          children: [
+  Widget build(BuildContext context) {
+    final l = context.xpStrings;
+    return Wrap(
+        spacing: 4,
+        runSpacing: 8,
+        crossAxisAlignment: WrapCrossAlignment.center,
+        children: [
+          XpIconButton(
+              icon: paused ? XpSymbol.play : XpSymbol.pause,
+              label: paused ? l.resumePlayback : l.pausePlayback,
+              onPressed: onTogglePause),
+          if (onVolume != null)
             XpIconButton(
-                icon: paused ? XpSymbol.play : XpSymbol.pause,
-                label: paused ? '继续播放' : '暂停播放',
-                onPressed: onTogglePause),
-            if (onVolume != null)
-              XpIconButton(
-                  icon: XpSymbol.volume, label: '播放音量', onPressed: onVolume),
-            if (live) const XpLiveBadge(),
-            if (qualityLabel != null && onQuality != null)
-              XpButton(
-                  label: qualityLabel!,
-                  onPressed: onQuality,
-                  variant: XpButtonVariant.ghost),
-            if (audioLabel != null && onAudio != null)
-              XpButton(
-                  label: audioLabel!,
-                  onPressed: onAudio,
-                  variant: XpButtonVariant.ghost),
-            if (onSleep != null)
-              XpIconButton(
-                  icon: XpSymbol.clock, label: '睡眠定时', onPressed: onSleep),
-            if (onChannels != null)
-              XpIconButton(
-                  icon: XpSymbol.channels,
-                  label: '切换频道',
-                  onPressed: onChannels),
-            if (onFullscreen != null)
-              XpIconButton(
-                  icon: XpSymbol.full, label: '全屏播放', onPressed: onFullscreen),
-          ]);
+                icon: XpSymbol.volume, label: l.volume, onPressed: onVolume),
+          if (live) const XpLiveBadge(),
+          if (qualityLabel != null && onQuality != null)
+            XpButton(
+                label: qualityLabel!,
+                onPressed: onQuality,
+                variant: XpButtonVariant.ghost),
+          if (audioLabel != null && onAudio != null)
+            XpButton(
+                label: audioLabel!,
+                onPressed: onAudio,
+                variant: XpButtonVariant.ghost),
+          if (onSleep != null)
+            XpIconButton(
+                icon: XpSymbol.clock, label: l.sleepTimer, onPressed: onSleep),
+          if (onChannels != null)
+            XpIconButton(
+                icon: XpSymbol.channels,
+                label: l.switchChannel,
+                onPressed: onChannels),
+          if (onFullscreen != null)
+            XpIconButton(
+                icon: XpSymbol.full,
+                label: l.fullScreen,
+                onPressed: onFullscreen),
+        ]);
+  }
 }
 
 class XpMiniPlayer extends StatelessWidget {
@@ -206,6 +217,7 @@ class XpMiniPlayer extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final theme = XpTheme.of(context), p = theme.palette;
+    final l = context.xpStrings;
     return LayoutBuilder(
         builder: (context, box) => XpSurface(
             padding: const EdgeInsets.all(8),
@@ -214,7 +226,7 @@ class XpMiniPlayer extends StatelessWidget {
               Expanded(
                   child: Semantics(
                       button: true,
-                      label: '展开 ${channel.name} 播放器',
+                      label: l.expandPlayer(channel.name),
                       child: InkWell(
                           onTap: onRestore,
                           borderRadius: BorderRadius.circular(8),
@@ -257,10 +269,12 @@ class XpMiniPlayer extends StatelessWidget {
                               ]))))),
               XpIconButton(
                   icon: paused ? XpSymbol.play : XpSymbol.pause,
-                  label: paused ? '继续播放' : '暂停播放',
+                  label: paused ? l.resumePlayback : l.pausePlayback,
                   onPressed: onTogglePause),
               XpIconButton(
-                  icon: XpSymbol.close, label: '关闭迷你播放器', onPressed: onClose),
+                  icon: XpSymbol.close,
+                  label: l.closeMiniPlayer,
+                  onPressed: onClose),
             ])));
   }
 }

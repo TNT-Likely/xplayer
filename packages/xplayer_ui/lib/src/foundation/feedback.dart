@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+
+import '../localization/ui_strings.dart';
 import 'controls.dart';
 import 'icons.dart';
 import 'theme.dart';
@@ -35,15 +37,15 @@ class XpBadge extends StatelessWidget {
 }
 
 class XpProgress extends StatelessWidget {
-  const XpProgress({super.key, required this.value, this.label = '进度'});
+  const XpProgress({super.key, required this.value, this.label});
   final double value;
-  final String label;
+  final String? label;
   @override
   Widget build(BuildContext context) {
     final p = XpTheme.of(context).palette;
     final safe = value.isFinite ? value.clamp(0.0, 1.0) : 0.0;
     return Semantics(
-        label: label,
+        label: label ?? context.xpStrings.progress,
         value: '${(safe * 100).round()}%',
         child: ClipRRect(
           borderRadius: BorderRadius.circular(2),
@@ -242,9 +244,10 @@ class XpConfirmDialog extends StatelessWidget {
       required this.child,
       required this.onConfirm,
       required this.onCancel,
-      this.confirmLabel = '确认',
+      this.confirmLabel,
       this.loading = false});
-  final String title, confirmLabel;
+  final String title;
+  final String? confirmLabel;
   final Widget child;
   final VoidCallback? onConfirm;
   final VoidCallback onCancel;
@@ -252,6 +255,7 @@ class XpConfirmDialog extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final theme = XpTheme.of(context), p = theme.palette;
+    final l = context.xpStrings;
     return Dialog(
       backgroundColor: p.surface,
       shape: RoundedRectangleBorder(
@@ -271,7 +275,7 @@ class XpConfirmDialog extends StatelessWidget {
                               style: TextStyle(fontSize: theme.titleSize))),
                       XpIconButton(
                           icon: XpSymbol.close,
-                          label: '关闭弹窗',
+                          label: l.closeDialog,
                           onPressed: loading ? null : onCancel)
                     ]),
                     const SizedBox(height: 16),
@@ -279,11 +283,11 @@ class XpConfirmDialog extends StatelessWidget {
                     const SizedBox(height: 24),
                     Wrap(spacing: 12, runSpacing: 12, children: [
                       XpButton(
-                          label: confirmLabel,
+                          label: confirmLabel ?? l.confirm,
                           onPressed: onConfirm,
                           loading: loading),
                       XpButton(
-                          label: '取消',
+                          label: l.cancel,
                           onPressed: loading ? null : onCancel,
                           variant: XpButtonVariant.secondary)
                     ]),

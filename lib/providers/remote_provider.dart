@@ -12,6 +12,13 @@ import '../services/remote/remote_protocol.dart';
 import '../services/remote/remote_server.dart';
 import 'package:xplayer/shared/logger.dart';
 
+enum RemoteConnectionError {
+  discoveryFailed,
+  connectionLost,
+  connectionFailed,
+  sendFailed,
+}
+
 class RemoteProvider with ChangeNotifier {
   void _log(String message) {
     AppLogger.log('[Remote] $message');
@@ -59,7 +66,7 @@ class RemoteProvider with ChangeNotifier {
   bool _discovering = false;
   bool _permissionDenied = false;
   bool _connecting = false;
-  String? _connectionError;
+  RemoteConnectionError? _connectionError;
   Timer? _discoveryTimer;
   StreamSubscription? _socketSub;
   int _connectionAttempt = 0;
@@ -67,7 +74,7 @@ class RemoteProvider with ChangeNotifier {
   bool get isDiscovering => _discovering;
   bool get permissionDenied => _permissionDenied;
   bool get isConnecting => _connecting;
-  String? get connectionError => _connectionError;
+  RemoteConnectionError? get connectionError => _connectionError;
   void _notify() {
     if (!_disposed) notifyListeners();
   }
@@ -91,7 +98,7 @@ class RemoteProvider with ChangeNotifier {
       });
     } catch (_) {
       _discovering = false;
-      _connectionError = '无法搜索设备，请检查局域网权限与网络。';
+      _connectionError = RemoteConnectionError.discoveryFailed;
       _notify();
     }
   }
@@ -233,7 +240,7 @@ class RemoteProvider with ChangeNotifier {
         if (_channel != socket) return;
         _channel = null;
         _current = null;
-        _connectionError = '与电视的连接已断开。';
+        _connectionError = RemoteConnectionError.connectionLost;
         _notify();
       }
 
@@ -244,8 +251,9 @@ class RemoteProvider with ChangeNotifier {
         cancelOnError: true,
       );
     } catch (_) {
-      if (attempt == _connectionAttempt)
-        _connectionError = '连接失败，请确认电视仍在同一网络中。';
+      if (attempt == _connectionAttempt) {
+        _connectionError = RemoteConnectionError.connectionFailed;
+      }
     } finally {
       if (attempt == _connectionAttempt) {
         _connecting = false;
@@ -277,7 +285,7 @@ class RemoteProvider with ChangeNotifier {
       return true;
     } catch (_) {
       await disconnect();
-      _connectionError = '连接已断开，请重新连接。';
+      _connectionError = RemoteConnectionError.sendFailed;
       _notify();
       return false;
     }
@@ -291,7 +299,7 @@ class RemoteProvider with ChangeNotifier {
       return true;
     } catch (_) {
       await disconnect();
-      _connectionError = '连接已断开，请重新连接。';
+      _connectionError = RemoteConnectionError.sendFailed;
       _notify();
       return false;
     }

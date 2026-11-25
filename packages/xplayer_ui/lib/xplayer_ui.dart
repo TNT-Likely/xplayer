@@ -3,3 +3,4 @@ library;
 
 export 'foundation.dart';
 export 'media.dart';
+export 'src/localization/xp_ui_localizations.dart' show XpUiLocalizations;

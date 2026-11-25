@@ -86,26 +86,26 @@ class _LanSyncPreviewScreenState extends State<LanSyncPreviewScreen> {
     }
   }
 
-  Future<Map<String, Object>> _localValues() async {
+  Future<Map<String, Object?>> _localValues() async {
     final media = context.read<MediaProvider>();
     final prefs = await SharedPreferences.getInstance();
     return {
       for (final p in widget.bundle.playlists)
-        'playlist:${p.url}': media.playlists.any((l) => l.url == p.url)
-            ? '已存在'
-            : '未添加',
+        'playlist:${p.url}': media.playlists.any((l) => l.url == p.url),
       for (final f in widget.bundle.favorites)
-        'favorite:${f['id']}':
-            media.favoriteChannels.any((c) => c.id == f['id']) ? '已收藏' : '未收藏',
+        'favorite:${f['id']}': media.favoriteChannels.any(
+          (c) => c.id == f['id'],
+        ),
       for (final key in widget.bundle.settings.keys)
-        'setting:$key': prefs.get(key)?.toString() ?? '默认值',
-      'proxy': prefs.getString('update_proxy') ?? '未配置',
+        'setting:$key': prefs.get(key)?.toString(),
+      'proxy': prefs.getString('update_proxy'),
     };
   }
 
-  late Future<Map<String, Object>> _local = _localValues();
+  late Future<Map<String, Object?>> _local = _localValues();
   @override
   Widget build(BuildContext context) {
+    final l = AppLocalizations.of(context)!;
     final b = widget.bundle;
     final selection = <String>{
       for (final url in _playlistUrls) 'playlist:$url',
@@ -116,15 +116,15 @@ class _LanSyncPreviewScreenState extends State<LanSyncPreviewScreen> {
     return PopScope(
       canPop: !_applying,
       child: Scaffold(
-        appBar: AppBar(title: Text('同步预览 · ${b.deviceName}')),
-        body: FutureBuilder<Map<String, Object>>(
+        appBar: AppBar(title: Text(l.syncDevicePreview(b.deviceName))),
+        body: FutureBuilder<Map<String, Object?>>(
           future: _local,
           builder: (context, snapshot) {
             if (snapshot.hasError) {
               return XpEmptyState(
-                title: '读取本机配置失败',
-                description: '当前没有写入任何同步变更。可以重试，或返回稍后处理。',
-                actionLabel: '重新读取',
+                title: l.syncReadFailed,
+                description: l.syncReadFailedHint,
+                actionLabel: l.syncReadAgain,
                 onAction: () => setState(() => _local = _localValues()),
               );
             }
@@ -137,28 +137,33 @@ class _LanSyncPreviewScreenState extends State<LanSyncPreviewScreen> {
                 XpSyncField(
                   id: 'playlist:${p.url}',
                   label: p.name,
-                  local: '${local['playlist:${p.url}']}',
+                  local: local['playlist:${p.url}'] == true
+                      ? l.syncPlaylistExists
+                      : l.syncPlaylistMissing,
                   remote: p.url,
                 ),
               for (final f in b.favorites)
                 XpSyncField(
                   id: 'favorite:${f['id']}',
                   label: f['name'] as String? ?? '${f['id']}',
-                  local: '${local['favorite:${f['id']}']}',
-                  remote: '添加到收藏',
+                  local: local['favorite:${f['id']}'] == true
+                      ? l.favorited
+                      : l.syncFavoriteMissing,
+                  remote: l.syncAddFavorite,
                 ),
               if (b.proxy != null)
                 XpSyncField(
                   id: 'proxy',
-                  label: '网络代理',
-                  local: '${local['proxy']}',
+                  label: l.updateProxy,
+                  local: local['proxy']?.toString() ?? l.syncProxyNotConfigured,
                   remote: b.proxy!.hostPort,
                 ),
               for (final key in b.settings.keys)
                 XpSyncField(
                   id: 'setting:$key',
                   label: key,
-                  local: '${local['setting:$key']}',
+                  local:
+                      local['setting:$key']?.toString() ?? l.syncDefaultValue,
                   remote: '${b.settings[key]}',
                 ),
             ];

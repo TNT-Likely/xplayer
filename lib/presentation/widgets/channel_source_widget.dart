@@ -35,7 +35,7 @@ class _ChannelSourceWidgetState extends State<ChannelSourceWidget> {
     // title 不含频道 id,或去掉 id 后为空(title 本身就等于频道 id / title 为空)
     // → 回退为「源 N」,避免源名字空白
     if (!hasId || modifiedTitle.isEmpty) {
-      return '${AppLocalizations.of(context)!.source}${index + 1}';
+      return AppLocalizations.of(context)!.numberedSource(index + 1);
     }
     return modifiedTitle;
   }

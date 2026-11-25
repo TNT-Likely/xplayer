@@ -82,11 +82,12 @@ class _SettingsScreenState extends State<SettingsScreen> {
       if (await launchUrl(uri, mode: LaunchMode.externalApplication)) return;
     } catch (_) {}
     if (!mounted) return;
+    final l = AppLocalizations.of(context)!;
     showDialog(
       context: context,
       builder: (ctx) => XpConfirmDialog(
         title: 'GitHub',
-        confirmLabel: '完成',
+        confirmLabel: l.done,
         onConfirm: () => Navigator.pop(ctx),
         onCancel: () => Navigator.pop(ctx),
         child: Column(
@@ -114,7 +115,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
     return LayoutBuilder(
       builder: (context, box) {
         final groups = [
-          _group('播放与恢复', [
+          _group(l.settingsPlaybackRecovery, [
             _toggle(
               l.miniPlayerOnExit,
               miniPlayerOnExit,
@@ -143,7 +144,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
               ),
             ],
           ]),
-          _group('界面与语言', [
+          _group(l.settingsAppearanceLanguage, [
             _toggle(l.showRecentOnHome, showRecentModule, setShowRecentModule),
             _toggle(
               l.showFavoritesOnHome,
@@ -192,14 +193,14 @@ class _SettingsScreenState extends State<SettingsScreen> {
               ),
             ),
           ]),
-          _group('列表与节目单', [
+          _group(l.settingsPlaylistsGuide, [
             XpToggleTile(
-              title: '启动时更新频道',
+              title: l.settingsAutoUpdateChannels,
               value: media.autoRefreshChannels,
               onChanged: media.setAutoRefreshChannels,
             ),
             XpToggleTile(
-              title: '启动时更新节目单',
+              title: l.settingsAutoUpdateGuide,
               value: media.autoRefreshProgrammes,
               onChanged: media.setAutoRefreshProgrammes,
             ),
@@ -214,14 +215,14 @@ class _SettingsScreenState extends State<SettingsScreen> {
               () => media.refreshProgrammes(),
             ),
           ]),
-          _group('设备与同步', [
+          _group(l.settingsDevicesSync, [
             if (global.isTV ||
                 Platform.isMacOS ||
                 Platform.isWindows ||
                 Platform.isLinux)
               XpNotice(
-                title: '手机遥控连接地址',
-                description: remote.serverAddress ?? '正在准备局域网服务…',
+                title: l.phoneRemoteAddress,
+                description: remote.serverAddress ?? l.preparingLanService,
               ),
             if (!global.isTV)
               _action(
@@ -240,7 +241,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
               () => _open(const LanSyncOpenScreen()),
             ),
           ]),
-          _group('诊断与系统', [
+          _group(l.settingsDiagnosticsSystem, [
             _action(
               l.diagLog,
               XpSymbol.info,

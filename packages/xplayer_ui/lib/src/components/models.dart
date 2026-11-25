@@ -1,5 +1,6 @@
 import 'package:flutter/foundation.dart';
 import 'package:flutter/painting.dart';
+import 'package:intl/intl.dart';
 
 @immutable
 class XpProgramme {
@@ -105,7 +106,12 @@ String xpTime(DateTime time) {
   return '${local.hour.toString().padLeft(2, '0')}:${local.minute.toString().padLeft(2, '0')}';
 }
 
-String xpDateTime(DateTime time) {
+String xpShortDate(DateTime time, {String locale = 'zh'}) {
   final local = time.toLocal();
-  return '${local.month} 月 ${local.day} 日 ${xpTime(local)}';
+  return locale.startsWith('zh')
+      ? '${local.month} 月 ${local.day} 日'
+      : DateFormat.MMMd('en').format(local);
 }
+
+String xpDateTime(DateTime time, {String locale = 'zh'}) =>
+    '${xpShortDate(time, locale: locale)} ${xpTime(time)}';

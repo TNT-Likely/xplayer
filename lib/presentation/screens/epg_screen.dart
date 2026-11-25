@@ -2,6 +2,7 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:xplayer/data/models/channel_model.dart';
+import 'package:xplayer/localization/app_localizations.dart';
 import 'package:xplayer/presentation/adapters/app_actions.dart';
 import 'package:xplayer/presentation/adapters/media_presentation.dart';
 import 'package:xplayer/providers/media_provider.dart';
@@ -53,24 +54,28 @@ class _EpgScreenState extends State<EpgScreen> {
   }
 
   Future<void> _programme(Channel channel, XpProgramme programme) async {
+    final l = AppLocalizations.of(context)!;
+    final start = xpDateTime(programme.start, locale: l.localeName);
+    final end = xpDateTime(programme.end, locale: l.localeName);
     await showDialog(
       context: context,
       builder: (ctx) => XpConfirmDialog(
         title: programme.title,
-        confirmLabel: '观看频道直播',
+        confirmLabel: l.watchChannelLive,
         onConfirm: () {
           Navigator.pop(ctx);
           AppActions.play(context, channel);
         },
         onCancel: () => Navigator.pop(ctx),
         child: Text(
-          '${channel.name}\n${xpDateTime(programme.start)} — ${xpDateTime(programme.end)}\n\n播放入口将打开该频道当前直播。',
+          '${channel.name}\n$start — $end\n\n${l.guideDetailsDescription}',
         ),
       ),
     );
   }
 
   Widget _programmeList(Channel c, MediaPresentation presentation, bool stale) {
+    final l = AppLocalizations.of(context)!;
     final programmes = presentation.index
         .forChannel(c.id)
         .where((p) => stale || p.stop.isAfter(_now))
@@ -97,12 +102,12 @@ class _EpgScreenState extends State<EpgScreen> {
                 ),
               ),
             if (programmes.isEmpty)
-              const Padding(
-                padding: EdgeInsets.only(bottom: 12),
-                child: Text('暂无匹配的节目信息'),
+              Padding(
+                padding: const EdgeInsets.only(bottom: 12),
+                child: Text(l.noMatchingProgrammes),
               ),
             XpButton(
-              label: '观看 ${c.name}',
+              label: l.watchNamedChannel(c.name),
               icon: XpSymbol.play,
               onPressed: () => AppActions.play(context, c),
               variant: XpButtonVariant.secondary,
@@ -115,6 +120,7 @@ class _EpgScreenState extends State<EpgScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final l = AppLocalizations.of(context)!;
     final media = context.watch<MediaProvider>();
     final presentation = MediaPresentation(media, now: _now);
     final p = XpTheme.of(context).palette;
@@ -169,7 +175,7 @@ class _EpgScreenState extends State<EpgScreen> {
             children: [
               XpSearchField(
                 controller: _search,
-                hint: '查找频道节目单',
+                hint: l.searchGuide,
                 onChanged: (_) => setState(() => _page = 0),
               ),
               const SizedBox(height: 18),
@@ -178,17 +184,17 @@ class _EpgScreenState extends State<EpgScreen> {
                 runSpacing: 8,
                 children: [
                   XpChip(
-                    label: '节目列表',
+                    label: l.programmeList,
                     selected: !timeline,
                     onPressed: () => setState(() => _timeline = false),
                   ),
                   XpChip(
-                    label: '时间轴',
+                    label: l.programmeTimeline,
                     selected: timeline,
                     onPressed: () => setState(() => _timeline = true),
                   ),
                   XpButton(
-                    label: '现在',
+                    label: l.currentProgrammes,
                     onPressed: () => setState(() {
                       _anchor = null;
                       _now = DateTime.now();
@@ -197,14 +203,14 @@ class _EpgScreenState extends State<EpgScreen> {
                   ),
                   XpIconButton(
                     icon: XpSymbol.sync,
-                    label: '刷新节目单',
+                    label: l.refreshProgrammes,
                     onPressed: media.isRefreshingProgrammes
                         ? null
                         : media.refreshProgrammes,
                   ),
                   if (timeline) ...[
                     XpButton(
-                      label: '前 3 小时',
+                      label: l.guidePreviousHours,
                       onPressed: () => setState(
                         () =>
                             _anchor = start.subtract(const Duration(hours: 3)),
@@ -212,7 +218,7 @@ class _EpgScreenState extends State<EpgScreen> {
                       variant: XpButtonVariant.ghost,
                     ),
                     XpButton(
-                      label: '后 3 小时',
+                      label: l.guideNextHours,
                       onPressed: () => setState(() => _anchor = end),
                       variant: XpButtonVariant.ghost,
                     ),
@@ -221,16 +227,16 @@ class _EpgScreenState extends State<EpgScreen> {
               ),
               const SizedBox(height: 18),
               Text(
-                '${start.month} 月 ${start.day} 日 · ${xpTime(start)} — ${xpTime(end)}',
+                '${xpShortDate(start, locale: l.localeName)} · ${xpTime(start)} — ${xpTime(end)}',
                 style: TextStyle(color: p.muted),
               ),
               const SizedBox(height: 18),
               if (channels.isEmpty && _search.text.isNotEmpty)
                 XpEmptyState(
-                  title: '没有匹配的频道',
-                  description: '换一个关键词，或清除搜索。',
+                  title: l.noGuideMatchingChannel,
+                  description: l.noGuideMatchingChannelHint,
                   icon: XpSymbol.search,
-                  actionLabel: '清除搜索',
+                  actionLabel: l.clearSearch,
                   onAction: () => setState(_search.clear),
                 )
               else
@@ -276,7 +282,7 @@ class _EpgScreenState extends State<EpgScreen> {
                     runSpacing: 12,
                     children: [
                       XpButton(
-                        label: '上一页',
+                        label: l.previousPage,
                         onPressed: page == 0
                             ? null
                             : () => setState(() => _page = page - 1),
@@ -284,7 +290,7 @@ class _EpgScreenState extends State<EpgScreen> {
                       ),
                       Text('${page + 1} / $pages'),
                       XpButton(
-                        label: '下一页',
+                        label: l.nextPage,
                         onPressed: page == pages - 1
                             ? null
                             : () => setState(() => _page = page + 1),
@@ -299,7 +305,7 @@ class _EpgScreenState extends State<EpgScreen> {
         return widget.embedded
             ? content
             : Scaffold(
-                appBar: AppBar(title: const Text('节目单')),
+                appBar: AppBar(title: Text(l.epg)),
                 body: content,
               );
       },

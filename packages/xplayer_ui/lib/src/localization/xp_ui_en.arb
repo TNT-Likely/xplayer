@@ -1,0 +1,262 @@
+{
+  "@@locale": "en",
+  "workingLabel": "{label}, in progress",
+  "@workingLabel": {
+    "placeholders": {
+      "label": {
+        "type": "String"
+      }
+    }
+  },
+  "defaultSearchHint": "Search channels and programmes…",
+  "clearSearch": "Clear search",
+  "searchActivationHint": "{hint}. Press OK to type",
+  "@searchActivationHint": {
+    "placeholders": {
+      "hint": {
+        "type": "String"
+      }
+    }
+  },
+  "progress": "Progress",
+  "confirm": "Confirm",
+  "closeDialog": "Close dialog",
+  "cancel": "Cancel",
+  "offline": "Offline",
+  "addFavorite": "Favorite {channel}",
+  "@addFavorite": {
+    "placeholders": {
+      "channel": {
+        "type": "String"
+      }
+    }
+  },
+  "removeFavorite": "Unfavorite {channel}",
+  "@removeFavorite": {
+    "placeholders": {
+      "channel": {
+        "type": "String"
+      }
+    }
+  },
+  "watchNamedChannel": "Watch {channel}",
+  "@watchNamedChannel": {
+    "placeholders": {
+      "channel": {
+        "type": "String"
+      }
+    }
+  },
+  "viewChannelGuide": "View programmes for {channel}",
+  "@viewChannelGuide": {
+    "placeholders": {
+      "channel": {
+        "type": "String"
+      }
+    }
+  },
+  "noGuide": "No TV guide",
+  "guideExpired": "TV guide expired",
+  "programmeProgress": "{title} programme progress",
+  "@programmeProgress": {
+    "placeholders": {
+      "title": {
+        "type": "String"
+      }
+    }
+  },
+  "featuredGuideExpired": "TV guide expired · Channel still available",
+  "featuredNoGuide": "No TV guide · Channel still available",
+  "watchNow": "Watch now",
+  "programmeDetails": "Programme details",
+  "buffering": "Buffering",
+  "connectingToChannel": "Connecting to channel",
+  "playbackUnavailable": "Unable to play",
+  "retryOrSwitchChannel": "Try again or switch channels.",
+  "retryOrSwitchSource": "Try again or switch playback sources.",
+  "retryPlayback": "Retry playback",
+  "unsupportedFormat": "This device cannot play this format",
+  "tryCompatibilityOrSource": "Try compatibility mode or a different source.",
+  "tryCompatibility": "Try compatibility mode",
+  "audioPaused": "Audio paused",
+  "audioChannel": "This is an audio channel",
+  "resumeAudio": "Resume audio",
+  "pauseAudio": "Pause audio",
+  "switchSource": "Switch source",
+  "switchChannel": "Switch channel",
+  "resumePlayback": "Resume playback",
+  "pausePlayback": "Pause playback",
+  "volume": "Playback volume",
+  "sleepTimer": "Sleep timer",
+  "fullScreen": "Full screen",
+  "expandPlayer": "Expand {channel} player",
+  "@expandPlayer": {
+    "placeholders": {
+      "channel": {
+        "type": "String"
+      }
+    }
+  },
+  "closeMiniPlayer": "Close mini player",
+  "programmeTimeUnavailable": "Time unavailable",
+  "programmeTimeRange": "{start} to {end}",
+  "@programmeTimeRange": {
+    "placeholders": {
+      "start": {
+        "type": "String"
+      },
+      "end": {
+        "type": "String"
+      }
+    }
+  },
+  "programmeSemantics": "{title}, {time}",
+  "@programmeSemantics": {
+    "placeholders": {
+      "title": {
+        "type": "String"
+      },
+      "time": {
+        "type": "String"
+      }
+    }
+  },
+  "cachedProgrammeSemantics": "{programme}, outdated guide",
+  "@cachedProgrammeSemantics": {
+    "placeholders": {
+      "programme": {
+        "type": "String"
+      }
+    }
+  },
+  "cachedProgramme": "Cached programme",
+  "onAir": "On air",
+  "scheduledProgramme": "Scheduled",
+  "invalidDateRange": "Invalid time range",
+  "invalidDateRangeHint": "Choose a guide interval that ends after it starts.",
+  "channelHeading": "Channel",
+  "noProgrammeInfo": "No programme information",
+  "watchChannel": "Watch channel",
+  "currentTime": "Current time {time}",
+  "@currentTime": {
+    "placeholders": {
+      "time": {
+        "type": "String"
+      }
+    }
+  },
+  "loadingGuide": "Loading the TV guide",
+  "loadingGuideHint": "You can watch live channels while the TV guide loads.",
+  "watchWhileLoading": "Watch channels",
+  "noGuideConfigured": "Set up the TV guide",
+  "noGuideConfiguredHint": "This playlist has no XMLTV URL.",
+  "configureGuide": "Set up TV guide",
+  "guideEmpty": "No TV guide for these channels",
+  "guideEmptyHint": "No programmes matched. Live channels are still available.",
+  "refreshGuide": "Refresh TV guide",
+  "guideUnavailable": "Unable to load the TV guide",
+  "guideUnavailableHint": "No saved guide is available. Try again later or watch a channel now.",
+  "fetchAgain": "Try again",
+  "guideUsingCache": "Update failed. Showing the saved TV guide",
+  "guideCacheHint": "Showing the saved guide for this time slot. Schedules may change.",
+  "guideCacheDateHint": "Saved on {date}. Schedules may change.",
+  "@guideCacheDateHint": {
+    "placeholders": {
+      "date": {
+        "type": "String"
+      }
+    }
+  },
+  "retryUpdate": "Retry update",
+  "guideStale": "This TV guide is out of date",
+  "guideStaleHint": "The last saved guide is shown below for reference.",
+  "guideStaleDateHint": "The guide saved on {date} is shown below for reference.",
+  "@guideStaleDateHint": {
+    "placeholders": {
+      "date": {
+        "type": "String"
+      }
+    }
+  },
+  "updateGuide": "Update TV guide",
+  "guideMissingChannels": "{count, plural, =1{1 channel has no programme information} other{{count} channels have no programme information}}",
+  "@guideMissingChannels": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "guideMissingChannelsHint": "Matching programmes are shown. Channels without listings can still play.",
+  "matchAgain": "Match again",
+  "browseChannels": "Browse channels",
+  "loadingChannelCount": "Counting channels",
+  "channelCount": "{count, plural, =1{1 channel} other{{count} channels}}",
+  "@channelCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "editPlaylist": "Edit playlist {name}",
+  "@editPlaylist": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "playlistUpdateFailed": "Update failed. Existing channels were kept",
+  "playlistEmpty": "No valid channels found",
+  "playlistReadHint": "Check the playlist URL and file format.",
+  "selectedPlaylist": "In use",
+  "switchPlaylist": "Switch to this playlist",
+  "refreshChannels": "Refresh channels",
+  "remove": "Remove",
+  "remoteUp": "Up",
+  "remoteLeft": "Left",
+  "remoteOK": "OK",
+  "remoteRight": "Right",
+  "remoteDown": "Down",
+  "remoteBack": "Back",
+  "remotePlayPause": "Play or pause",
+  "remoteHome": "TV home",
+  "television": "TV",
+  "remoteConnected": "Connected to {device}",
+  "@remoteConnected": {
+    "placeholders": {
+      "device": {
+        "type": "String"
+      }
+    }
+  },
+  "remoteConnectedHint": "Directional controls and text input are ready.",
+  "remoteDiscovering": "Searching for nearby TVs",
+  "remoteDiscoveringHint": "Connect your phone and TV to the same Wi-Fi network.",
+  "remotePermissionRequired": "Allow local network access to connect",
+  "remotePermissionRequiredHint": "Enable local network access in system settings and search again.",
+  "remoteSettingsHelp": "Open settings",
+  "remoteSearchAgain": "Search again",
+  "remoteNoDevice": "No nearby TVs found",
+  "remoteNoDeviceHint": "Open XPlayer on your TV and connect both devices to the same Wi-Fi network.",
+  "remoteConnectManually": "Connect manually",
+  "remoteDisconnected": "Disconnected from TV",
+  "remoteDisconnectedHint": "Connect again to resume sending commands.",
+  "remoteReconnect": "Reconnect",
+  "syncReview": "Review sync changes",
+  "syncReviewHint": "Your selection determines which items are updated.",
+  "syncComparison": "Current: {local}\nOther device: {remote}",
+  "@syncComparison": {
+    "placeholders": {
+      "local": {
+        "type": "String"
+      },
+      "remote": {
+        "type": "String"
+      }
+    }
+  },
+  "syncApplySelected": "Apply selected items",
+  "syncCancel": "Cancel and keep current settings"
+}

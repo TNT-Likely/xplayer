@@ -7,7 +7,7 @@ import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:xplayer/localization/app_localizations.dart';
 import 'package:provider/provider.dart';
 import 'providers/locale_provider.dart';
-import 'package:xplayer_ui/foundation.dart';
+import 'package:xplayer_ui/xplayer_ui.dart';
 import 'package:xplayer/presentation/adaptive/app_layout.dart';
 import 'package:xplayer/shared/theme/nocturne_theme.dart';
 import 'package:xplayer/providers/media_provider.dart';
@@ -147,6 +147,7 @@ class _MyAppState extends State<MyApp> {
               navigatorKey: AppNav.key,
               localizationsDelegates: const [
                 AppLocalizations.delegate,
+                XpUiLocalizations.delegate,
                 GlobalMaterialLocalizations.delegate,
                 GlobalWidgetsLocalizations.delegate,
                 GlobalCupertinoLocalizations.delegate,

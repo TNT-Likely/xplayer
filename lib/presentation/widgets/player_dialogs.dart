@@ -100,9 +100,10 @@ class PlayerDialogs {
     required String title,
   }) {
     final theme = XpTheme.of(context);
+    final closeLabel = AppLocalizations.of(context)!.closePlayerPanel(title);
     showGeneralDialog(
       context: context,
-      barrierLabel: '关闭$title',
+      barrierLabel: closeLabel,
       barrierDismissible: true,
       barrierColor: Colors.black.withValues(alpha: .35),
       transitionDuration: const Duration(milliseconds: 200),
@@ -132,7 +133,7 @@ class PlayerDialogs {
                           ),
                           XpIconButton(
                             icon: XpSymbol.close,
-                            label: '关闭$title',
+                            label: closeLabel,
                             onPressed: () => Navigator.pop(ctx),
                           ),
                         ],

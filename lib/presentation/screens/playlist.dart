@@ -62,21 +62,22 @@ class _PlaylistListScreenState extends State<PlaylistListScreen> {
   }
 
   Future<void> _remove(Playlist playlist) async {
+    final l = AppLocalizations.of(context)!;
     final confirmed = await showDialog<bool>(
       context: context,
       builder: (ctx) => XpConfirmDialog(
-        title: '移除「${playlist.name}」？',
-        confirmLabel: '确认移除',
+        title: l.removePlaylistTitle(playlist.name),
+        confirmLabel: l.confirmRemovePlaylist,
         onConfirm: () => Navigator.pop(ctx, true),
         onCancel: () => Navigator.pop(ctx, false),
-        child: const Text('将移除这个列表及其频道缓存，已收藏的频道会保留。'),
+        child: Text(l.removePlaylistHint),
       ),
     );
     if (confirmed != true || !mounted) return;
     try {
       await context.read<MediaProvider>().removePlaylist(playlist.id!);
     } catch (_) {
-      showToast('移除失败，请重试');
+      showToast(l.removePlaylistFailed);
     }
   }
 
@@ -105,8 +106,8 @@ class _PlaylistListScreenState extends State<PlaylistListScreen> {
       ),
       body: media.playlists.isEmpty
           ? XpEmptyState(
-              title: '添加第一个播放列表',
-              description: '导入 M3U 地址或本地文件，开始整理你的频道。',
+              title: l.firstPlaylistTitle,
+              description: l.firstPlaylistHint,
               icon: XpSymbol.sources,
               actionLabel: l.addPlaylist,
               onAction: () => _edit(),
@@ -132,7 +133,7 @@ class _PlaylistListScreenState extends State<PlaylistListScreen> {
                         : XpPlaylistStatus.ready,
                     updatedLabel: playlist.updatedAt == null
                         ? null
-                        : xpDateTime(playlist.updatedAt!),
+                        : xpDateTime(playlist.updatedAt!, locale: l.localeName),
                     onSelect: () async {
                       final navigator = Navigator.of(context);
                       await media.updateCurrentPlaylist(playlist.id!);

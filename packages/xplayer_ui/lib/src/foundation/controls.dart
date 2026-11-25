@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+
+import '../localization/ui_strings.dart';
 import 'package:flutter/services.dart';
 import 'icons.dart';
 import 'theme.dart';
@@ -34,7 +36,7 @@ class XpButton extends StatelessWidget {
             : p.foreground;
     return Semantics(
       liveRegion: loading,
-      label: loading ? '$label，处理中' : null,
+      label: loading ? context.xpStrings.workingLabel(label) : null,
       child: TextButton(
         focusNode: focusNode,
         autofocus: autofocus,
@@ -300,12 +302,12 @@ class XpSearchField extends StatelessWidget {
       {super.key,
       required this.controller,
       required this.onChanged,
-      this.hint = '搜索频道、节目…',
+      this.hint,
       this.enabled = true,
       this.focusNode});
   final TextEditingController controller;
   final ValueChanged<String> onChanged;
-  final String hint;
+  final String? hint;
   final bool enabled;
   final FocusNode? focusNode;
   @override
@@ -313,6 +315,8 @@ class XpSearchField extends StatelessWidget {
       ValueListenableBuilder<TextEditingValue>(
         valueListenable: controller,
         builder: (context, value, _) {
+          final l = context.xpStrings;
+          final hint = this.hint ?? l.defaultSearchHint;
           Widget input(FocusNode? node, [ValueChanged<String>? submit]) =>
               XpTextField(
                 controller: controller,
@@ -328,7 +332,7 @@ class XpSearchField extends StatelessWidget {
                     ? null
                     : XpIconButton(
                         icon: XpSymbol.close,
-                        label: '清除搜索',
+                        label: l.clearSearch,
                         onPressed: enabled
                             ? () {
                                 controller.clear();
@@ -478,7 +482,9 @@ class _DirectionalSearchFieldState extends State<_DirectionalSearchField>
       },
       child: Semantics(
         button: !_editing,
-        label: !_editing ? '${widget.hint}，按确认输入' : null,
+        label: !_editing
+            ? context.xpStrings.searchActivationHint(widget.hint)
+            : null,
         excludeSemantics: !_editing,
         child: GestureDetector(
           onTap: !_editing ? _begin : null,

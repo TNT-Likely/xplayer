@@ -731,4 +731,477 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String get infoTier2Hint =>
       'Dropped frames / audio path / A-V sync need a later pass (ExoPlayer analytics)';
+
+  @override
+  String get home => 'Home';
+
+  @override
+  String get channelsShort => 'Channels';
+
+  @override
+  String playlistChannelCount(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count channels',
+      one: '1 channel',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String favoritesChannelCount(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count channels',
+      one: '1 channel',
+    );
+    return 'Favorites · $_temp0';
+  }
+
+  @override
+  String get watchChannelLive => 'Watch live';
+
+  @override
+  String playbackSourceCount(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count sources',
+      one: '1 source',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get noCurrentProgramme => 'No current programme information';
+
+  @override
+  String get channelStillAvailable => 'The live channel is still available.';
+
+  @override
+  String get remoteModeLabel => 'Remote control mode';
+
+  @override
+  String get homeDiscoveryLabel => 'Find something to watch';
+
+  @override
+  String get managePlaylists => 'Manage playlists';
+
+  @override
+  String get loadingChannels => 'Loading channels';
+
+  @override
+  String get loadingPlaylistHint => 'Reading your playlist.';
+
+  @override
+  String get noFavoritesTitle => 'Save your favorite channels here';
+
+  @override
+  String get noFavoritesHint =>
+      'Use the favorite button on a channel card to find it faster next time.';
+
+  @override
+  String get browseChannels => 'Browse channels';
+
+  @override
+  String get openPlaylistFailed => 'Unable to load channels';
+
+  @override
+  String get openPlaylistFailedHint =>
+      'Check the playlist URL or your connection and try again.';
+
+  @override
+  String get addChannelSource => 'Add a channel source';
+
+  @override
+  String get addChannelSourceHint =>
+      'Import an M3U URL or a local file to start watching.';
+
+  @override
+  String get retryLoading => 'Retry loading';
+
+  @override
+  String get homeRecommendedSources => 'Recommended sources';
+
+  @override
+  String get switchPlaylist => 'Switch playlist';
+
+  @override
+  String get favoriteChannels => 'Favorite channels';
+
+  @override
+  String get liveChannels => 'Live now';
+
+  @override
+  String get clearHistory => 'Clear history';
+
+  @override
+  String get allFavorites => 'All favorites';
+
+  @override
+  String get clearPlayHistoryTitle => 'Clear playback history?';
+
+  @override
+  String get confirmClearHistory => 'Clear history';
+
+  @override
+  String get clearHistoryHint => 'Your playlists and favorites will be kept.';
+
+  @override
+  String get searchFavorites => 'Search favorite channels';
+
+  @override
+  String get searchChannelDetails => 'Search by name, number or group';
+
+  @override
+  String cancelChannelTest(String progress) {
+    return 'Stop testing $progress';
+  }
+
+  @override
+  String get channelTest => 'Test channels';
+
+  @override
+  String get channelTestFailed => 'Channel test failed. Try again.';
+
+  @override
+  String get hideUnavailableChannels => 'Hide unavailable channels';
+
+  @override
+  String get channelDisplaySize => 'Channel display size';
+
+  @override
+  String get refreshingChannels => 'Updating channels';
+
+  @override
+  String get refreshingChannelsHint =>
+      'You can keep watching your current channels while they update.';
+
+  @override
+  String get playlistUpdateFailed =>
+      'Update failed. Existing channels were kept';
+
+  @override
+  String get playlistUpdateFailedHint =>
+      'Try again later. Your channels are still available.';
+
+  @override
+  String get retryPlaylistUpdate => 'Retry update';
+
+  @override
+  String get noMatchingChannels => 'No matching channels';
+
+  @override
+  String get noMatchingChannelsHint =>
+      'Try another search term or clear the filters.';
+
+  @override
+  String get clearFilters => 'Clear filters';
+
+  @override
+  String get closeProgrammeDetails => 'Close programme details';
+
+  @override
+  String get guideDetailsDescription =>
+      'Watch live opens this channel’s current broadcast.';
+
+  @override
+  String get noMatchingProgrammes => 'No matching programmes';
+
+  @override
+  String watchNamedChannel(String channel) {
+    return 'Watch $channel';
+  }
+
+  @override
+  String get searchGuide => 'Search channel schedules';
+
+  @override
+  String get programmeList => 'Programme list';
+
+  @override
+  String get programmeTimeline => 'Timeline';
+
+  @override
+  String get currentProgrammes => 'Now';
+
+  @override
+  String get guidePreviousHours => 'Previous 3 hours';
+
+  @override
+  String get guideNextHours => 'Next 3 hours';
+
+  @override
+  String get noGuideMatchingChannel => 'No matching channels';
+
+  @override
+  String get noGuideMatchingChannelHint =>
+      'Try a different search term or clear the search.';
+
+  @override
+  String get clearSearch => 'Clear search';
+
+  @override
+  String get previousPage => 'Previous page';
+
+  @override
+  String get nextPage => 'Next page';
+
+  @override
+  String get done => 'Done';
+
+  @override
+  String get settingsPlaybackRecovery => 'Playback and recovery';
+
+  @override
+  String get settingsAppearanceLanguage => 'Appearance and language';
+
+  @override
+  String get settingsPlaylistsGuide => 'Playlists and guide';
+
+  @override
+  String get settingsAutoUpdateChannels => 'Update channels on launch';
+
+  @override
+  String get settingsAutoUpdateGuide => 'Update the TV guide on launch';
+
+  @override
+  String get settingsDevicesSync => 'Devices and sync';
+
+  @override
+  String get phoneRemoteAddress => 'Phone remote connection address';
+
+  @override
+  String get preparingLanService => 'Starting the local network service…';
+
+  @override
+  String get settingsDiagnosticsSystem => 'Diagnostics and system';
+
+  @override
+  String removePlaylistTitle(String playlist) {
+    return 'Remove “$playlist”?';
+  }
+
+  @override
+  String get confirmRemovePlaylist => 'Remove';
+
+  @override
+  String get removePlaylistHint =>
+      'This removes the playlist and its cached channels. Favorites will be kept.';
+
+  @override
+  String get removePlaylistFailed =>
+      'Unable to remove the playlist. Try again.';
+
+  @override
+  String get firstPlaylistTitle => 'Add your first playlist';
+
+  @override
+  String get firstPlaylistHint =>
+      'Import an M3U URL or local file to organize your channels.';
+
+  @override
+  String get playlistNameRequired => 'Enter a name for the playlist.';
+
+  @override
+  String get playlistAddressInvalid =>
+      'Enter a valid HTTP or HTTPS URL, or choose a local M3U file.';
+
+  @override
+  String get guideAddressInvalid =>
+      'The TV guide URL must start with HTTP or HTTPS.';
+
+  @override
+  String get duplicatePlaylistName =>
+      'A playlist with this name already exists. Choose another name.';
+
+  @override
+  String get savePlaylistFailed => 'Unable to save the playlist. Try again.';
+
+  @override
+  String get readPlaylistFileFailed =>
+      'Unable to read the file. Choose it again.';
+
+  @override
+  String get playlistAddress => 'Playlist URL';
+
+  @override
+  String get optionalGuideAddress => 'TV guide URL (optional)';
+
+  @override
+  String get optionalGuideAddressHint =>
+      'Leave blank to use the guide URL in the M3U header.';
+
+  @override
+  String get playlistNotSaved => 'Playlist could not be saved';
+
+  @override
+  String get channelHasNoSource =>
+      'This channel has no available playback source';
+
+  @override
+  String get saveFavoriteFailed => 'Unable to save the favorite. Try again.';
+
+  @override
+  String get savedPlaylistReadFailed =>
+      'Playlist saved. You can retry loading it from the Playlists page.';
+
+  @override
+  String closePlayerPanel(String title) {
+    return 'Close $title';
+  }
+
+  @override
+  String numberedSource(int index) {
+    return 'Source $index';
+  }
+
+  @override
+  String get returnToChannels => 'Back to channels';
+
+  @override
+  String get playbackDiagnostics => 'Playback diagnostics';
+
+  @override
+  String get remoteManualAddressInvalid =>
+      'Enter the IP address and port shown on the TV, for example 192.168.1.8:8080.';
+
+  @override
+  String get remoteManualTv => 'Manually connected TV';
+
+  @override
+  String get remoteTextSent => 'Text sent. Further edits sync as you type.';
+
+  @override
+  String get remoteNotConnected => 'Connect to a TV first.';
+
+  @override
+  String remoteCommandSent(String key) {
+    return 'Sent: $key';
+  }
+
+  @override
+  String get remoteReconnectHint => 'Disconnected. Connect again.';
+
+  @override
+  String get televisionRemote => 'TV remote';
+
+  @override
+  String get remoteConnectionNotice => 'Connection notice';
+
+  @override
+  String get nearbyDevices => 'Nearby devices';
+
+  @override
+  String get searchNearbyAgain => 'Search again';
+
+  @override
+  String get connectingToTv => 'Connecting to TV';
+
+  @override
+  String get connectingToTvHint => 'Establishing a connection…';
+
+  @override
+  String get remoteDisconnect => 'Disconnect';
+
+  @override
+  String get remoteTvAddress => 'TV address (IP:port)';
+
+  @override
+  String get remoteConnectByAddress => 'Connect by address';
+
+  @override
+  String get remoteTextLabel => 'Send text to TV';
+
+  @override
+  String get remoteTextHint => 'Playlist URL, search terms…';
+
+  @override
+  String get remoteSendText => 'Send text';
+
+  @override
+  String get remoteDiscoveryFailed =>
+      'Unable to find devices. Check local network permissions and your connection.';
+
+  @override
+  String get remoteConnectionLost => 'The connection to the TV was lost.';
+
+  @override
+  String get remoteConnectionFailed =>
+      'Unable to connect. Check that the TV is still on the same network.';
+
+  @override
+  String get syncPlaylistExists => 'Already added';
+
+  @override
+  String get syncPlaylistMissing => 'Not added';
+
+  @override
+  String get syncFavoriteMissing => 'Not favorited';
+
+  @override
+  String get syncDefaultValue => 'Default';
+
+  @override
+  String get syncProxyNotConfigured => 'Not configured';
+
+  @override
+  String syncDevicePreview(String device) {
+    return 'Sync preview · $device';
+  }
+
+  @override
+  String get syncReadFailed => 'Unable to read the current settings';
+
+  @override
+  String get syncReadFailedHint =>
+      'Your settings are unchanged. Retry now or return later.';
+
+  @override
+  String get syncReadAgain => 'Read again';
+
+  @override
+  String get syncAddFavorite => 'Add to favorites';
+
+  @override
+  String get probeInProgress => 'Checking…';
+
+  @override
+  String get probeNonHls => 'Direct stream (non-HLS)';
+
+  @override
+  String probeFailed(String error) {
+    return 'Check failed: $error';
+  }
+
+  @override
+  String get probeSingleVariant => 'Single variant (no other bitrates)';
+
+  @override
+  String get probeHighestVariant => 'Highest ★';
+
+  @override
+  String hardwareDecoder(String decoder) {
+    return '$decoder (hardware)';
+  }
+
+  @override
+  String softwareDecoder(String decoder) {
+    return '$decoder (software)';
+  }
+
+  @override
+  String get audioSoftwareEnabled =>
+      'Enabled (current track uses software decoding)';
+
+  @override
+  String get enabled => 'Enabled';
+
+  @override
+  String get yes => 'Yes';
+
+  @override
+  String get no => 'No';
 }

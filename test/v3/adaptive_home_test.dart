@@ -4,6 +4,7 @@ import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:xplayer/data/models/channel_model.dart';
 import 'package:xplayer/localization/app_localizations.dart';
 import 'package:xplayer/presentation/adaptive/app_layout.dart';
 import 'package:xplayer/presentation/screens/home.dart';
@@ -15,41 +16,104 @@ import 'package:xplayer/shared/theme/app_theme.dart';
 import 'package:xplayer_ui/xplayer_ui.dart';
 import 'fakes.dart';
 
-Widget app(FakeMedia media, {bool tv = false, double scale = 1}) =>
-    MultiProvider(
-      providers: [
-        ChangeNotifierProvider<MediaProvider>.value(value: media),
-        ChangeNotifierProvider<GlobalProvider>(
-          create: (_) => FakeGlobal(tv: tv),
-        ),
-        ChangeNotifierProvider(create: (_) => LocaleProvider()),
-        ChangeNotifierProvider(create: (_) => RemoteProvider()),
+Widget app(
+  FakeMedia media, {
+  bool tv = false,
+  double scale = 1,
+  Locale locale = const Locale('zh'),
+}) => MultiProvider(
+  providers: [
+    ChangeNotifierProvider<MediaProvider>.value(value: media),
+    ChangeNotifierProvider<GlobalProvider>(create: (_) => FakeGlobal(tv: tv)),
+    ChangeNotifierProvider(create: (_) => LocaleProvider()),
+    ChangeNotifierProvider(create: (_) => RemoteProvider()),
+  ],
+  child: XpTheme(
+    data: XpThemeData(device: tv ? XpDevice.tv : XpDevice.phone),
+    child: MaterialApp(
+      theme: buildAppTheme(),
+      locale: locale,
+      supportedLocales: AppLocalizations.supportedLocales,
+      localizationsDelegates: const [
+        AppLocalizations.delegate,
+        XpUiLocalizations.delegate,
+        GlobalMaterialLocalizations.delegate,
+        GlobalWidgetsLocalizations.delegate,
+        GlobalCupertinoLocalizations.delegate,
       ],
-      child: XpTheme(
-        data: XpThemeData(device: tv ? XpDevice.tv : XpDevice.phone),
-        child: MaterialApp(
-          theme: buildAppTheme(),
-          locale: const Locale('zh'),
-          supportedLocales: const [Locale('zh')],
-          localizationsDelegates: const [
-            AppLocalizations.delegate,
-            GlobalMaterialLocalizations.delegate,
-            GlobalWidgetsLocalizations.delegate,
-            GlobalCupertinoLocalizations.delegate,
-          ],
-          builder: (context, child) => MediaQuery(
-            data: MediaQuery.of(
-              context,
-            ).copyWith(textScaler: TextScaler.linear(scale)),
-            child: child!,
-          ),
-          home: const HomeScreen(startRemoteServer: false),
-        ),
+      builder: (context, child) => MediaQuery(
+        data: MediaQuery.of(
+          context,
+        ).copyWith(textScaler: TextScaler.linear(scale)),
+        child: child!,
       ),
-    );
+      home: const HomeScreen(startRemoteServer: false),
+    ),
+  ),
+);
+
+class _RecentlyPlayedMedia extends FakeMedia {
+  bool _cleared = false;
+
+  @override
+  List<Channel> get recentChannels => _cleared ? [] : [items.first];
+
+  @override
+  Future<void> clearRecent() async {
+    _cleared = true;
+    notifyListeners();
+  }
+}
+
 void main() {
   TestWidgetsFlutterBinding.ensureInitialized();
   setUp(() => SharedPreferences.setMockInitialValues({}));
+  testWidgets('英文首页和组件随应用语言更新，仍可清空最近播放', (tester) async {
+    tester.view.physicalSize = const Size(390, 844);
+    tester.view.devicePixelRatio = 1;
+    addTearDown(tester.view.resetPhysicalSize);
+    addTearDown(tester.view.resetDevicePixelRatio);
+    final media = _RecentlyPlayedMedia();
+    await tester.pumpWidget(app(media, locale: const Locale('en')));
+    await tester.pumpAndSettle();
+
+    expect(find.widgetWithText(XpButton, 'Watch now'), findsOneWidget);
+    expect(find.byTooltip('Add Playlist'), findsOneWidget);
+    final historyAction = find.widgetWithText(XpButton, 'Clear history');
+    await tester.scrollUntilVisible(
+      historyAction,
+      150,
+      scrollable: find
+          .byWidgetPredicate(
+            (widget) =>
+                widget is Scrollable &&
+                widget.axisDirection == AxisDirection.down,
+          )
+          .first,
+    );
+    await tester.tap(historyAction);
+    await tester.pumpAndSettle();
+    final dialog = find.byType(XpConfirmDialog);
+    expect(
+      find.descendant(
+        of: dialog,
+        matching: find.text('Clear playback history?'),
+      ),
+      findsOneWidget,
+    );
+    await tester.tap(find.descendant(of: dialog, matching: historyAction));
+    await tester.pumpAndSettle();
+    expect(media.recentChannels, isEmpty);
+
+    await tester.tap(find.byKey(const ValueKey('nav-guide')));
+    await tester.pumpAndSettle();
+    expect(find.widgetWithText(XpChip, 'Programme list'), findsOneWidget);
+    await tester.pumpWidget(app(media));
+    await tester.pumpAndSettle();
+    expect(find.widgetWithText(XpChip, '节目列表'), findsOneWidget);
+    expect(tester.takeException(), isNull);
+    await tester.pumpWidget(const SizedBox.shrink());
+  });
   testWidgets('TV 真实主页的搜索确认输入、返回与方向键退出不改变频道页', (tester) async {
     tester.view.physicalSize = const Size(960, 540);
     tester.view.devicePixelRatio = 1;
