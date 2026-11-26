@@ -1,0 +1,45 @@
+<!doctype html>
+<html lang="{{tag}}">
+<meta charset="utf-8">
+<title>XPlayer · App Store search artwork</title>
+<style>
+  * { box-sizing: border-box; }
+  html, body { margin: 0; width: 960px; height: 640px; overflow: hidden; }
+  main { position: relative; width: 100%; height: 100%; isolation: isolate; background: #071712; }
+  .sea, .wash { position: absolute; inset: 0; width: 100%; height: 100%; z-index: -1; }
+  .wash {
+    background: linear-gradient(90deg, rgba(0, 17, 13, .52) 0%, rgba(0, 17, 13, .52) 28%,
+      rgba(0, 18, 12, .23) 56%, transparent 80%);
+  }
+  .copy { position: absolute; top: 196px; left: 220px; width: max-content; }
+  h1 { margin: 0; font-weight: normal; }
+  h1 span { display: block; width: max-content; }
+  .first {
+    font: 560 44px/1.16 -apple-system, BlinkMacSystemFont, "Helvetica Neue", sans-serif;
+    letter-spacing: -1.7px; color: #f7fcf8;
+  }
+  .second {
+    margin: 0 0 0 -4px; font: italic 81px/1.08 Georgia, serif;
+    letter-spacing: -4px; color: #bef7d7;
+  }
+  .zh .first { font: 540 40px/1.28 "PingFang SC", sans-serif; letter-spacing: 0; }
+  .zh .second {
+    margin: 0 0 0 -2px; font: 700 77px/1.16 "Songti SC", "Hiragino Mincho ProN", serif;
+    letter-spacing: 0;
+  }
+  .controls {
+    position: absolute; left: 221px; top: 347px; display: flex; padding: 3px 6px;
+    background: rgb(44, 46, 45); border: 1px solid rgba(236, 249, 244, .21); border-radius: 13px;
+    box-shadow: 0 5px 17px rgba(0, 0, 0, .19); overflow: hidden;
+  }
+  .controls img { display: block; width: auto; height: 86px; }
+</style>
+<main class="{{lang}}">
+  <img class="sea" src="{{scene}}" alt="">
+  <div class="wash"></div>
+  <div class="copy">
+    <h1><span class="first">{{first}}</span><span class="second">{{second}}</span></h1>
+  </div>
+  <div class="controls"><img src="{{controls}}" alt=""></div>
+</main>
+</html>

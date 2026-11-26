@@ -37,6 +37,8 @@
 
 ## 📸 Preview
 
+[App Store artwork archive and production notes](design/app-store/README.md)
+
 <p align="center">
   <img src="screenshots/home.png" width="240" alt="Channel grid: browse / group / search" />
   <img src="screenshots/player.png" width="240" alt="Live playback & controls" />

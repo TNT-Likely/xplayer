@@ -1,0 +1,49 @@
+{
+  "appStoreId": "6783271337",
+  "platform": "iOS",
+  "version": "2.7.0",
+  "submittedAt": "2026-11-26T15:17:07.467Z",
+  "checkedAt": "2026-11-26T15:26:07+00:00",
+  "submissionStateAtCheck": "WAITING_FOR_REVIEW",
+  "assets": {
+    "XPlayer-Header.png": {
+      "dimensions": [
+        3840,
+        1646
+      ],
+      "bytes": 6932026,
+      "assetStateAtCheck": "WAITING_FOR_REVIEW",
+      "applePreviewDimensions": [
+        600,
+        257
+      ],
+      "previewMeanAbsoluteDifference8Bit": 1.247
+    },
+    "XPlayer-Search-en-US.png": {
+      "dimensions": [
+        3840,
+        2560
+      ],
+      "bytes": 13891035,
+      "assetStateAtCheck": "WAITING_FOR_REVIEW",
+      "applePreviewDimensions": [
+        600,
+        400
+      ],
+      "previewMeanAbsoluteDifference8Bit": 1.66
+    },
+    "XPlayer-Search-zh-Hans.png": {
+      "dimensions": [
+        3840,
+        2560
+      ],
+      "bytes": 13915350,
+      "assetStateAtCheck": "WAITING_FOR_REVIEW",
+      "applePreviewDimensions": [
+        600,
+        400
+      ],
+      "previewMeanAbsoluteDifference8Bit": 1.706
+    }
+  }
+}

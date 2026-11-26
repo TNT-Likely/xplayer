@@ -38,6 +38,8 @@
 
 ## 📸 预览
 
+[App Store 素材归档与制作说明](design/app-store/README.md)
+
 <p align="center">
   <img src="screenshots/home.png" width="240" alt="频道网格:浏览 / 分组 / 搜索" />
   <img src="screenshots/player.png" width="240" alt="直播播放与控制" />

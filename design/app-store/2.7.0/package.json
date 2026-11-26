@@ -1,0 +1,13 @@
+{
+  "name": "xplayer-store-art-2-7-0",
+  "version": "2.7.0",
+  "private": true,
+  "scripts": {
+    "render": "node render.cjs",
+    "verify": "node verify.cjs"
+  },
+  "devDependencies": {
+    "playwright": "1.62.1",
+    "sharp": "0.35.5"
+  }
+}
