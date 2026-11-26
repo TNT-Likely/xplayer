@@ -24,3 +24,14 @@
 在项目指定的 Flutter 版本运行 `flutter test`。iOS 的 `RunnerTests.testStoreKitMembershipLifecycle` 使用 [本地 StoreKit 配置](../../../ios/RunnerTests/XPlayerPro.storekit) 验证购买、恢复、到期和退款。商品面向审核的操作入口是侧边栏的 XPlayer Pro 和节目工作台。
 
 审核可手动导入[演示播放列表](https://xplayer.beejz.com/sample-guide.m3u)，搜索 Bunny 并追踪关键词。示例使用测试视频和滚动的虚构节目表。用户自行导入后才会出现示例频道。
+
+## 2.8.0 验收记录
+
+- 正式构建由主分支 `751d2e1` 生成，两端均使用构建号 67。[Apple 签名构建与上传](https://github.com/TNT-Likely/xplayer/actions/runs/45910568173)
+- Flutter 回归 180 项通过。iOS 模拟器使用 Apple StoreKit Test 实际购买三个商品，并验证恢复、停止续订后到期、永久权益共存和退款撤权。macOS 已通过原生编译和签名上传。
+- 在 iPhone 17 Pro 模拟器从侧边栏购买月度会员，导入测试列表，搜索 Bunny、保存关键词、刷新节目单并打开追踪结果。继续购买永久时出现原订阅续费提示，完成后从会员页恢复成功。此流程使用 Xcode 本地交易环境。
+- Apple 已接收三张 1206 × 2622 的商品审核截图。素材对应美国商店价格。[永久会员](review/pro-lifetime.png) · [年付](review/pro-yearly.png) · [月付](review/pro-monthly.png) · [节目追踪实测](review/studio-following.png)
+
+## 提审与发布
+
+2026 年 11 月 27 日 07:35（北京时间）核对，iOS 和 macOS 2.8.0（67）均已提交，发布方式为审核通过后自动发布。订阅群组、月付、年付和永久商品与 iOS 版本一同送审。三个商品均返回 `WAITING_FOR_REVIEW`，当时香港、台湾和美国公开商店仍显示 2.7.0。[提审回执与价格核对](submission.json)
