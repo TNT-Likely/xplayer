@@ -30,6 +30,7 @@
 - 正式构建由主分支 `751d2e1` 生成，两端均使用构建号 67。[Apple 签名构建与上传](https://github.com/TNT-Likely/xplayer/actions/runs/45910568173)
 - Flutter 回归 180 项通过。iOS 模拟器使用 Apple StoreKit Test 实际购买三个商品，并验证恢复、停止续订后到期、永久权益共存和退款撤权。macOS 已通过原生编译和签名上传。
 - 在 iPhone 17 Pro 模拟器从侧边栏购买月度会员，导入测试列表，搜索 Bunny、保存关键词、刷新节目单并打开追踪结果。继续购买永久时出现原订阅续费提示，完成后从会员页恢复成功。此流程使用 Xcode 本地交易环境。
+- 同一条发行流水线中，macOS 播放器独立包与解码检查通过。Windows 原生库下载失败，Linux 的 MP3 用例未通过。[Windows 构建日志](https://github.com/TNT-Likely/xplayer/actions/runs/45910568173/job/140217654335) · [Linux 解码日志](https://github.com/TNT-Likely/xplayer/actions/runs/45910568173/job/140217655643)
 - Apple 已接收三张 1206 × 2622 的商品审核截图。素材对应美国商店价格。[永久会员](review/pro-lifetime.png) · [年付](review/pro-yearly.png) · [月付](review/pro-monthly.png) · [节目追踪实测](review/studio-following.png)
 
 ## 提审与发布
