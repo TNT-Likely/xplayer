@@ -1447,6 +1447,348 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Dropped frames / audio path / A-V sync need a later pass (ExoPlayer analytics)'**
   String get infoTier2Hint;
+
+  /// No description provided for @proStudio.
+  ///
+  /// In en, this message translates to:
+  /// **'Guide Studio'**
+  String get proStudio;
+
+  /// No description provided for @proStudioLead.
+  ///
+  /// In en, this message translates to:
+  /// **'Find a channel. Follow a show.'**
+  String get proStudioLead;
+
+  /// No description provided for @proStudioDescription.
+  ///
+  /// In en, this message translates to:
+  /// **'Search all your playlists and keep an eye on the shows you follow as your own guide updates.'**
+  String get proStudioDescription;
+
+  /// No description provided for @proChannelFinder.
+  ///
+  /// In en, this message translates to:
+  /// **'Search across playlists'**
+  String get proChannelFinder;
+
+  /// No description provided for @proChannelDetail.
+  ///
+  /// In en, this message translates to:
+  /// **'Find a channel by name and play it from its original playlist.'**
+  String get proChannelDetail;
+
+  /// No description provided for @proProgrammeFinder.
+  ///
+  /// In en, this message translates to:
+  /// **'Find live and upcoming shows'**
+  String get proProgrammeFinder;
+
+  /// No description provided for @proProgrammeDetail.
+  ///
+  /// In en, this message translates to:
+  /// **'Look up a programme by title and see when and where it airs.'**
+  String get proProgrammeDetail;
+
+  /// No description provided for @proTracker.
+  ///
+  /// In en, this message translates to:
+  /// **'Follow shows by keyword'**
+  String get proTracker;
+
+  /// No description provided for @proTrackerDetail.
+  ///
+  /// In en, this message translates to:
+  /// **'Save a title keyword. Its upcoming broadcasts appear together when your guide refreshes.'**
+  String get proTrackerDetail;
+
+  /// No description provided for @proLifetime.
+  ///
+  /// In en, this message translates to:
+  /// **'Lifetime'**
+  String get proLifetime;
+
+  /// No description provided for @proYearly.
+  ///
+  /// In en, this message translates to:
+  /// **'Annual'**
+  String get proYearly;
+
+  /// No description provided for @proMonthly.
+  ///
+  /// In en, this message translates to:
+  /// **'Monthly'**
+  String get proMonthly;
+
+  /// No description provided for @proOneTime.
+  ///
+  /// In en, this message translates to:
+  /// **'Pay once'**
+  String get proOneTime;
+
+  /// No description provided for @proAnnualRenew.
+  ///
+  /// In en, this message translates to:
+  /// **'Renews every year'**
+  String get proAnnualRenew;
+
+  /// No description provided for @proMonthlyRenew.
+  ///
+  /// In en, this message translates to:
+  /// **'Renews every month'**
+  String get proMonthlyRenew;
+
+  /// No description provided for @proActive.
+  ///
+  /// In en, this message translates to:
+  /// **'Active'**
+  String get proActive;
+
+  /// No description provided for @proMember.
+  ///
+  /// In en, this message translates to:
+  /// **'Your membership'**
+  String get proMember;
+
+  /// No description provided for @proPlans.
+  ///
+  /// In en, this message translates to:
+  /// **'Choose your plan'**
+  String get proPlans;
+
+  /// No description provided for @proLifetimeBuy.
+  ///
+  /// In en, this message translates to:
+  /// **'Unlock lifetime access'**
+  String get proLifetimeBuy;
+
+  /// No description provided for @proSubscribe.
+  ///
+  /// In en, this message translates to:
+  /// **'Subscribe'**
+  String get proSubscribe;
+
+  /// No description provided for @proRestore.
+  ///
+  /// In en, this message translates to:
+  /// **'Restore purchases'**
+  String get proRestore;
+
+  /// No description provided for @proManage.
+  ///
+  /// In en, this message translates to:
+  /// **'Manage subscription'**
+  String get proManage;
+
+  /// No description provided for @proTerms.
+  ///
+  /// In en, this message translates to:
+  /// **'Terms of Use'**
+  String get proTerms;
+
+  /// No description provided for @proPrivacy.
+  ///
+  /// In en, this message translates to:
+  /// **'Privacy Policy'**
+  String get proPrivacy;
+
+  /// No description provided for @proUnavailable.
+  ///
+  /// In en, this message translates to:
+  /// **'Prices are currently unavailable.'**
+  String get proUnavailable;
+
+  /// No description provided for @proStateError.
+  ///
+  /// In en, this message translates to:
+  /// **'Could not check your purchases. Try again.'**
+  String get proStateError;
+
+  /// No description provided for @proRetry.
+  ///
+  /// In en, this message translates to:
+  /// **'Try again'**
+  String get proRetry;
+
+  /// No description provided for @proUnsupported.
+  ///
+  /// In en, this message translates to:
+  /// **'Membership requires iOS 15, iPadOS 15 or macOS 12 or later.'**
+  String get proUnsupported;
+
+  /// No description provided for @proRestoreNone.
+  ///
+  /// In en, this message translates to:
+  /// **'No active purchases were found for this Apple Account.'**
+  String get proRestoreNone;
+
+  /// No description provided for @proRestored.
+  ///
+  /// In en, this message translates to:
+  /// **'Your membership has been restored.'**
+  String get proRestored;
+
+  /// No description provided for @proPending.
+  ///
+  /// In en, this message translates to:
+  /// **'Your purchase is awaiting approval.'**
+  String get proPending;
+
+  /// No description provided for @proPurchased.
+  ///
+  /// In en, this message translates to:
+  /// **'Your Pro membership is ready.'**
+  String get proPurchased;
+
+  /// No description provided for @proStoreError.
+  ///
+  /// In en, this message translates to:
+  /// **'The App Store could not complete this request. Please try again.'**
+  String get proStoreError;
+
+  /// No description provided for @proCancelNotice.
+  ///
+  /// In en, this message translates to:
+  /// **'Buying lifetime access does not cancel your current subscription. Manage it in your Apple Account to avoid another renewal.'**
+  String get proCancelNotice;
+
+  /// No description provided for @proContinue.
+  ///
+  /// In en, this message translates to:
+  /// **'Continue'**
+  String get proContinue;
+
+  /// No description provided for @proBack.
+  ///
+  /// In en, this message translates to:
+  /// **'Back'**
+  String get proBack;
+
+  /// No description provided for @proSubscriptionNote.
+  ///
+  /// In en, this message translates to:
+  /// **'Apple charges your account at confirmation. Subscriptions renew until cancelled in your Apple Account. Lifetime is a single purchase. All plans unlock the same tools.'**
+  String get proSubscriptionNote;
+
+  /// No description provided for @proOpenStudio.
+  ///
+  /// In en, this message translates to:
+  /// **'Open Guide Studio'**
+  String get proOpenStudio;
+
+  /// No description provided for @proChannelsTab.
+  ///
+  /// In en, this message translates to:
+  /// **'Channels'**
+  String get proChannelsTab;
+
+  /// No description provided for @proShowsTab.
+  ///
+  /// In en, this message translates to:
+  /// **'Shows'**
+  String get proShowsTab;
+
+  /// No description provided for @proFollowingTab.
+  ///
+  /// In en, this message translates to:
+  /// **'Following'**
+  String get proFollowingTab;
+
+  /// No description provided for @proChannelQuery.
+  ///
+  /// In en, this message translates to:
+  /// **'Search channel names'**
+  String get proChannelQuery;
+
+  /// No description provided for @proShowQuery.
+  ///
+  /// In en, this message translates to:
+  /// **'Search programme titles'**
+  String get proShowQuery;
+
+  /// No description provided for @proFollow.
+  ///
+  /// In en, this message translates to:
+  /// **'Follow this keyword'**
+  String get proFollow;
+
+  /// No description provided for @proUnfollow.
+  ///
+  /// In en, this message translates to:
+  /// **'Remove keyword'**
+  String get proUnfollow;
+
+  /// No description provided for @proEmptyLibrary.
+  ///
+  /// In en, this message translates to:
+  /// **'Import a playlist with channels to use Guide Studio.'**
+  String get proEmptyLibrary;
+
+  /// No description provided for @proNoGuide.
+  ///
+  /// In en, this message translates to:
+  /// **'No upcoming programme data. Refresh the guide or add a playlist with an XMLTV guide.'**
+  String get proNoGuide;
+
+  /// No description provided for @proNoMatches.
+  ///
+  /// In en, this message translates to:
+  /// **'No matches. Try another keyword.'**
+  String get proNoMatches;
+
+  /// No description provided for @proNoFollowing.
+  ///
+  /// In en, this message translates to:
+  /// **'In Shows, search for a title and follow its keyword to see the next broadcasts here.'**
+  String get proNoFollowing;
+
+  /// No description provided for @proFollowEmpty.
+  ///
+  /// In en, this message translates to:
+  /// **'No upcoming broadcasts match your saved keywords yet.'**
+  String get proFollowEmpty;
+
+  /// No description provided for @proPartial.
+  ///
+  /// In en, this message translates to:
+  /// **'Some playlists could not be loaded. Refresh to try again.'**
+  String get proPartial;
+
+  /// No description provided for @proRefresh.
+  ///
+  /// In en, this message translates to:
+  /// **'Refresh guide and playlists'**
+  String get proRefresh;
+
+  /// No description provided for @proNow.
+  ///
+  /// In en, this message translates to:
+  /// **'Live now'**
+  String get proNow;
+
+  /// No description provided for @proBrowsePlans.
+  ///
+  /// In en, this message translates to:
+  /// **'View membership options'**
+  String get proBrowsePlans;
+
+  /// No description provided for @proWatchTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Followed keywords'**
+  String get proWatchTitle;
+
+  /// No description provided for @proOpenChannel.
+  ///
+  /// In en, this message translates to:
+  /// **'Play channel'**
+  String get proOpenChannel;
+
+  /// No description provided for @proLocalError.
+  ///
+  /// In en, this message translates to:
+  /// **'Could not save your changes on this device.'**
+  String get proLocalError;
 }
 
 class _AppLocalizationsDelegate

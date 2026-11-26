@@ -1,0 +1,98 @@
+{
+  "identifier": "5CF39840-6C20-4E29-BA99-D52188215F8E",
+  "nonRenewingSubscriptions": [],
+  "products": [
+    {
+      "displayPrice": "3.99",
+      "familyShareable": false,
+      "internalID": "4649252B",
+      "localizations": [
+        {
+          "description": "Find channels, search and track shows.",
+          "displayName": "XPlayer Pro Lifetime",
+          "locale": "en_US"
+        },
+        {
+          "description": "跨列表找频道，搜索节目并追踪下次播出。",
+          "displayName": "XPlayer Pro 永久会员",
+          "locale": "zh_Hans"
+        }
+      ],
+      "productID": "com.tntlikely.xplayer.pro.lifetime",
+      "referenceName": "XPlayer Pro Lifetime",
+      "type": "NonConsumable"
+    }
+  ],
+  "settings": {
+    "_locale": "en_US",
+    "_storefront": "USA",
+    "_failTransactionsEnabled": false
+  },
+  "subscriptionGroups": [
+    {
+      "id": "7E54646B-15DA-42C0-AB8C-CE697145F8EC",
+      "localizations": [],
+      "name": "XPlayer Pro",
+      "subscriptions": [
+        {
+          "displayPrice": "0.99",
+          "familyShareable": false,
+          "internalID": "652DDA33",
+          "localizations": [
+            {
+              "description": "Find channels, search and track shows.",
+              "displayName": "XPlayer Pro Monthly",
+              "locale": "en_US"
+            },
+            {
+              "description": "跨列表找频道，搜索节目并追踪下次播出。",
+              "displayName": "XPlayer Pro 月度会员",
+              "locale": "zh_Hans"
+            }
+          ],
+          "productID": "com.tntlikely.xplayer.pro.monthly",
+          "referenceName": "XPlayer Pro Monthly",
+          "type": "RecurringSubscription",
+          "adHocOffers": [],
+          "codeOffers": [],
+          "groupNumber": 1,
+          "introductoryOffer": null,
+          "recurringSubscriptionPeriod": "P1M",
+          "subscriptionGroupID": "7E54646B-15DA-42C0-AB8C-CE697145F8EC",
+          "winbackOffers": []
+        },
+        {
+          "displayPrice": "2.99",
+          "familyShareable": false,
+          "internalID": "C2C22344",
+          "localizations": [
+            {
+              "description": "Find channels, search and track shows.",
+              "displayName": "XPlayer Pro Annual",
+              "locale": "en_US"
+            },
+            {
+              "description": "跨列表找频道，搜索节目并追踪下次播出。",
+              "displayName": "XPlayer Pro 年度会员",
+              "locale": "zh_Hans"
+            }
+          ],
+          "productID": "com.tntlikely.xplayer.pro.yearly",
+          "referenceName": "XPlayer Pro Annual",
+          "type": "RecurringSubscription",
+          "adHocOffers": [],
+          "codeOffers": [],
+          "groupNumber": 1,
+          "introductoryOffer": null,
+          "recurringSubscriptionPeriod": "P1Y",
+          "subscriptionGroupID": "7E54646B-15DA-42C0-AB8C-CE697145F8EC",
+          "winbackOffers": []
+        }
+      ]
+    }
+  ],
+  "version": {
+    "major": 3,
+    "minor": 0
+  }
+}

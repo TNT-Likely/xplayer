@@ -1,3 +1,6 @@
+import 'package:xplayer_storekit/xplayer_storekit.dart';
+import 'package:xplayer/presentation/screens/guide_studio.dart';
+import 'package:xplayer/presentation/screens/pro_membership.dart';
 import 'dart:io';
 
 import 'package:flutter/material.dart';
@@ -466,6 +469,23 @@ class _HomeScreenState extends State<HomeScreen> {
                   ),
                 ),
                 const Divider(color: Colors.white24, height: 1),
+                if (isAppleMembershipBuild)
+                  ListTile(
+                    leading: Icon(Icons.workspace_premium_outlined, color: AppTokens.brand),
+                    title: const Text('XPlayer Pro', style: TextStyle(color: Colors.white)),
+                    onTap: () {
+                      Navigator.pop(context);
+                      Navigator.push(context, MaterialPageRoute(builder: (_) => const ProMembershipScreen()));
+                    },
+                  ),
+                ListTile(
+                  leading: const Icon(Icons.video_library_outlined, color: Colors.white),
+                  title: Text(localizations.proStudio, style: const TextStyle(color: Colors.white)),
+                  onTap: () {
+                    Navigator.pop(context);
+                    Navigator.push(context, MaterialPageRoute(builder: (_) => const GuideStudioScreen()));
+                  },
+                ),
                 _drawerSectionHeader('源与节目单'),
                 Consumer<MediaProvider>(
                   builder: (BuildContext context2, mediaProvider, _) {

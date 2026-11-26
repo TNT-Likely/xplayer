@@ -61,13 +61,14 @@ const en = {
   },
   privacy: {
     title: 'Privacy Policy',
-    lastUpdated: `Last updated: ${LAST_UPDATED}`,
+    lastUpdated: 'Last updated November 27, 2026',
     summary:
       'Short version: XPlayer is a local-first player. It has no account, no ads, no tracking, and no analytics server. Your data stays on your device.',
     sections: [
       { h: 'No account, no tracking', p: 'XPlayer does not require an account and does not collect, sell or share personal data. There is no advertising SDK and no analytics server operated by us.' },
       { h: 'Data stored on your device', p: 'Your playlists, favorites and settings are stored locally on your device only. Uninstalling the app removes them.' },
-      { h: 'Network requests', p: 'XPlayer connects to the internet only to: (1) fetch the playlist / EPG you add or the built-in public lists; (2) play video streams directly from their source servers; (3) check GitHub for app updates. Those third-party servers can see your IP address, as with any internet streaming — we do not control their privacy practices.' },
+      { h: 'Network requests', p: 'XPlayer connects to the playlist, guide and streaming servers you choose. Community builds can also check GitHub for updates. These servers can see your IP address.' },
+      { h: 'Apple purchases', p: 'In App Store builds, Apple processes payments and provides signed entitlement information through StoreKit. XPlayer checks it on your device. XPlayer has no billing server. Programme keywords you follow are stored on this device.' },
       { h: 'Local network (phone-to-TV)', p: 'The optional phone-to-TV remote uses local network (mDNS/Bonjour) discovery and stays within your own network. Nothing is sent to us.' },
       { h: 'Children', p: 'XPlayer is a general-purpose player and is not directed at children. Channel content comes from third-party sources you choose to add.' },
       { h: 'Contact', p: 'Questions about privacy? Open an issue on our GitHub repository.' },
@@ -165,13 +166,14 @@ const zh: typeof en = {
   },
   privacy: {
     title: '隐私政策',
-    lastUpdated: `最后更新:${LAST_UPDATED}`,
+    lastUpdated: '最后更新于 2026 年 11 月 27 日',
     summary:
       '一句话:XPlayer 是本地优先的播放器,没有账号、没有广告、没有追踪、也没有我们运营的分析服务器。你的数据只留在你的设备上。',
     sections: [
       { h: '没有账号,没有追踪', p: 'XPlayer 无需注册账号,不收集、不出售、不分享个人数据;不含广告 SDK,也没有我们运营的分析服务器。' },
       { h: '数据只存在你的设备上', p: '播放列表、收藏、设置等仅保存在本地设备;卸载应用即清除。' },
-      { h: '网络请求', p: 'XPlayer 仅在以下情况联网:(1)拉取你添加的播放列表 / EPG 或内置的公开直播源;(2)播放时直接从源服务器加载视频流;(3)向 GitHub 检查应用更新。和任何在线播放一样,这些第三方服务器能看到你的 IP 地址,其隐私行为不由我们控制。' },
+      { h: '网络请求', p: 'XPlayer 会连接你选用的播放列表、节目单和视频服务器。社区版还可连接 GitHub 检查更新。这些服务器可以看到你的 IP 地址。' },
+      { h: 'Apple 购买记录', p: 'App Store 版本由 Apple 处理付款，并通过 StoreKit 提供签名的购买权益。XPlayer 在设备上验证权益，节目追踪关键词也保存在本机。' },
       { h: '局域网(手机遥控 TV)', p: '可选的"手机遥控 TV"通过局域网(mDNS/Bonjour)发现设备,数据只在你自己的网络内流转,不会发送给我们。' },
       { h: '未成年人', p: 'XPlayer 是通用播放器,并非面向未成年人;频道内容来自你自行添加的第三方源。' },
       { h: '联系我们', p: '有隐私相关问题?请在我们的 GitHub 仓库提 issue。' },

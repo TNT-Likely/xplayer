@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:xplayer_storekit/xplayer_storekit.dart';
 import 'package:flutter/services.dart';
 import 'package:xplayer/presentation/screens/splash.dart';
 import 'package:xplayer/providers/global_provider.dart';
@@ -83,6 +84,7 @@ void main() {
 
     _winLog('calling runApp');
     runApp(MultiProvider(providers: [
+      ChangeNotifierProvider(lazy: false, create: (_) => ProMembership(storeBuild: isAppleMembershipBuild)..start()),
       ChangeNotifierProvider(create: (_) => MediaProvider()),
       ChangeNotifierProvider(create: (_) => LocaleProvider()..loadLocale()),
       ChangeNotifierProvider(create: (_) => GlobalProvider()..loadDeviceInfo()),

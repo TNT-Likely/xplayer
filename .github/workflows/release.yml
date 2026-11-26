@@ -457,7 +457,7 @@ jobs:
 
       - name: Build macOS (STORE build = 纯播放器无内置源)
         if: env.MACOS_SIGNING_ENABLED == 'true'
-        run: flutter build macos --release --dart-define=STORE_BUILD=true
+        run: flutter build macos --release --dart-define=STORE_BUILD=true --dart-define=APPLE_MEMBERSHIP=true
 
       - name: Create signed .pkg for App Store
         if: env.MACOS_SIGNING_ENABLED == 'true'
@@ -641,6 +641,22 @@ jobs:
       - name: Build iOS (no codesign, STORE build = 纯播放器无内置源)
         run: flutter build ios --release --no-codesign --dart-define=STORE_BUILD=true
 
+      - name: Package unsigned IPA fallback
+        run: |
+          VERSION="${{ steps.meta.outputs.tag_name }}"
+          APP_PATH="build/ios/iphoneos/Runner.app"
+          if [ -d "$APP_PATH" ]; then
+            ditto -c -k --sequesterRsrc --keepParent "$APP_PATH" "xplayer-${VERSION}-iphoneos.app.zip"
+            mkdir -p Payload && cp -R "$APP_PATH" Payload/
+            /usr/bin/zip -qry "xplayer-${VERSION}-unsigned.ipa" Payload
+            rm -rf Payload
+          fi
+          ls -la xplayer-${VERSION}-* || true
+
+      - name: Configure membership for the signed App Store archive
+        if: env.IOS_SIGNING_ENABLED == 'true'
+        run: flutter build ios --config-only --release --no-codesign --dart-define=STORE_BUILD=true --dart-define=APPLE_MEMBERSHIP=true
+
       - name: Configure Xcode for manual signing
         if: env.IOS_SIGNING_ENABLED == 'true'
         env:
@@ -691,18 +707,6 @@ jobs:
       - name: Cleanup keychain
         if: always() && env.IOS_SIGNING_ENABLED == 'true'
         run: security delete-keychain $RUNNER_TEMP/app-signing.keychain-db || true
-
-      - name: Package unsigned IPA fallback
-        run: |
-          VERSION="${{ steps.meta.outputs.tag_name }}"
-          APP_PATH="build/ios/iphoneos/Runner.app"
-          if [ -d "$APP_PATH" ]; then
-            ditto -c -k --sequesterRsrc --keepParent "$APP_PATH" "xplayer-${VERSION}-iphoneos.app.zip"
-            mkdir -p Payload && cp -R "$APP_PATH" Payload/
-            /usr/bin/zip -qry "xplayer-${VERSION}-unsigned.ipa" Payload
-            rm -rf Payload
-          fi
-          ls -la xplayer-${VERSION}-* || true
 
       - name: Upload signed IPA artifact (consumed by ios_appstore job)
         if: env.IOS_SIGNING_ENABLED == 'true'

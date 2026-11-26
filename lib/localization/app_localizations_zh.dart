@@ -717,4 +717,176 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get infoTier2Hint => '丢帧/卡顿/Audio Path/AV 同步等指标需后续(挂 ExoPlayer 分析器)';
+
+  @override
+  String get proStudio => '节目工作台';
+
+  @override
+  String get proStudioLead => '找频道，追喜欢的节目';
+
+  @override
+  String get proStudioDescription => '一次搜索所有播放列表。节目单更新时，自动找出你关注的节目。';
+
+  @override
+  String get proChannelFinder => '跨列表找频道';
+
+  @override
+  String get proChannelDetail => '按名称在已导入的列表中查找频道，点一下即可播放。';
+
+  @override
+  String get proProgrammeFinder => '搜索正在播和即将播出的节目';
+
+  @override
+  String get proProgrammeDetail => '输入节目名称，查看播出频道和时间。';
+
+  @override
+  String get proTracker => '关键词追踪节目';
+
+  @override
+  String get proTrackerDetail => '保存节目关键词，每次刷新节目单都能看到接下来有哪些场次。';
+
+  @override
+  String get proLifetime => '永久会员';
+
+  @override
+  String get proYearly => '年度会员';
+
+  @override
+  String get proMonthly => '月度会员';
+
+  @override
+  String get proOneTime => '一次买断';
+
+  @override
+  String get proAnnualRenew => '每年自动续费';
+
+  @override
+  String get proMonthlyRenew => '每月自动续费';
+
+  @override
+  String get proActive => '已开通';
+
+  @override
+  String get proMember => '我的会员';
+
+  @override
+  String get proPlans => '选择会员方案';
+
+  @override
+  String get proLifetimeBuy => '购买永久会员';
+
+  @override
+  String get proSubscribe => '订阅';
+
+  @override
+  String get proRestore => '恢复购买';
+
+  @override
+  String get proManage => '管理订阅';
+
+  @override
+  String get proTerms => '使用条款';
+
+  @override
+  String get proPrivacy => '隐私政策';
+
+  @override
+  String get proUnavailable => '暂时无法从 App Store 获取价格。';
+
+  @override
+  String get proStateError => '未能核对购买记录，请重试。';
+
+  @override
+  String get proRetry => '重试';
+
+  @override
+  String get proUnsupported => '会员功能需要 iOS 15、iPadOS 15、macOS 12 或更高版本。';
+
+  @override
+  String get proRestoreNone => '此 Apple 账户没有可恢复的有效会员。';
+
+  @override
+  String get proRestored => '已恢复会员权益。';
+
+  @override
+  String get proPending => '购买请求正在等待批准。';
+
+  @override
+  String get proPurchased => 'Pro 会员已开通。';
+
+  @override
+  String get proStoreError => 'App Store 暂时无法完成此操作，请重试。';
+
+  @override
+  String get proCancelNotice => '买断后，苹果仍会续订你现有的订阅。请在 Apple 账户中取消续订，避免再次扣费。';
+
+  @override
+  String get proContinue => '继续';
+
+  @override
+  String get proBack => '返回';
+
+  @override
+  String get proSubscriptionNote =>
+      '确认购买后由 Apple 账户扣款。月度和年度会员会自动续费，可在 Apple 账户中取消。永久会员仅扣款一次。三种方案权益相同。';
+
+  @override
+  String get proOpenStudio => '打开节目工作台';
+
+  @override
+  String get proChannelsTab => '频道';
+
+  @override
+  String get proShowsTab => '节目';
+
+  @override
+  String get proFollowingTab => '追踪';
+
+  @override
+  String get proChannelQuery => '搜索频道名称';
+
+  @override
+  String get proShowQuery => '搜索节目名称';
+
+  @override
+  String get proFollow => '追踪此关键词';
+
+  @override
+  String get proUnfollow => '移除关键词';
+
+  @override
+  String get proEmptyLibrary => '先导入一个含频道的播放列表，即可使用节目工作台。';
+
+  @override
+  String get proNoGuide => '还没有后续节目。可刷新节目单，或添加带有 XMLTV 节目单的播放列表。';
+
+  @override
+  String get proNoMatches => '没有匹配结果，试试其他关键词。';
+
+  @override
+  String get proNoFollowing => '在「节目」中搜索名称并追踪关键词，这里会显示匹配的播出场次。';
+
+  @override
+  String get proFollowEmpty => '最新节目单中暂时没有匹配这些关键词的场次。';
+
+  @override
+  String get proPartial => '部分播放列表未能载入，可刷新重试。';
+
+  @override
+  String get proRefresh => '刷新节目单和频道列表';
+
+  @override
+  String get proNow => '正在直播';
+
+  @override
+  String get proBrowsePlans => '查看会员方案';
+
+  @override
+  String get proWatchTitle => '追踪的关键词';
+
+  @override
+  String get proOpenChannel => '播放频道';
+
+  @override
+  String get proLocalError => '未能在本机保存更改。';
 }

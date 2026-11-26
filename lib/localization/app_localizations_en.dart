@@ -731,4 +731,189 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String get infoTier2Hint =>
       'Dropped frames / audio path / A-V sync need a later pass (ExoPlayer analytics)';
+
+  @override
+  String get proStudio => 'Guide Studio';
+
+  @override
+  String get proStudioLead => 'Find a channel. Follow a show.';
+
+  @override
+  String get proStudioDescription =>
+      'Search all your playlists and keep an eye on the shows you follow as your own guide updates.';
+
+  @override
+  String get proChannelFinder => 'Search across playlists';
+
+  @override
+  String get proChannelDetail =>
+      'Find a channel by name and play it from its original playlist.';
+
+  @override
+  String get proProgrammeFinder => 'Find live and upcoming shows';
+
+  @override
+  String get proProgrammeDetail =>
+      'Look up a programme by title and see when and where it airs.';
+
+  @override
+  String get proTracker => 'Follow shows by keyword';
+
+  @override
+  String get proTrackerDetail =>
+      'Save a title keyword. Its upcoming broadcasts appear together when your guide refreshes.';
+
+  @override
+  String get proLifetime => 'Lifetime';
+
+  @override
+  String get proYearly => 'Annual';
+
+  @override
+  String get proMonthly => 'Monthly';
+
+  @override
+  String get proOneTime => 'Pay once';
+
+  @override
+  String get proAnnualRenew => 'Renews every year';
+
+  @override
+  String get proMonthlyRenew => 'Renews every month';
+
+  @override
+  String get proActive => 'Active';
+
+  @override
+  String get proMember => 'Your membership';
+
+  @override
+  String get proPlans => 'Choose your plan';
+
+  @override
+  String get proLifetimeBuy => 'Unlock lifetime access';
+
+  @override
+  String get proSubscribe => 'Subscribe';
+
+  @override
+  String get proRestore => 'Restore purchases';
+
+  @override
+  String get proManage => 'Manage subscription';
+
+  @override
+  String get proTerms => 'Terms of Use';
+
+  @override
+  String get proPrivacy => 'Privacy Policy';
+
+  @override
+  String get proUnavailable => 'Prices are currently unavailable.';
+
+  @override
+  String get proStateError => 'Could not check your purchases. Try again.';
+
+  @override
+  String get proRetry => 'Try again';
+
+  @override
+  String get proUnsupported =>
+      'Membership requires iOS 15, iPadOS 15 or macOS 12 or later.';
+
+  @override
+  String get proRestoreNone =>
+      'No active purchases were found for this Apple Account.';
+
+  @override
+  String get proRestored => 'Your membership has been restored.';
+
+  @override
+  String get proPending => 'Your purchase is awaiting approval.';
+
+  @override
+  String get proPurchased => 'Your Pro membership is ready.';
+
+  @override
+  String get proStoreError =>
+      'The App Store could not complete this request. Please try again.';
+
+  @override
+  String get proCancelNotice =>
+      'Buying lifetime access does not cancel your current subscription. Manage it in your Apple Account to avoid another renewal.';
+
+  @override
+  String get proContinue => 'Continue';
+
+  @override
+  String get proBack => 'Back';
+
+  @override
+  String get proSubscriptionNote =>
+      'Apple charges your account at confirmation. Subscriptions renew until cancelled in your Apple Account. Lifetime is a single purchase. All plans unlock the same tools.';
+
+  @override
+  String get proOpenStudio => 'Open Guide Studio';
+
+  @override
+  String get proChannelsTab => 'Channels';
+
+  @override
+  String get proShowsTab => 'Shows';
+
+  @override
+  String get proFollowingTab => 'Following';
+
+  @override
+  String get proChannelQuery => 'Search channel names';
+
+  @override
+  String get proShowQuery => 'Search programme titles';
+
+  @override
+  String get proFollow => 'Follow this keyword';
+
+  @override
+  String get proUnfollow => 'Remove keyword';
+
+  @override
+  String get proEmptyLibrary =>
+      'Import a playlist with channels to use Guide Studio.';
+
+  @override
+  String get proNoGuide =>
+      'No upcoming programme data. Refresh the guide or add a playlist with an XMLTV guide.';
+
+  @override
+  String get proNoMatches => 'No matches. Try another keyword.';
+
+  @override
+  String get proNoFollowing =>
+      'In Shows, search for a title and follow its keyword to see the next broadcasts here.';
+
+  @override
+  String get proFollowEmpty =>
+      'No upcoming broadcasts match your saved keywords yet.';
+
+  @override
+  String get proPartial =>
+      'Some playlists could not be loaded. Refresh to try again.';
+
+  @override
+  String get proRefresh => 'Refresh guide and playlists';
+
+  @override
+  String get proNow => 'Live now';
+
+  @override
+  String get proBrowsePlans => 'View membership options';
+
+  @override
+  String get proWatchTitle => 'Followed keywords';
+
+  @override
+  String get proOpenChannel => 'Play channel';
+
+  @override
+  String get proLocalError => 'Could not save your changes on this device.';
 }

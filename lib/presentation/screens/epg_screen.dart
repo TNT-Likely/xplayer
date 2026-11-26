@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'guide_studio.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:xplayer/localization/app_localizations.dart';
@@ -107,6 +108,15 @@ class _EpgScreenState extends State<EpgScreen> {
         elevation: 0,
         title: Text(l.epg, style: const TextStyle(color: Colors.white)),
         iconTheme: const IconThemeData(color: Colors.white),
+        actions: [
+          IconButton(
+            icon: const Icon(Icons.manage_search),
+            tooltip: l.proProgrammeFinder,
+            onPressed: () => Navigator.push(context, MaterialPageRoute(
+              builder: (_) => const GuideStudioScreen(startWithShows: true),
+            )),
+          ),
+        ],
       ),
       body: channels.isEmpty
           ? _empty(l)

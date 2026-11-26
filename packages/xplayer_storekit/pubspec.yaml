@@ -1,0 +1,19 @@
+name: xplayer_storekit
+description: StoreKit 2 membership for XPlayer's Apple store builds.
+version: 1.0.0
+publish_to: none
+resolution: workspace
+environment:
+  sdk: '>=3.11.0 <4.0.0'
+dependencies:
+  flutter:
+    sdk: flutter
+flutter:
+  plugin:
+    platforms:
+      ios:
+        pluginClass: XPlayerStorePlugin
+        sharedDarwinSource: true
+      macos:
+        pluginClass: XPlayerStorePlugin
+        sharedDarwinSource: true

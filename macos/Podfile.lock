@@ -53,6 +53,9 @@ PODS:
     - FlutterMacOS
   - wakelock_plus (0.0.1):
     - FlutterMacOS
+  - xplayer_storekit (1.0.0):
+    - Flutter
+    - FlutterMacOS
 
 DEPENDENCIES:
   - audio_session (from `Flutter/ephemeral/.symlinks/plugins/audio_session/macos`)
@@ -69,6 +72,7 @@ DEPENDENCIES:
   - url_launcher_macos (from `Flutter/ephemeral/.symlinks/plugins/url_launcher_macos/macos`)
   - video_player_avfoundation (from `Flutter/ephemeral/.symlinks/plugins/video_player_avfoundation/darwin`)
   - wakelock_plus (from `Flutter/ephemeral/.symlinks/plugins/wakelock_plus/macos`)
+  - xplayer_storekit (from `Flutter/ephemeral/.symlinks/plugins/xplayer_storekit/darwin`)
 
 SPEC REPOS:
   trunk:
@@ -103,6 +107,8 @@ EXTERNAL SOURCES:
     :path: Flutter/ephemeral/.symlinks/plugins/video_player_avfoundation/darwin
   wakelock_plus:
     :path: Flutter/ephemeral/.symlinks/plugins/wakelock_plus/macos
+  xplayer_storekit:
+    :path: Flutter/ephemeral/.symlinks/plugins/xplayer_storekit/darwin
 
 SPEC CHECKSUMS:
   audio_session: eaca2512cf2b39212d724f35d11f46180ad3a33e
@@ -120,6 +126,7 @@ SPEC CHECKSUMS:
   url_launcher_macos: f87a979182d112f911de6820aefddaf56ee9fbfd
   video_player_avfoundation: 3453f792138786248960ca029747fcd9f318ef52
   wakelock_plus: 917609be14d812ddd9e9528876538b2263aaa03b
+  xplayer_storekit: 11f99987365e54a9faa1afed1d0e38907d32178e
 
 PODFILE CHECKSUM: aa790ec80df8f5bd50cbf3e41a17124beba890df
 

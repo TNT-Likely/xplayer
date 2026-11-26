@@ -41,7 +41,7 @@ PODS:
     - DKImagePickerController/PhotoGallery
     - Flutter
   - Flutter (1.0.0)
-  - media_kit_libs_ios_video (1.0.4):
+  - libmpv_xplayer (0.1.0):
     - Flutter
   - media_kit_video (0.0.1):
     - Flutter
@@ -93,6 +93,9 @@ PODS:
     - FlutterMacOS
   - wakelock_plus (0.0.1):
     - Flutter
+  - xplayer_storekit (1.0.0):
+    - Flutter
+    - FlutterMacOS
 
 DEPENDENCIES:
   - audio_session (from `.symlinks/plugins/audio_session/ios`)
@@ -100,7 +103,7 @@ DEPENDENCIES:
   - device_info_plus (from `.symlinks/plugins/device_info_plus/ios`)
   - file_picker (from `.symlinks/plugins/file_picker/ios`)
   - Flutter (from `Flutter`)
-  - media_kit_libs_ios_video (from `.symlinks/plugins/media_kit_libs_ios_video/ios`)
+  - libmpv_xplayer (from `.symlinks/plugins/libmpv_xplayer/ios`)
   - media_kit_video (from `.symlinks/plugins/media_kit_video/ios`)
   - open_filex (from `.symlinks/plugins/open_filex/ios`)
   - package_info_plus (from `.symlinks/plugins/package_info_plus/ios`)
@@ -111,6 +114,7 @@ DEPENDENCIES:
   - url_launcher_ios (from `.symlinks/plugins/url_launcher_ios/ios`)
   - video_player_avfoundation (from `.symlinks/plugins/video_player_avfoundation/darwin`)
   - wakelock_plus (from `.symlinks/plugins/wakelock_plus/ios`)
+  - xplayer_storekit (from `.symlinks/plugins/xplayer_storekit/darwin`)
 
 SPEC REPOS:
   trunk:
@@ -131,8 +135,8 @@ EXTERNAL SOURCES:
     :path: ".symlinks/plugins/file_picker/ios"
   Flutter:
     :path: Flutter
-  media_kit_libs_ios_video:
-    :path: ".symlinks/plugins/media_kit_libs_ios_video/ios"
+  libmpv_xplayer:
+    :path: ".symlinks/plugins/libmpv_xplayer/ios"
   media_kit_video:
     :path: ".symlinks/plugins/media_kit_video/ios"
   open_filex:
@@ -153,6 +157,8 @@ EXTERNAL SOURCES:
     :path: ".symlinks/plugins/video_player_avfoundation/darwin"
   wakelock_plus:
     :path: ".symlinks/plugins/wakelock_plus/ios"
+  xplayer_storekit:
+    :path: ".symlinks/plugins/xplayer_storekit/darwin"
 
 SPEC CHECKSUMS:
   audio_session: 9bb7f6c970f21241b19f5a3658097ae459681ba0
@@ -162,8 +168,8 @@ SPEC CHECKSUMS:
   DKPhotoGallery: b3834fecb755ee09a593d7c9e389d8b5d6deed60
   file_picker: a0560bc09d61de87f12d246fc47d2119e6ef37be
   Flutter: cabc95a1d2626b1b06e7179b784ebcf0c0cde467
-  media_kit_libs_ios_video: 5a18affdb97d1f5d466dc79988b13eff6c5e2854
-  media_kit_video: 1746e198cb697d1ffb734b1d05ec429d1fcd1474
+  libmpv_xplayer: 8e52de9f0dae3a459ea266d6b828e8a46a43501a
+  media_kit_video: f3b0d035d89def15cfbbcf7dc2ae278f201e2f83
   open_filex: 432f3cd11432da3e39f47fcc0df2b1603854eff1
   package_info_plus: af8e2ca6888548050f16fa2f1938db7b5a5df499
   permission_handler_apple: 92d754bbaa7361d436db2d6c3c1c2a0fdcec462e
@@ -176,6 +182,7 @@ SPEC CHECKSUMS:
   url_launcher_ios: 7a95fa5b60cc718a708b8f2966718e93db0cef1b
   video_player_avfoundation: 3453f792138786248960ca029747fcd9f318ef52
   wakelock_plus: e29112ab3ef0b318e58cfa5c32326458be66b556
+  xplayer_storekit: 11f99987365e54a9faa1afed1d0e38907d32178e
 
 PODFILE CHECKSUM: a8ee75deebdce30d6ae8ce2024966166cf835197
 
