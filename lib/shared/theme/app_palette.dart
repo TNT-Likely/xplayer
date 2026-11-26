@@ -17,7 +17,7 @@ class AppPalette {
   AppPalette._();
 
   /// 默认色,即改造前硬编码的品牌色。
-  static const Color green = Color(0xFF00DC82); // 对比度 8.76
+  static const Color green = Color(0xFFB5E6BB); // A「静夜」默认强调色
   static const Color blue = Color(0xFF2196F3); // 5.09
   static const Color cyan = Color(0xFF00BCD4); // 6.93
   static const Color purple = Color(0xFFBA68C8); // 4.47

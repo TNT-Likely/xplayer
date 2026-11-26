@@ -85,7 +85,7 @@ class PlaylistRepository {
 
       // 1. 先获取所有playlist的ID（不读取大字段）
       final List<Map<String, dynamic>> idList = await db.rawQuery(
-        'SELECT id FROM Playlists'
+        'SELECT id FROM Playlists',
       );
       print('找到 ${idList.length} 个播放列表需要迁移');
 
@@ -98,7 +98,7 @@ class PlaylistRepository {
           // 单独查询每个playlist的channels字段
           final result = await db.rawQuery(
             'SELECT channels FROM Playlists WHERE id = ? LIMIT 1',
-            [id]
+            [id],
           );
 
           if (result.isNotEmpty) {
@@ -106,7 +106,9 @@ class PlaylistRepository {
             if (channels != null && channels.isNotEmpty) {
               await _fileStorage.saveChannels(id, channels);
               migratedCount++;
-              print('已迁移 playlist #$id 的 channels 数据 (${(channels.length / 1024).toStringAsFixed(1)} KB)');
+              print(
+                '已迁移 playlist #$id 的 channels 数据 (${(channels.length / 1024).toStringAsFixed(1)} KB)',
+              );
             }
           }
         } catch (e) {
@@ -150,24 +152,21 @@ class PlaylistRepository {
     }
   }
 
-// 插入新的播放列表
+  // 插入新的播放列表
   Future<Playlist> insertPlaylist(Playlist playlist) async {
     final db = await database;
     final now = DateTime.now().toIso8601String();
-    final id = await db.insert(
-        'Playlists',
-        {
-          'name': playlist.name,
-          'url': playlist.url,
-          'created_at': now,
-          'updated_at': now,
-        },
-        conflictAlgorithm: ConflictAlgorithm.replace);
+    final id = await db.insert('Playlists', {
+      'name': playlist.name,
+      'url': playlist.url,
+      'created_at': now,
+      'updated_at': now,
+    }, conflictAlgorithm: ConflictAlgorithm.replace);
 
     return Playlist(name: playlist.name, url: playlist.url, id: id);
   }
 
-// 更新现有的播放列表
+  // 更新现有的播放列表
   Future<int> updatePlaylist(Playlist playlist) async {
     final db = await database;
     final now = DateTime.now().toIso8601String();
@@ -191,11 +190,7 @@ class PlaylistRepository {
     // 同时删除channels文件
     await _fileStorage.deleteChannels(id);
 
-    return await db.delete(
-      'Playlists',
-      where: 'id = ?',
-      whereArgs: [id],
-    );
+    return await db.delete('Playlists', where: 'id = ?', whereArgs: [id]);
   }
 
   // 获取所有播放列表（不加载 channels 字段，避免数据过大）
@@ -211,7 +206,7 @@ class PlaylistRepository {
     });
   }
 
-// 根据 ID 获取播放列表（不加载 channels 字段，避免数据过大）
+  // 根据 ID 获取播放列表（不加载 channels 字段，避免数据过大）
   Future<Playlist?> getPlaylistById(int id) async {
     final db = await database;
     final List<Map<String, dynamic>> maps = await db.query(
@@ -248,7 +243,8 @@ class PlaylistRepository {
         httpClient.connectionTimeout = const Duration(seconds: 30);
 
         // 企业内网证书处理（Zscaler等代理证书）
-        httpClient.badCertificateCallback = (X509Certificate cert, String host, int port) => true;
+        httpClient.badCertificateCallback =
+            (X509Certificate cert, String host, int port) => true;
 
         // 可选:拉取直播源走代理(「网络代理」设置里开启)
         final sourceProxy = await UpdateProxy.forSource();
@@ -268,15 +264,17 @@ class PlaylistRepository {
           } else {
             httpClient.close();
             throw Exception(
-                'Failed to load M3U file, status code: ${response.statusCode}');
+              'Failed to load M3U file, status code: ${response.statusCode}',
+            );
           }
         } finally {
           httpClient.close();
         }
       } else {
         // 处理本地文件
-        final String filePath =
-            (uri != null && uri.scheme == 'file') ? uri.toFilePath() : url;
+        final String filePath = (uri != null && uri.scheme == 'file')
+            ? uri.toFilePath()
+            : url;
         final file = File(filePath);
         if (!await file.exists()) {
           throw Exception('Local M3U file not found: $filePath');
@@ -309,7 +307,9 @@ class PlaylistRepository {
     final channelsJson = jsonEncode(channels);
 
     if (playlist != null) {
-      final newPlaylist = playlist.copyWith(epgUrl: epgUrl);
+      final newPlaylist = playlist.copyWith(
+        epgUrl: epgUrl.isEmpty ? playlist.epgUrl : epgUrl,
+      );
 
       // 更新数据库中的播放列表记录（不包含channels）
       await updatePlaylist(newPlaylist);
@@ -326,7 +326,8 @@ class PlaylistRepository {
     httpClient.connectionTimeout = const Duration(seconds: 30);
 
     // 企业内网证书处理
-    httpClient.badCertificateCallback = (X509Certificate cert, String host, int port) => true;
+    httpClient.badCertificateCallback =
+        (X509Certificate cert, String host, int port) => true;
 
     // 可选:拉取 EPG 走代理(「网络代理」设置里开启)
     final sourceProxy = await UpdateProxy.forSource();
@@ -336,14 +337,20 @@ class PlaylistRepository {
 
     try {
       final uri = Uri.parse(url);
-      final request = await httpClient.getUrl(uri);
-      final response = await request.close();
+      final request = await httpClient
+          .getUrl(uri)
+          .timeout(const Duration(seconds: 30));
+      final response = await request.close().timeout(
+        const Duration(seconds: 30),
+      );
 
       if (response.statusCode == 200) {
         // EPG 常见为 .gz 压缩(如 iptv-api 的 epg.gz),不能直接当 utf8 文本解析。
         // 按 gzip 魔数(0x1f 0x8b)判断后解压;若服务端已解压则按原样。
         final bytes = <int>[];
-        await for (final chunk in response) {
+        await for (final chunk in response.timeout(
+          const Duration(seconds: 30),
+        )) {
           bytes.addAll(chunk);
         }
         List<int> data = bytes;
@@ -364,7 +371,9 @@ class PlaylistRepository {
 
         return programmes;
       } else {
-        throw Exception('Failed to load EPG data, status code: ${response.statusCode}');
+        throw Exception(
+          'Failed to load EPG data, status code: ${response.statusCode}',
+        );
       }
     } catch (e) {
       rethrow;

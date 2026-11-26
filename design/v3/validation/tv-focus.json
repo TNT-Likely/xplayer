@@ -1,0 +1,46 @@
+[
+  {
+    "step": "hero-favourite",
+    "focused": "收藏",
+    "passed": true
+  },
+  {
+    "step": "hero-play",
+    "focused": "立即观看",
+    "passed": true
+  },
+  {
+    "step": "hero-details",
+    "focused": "节目详情",
+    "passed": true
+  },
+  {
+    "step": "details-opened",
+    "passed": true
+  },
+  {
+    "step": "search-navigation",
+    "focused": "按确认输入",
+    "passed": true
+  },
+  {
+    "step": "search-exit-down",
+    "focused": "央视频道",
+    "passed": true
+  },
+  {
+    "step": "search-back-down",
+    "focused": "央视频道",
+    "passed": true
+  },
+  {
+    "step": "search-navigation-final",
+    "focused": "按确认输入",
+    "passed": true
+  },
+  {
+    "step": "search-left-sidebar",
+    "focused": "频道",
+    "passed": true
+  }
+]

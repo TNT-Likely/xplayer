@@ -65,7 +65,9 @@ class XTextButton extends StatelessWidget {
     return TextStyle(
             fontWeight: FontWeight.normal,
             fontSize: fontSize,
-            color: Colors.white,
+            color: type == XTextButtonType.primary
+                ? Theme.of(context).colorScheme.onPrimary
+                : AppTokens.textPrimary,
             height: lineHeight / fontSize,
             decoration: TextDecoration.none)
         .merge(textStyle);

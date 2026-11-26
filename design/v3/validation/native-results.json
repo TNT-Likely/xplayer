@@ -1,0 +1,114 @@
+{
+  "date": "2026-10-25",
+  "flutter": "3.41.9",
+  "dart": "3.11.5",
+  "baseMain": "b215395e3f06947b9c1dc735de4ebc995bdc77d6",
+  "branch": "v3",
+  "applicationVersion": "3.0.0+1",
+  "synthetic": [
+    {
+      "device": "phone",
+      "passed": true,
+      "isTv": false,
+      "size": "Size(1206.0, 2622.0)",
+      "pixelRatio": 3.0,
+      "backend": "MediaKitBackend",
+      "videoWidth": 640.0,
+      "videoHeight": 360.0,
+      "steps": [
+        "专用模拟器以真实空数据库启动",
+        "非法列表地址保留输入并阻止提交",
+        "M3U 与文件头 XMLTV 通过现有仓库真实导入",
+        "搜索与收藏写入真实 Provider 和数据库",
+        "EPG 503 保留当前有效缓存",
+        "过期节目单保留参考，移除当前播出语义",
+        "首次播放帮助可关闭",
+        "实际播放器初始化、出视频尺寸且播放位置推进",
+        "返回频道复用同一后端进入小窗"
+      ]
+    },
+    {
+      "device": "ipad",
+      "passed": true,
+      "isTv": false,
+      "size": "Size(1668.0, 2420.0)",
+      "pixelRatio": 2.0,
+      "backend": "MediaKitBackend",
+      "videoWidth": 640.0,
+      "videoHeight": 360.0,
+      "steps": [
+        "专用模拟器以真实空数据库启动",
+        "非法列表地址保留输入并阻止提交",
+        "M3U 与文件头 XMLTV 通过现有仓库真实导入",
+        "搜索与收藏写入真实 Provider 和数据库",
+        "EPG 503 保留当前有效缓存",
+        "过期节目单保留参考，移除当前播出语义",
+        "首次播放帮助可关闭",
+        "实际播放器初始化、出视频尺寸且播放位置推进",
+        "返回频道复用同一后端进入小窗"
+      ]
+    },
+    {
+      "device": "tv",
+      "passed": true,
+      "isTv": true,
+      "size": "Size(1920.0, 1080.0)",
+      "pixelRatio": 2.0,
+      "backend": "NativePlayerBackend",
+      "videoWidth": 640.0,
+      "videoHeight": 360.0,
+      "steps": [
+        "专用模拟器以真实空数据库启动",
+        "非法列表地址保留输入并阻止提交",
+        "M3U 与文件头 XMLTV 通过现有仓库真实导入",
+        "搜索与收藏写入真实 Provider 和数据库",
+        "EPG 503 保留当前有效缓存",
+        "过期节目单保留参考，移除当前播出语义",
+        "首次播放帮助可关闭",
+        "实际播放器初始化、出视频尺寸且播放位置推进",
+        "返回频道复用同一后端进入小窗"
+      ]
+    }
+  ],
+  "lan": [
+    {
+      "device": "phone-lan",
+      "passed": true,
+      "channels": 538,
+      "programmes": 2557,
+      "epgStatus": "stale",
+      "coverageEnd": "2026-09-26T15:59:59.000Z",
+      "channel": "CCTV-13",
+      "backend": "MediaKitBackend",
+      "videoWidth": 1920.0,
+      "videoHeight": 1080.0,
+      "sameBackendInMini": true
+    },
+    {
+      "device": "ipad-lan",
+      "passed": true,
+      "channels": 538,
+      "programmes": 2557,
+      "epgStatus": "stale",
+      "coverageEnd": "2026-09-26T15:59:59.000Z",
+      "channel": "CCTV-13",
+      "backend": "MediaKitBackend",
+      "videoWidth": 1920.0,
+      "videoHeight": 1080.0,
+      "sameBackendInMini": true
+    },
+    {
+      "device": "tv-lan",
+      "passed": true,
+      "channels": 538,
+      "programmes": 2557,
+      "epgStatus": "stale",
+      "coverageEnd": "2026-09-26T15:59:59.000Z",
+      "channel": "CCTV-13",
+      "backend": "NativePlayerBackend",
+      "videoWidth": 1920.0,
+      "videoHeight": 1080.0,
+      "sameBackendInMini": true
+    }
+  ]
+}

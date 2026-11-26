@@ -9,9 +9,17 @@ import 'package:xplayer/utils/channel_filter.dart';
 import 'package:xplayer/utils/epg_metrics.dart';
 import 'package:xplayer/utils/playlist_util.dart';
 import 'package:xplayer/localization/app_localizations.dart';
+import 'package:xplayer_ui/xplayer_ui.dart';
 
 const String kAllGroups = '全部';
 const double _kRowH = 64.0;
+
+double _rowHeight(BuildContext context) {
+  final theme = XpTheme.of(context), scaler = MediaQuery.textScalerOf(context);
+  final content =
+      (scaler.scale(theme.bodySize) + scaler.scale(theme.smallSize)) * 1.3 + 16;
+  return content > _kRowH ? content : _kRowH;
+}
 
 /// 响应式频道选择器:宽屏=分组|频道(行内正在)|焦点台节目单 三栏;
 /// 窄屏=分组chips + 频道列表(行内正在)+ 行尾 ▸ 弹该台节目单。
@@ -67,8 +75,10 @@ class _ChannelSelectorWidgetState extends State<ChannelSelectorWidget> {
     final idx = list.indexWhere((c) => c.id == widget.currentChannel.id);
     if (idx < 0) return;
     if (_scroll.hasClients) {
-      final target =
-          (idx * _kRowH - 120).clamp(0.0, _scroll.position.maxScrollExtent);
+      final target = (idx * _rowHeight(context) - 120).clamp(
+        0.0,
+        _scroll.position.maxScrollExtent,
+      );
       _scroll.jumpTo(target);
     }
     WidgetsBinding.instance.addPostFrameCallback((_) {
@@ -84,7 +94,7 @@ class _ChannelSelectorWidgetState extends State<ChannelSelectorWidget> {
   void _showSheet(Channel c, MediaProvider mp) {
     showModalBottomSheet(
       context: context,
-      backgroundColor: const Color.fromARGB(255, 24, 24, 24),
+      backgroundColor: XpTheme.of(context).palette.surface,
       builder: (_) => SizedBox(
         height: 340,
         child: Column(
@@ -94,13 +104,15 @@ class _ChannelSelectorWidgetState extends State<ChannelSelectorWidget> {
               child: Text(
                 c.name.isNotEmpty ? c.name : c.id,
                 style: const TextStyle(
-                    color: Colors.white,
-                    fontSize: 15,
-                    fontWeight: FontWeight.w600),
+                  color: Colors.white,
+                  fontSize: 15,
+                  fontWeight: FontWeight.w600,
+                ),
               ),
             ),
             Expanded(
-                child: _NowNextList(channel: c, programmes: mp.programmes)),
+              child: _NowNextList(channel: c, programmes: mp.programmes),
+            ),
           ],
         ),
       ),
@@ -116,7 +128,7 @@ class _ChannelSelectorWidgetState extends State<ChannelSelectorWidget> {
 
     final channelList = ListView.builder(
       controller: _scroll,
-      itemExtent: _kRowH,
+      itemExtent: _rowHeight(context),
       itemCount: channels.length,
       itemBuilder: (_, i) {
         final c = channels[i];
@@ -139,17 +151,22 @@ class _ChannelSelectorWidgetState extends State<ChannelSelectorWidget> {
         ? Row(
             children: [
               SizedBox(
-                width: 140,
+                width: XpTheme.of(context).isTv ? 190 : 140,
                 child: _GroupList(
-                    groups: groups, selected: _group, onSelect: _onGroup),
+                  groups: groups,
+                  selected: _group,
+                  onSelect: _onGroup,
+                ),
               ),
               const VerticalDivider(width: 1, color: Colors.white24),
               Expanded(flex: 3, child: channelList),
               const VerticalDivider(width: 1, color: Colors.white24),
               Expanded(
                 flex: 2,
-                child:
-                    _NowNextList(channel: _focused, programmes: mp.programmes),
+                child: _NowNextList(
+                  channel: _focused,
+                  programmes: mp.programmes,
+                ),
               ),
             ],
           )
@@ -193,13 +210,16 @@ class _ChannelRow extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final theme = Theme.of(context).primaryColor;
+    final theme = XpTheme.of(context), palette = theme.palette;
     final cur = PlaylistUtil.findCurrentAndNextProgramme(
-            programmes, channel.id, DateTime.now())
-        .$2;
+      programmes,
+      channel.id,
+      DateTime.now(),
+    ).$2;
     final bg = selected
-        ? theme.withOpacity(0.85)
-        : (focused ? theme.withOpacity(0.5) : Colors.transparent);
+        ? palette.accent
+        : (focused ? palette.accentWash : Colors.transparent);
+    final ink = selected ? palette.accentInk : palette.foreground;
     return InkWell(
       focusNode: focusNode,
       onTap: onTap,
@@ -216,8 +236,11 @@ class _ChannelRow extends StatelessWidget {
                   ? CachedNetworkImage(
                       imageUrl: channel.logo!,
                       fit: BoxFit.contain,
-                      errorWidget: (_, __, ___) => const Icon(Icons.live_tv,
-                          color: Colors.white54, size: 18),
+                      errorWidget: (_, __, ___) => const Icon(
+                        Icons.live_tv,
+                        color: Colors.white54,
+                        size: 18,
+                      ),
                     )
                   : const Icon(Icons.live_tv, color: Colors.white54, size: 18),
             ),
@@ -232,15 +255,17 @@ class _ChannelRow extends StatelessWidget {
                     channel.name.isNotEmpty ? channel.name : channel.id,
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,
-                    style: const TextStyle(color: Colors.white, fontSize: 14),
+                    style: TextStyle(color: ink, fontSize: theme.bodySize),
                   ),
                   if (cur != null)
                     Text(
                       AppLocalizations.of(context)!.nowPlaying(cur.title),
                       maxLines: 1,
                       overflow: TextOverflow.ellipsis,
-                      style:
-                          const TextStyle(color: Colors.white60, fontSize: 11),
+                      style: TextStyle(
+                        color: selected ? palette.accentInk : palette.muted,
+                        fontSize: theme.smallSize,
+                      ),
                     ),
                 ],
               ),
@@ -262,8 +287,11 @@ class _FocusItem extends StatefulWidget {
   final bool selected;
   final VoidCallback onTap;
   final Widget Function(bool focused, bool selected) builder;
-  const _FocusItem(
-      {required this.selected, required this.onTap, required this.builder});
+  const _FocusItem({
+    required this.selected,
+    required this.onTap,
+    required this.builder,
+  });
 
   @override
   State<_FocusItem> createState() => _FocusItemState();
@@ -288,12 +316,15 @@ class _GroupList extends StatelessWidget {
   final List<String> groups;
   final String selected;
   final ValueChanged<String> onSelect;
-  const _GroupList(
-      {required this.groups, required this.selected, required this.onSelect});
+  const _GroupList({
+    required this.groups,
+    required this.selected,
+    required this.onSelect,
+  });
 
   @override
   Widget build(BuildContext context) {
-    final theme = Theme.of(context).primaryColor;
+    final theme = XpTheme.of(context), palette = theme.palette;
     return ListView.builder(
       itemCount: groups.length,
       itemBuilder: (_, i) {
@@ -304,14 +335,17 @@ class _GroupList extends StatelessWidget {
           onTap: () => onSelect(g),
           builder: (focused, sel) => Container(
             color: focused
-                ? theme.withOpacity(0.9)
-                : (sel ? theme.withOpacity(0.55) : Colors.transparent),
+                ? palette.accent
+                : (sel ? palette.accentWash : Colors.transparent),
             padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 12),
             child: Text(
               g == kAllGroups ? AppLocalizations.of(context)!.allGroups : g,
               maxLines: 1,
               overflow: TextOverflow.ellipsis,
-              style: const TextStyle(color: Colors.white, fontSize: 13),
+              style: TextStyle(
+                color: focused ? palette.accentInk : palette.foreground,
+                fontSize: theme.bodySize,
+              ),
             ),
           ),
         );
@@ -325,14 +359,17 @@ class _GroupChips extends StatelessWidget {
   final List<String> groups;
   final String selected;
   final ValueChanged<String> onSelect;
-  const _GroupChips(
-      {required this.groups, required this.selected, required this.onSelect});
+  const _GroupChips({
+    required this.groups,
+    required this.selected,
+    required this.onSelect,
+  });
 
   @override
   Widget build(BuildContext context) {
-    final theme = Theme.of(context).primaryColor;
+    final theme = XpTheme.of(context), palette = theme.palette;
     return SizedBox(
-      height: 44,
+      height: MediaQuery.textScalerOf(context).scale(theme.bodySize) * 1.3 + 24,
       child: ListView.separated(
         scrollDirection: Axis.horizontal,
         padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 6),
@@ -349,15 +386,19 @@ class _GroupChips extends StatelessWidget {
               alignment: Alignment.center,
               decoration: BoxDecoration(
                 color: focused
-                    ? theme.withOpacity(0.95)
-                    : (sel
-                        ? theme.withOpacity(0.85)
-                        : Colors.white.withOpacity(0.12)),
+                    ? palette.accent
+                    : (sel ? palette.accent : palette.raised),
                 borderRadius: BorderRadius.circular(16),
               ),
               child: Text(
-                  g == kAllGroups ? AppLocalizations.of(context)!.allGroups : g,
-                  style: const TextStyle(color: Colors.white, fontSize: 13)),
+                g == kAllGroups ? AppLocalizations.of(context)!.allGroups : g,
+                style: TextStyle(
+                  color: focused || sel
+                      ? palette.accentInk
+                      : palette.foreground,
+                  fontSize: theme.bodySize,
+                ),
+              ),
             ),
           );
         },
@@ -375,11 +416,14 @@ class _NowNextList extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final now = DateTime.now();
+    final theme = XpTheme.of(context), palette = theme.palette;
     final items = upcomingProgrammes(programmes, channel.id, now);
     if (items.isEmpty) {
       return Center(
-        child: Text(AppLocalizations.of(context)!.noProgramme,
-            style: const TextStyle(color: Colors.white54, fontSize: 13)),
+        child: Text(
+          AppLocalizations.of(context)!.noProgramme,
+          style: TextStyle(color: palette.muted, fontSize: theme.bodySize),
+        ),
       );
     }
     return ListView.builder(
@@ -394,18 +438,22 @@ class _NowNextList extends StatelessWidget {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               if (live)
-                const Padding(
-                  padding: EdgeInsets.only(right: 6, top: 2),
-                  child:
-                      Icon(Icons.play_arrow, color: Colors.redAccent, size: 16),
+                Padding(
+                  padding: const EdgeInsets.only(right: 6, top: 2),
+                  child: Icon(
+                    Icons.play_arrow,
+                    color: palette.accent,
+                    size: theme.smallSize,
+                  ),
                 ),
               Expanded(
                 child: Text(
                   '${DateFormat('HH:mm').format(p.start.toLocal())}  ${p.title}',
                   style: TextStyle(
-                      color: live ? Colors.white : Colors.white70,
-                      fontWeight: live ? FontWeight.w600 : FontWeight.normal,
-                      fontSize: 13),
+                    color: live ? palette.foreground : palette.muted,
+                    fontWeight: live ? FontWeight.w600 : FontWeight.normal,
+                    fontSize: theme.bodySize,
+                  ),
                   maxLines: 2,
                   overflow: TextOverflow.ellipsis,
                 ),

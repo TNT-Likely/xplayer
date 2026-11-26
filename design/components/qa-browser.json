@@ -1,0 +1,34 @@
+{
+  "checks": [
+    {
+      "check": "表单非法地址保留输入并显示错误",
+      "passed": true
+    },
+    {
+      "check": "无 EPG 隐藏节目时间与进度",
+      "passed": true
+    },
+    {
+      "check": "长文本与无图片回退",
+      "passed": true
+    },
+    {
+      "check": "浏览器控制台无运行错误",
+      "passed": true
+    },
+    {
+      "check": "节目单失败时仍可浏览频道，回调独立触发",
+      "passed": true
+    },
+    {
+      "check": "过期缓存保留参考内容，标明缓存节目并移除当前时间线",
+      "passed": true
+    },
+    {
+      "check": "390 手机、1440 桌面、1920 TV 实际浏览器展示",
+      "passed": true
+    }
+  ],
+  "framework": "Actual Flutter Web release / CanvasKit",
+  "date": "2026-10-25"
+}

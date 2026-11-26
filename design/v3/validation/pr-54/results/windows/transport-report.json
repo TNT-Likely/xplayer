@@ -1,0 +1,170 @@
+{
+  "passed": 7,
+  "total": 7,
+  "results": [
+    {
+      "source": "/browser.flv",
+      "hlsRenditionSelected": false,
+      "decoded": true,
+      "videoDecoded": true,
+      "audioDecoded": true,
+      "elapsedMs": 1069,
+      "width": 160,
+      "height": 96,
+      "video": [
+        "h264"
+      ],
+      "audio": [
+        "aac"
+      ],
+      "sampleRate": 48000,
+      "channels": 1,
+      "durationMs": 4167,
+      "decoderErrorCount": 0,
+      "errors": [],
+      "name": "browser-agent-redirect-flv",
+      "passed": true,
+      "processExitCode": 0
+    },
+    {
+      "source": "/redirect/master.m3u8",
+      "hlsRenditionSelected": true,
+      "decoded": true,
+      "videoDecoded": true,
+      "audioDecoded": true,
+      "elapsedMs": 1070,
+      "width": 160,
+      "height": 96,
+      "video": [
+        "h264"
+      ],
+      "audio": [
+        "aac"
+      ],
+      "sampleRate": 48000,
+      "channels": 1,
+      "durationMs": 4010,
+      "decoderErrorCount": 0,
+      "errors": [],
+      "name": "signed-hls-master-redirect",
+      "passed": true,
+      "processExitCode": 0
+    },
+    {
+      "source": "/recovery/master.m3u8",
+      "hlsRenditionSelected": true,
+      "decoded": true,
+      "videoDecoded": true,
+      "audioDecoded": true,
+      "elapsedMs": 1072,
+      "width": 160,
+      "height": 96,
+      "video": [
+        "h264"
+      ],
+      "audio": [
+        "aac"
+      ],
+      "sampleRate": 48000,
+      "channels": 1,
+      "durationMs": 4010,
+      "decoderErrorCount": 0,
+      "errors": [],
+      "name": "lower-bandwidth-recovery",
+      "passed": true,
+      "processExitCode": 0
+    },
+    {
+      "source": "/slow.flv",
+      "hlsRenditionSelected": false,
+      "decoded": true,
+      "videoDecoded": true,
+      "audioDecoded": true,
+      "elapsedMs": 7067,
+      "width": 160,
+      "height": 96,
+      "video": [
+        "h264"
+      ],
+      "audio": [
+        "aac"
+      ],
+      "sampleRate": 48000,
+      "channels": 1,
+      "durationMs": 4167,
+      "decoderErrorCount": 0,
+      "errors": [],
+      "name": "slow-first-byte",
+      "passed": true,
+      "processExitCode": 0
+    },
+    {
+      "source": "/forbidden.flv",
+      "hlsRenditionSelected": false,
+      "httpStatus": 403,
+      "decoded": false,
+      "error": "StateError",
+      "stage": "ready",
+      "width": null,
+      "height": null,
+      "audioReady": false,
+      "playing": false,
+      "buffering": true,
+      "decoderErrorCount": 1,
+      "errors": [
+        "Failed to open [source URL]"
+      ],
+      "name": "http-403-classification",
+      "passed": true,
+      "processExitCode": 1
+    },
+    {
+      "source": "/fmp4/index.m3u8",
+      "hlsRenditionSelected": false,
+      "decoded": true,
+      "videoDecoded": true,
+      "audioDecoded": true,
+      "elapsedMs": 1069,
+      "width": 640,
+      "height": 360,
+      "video": [
+        "h264"
+      ],
+      "audio": [
+        "aac"
+      ],
+      "sampleRate": 48000,
+      "channels": 1,
+      "durationMs": 4000,
+      "decoderErrorCount": 0,
+      "errors": [],
+      "name": "http-hls-fmp4",
+      "passed": true,
+      "processExitCode": 0
+    },
+    {
+      "source": "/dash/index.mpd",
+      "hlsRenditionSelected": false,
+      "decoded": true,
+      "videoDecoded": true,
+      "audioDecoded": true,
+      "elapsedMs": 1073,
+      "width": 160,
+      "height": 96,
+      "video": [
+        "h264"
+      ],
+      "audio": [
+        "aac"
+      ],
+      "sampleRate": 48000,
+      "channels": 1,
+      "durationMs": 4010,
+      "decoderErrorCount": 0,
+      "errors": [],
+      "name": "http-dash",
+      "passed": true,
+      "processExitCode": 0
+    }
+  ]
+}

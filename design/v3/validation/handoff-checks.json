@@ -1,0 +1,61 @@
+{
+  "date": "2026-10-25",
+  "applicationCommit": "b181ba12e3ce6d3c0d826c4fa525bc5beb21d01a",
+  "kind": "archived results from completed verification; documentation-only handoff does not rerun native tests",
+  "checks": [
+    {
+      "check": "main",
+      "passed": 208,
+      "sourceLog": ".dart_tool/v3-qa/tv-focus/app-all.log",
+      "sourceLogSha256": "d7aae04f930079bd9c87b1e0e7a5bf811186543d73d767afa36b5338467307c6",
+      "sourceLogRetention": "removed with temporary QA resources; sanitized summary retained"
+    },
+    {
+      "check": "ui-package",
+      "passed": 23,
+      "sourceLog": ".dart_tool/v3-qa/tv-focus/ui-all.log",
+      "sourceLogSha256": "c5378a7fafcb37000795333dc48f0bb4c574b1d386e42bcec220d1919c356b67",
+      "sourceLogRetention": "removed with temporary QA resources; sanitized summary retained"
+    },
+    {
+      "check": "gallery-four-viewports",
+      "passed": 4,
+      "sourceLog": ".dart_tool/v3-qa/tv-focus/gallery.log",
+      "sourceLogSha256": "a45ed96788ab05bd98c947ec8f9661b0e281558391f9a40c9074ab8e46b976bf",
+      "sourceLogRetention": "removed with temporary QA resources; sanitized summary retained"
+    },
+    {
+      "check": "final-home-regressions",
+      "passed": 11,
+      "sourceLog": ".dart_tool/v3-qa/tv-focus/app-final.log",
+      "sourceLogSha256": "3a90ba272fc65d3963a71454a1e393ad6738ed84fa5de5ce3016fdbda901b952",
+      "sourceLogRetention": "removed with temporary QA resources; sanitized summary retained"
+    },
+    {
+      "check": "final-tv-navigation",
+      "passed": 2,
+      "sourceLog": ".dart_tool/v3-qa/tv-focus/unit-final.log",
+      "sourceLogSha256": "558a7af434dea4dc7360e41e0cc15712cca776bf8523521058d7b936c2779151",
+      "sourceLogRetention": "removed with temporary QA resources; sanitized summary retained"
+    },
+    {
+      "check": "acceptance-analyze",
+      "passed": true,
+      "scope": "five changed files; not a claim that the entire repository is lint-free",
+      "sourceLogSha256": "1d1b6ce56af7e7bbbc97d55aacb3318f11990bb484dfeddcedebab9a2f8016cc"
+    },
+    {
+      "check": "final-analyze",
+      "passed": true,
+      "scope": "five changed files; not a claim that the entire repository is lint-free",
+      "sourceLogSha256": "f2f3f282627d92e491d31c864fad75abb220ad2936f668d1cdedc4a1dca30aa2"
+    }
+  ],
+  "nativeEvidence": [
+    "native-results.json",
+    "live-playback.json",
+    "qa-playlists.json",
+    "ui-state-audit.json",
+    "tv-focus.json"
+  ]
+}

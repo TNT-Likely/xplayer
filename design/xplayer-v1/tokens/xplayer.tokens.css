@@ -1,0 +1,46 @@
+/* 从已确认设计稿抽取，保留 A/B/C 三套语义变量。 */
+:root, [data-style="nocturne"] {
+  --bg: #0f1915;
+  --surface: #14211b;
+  --raised: #1b2a22;
+  --border: #29382e;
+  --fg: #edf2e9;
+  --muted: #8d9c8d;
+  --quiet: #627566;
+  --accent: #b5e6bb;
+  --accent-ink: #17371e;
+  --accent-wash: #b5e6bb13;
+  --radius: 16px;
+  --sidebar: 216px;
+  --header: 76px;
+}
+[data-style="paper"] {
+  --bg: #f6f4ed;
+  --surface: #fffef9;
+  --raised: #ecebe3;
+  --border: #dfdfd5;
+  --fg: #263531;
+  --muted: #849087;
+  --quiet: #9fa79d;
+  --accent: #3567cd;
+  --accent-ink: #fff;
+  --accent-wash: #3567cd0c;
+  --radius: 9px;
+  --sidebar: 216px;
+  --header: 76px;
+}
+[data-style="signal"] {
+  --bg: #181b1b;
+  --surface: #202525;
+  --raised: #2a3030;
+  --border: #39403d;
+  --fg: #f0f1e8;
+  --muted: #9aaba1;
+  --quiet: #71857a;
+  --accent: #efb25b;
+  --accent-ink: #30210a;
+  --accent-wash: #efb25b12;
+  --radius: 3px;
+  --sidebar: 216px;
+  --header: 76px;
+}

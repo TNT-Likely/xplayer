@@ -25,11 +25,11 @@ add_compile_definitions(_DISABLE_CONSTEXPR_MUTEX_CONSTRUCTOR)
 include("${CMAKE_CURRENT_SOURCE_DIR}/download_and_verify.cmake")
 
 # libmpv archive containing the pre-built shared libraries & headers.
-set(LIBMPV "mpv-dev-lgpl-x86_64-20261025-git-baa3e11d42.7z")
+set(LIBMPV "libmpv-v0.42.0-x86_64-w64-mingw32-lgpl.zip")
 
 # Download URL & SHA-256 hash of the libmpv archive.
-set(LIBMPV_URL "https://github.com/zhongfly/mpv-winbuild/releases/download/2026-10-25-baa3e11d42/mpv-dev-lgpl-x86_64-20261025-git-baa3e11d42.7z")
-set(LIBMPV_SHA256 "6429ebba4b6bfc5dd18ac5ac084f00776db0db4e767ef1bfb815fc78ec5bda2a")
+set(LIBMPV_URL "https://github.com/mpv-player/mpv/releases/download/v0.42.0/libmpv-v0.42.0-x86_64-w64-mingw32-lgpl.zip")
+set(LIBMPV_SHA256 "8e5f77430efc53ef175804ba6618527e3af0448a0dcabf04d3cc72659d1a6fce")
 
 # Download location of the libmpv archive.
 set(LIBMPV_ARCHIVE "${CMAKE_BINARY_DIR}/${LIBMPV}")

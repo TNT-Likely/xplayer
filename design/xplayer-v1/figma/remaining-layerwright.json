@@ -1,0 +1,254 @@
+[
+  {
+    "name": "nocturne-phone-sync-conflict",
+    "device": "phone",
+    "state": "sync-conflict",
+    "selector": "#state-0",
+    "file": "A-phone-boundaries.html",
+    "width": 390,
+    "height": 844
+  },
+  {
+    "name": "nocturne-phone-search-empty",
+    "device": "phone",
+    "state": "search-empty",
+    "selector": "#state-1",
+    "file": "A-phone-boundaries.html",
+    "width": 390,
+    "height": 844
+  },
+  {
+    "name": "nocturne-phone-favorites-empty",
+    "device": "phone",
+    "state": "favorites-empty",
+    "selector": "#state-2",
+    "file": "A-phone-boundaries.html",
+    "width": 390,
+    "height": 844
+  },
+  {
+    "name": "nocturne-phone-list-no-channels",
+    "device": "phone",
+    "state": "list-no-channels",
+    "selector": "#state-3",
+    "file": "A-phone-boundaries.html",
+    "width": 390,
+    "height": 844
+  },
+  {
+    "name": "nocturne-phone-player-connecting",
+    "device": "phone",
+    "state": "player-connecting",
+    "selector": "#state-4",
+    "file": "A-phone-boundaries.html",
+    "width": 390,
+    "height": 844
+  },
+  {
+    "name": "nocturne-phone-player-buffering",
+    "device": "phone",
+    "state": "player-buffering",
+    "selector": "#state-5",
+    "file": "A-phone-boundaries.html",
+    "width": 390,
+    "height": 844
+  },
+  {
+    "name": "nocturne-phone-player-unsupported",
+    "device": "phone",
+    "state": "player-unsupported",
+    "selector": "#state-6",
+    "file": "A-phone-boundaries.html",
+    "width": 390,
+    "height": 844
+  },
+  {
+    "name": "nocturne-desktop-epg-unconfigured",
+    "device": "desktop",
+    "state": "epg-unconfigured",
+    "selector": "#state-0",
+    "file": "A-desktop-boundaries.html",
+    "width": 1440,
+    "height": 960
+  },
+  {
+    "name": "nocturne-desktop-epg-none",
+    "device": "desktop",
+    "state": "epg-none",
+    "selector": "#state-1",
+    "file": "A-desktop-boundaries.html",
+    "width": 1440,
+    "height": 960
+  },
+  {
+    "name": "nocturne-desktop-epg-loading",
+    "device": "desktop",
+    "state": "epg-loading",
+    "selector": "#state-2",
+    "file": "A-desktop-boundaries.html",
+    "width": 1440,
+    "height": 960
+  },
+  {
+    "name": "nocturne-desktop-epg-error",
+    "device": "desktop",
+    "state": "epg-error",
+    "selector": "#state-3",
+    "file": "A-desktop-boundaries.html",
+    "width": 1440,
+    "height": 960
+  },
+  {
+    "name": "nocturne-desktop-epg-error-cache",
+    "device": "desktop",
+    "state": "epg-error-cache",
+    "selector": "#state-4",
+    "file": "A-desktop-boundaries.html",
+    "width": 1440,
+    "height": 960
+  },
+  {
+    "name": "nocturne-desktop-epg-stale",
+    "device": "desktop",
+    "state": "epg-stale",
+    "selector": "#state-5",
+    "file": "A-desktop-boundaries.html",
+    "width": 1440,
+    "height": 960
+  },
+  {
+    "name": "nocturne-desktop-epg-partial",
+    "device": "desktop",
+    "state": "epg-partial",
+    "selector": "#state-6",
+    "file": "A-desktop-boundaries.html",
+    "width": 1440,
+    "height": 960
+  },
+  {
+    "name": "nocturne-ipad-epg-unconfigured",
+    "device": "ipad",
+    "state": "epg-unconfigured",
+    "selector": "#state-0",
+    "file": "A-ipad-boundaries.html",
+    "width": 1194,
+    "height": 834
+  },
+  {
+    "name": "nocturne-ipad-epg-none",
+    "device": "ipad",
+    "state": "epg-none",
+    "selector": "#state-1",
+    "file": "A-ipad-boundaries.html",
+    "width": 1194,
+    "height": 834
+  },
+  {
+    "name": "nocturne-ipad-epg-loading",
+    "device": "ipad",
+    "state": "epg-loading",
+    "selector": "#state-2",
+    "file": "A-ipad-boundaries.html",
+    "width": 1194,
+    "height": 834
+  },
+  {
+    "name": "nocturne-ipad-epg-error",
+    "device": "ipad",
+    "state": "epg-error",
+    "selector": "#state-3",
+    "file": "A-ipad-boundaries.html",
+    "width": 1194,
+    "height": 834
+  },
+  {
+    "name": "nocturne-ipad-epg-error-cache",
+    "device": "ipad",
+    "state": "epg-error-cache",
+    "selector": "#state-4",
+    "file": "A-ipad-boundaries.html",
+    "width": 1194,
+    "height": 834
+  },
+  {
+    "name": "nocturne-ipad-epg-stale",
+    "device": "ipad",
+    "state": "epg-stale",
+    "selector": "#state-5",
+    "file": "A-ipad-boundaries.html",
+    "width": 1194,
+    "height": 834
+  },
+  {
+    "name": "nocturne-ipad-epg-partial",
+    "device": "ipad",
+    "state": "epg-partial",
+    "selector": "#state-6",
+    "file": "A-ipad-boundaries.html",
+    "width": 1194,
+    "height": 834
+  },
+  {
+    "name": "nocturne-tv-epg-unconfigured",
+    "device": "tv",
+    "state": "epg-unconfigured",
+    "selector": "#state-0",
+    "file": "A-tv-boundaries.html",
+    "width": 1920,
+    "height": 1080
+  },
+  {
+    "name": "nocturne-tv-epg-none",
+    "device": "tv",
+    "state": "epg-none",
+    "selector": "#state-1",
+    "file": "A-tv-boundaries.html",
+    "width": 1920,
+    "height": 1080
+  },
+  {
+    "name": "nocturne-tv-epg-loading",
+    "device": "tv",
+    "state": "epg-loading",
+    "selector": "#state-2",
+    "file": "A-tv-boundaries.html",
+    "width": 1920,
+    "height": 1080
+  },
+  {
+    "name": "nocturne-tv-epg-error",
+    "device": "tv",
+    "state": "epg-error",
+    "selector": "#state-3",
+    "file": "A-tv-boundaries.html",
+    "width": 1920,
+    "height": 1080
+  },
+  {
+    "name": "nocturne-tv-epg-error-cache",
+    "device": "tv",
+    "state": "epg-error-cache",
+    "selector": "#state-4",
+    "file": "A-tv-boundaries.html",
+    "width": 1920,
+    "height": 1080
+  },
+  {
+    "name": "nocturne-tv-epg-stale",
+    "device": "tv",
+    "state": "epg-stale",
+    "selector": "#state-5",
+    "file": "A-tv-boundaries.html",
+    "width": 1920,
+    "height": 1080
+  },
+  {
+    "name": "nocturne-tv-epg-partial",
+    "device": "tv",
+    "state": "epg-partial",
+    "selector": "#state-6",
+    "file": "A-tv-boundaries.html",
+    "width": 1920,
+    "height": 1080
+  }
+]

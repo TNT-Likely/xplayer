@@ -1,0 +1,271 @@
+Resolving dependencies in `<runner-temp>/<package-staging>`...
+Downloading packages...
+  clock 1.1.2 (1.1.3 available)
+  code_assets 1.2.1 (2.2.0 available)
+  dbus 0.7.15 (0.8.1 available)
+  flutter_lints 2.0.3 (6.0.0 available)
+  hooks 2.0.2 (2.2.0 available)
+  lints 2.1.1 (6.1.0 available)
+  matcher 0.12.19 (0.12.20 available)
+  material_color_utilities 0.13.0 (0.13.1 available)
+  meta 1.17.0 (1.19.0 available)
+  objective_c 9.5.0 (9.6.4 available)
+  package_info_plus 9.0.1 (10.2.2 available)
+  package_info_plus_platform_interface 3.2.1 (4.1.0 available)
+  petitparser 7.0.2 (7.1.0 available)
+  platform 3.1.6 (3.2.0 available)
+  record_use 0.6.0 (1.1.1 available)
+  stack_trace 1.12.1 (1.12.2 available)
+  synchronized 3.4.0+1 (3.6.1+1 available)
+  test_api 0.7.10 (0.7.15 available)
+  vector_math 2.2.0 (2.4.4 available)
+  wakelock_plus 1.5.2 (1.8.2 available)
+  wakelock_plus_platform_interface 1.6.0 (1.7.0 available)
+  web 1.1.1 (1.1.2 available)
+  win32 5.15.0 (6.4.0 available)
+  xml 7.0.1 (7.1.0 available)
+Got dependencies in `<runner-temp>/<package-staging>`!
+24 packages have newer versions incompatible with dependency constraints.
+Try `flutter pub outdated` for more information.
+Publishing xplayer_player 0.1.0-beta.1 to https://pub.dev:
+├── CHANGELOG.md (1 KB)
+├── LICENSE (1 KB)
+├── README.md (12 KB)
+├── analysis_options.yaml (<1 KB)
+├── doc
+│   ├── ARCHITECTURE.md (8 KB)
+│   ├── COMPATIBILITY.md (6 KB)
+│   ├── DISTRIBUTION.md (5 KB)
+│   └── TESTING.md (21 KB)
+├── example
+│   ├── README.md (1 KB)
+│   ├── analysis_options.yaml (<1 KB)
+│   ├── android
+│   │   ├── app
+│   │   │   ├── build.gradle.kts (1 KB)
+│   │   │   └── src
+│   │   │       ├── debug
+│   │   │       │   └── AndroidManifest.xml (<1 KB)
+│   │   │       ├── main
+│   │   │       │   ├── AndroidManifest.xml (2 KB)
+│   │   │       │   ├── kotlin
+│   │   │       │   │   └── com
+│   │   │       │   │       └── tntlikely
+│   │   │       │   │           └── xplayer_player_example
+│   │   │       │   │               └── MainActivity.kt (<1 KB)
+│   │   │       │   └── res
+│   │   │       │       ├── drawable
+│   │   │       │       │   └── launch_background.xml (<1 KB)
+│   │   │       │       ├── drawable-v21
+│   │   │       │       │   └── launch_background.xml (<1 KB)
+│   │   │       │       ├── mipmap-hdpi
+│   │   │       │       │   └── ic_launcher.png (<1 KB)
+│   │   │       │       ├── mipmap-mdpi
+│   │   │       │       │   └── ic_launcher.png (<1 KB)
+│   │   │       │       ├── mipmap-xhdpi
+│   │   │       │       │   └── ic_launcher.png (<1 KB)
+│   │   │       │       ├── mipmap-xxhdpi
+│   │   │       │       │   └── ic_launcher.png (1 KB)
+│   │   │       │       ├── mipmap-xxxhdpi
+│   │   │       │       │   └── ic_launcher.png (1 KB)
+│   │   │       │       ├── values
+│   │   │       │       │   └── styles.xml (<1 KB)
+│   │   │       │       └── values-night
+│   │   │       │           └── styles.xml (<1 KB)
+│   │   │       └── profile
+│   │   │           └── AndroidManifest.xml (<1 KB)
+│   │   ├── build.gradle.kts (<1 KB)
+│   │   ├── gradle
+│   │   │   └── wrapper
+│   │   │       └── gradle-wrapper.properties (<1 KB)
+│   │   ├── gradle.properties (<1 KB)
+│   │   └── settings.gradle.kts (<1 KB)
+│   ├── ios
+│   │   ├── Flutter
+│   │   │   ├── AppFrameworkInfo.plist (<1 KB)
+│   │   │   ├── Debug.xcconfig (<1 KB)
+│   │   │   └── Release.xcconfig (<1 KB)
+│   │   ├── Podfile (1 KB)
+│   │   ├── Runner
+│   │   │   ├── AppDelegate.swift (<1 KB)
+│   │   │   ├── Assets.xcassets
+│   │   │   │   ├── AppIcon.appiconset
+│   │   │   │   │   ├── Contents.json (2 KB)
+│   │   │   │   │   ├── <email> (10 KB)
+│   │   │   │   │   ├── <email> (<1 KB)
+│   │   │   │   │   ├── <email> (<1 KB)
+│   │   │   │   │   ├── <email> (<1 KB)
+│   │   │   │   │   ├── <email> (<1 KB)
+│   │   │   │   │   ├── <email> (<1 KB)
+│   │   │   │   │   ├── <email> (<1 KB)
+│   │   │   │   │   ├── <email> (<1 KB)
+│   │   │   │   │   ├── <email> (<1 KB)
+│   │   │   │   │   ├── <email> (<1 KB)
+│   │   │   │   │   ├── <email> (<1 KB)
+│   │   │   │   │   ├── <email> (1 KB)
+│   │   │   │   │   ├── <email> (<1 KB)
+│   │   │   │   │   ├── <email> (1 KB)
+│   │   │   │   │   └── <email> (1 KB)
+│   │   │   │   └── LaunchImage.imageset
+│   │   │   │       ├── Contents.json (<1 KB)
+│   │   │   │       ├── LaunchImage.png (<1 KB)
+│   │   │   │       ├── <email> (<1 KB)
+│   │   │   │       ├── <email> (<1 KB)
+│   │   │   │       └── README.md (<1 KB)
+│   │   │   ├── Base.lproj
+│   │   │   │   ├── LaunchScreen.storyboard (2 KB)
+│   │   │   │   └── Main.storyboard (1 KB)
+│   │   │   ├── Info.plist (2 KB)
+│   │   │   ├── Runner-Bridging-Header.h (<1 KB)
+│   │   │   └── SceneDelegate.swift (<1 KB)
+│   │   ├── Runner.xcodeproj
+│   │   │   ├── project.pbxproj (23 KB)
+│   │   │   ├── project.xcworkspace
+│   │   │   │   ├── contents.xcworkspacedata (<1 KB)
+│   │   │   │   └── xcshareddata
+│   │   │   │       ├── IDEWorkspaceChecks.plist (<1 KB)
+│   │   │   │       └── WorkspaceSettings.xcsettings (<1 KB)
+│   │   │   └── xcshareddata
+│   │   │       └── xcschemes
+│   │   │           └── Runner.xcscheme (3 KB)
+│   │   ├── Runner.xcworkspace
+│   │   │   ├── contents.xcworkspacedata (<1 KB)
+│   │   │   └── xcshareddata
+│   │   │       ├── IDEWorkspaceChecks.plist (<1 KB)
+│   │   │       └── WorkspaceSettings.xcsettings (<1 KB)
+│   │   └── RunnerTests
+│   │       └── RunnerTests.swift (<1 KB)
+│   ├── lib
+│   │   └── main.dart (5 KB)
+│   ├── linux
+│   │   ├── CMakeLists.txt (4 KB)
+│   │   ├── flutter
+│   │   │   ├── CMakeLists.txt (2 KB)
+│   │   │   ├── generated_plugin_registrant.cc (<1 KB)
+│   │   │   ├── generated_plugin_registrant.h (<1 KB)
+│   │   │   └── generated_plugins.cmake (<1 KB)
+│   │   └── runner
+│   │       ├── CMakeLists.txt (<1 KB)
+│   │       ├── main.cc (<1 KB)
+│   │       ├── my_application.cc (5 KB)
+│   │       └── my_application.h (<1 KB)
+│   ├── macos
+│   │   ├── Flutter
+│   │   │   ├── Flutter-Debug.xcconfig (<1 KB)
+│   │   │   ├── Flutter-Release.xcconfig (<1 KB)
+│   │   │   └── GeneratedPluginRegistrant.swift (<1 KB)
+│   │   ├── Podfile (1 KB)
+│   │   ├── Runner
+│   │   │   ├── AppDelegate.swift (<1 KB)
+│   │   │   ├── Assets.xcassets
+│   │   │   │   └── AppIcon.appiconset
+│   │   │   │       ├── Contents.json (1 KB)
+│   │   │   │       ├── app_icon_1024.png (100 KB)
+│   │   │   │       ├── app_icon_128.png (5 KB)
+│   │   │   │       ├── app_icon_16.png (<1 KB)
+│   │   │   │       ├── app_icon_256.png (13 KB)
+│   │   │   │       ├── app_icon_32.png (1 KB)
+│   │   │   │       ├── app_icon_512.png (35 KB)
+│   │   │   │       └── app_icon_64.png (2 KB)
+│   │   │   ├── Base.lproj
+│   │   │   │   └── MainMenu.xib (23 KB)
+│   │   │   ├── Configs
+│   │   │   │   ├── AppInfo.xcconfig (<1 KB)
+│   │   │   │   ├── Debug.xcconfig (<1 KB)
+│   │   │   │   ├── Release.xcconfig (<1 KB)
+│   │   │   │   └── Warnings.xcconfig (<1 KB)
+│   │   │   ├── DebugProfile.entitlements (<1 KB)
+│   │   │   ├── Info.plist (1 KB)
+│   │   │   ├── MainFlutterWindow.swift (<1 KB)
+│   │   │   └── Release.entitlements (<1 KB)
+│   │   ├── Runner.xcodeproj
+│   │   │   ├── project.pbxproj (25 KB)
+│   │   │   ├── project.xcworkspace
+│   │   │   │   └── xcshareddata
+│   │   │   │       └── IDEWorkspaceChecks.plist (<1 KB)
+│   │   │   └── xcshareddata
+│   │   │       └── xcschemes
+│   │   │           └── Runner.xcscheme (3 KB)
+│   │   ├── Runner.xcworkspace
+│   │   │   ├── contents.xcworkspacedata (<1 KB)
+│   │   │   └── xcshareddata
+│   │   │       └── IDEWorkspaceChecks.plist (<1 KB)
+│   │   └── RunnerTests
+│   │       └── RunnerTests.swift (<1 KB)
+│   ├── pubspec.yaml (<1 KB)
+│   ├── test
+│   │   └── widget_test.dart (<1 KB)
+│   └── windows
+│       ├── CMakeLists.txt (4 KB)
+│       ├── flutter
+│       │   ├── CMakeLists.txt (3 KB)
+│       │   ├── generated_plugin_registrant.cc (<1 KB)
+│       │   ├── generated_plugin_registrant.h (<1 KB)
+│       │   └── generated_plugins.cmake (<1 KB)
+│       └── runner
+│           ├── CMakeLists.txt (1 KB)
+│           ├── Runner.rc (3 KB)
+│           ├── flutter_window.cpp (2 KB)
+│           ├── flutter_window.h (<1 KB)
+│           ├── main.cpp (1 KB)
+│           ├── resource.h (<1 KB)
+│           ├── resources
+│           │   └── app_icon.ico (32 KB)
+│           ├── runner.exe.manifest (<1 KB)
+│           ├── utils.cpp (1 KB)
+│           ├── utils.h (<1 KB)
+│           ├── win32_window.cpp (8 KB)
+│           └── win32_window.h (3 KB)
+├── lib
+│   ├── playback.dart (<1 KB)
+│   ├── src
+│   │   ├── android_gpu_capabilities.dart (<1 KB)
+│   │   ├── audio_packet_recovery.dart (3 KB)
+│   │   ├── audio_session_coordinator.dart (1 KB)
+│   │   ├── buffer_profile.dart (<1 KB)
+│   │   ├── hls_startup.dart (3 KB)
+│   │   ├── media_kit_backend.dart (24 KB)
+│   │   ├── playback_configuration.dart (2 KB)
+│   │   ├── playback_frame_bootstrap.dart (<1 KB)
+│   │   ├── playback_log.dart (<1 KB)
+│   │   ├── playback_policy.dart (2 KB)
+│   │   ├── playback_source.dart (6 KB)
+│   │   ├── stall_detector.dart (2 KB)
+│   │   ├── startup_eof_recovery.dart (<1 KB)
+│   │   └── x_player_backend.dart (3 KB)
+│   └── xplayer_player.dart (<1 KB)
+├── pubspec.yaml (<1 KB)
+├── test
+│   ├── audio_packet_recovery_test.dart (8 KB)
+│   ├── audio_session_coordinator_test.dart (4 KB)
+│   ├── audio_track_test.dart (<1 KB)
+│   ├── buffer_profile_test.dart (1 KB)
+│   ├── fixtures
+│   │   ├── README.md (<1 KB)
+│   │   ├── aac-he-v1.m4a (13 KB)
+│   │   └── aac-he-v2.m4a (11 KB)
+│   ├── hls_startup_test.dart (5 KB)
+│   ├── playback_configuration_test.dart (1 KB)
+│   ├── playback_frame_bootstrap_test.dart (1 KB)
+│   ├── playback_log_test.dart (1 KB)
+│   ├── playback_source_test.dart (3 KB)
+│   ├── player_backend_selector_test.dart (5 KB)
+│   ├── stall_detector_test.dart (6 KB)
+│   ├── startup_eof_recovery_test.dart (1 KB)
+│   └── x_player_value_test.dart (<1 KB)
+└── tool
+    ├── check_decoder_compatibility.py (6 KB)
+    ├── check_stream_transport.py (8 KB)
+    ├── generate_playback_fixtures.py (7 KB)
+    ├── generate_recovery_fixtures.py (2 KB)
+    ├── live_hls_fixture.py (6 KB)
+    ├── playback_device_probe.dart (20 KB)
+    ├── probe_decoder.dart (7 KB)
+    ├── run_device_validation.py (18 KB)
+    └── system_audio_meter.swift (4 KB)
+
+Total compressed archive size: 310 KB.
+Validating package...
+The server may enforce additional checks.
+
+Package has 0 warnings.

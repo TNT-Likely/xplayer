@@ -1,3 +1,5 @@
+import 'dart:async';
+import 'package:xplayer/data/repositories/epg_repository.dart';
 import 'dart:convert'; // 用于 jsonEncode/jsonDecode
 
 import 'package:flutter/material.dart';
@@ -19,7 +21,31 @@ import 'package:xplayer/utils/toast.dart'; // 导入 showToast
 import 'package:xplayer/localization/app_localizations.dart';
 
 class MediaProvider with ChangeNotifier {
-  final PlaylistRepository _playlistRepository = PlaylistRepository();
+  MediaProvider({
+    PlaylistRepository? playlistRepository,
+    EpgRepository? epgRepository,
+  }) : _playlistRepository = playlistRepository ?? PlaylistRepository(),
+       _epgRepository = epgRepository ?? EpgRepository();
+  final PlaylistRepository _playlistRepository;
+  final EpgRepository _epgRepository;
+  Map<String, EpgSnapshot> _epgSnapshots = {};
+  Map<String, String> _epgErrors = {};
+  bool _isRefreshingProgrammes = false;
+  Future<void>? _programmeRefresh;
+  final Map<int, String> _channelErrors = {};
+  final Map<int, int> _channelLoadTokens = {};
+  int _channelGeneration = 0;
+  bool get isRefreshingProgrammes => _isRefreshingProgrammes;
+  bool get isRefreshingChannels =>
+      _channelLoadTokens.containsKey(_currentPlaylistId);
+  Map<String, EpgSnapshot> get epgSnapshots => Map.unmodifiable(_epgSnapshots);
+  Map<String, String> get epgErrors => Map.unmodifiable(_epgErrors);
+  String? playlistError(int id) => _channelErrors[id];
+  bool isPlaylistRefreshing(int id) => _channelLoadTokens.containsKey(id);
+  Set<String> get configuredEpgUrls => _playlists
+      .map((p) => p.epgUrl?.trim() ?? '')
+      .where((url) => url.isNotEmpty)
+      .toSet();
   final FavoritesRepository _favoritesRepository = FavoritesRepository();
   final RecentRepository _recentRepository = RecentRepository();
   final ChannelTestService _testService = ChannelTestService();
@@ -58,22 +84,24 @@ class MediaProvider with ChangeNotifier {
   // 初始化加载状态
   bool _isInitializing = true;
 
-// 使用 late 关键字延迟初始化 localizations
-  late AppLocalizations _localizations;
+  // 使用 late 关键字延迟初始化 localizations
+  AppLocalizations? _localizations;
 
   List<Playlist> get playlists => _playlists;
   int get currentPlaylistId => _currentPlaylistId;
 
   Playlist get currentPlaylist {
     try {
-      return _playlists
-          .firstWhere((element) => element.id == _currentPlaylistId);
+      return _playlists.firstWhere(
+        (element) => element.id == _currentPlaylistId,
+      );
     } catch (error) {
-      return Playlist(name: _localizations.favorites, url: '', id: -1);
+      return Playlist(name: _localizations?.favorites ?? '收藏', url: '', id: -1);
     }
   }
 
-  List<Channel> get channels => _mergeChannels(_channels);
+  List<Channel> get channels =>
+      _mergeChannels(_currentPlaylistId == -1 ? _favoriteChannels : _channels);
 
   /// 当前搜索关键字与选中分组。
   String get searchQuery => _searchQuery;
@@ -82,8 +110,11 @@ class MediaProvider with ChangeNotifier {
   /// 应用「搜索 + 分组」过滤后的频道(供网格展示)。
   /// 若已测速:可选隐藏「无法播放」的频道,并把「可播放」排到前面。
   List<Channel> get filteredChannels {
-    var list =
-        filterChannels(channels, query: _searchQuery, group: _selectedGroup);
+    var list = filterChannels(
+      channels,
+      query: _searchQuery,
+      group: _selectedGroup,
+    );
     if (_channelTestResults.isEmpty) return list;
 
     if (_hideUnplayable) {
@@ -131,8 +162,7 @@ class MediaProvider with ChangeNotifier {
   int get gridSizeLevel => _gridSizeLevel;
 
   /// 某频道用户记住的源链接(无则返回 null)。
-  String? preferredSourceLink(String channelId) =>
-      _preferredSources[channelId];
+  String? preferredSourceLink(String channelId) => _preferredSources[channelId];
 
   List<Channel> get favoriteChannels => _favoriteChannels;
   List<Programme> get programmes => _programmes;
@@ -166,8 +196,9 @@ class MediaProvider with ChangeNotifier {
   }
 
   Future<void> addPlaylist(String name, String url) async {
-    final newPlaylist = await _playlistRepository
-        .insertPlaylist(Playlist(name: name, url: url)); // 使用 insertPlaylist
+    final newPlaylist = await _playlistRepository.insertPlaylist(
+      Playlist(name: name, url: url),
+    ); // 使用 insertPlaylist
     _playlists.add(newPlaylist);
     notifyListeners();
   }
@@ -178,8 +209,9 @@ class MediaProvider with ChangeNotifier {
     for (final p in _playlists) {
       if (p.url == url) return p;
     }
-    final created = await _playlistRepository
-        .insertPlaylist(Playlist(name: name, url: url));
+    final created = await _playlistRepository.insertPlaylist(
+      Playlist(name: name, url: url),
+    );
     _playlists.add(created);
     notifyListeners();
     return created;
@@ -188,6 +220,10 @@ class MediaProvider with ChangeNotifier {
   Future<void> removePlaylist(int id) async {
     await _playlistRepository.deletePlaylist(id); // 使用 deletePlaylist
     _playlists.removeWhere((playlist) => playlist.id == id);
+    await loadCachedProgrammes();
+    if (_currentPlaylistId == id) {
+      await updateCurrentPlaylist(_playlists.firstOrNull?.id ?? -1);
+    }
     notifyListeners();
   }
 
@@ -198,7 +234,10 @@ class MediaProvider with ChangeNotifier {
 
   Future<void> updateCurrentPlaylist(int newId) async {
     _resetFilters(); // 切换播放列表时清空搜索/分组
+    _channels = [];
     setState(newId);
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setString('lastSelectedPlaylistId', newId.toString());
     await fetchChannels(); // 切换播放单后立即刷新频道列表
     notifyListeners();
   }
@@ -346,6 +385,7 @@ class MediaProvider with ChangeNotifier {
 
       // 加载上次选择的播放列表(频道走缓存优先,启动快;不在此处阻塞联网)
       await loadLastSelectedPlaylistId();
+      await loadCachedProgrammes();
     } catch (e) {
       print('[MediaProvider] 初始化失败: $e');
     } finally {
@@ -366,13 +406,19 @@ class MediaProvider with ChangeNotifier {
   Future<void> _refreshOnLaunchInBackground() async {
     final tasks = <Future<void>>[];
     if (_autoRefreshChannels) {
-      tasks.add(fetchChannels(forceRefresh: true, silent: true)
-          .catchError((_) {}));
+      tasks.add(
+        fetchChannels(forceRefresh: true, silent: true).catchError((_) {}),
+      );
     }
     if (_autoRefreshProgrammes) {
       tasks.add(refreshProgrammes().catchError((_) {}));
     }
+    final originalUrls = configuredEpgUrls;
     await Future.wait(tasks);
+    if (_autoRefreshProgrammes &&
+        configuredEpgUrls.difference(originalUrls).isNotEmpty) {
+      await refreshProgrammes();
+    }
   }
 
   /// 首启无源时,自动添加并选中默认预置源(运行时拉取,不打包快照)。
@@ -416,8 +462,9 @@ class MediaProvider with ChangeNotifier {
         // 如果已经存在相同 ID 的 channel，则合并 source 列表
         final existingChannel = mergedChannels[lowerCaseId];
         if (existingChannel != null &&
-            !existingChannel.source
-                .any((element) => element.link == channel.source.first.link)) {
+            !existingChannel.source.any(
+              (element) => element.link == channel.source.first.link,
+            )) {
           existingChannel.source.addAll(channel.source);
         }
       }
@@ -459,8 +506,9 @@ class MediaProvider with ChangeNotifier {
 
   DateTime? _getCreatedAtFromFavorites(Channel channel) {
     // 假设 _favoriteChannels 是一个包含所有收藏频道的列表
-    final favorite =
-        _favoriteChannels.firstWhere((fav) => fav.id == channel.id);
+    final favorite = _favoriteChannels.firstWhere(
+      (fav) => fav.id == channel.id,
+    );
     return favorite.createdAt;
   }
 
@@ -508,67 +556,97 @@ class MediaProvider with ChangeNotifier {
     await _playlistRepository.updatePlaylistWithM3uById(id, url);
   }
 
-  Future<void> refreshProgrammes() async {
-    final all = await _playlistRepository.fetchAllPlaylistsProgrammes();
-    // 去重:多个播放列表共用同一 EPG、或 EPG 内重复条目,会让同一节目出现多次
-    // (频道列表弹窗/节目单里看到内容重复两遍)。按 频道+起止+标题 去重。
-    final seen = <String>{};
-    _programmes = all.where((p) {
-      final key = '${p.channel}|${p.start.millisecondsSinceEpoch}'
-          '|${p.stop.millisecondsSinceEpoch}|${p.title}';
-      return seen.add(key);
-    }).toList();
+  Future<void> loadCachedProgrammes() async {
+    _epgSnapshots = await _epgRepository.loadCache(configuredEpgUrls);
+    _rebuildProgrammes();
     notifyListeners();
   }
 
-  /// 加载当前播放列表的频道。
-  /// - 默认「缓存优先」:有本地缓存就直接用,不联网(启动/切换都很快);
-  /// - [forceRefresh]=true 才联网重拉并写回缓存(手动刷新 / 后台自动更新);
-  /// - [silent]=true 时联网失败不弹 toast(后台刷新用)。
-  Future<void> fetchChannels(
-      {bool forceRefresh = false, bool silent = false}) async {
-    if (_currentPlaylistId == -1) {
-      _channels = _favoriteChannels; // 使用收藏频道
-      notifyListeners();
-      return;
-    }
+  void _rebuildProgrammes() {
+    final seen = <String>{};
+    _programmes = _epgSnapshots.values.expand((s) => s.programmes).where((p) {
+      final key =
+          '${p.channel.toLowerCase()}|${p.start.millisecondsSinceEpoch}|${p.stop.millisecondsSinceEpoch}|${p.title}';
+      return seen.add(key);
+    }).toList();
+  }
 
-    final playlist =
-        await _playlistRepository.getPlaylistById(_currentPlaylistId);
-    if (playlist == null) {
-      _channels = [];
-      notifyListeners();
-      return;
-    }
+  Future<void> refreshProgrammes() => _programmeRefresh ??= _refreshProgrammes()
+      .whenComplete(() => _programmeRefresh = null);
 
-    // 缓存优先:避免每次启动/切换都联网重拉(慢)
-    if (!forceRefresh) {
-      final cached =
-          await _playlistRepository.getPlaylistChannels(_currentPlaylistId);
-      if (cached != null && cached.isNotEmpty) {
-        _channels = parseChannels(cached);
-        notifyListeners();
+  Future<void> _refreshProgrammes() async {
+    _isRefreshingProgrammes = true;
+    notifyListeners();
+    try {
+      await fetchPlaylists();
+      final result = await _epgRepository.refresh(
+        configuredEpgUrls,
+        previous: _epgSnapshots,
+      );
+      _epgSnapshots = result.snapshots;
+      _epgErrors = result.errors;
+      _rebuildProgrammes();
+    } catch (error) {
+      _epgErrors = {for (final url in configuredEpgUrls) url: error.toString()};
+    } finally {
+      _isRefreshingProgrammes = false;
+      notifyListeners();
+    }
+  }
+
+  /// 缓存优先；捕获目标列表与请求代号，快速切换时旧请求不能覆盖新页面。
+  Future<void> fetchChannels({
+    bool forceRefresh = false,
+    bool silent = false,
+  }) async {
+    final id = _currentPlaylistId;
+    final token = ++_channelGeneration;
+    _channelLoadTokens[id] = token;
+    _channelErrors.remove(id);
+    notifyListeners();
+    bool current() =>
+        id == _currentPlaylistId && _channelLoadTokens[id] == token;
+    try {
+      if (id == -1) {
+        if (current()) _channels = List.of(_favoriteChannels);
         return;
       }
+      final playlist = await _playlistRepository.getPlaylistById(id);
+      if (playlist == null) {
+        if (current()) _channels = [];
+        return;
+      }
+      if (!forceRefresh) {
+        final cached = await _playlistRepository.getPlaylistChannels(id);
+        if (cached != null && cached.isNotEmpty) {
+          if (current()) _channels = parseChannels(cached);
+          return;
+        }
+      }
+      try {
+        final list = await _playlistRepository.updatePlaylistWithM3uById(
+          id,
+          playlist.url,
+        );
+        if (current()) _channels = list.toChannels();
+        await fetchPlaylists(); // M3U 头可能带来新的 XMLTV 地址。
+      } catch (error) {
+        _channelErrors[id] = error.toString();
+        if (!silent) showToast(error.toString());
+        final cache = await _playlistRepository.getPlaylistChannels(id);
+        if (current()) _channels = parseChannels(cache ?? '');
+      }
+    } finally {
+      if (_channelLoadTokens[id] == token) _channelLoadTokens.remove(id);
+      notifyListeners();
     }
-
-    // 强制刷新,或本地无缓存:联网拉取并写回缓存
-    try {
-      final updatedChannels = await _playlistRepository
-          .updatePlaylistWithM3uById(_currentPlaylistId, playlist.url);
-      _channels = updatedChannels.toChannels();
-    } catch (error) {
-      if (!silent) showToast(error.toString());
-      // Fallback: 从文件存储读取已保存的channels
-      final channelsJson =
-          await _playlistRepository.getPlaylistChannels(_currentPlaylistId);
-      _channels = parseChannels(channelsJson ?? '');
-    }
-    notifyListeners();
   }
 
   Future<void> refreshChannels() async {
+    final previousUrls = configuredEpgUrls;
     await fetchChannels(forceRefresh: true);
+    if (configuredEpgUrls.difference(previousUrls).isNotEmpty)
+      await refreshProgrammes();
   }
 
   Future<void> toggleFavorite(Channel channel) async {

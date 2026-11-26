@@ -1,6 +1,6 @@
 import 'package:flutter/widgets.dart';
 import 'package:xplayer/utils/hls_probe.dart';
-import 'package:xplayer/shared/components/x_text_button.dart';
+import 'package:xplayer_ui/xplayer_ui.dart';
 import 'package:xplayer/localization/app_localizations.dart';
 
 /// null = 自动(播 master,交给 ExoPlayer ABR);否则为选定变体的媒体清单地址
@@ -36,48 +36,41 @@ class QualitySelectorWidget extends StatelessWidget {
     }) {
       return Padding(
         padding: const EdgeInsets.only(bottom: 8),
-        child: XTextButton(
-          text: text,
-          size: XTextButtonSize.large,
-          width: 180,
-          autofocus: selected, // 打开即聚焦当前画质
-          // 字号调小,避免「1080P · 4.9 Mbps」溢出换行
-          textStyle: const TextStyle(fontSize: 13),
-          onPressed: () {
-            if (!selected) onSelect(url);
-          },
-          type: selected
-              ? XTextButtonType.primary
-              : XTextButtonType.defaultType,
+        child: SizedBox(
+          width: double.infinity,
+          child: XpButton(
+            label: text,
+            autofocus: selected, // 打开即聚焦当前画质
+            onPressed: () {
+              if (!selected) onSelect(url);
+            },
+            variant: selected
+                ? XpButtonVariant.primary
+                : XpButtonVariant.secondary,
+          ),
         ),
       );
     }
 
-    return Center(
-      child: SingleChildScrollView(
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            // 自动
-            button(
-              text: l.qualityAuto,
-              selected: currentUrl == null,
-              url: null,
-            ),
-            // 各档
-            ...sorted.map((v) {
-              final label = v.bandwidthLabel.isNotEmpty
-                  ? '${v.qualityLabel}  ·  ${v.bandwidthLabel}'
-                  : v.qualityLabel;
-              return button(
-                text: label,
-                selected: currentUrl == v.url,
-                url: v.url,
-              );
-            }),
-          ],
-        ),
+    return SingleChildScrollView(
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          // 自动
+          button(text: l.qualityAuto, selected: currentUrl == null, url: null),
+          // 各档
+          ...sorted.map((v) {
+            final label = v.bandwidthLabel.isNotEmpty
+                ? '${v.qualityLabel}  ·  ${v.bandwidthLabel}'
+                : v.qualityLabel;
+            return button(
+              text: label,
+              selected: currentUrl == v.url,
+              url: v.url,
+            );
+          }),
+        ],
       ),
     );
   }

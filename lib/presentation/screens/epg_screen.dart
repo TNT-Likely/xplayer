@@ -1,218 +1,314 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import 'package:xplayer/localization/app_localizations.dart';
 import 'package:xplayer/data/models/channel_model.dart';
-import 'package:xplayer/data/models/programme_model.dart';
-import 'package:xplayer/presentation/screens/player.dart';
-import 'package:xplayer/presentation/widgets/epg_channel_column.dart';
-import 'package:xplayer/presentation/widgets/epg_programme_block.dart';
-import 'package:xplayer/presentation/widgets/epg_time_axis.dart';
+import 'package:xplayer/localization/app_localizations.dart';
+import 'package:xplayer/presentation/adapters/app_actions.dart';
+import 'package:xplayer/presentation/adapters/media_presentation.dart';
 import 'package:xplayer/providers/media_provider.dart';
-import 'package:xplayer/utils/epg_metrics.dart';
+import 'package:xplayer/utils/programme_index.dart';
+import 'package:xplayer_ui/xplayer_ui.dart';
 
 class EpgScreen extends StatefulWidget {
-  const EpgScreen({super.key});
-
+  const EpgScreen({
+    super.key,
+    this.embedded = false,
+    this.onWatchChannels,
+    this.onConfigure,
+  });
+  final bool embedded;
+  final VoidCallback? onWatchChannels, onConfigure;
   @override
   State<EpgScreen> createState() => _EpgScreenState();
 }
 
 class _EpgScreenState extends State<EpgScreen> {
-  final ScrollController _hCtrl = ScrollController(); // 主区横向(时间)
-  final ScrollController _vCtrl = ScrollController(); // 主区纵向(频道)
-  final ScrollController _axisCtrl = ScrollController(); // 时间轴,跟随 _hCtrl
-  final ScrollController _colCtrl = ScrollController(); // 频道列,跟随 _vCtrl
-  Timer? _nowTimer;
+  final _search = TextEditingController();
+  Timer? _timer;
   DateTime _now = DateTime.now();
-  bool _scrolledToNow = false;
-
+  DateTime? _anchor;
+  bool? _timeline;
+  int _page = 0;
+  static const _pageSize = 20;
   @override
   void initState() {
     super.initState();
-    _hCtrl.addListener(() {
-      if (_axisCtrl.hasClients && _axisCtrl.offset != _hCtrl.offset) {
-        _axisCtrl.jumpTo(_hCtrl.offset);
-      }
-    });
-    _vCtrl.addListener(() {
-      if (_colCtrl.hasClients && _colCtrl.offset != _vCtrl.offset) {
-        _colCtrl.jumpTo(_vCtrl.offset);
-      }
-    });
-    // 每分钟只刷新「现在线」位置,setState 很轻(行是懒构建的)
-    _nowTimer = Timer.periodic(const Duration(minutes: 1), (_) {
+    _timer = Timer.periodic(const Duration(minutes: 1), (_) {
       if (mounted) setState(() => _now = DateTime.now());
     });
   }
 
   @override
   void dispose() {
-    _nowTimer?.cancel();
-    _hCtrl.dispose();
-    _vCtrl.dispose();
-    _axisCtrl.dispose();
-    _colCtrl.dispose();
+    _timer?.cancel();
+    _search.dispose();
     super.dispose();
   }
 
-  void _scrollToNow(EpgMetrics metrics) {
-    if (_scrolledToNow || !_hCtrl.hasClients) return;
-    _scrolledToNow = true;
-    final target = (metrics.xForTime(_now) - 80)
-        .clamp(0.0, _hCtrl.position.maxScrollExtent);
-    _hCtrl.jumpTo(target);
+  void _watch() {
+    if (widget.onWatchChannels != null) {
+      widget.onWatchChannels!();
+    } else {
+      Navigator.maybePop(context);
+    }
   }
 
-  void _openChannel(Channel c, MediaProvider media) {
-    Navigator.of(context).push(MaterialPageRoute(
-      builder: (_) => PlayerScreen(
-        channel: c,
-        favoriteChannels: media.favoriteChannels,
+  Future<void> _programme(Channel channel, XpProgramme programme) async {
+    final l = AppLocalizations.of(context)!;
+    final start = xpDateTime(programme.start, locale: l.localeName);
+    final end = xpDateTime(programme.end, locale: l.localeName);
+    await showDialog(
+      context: context,
+      builder: (ctx) => XpConfirmDialog(
+        title: programme.title,
+        confirmLabel: l.watchChannelLive,
+        onConfirm: () {
+          Navigator.pop(ctx);
+          AppActions.play(context, channel);
+        },
+        onCancel: () => Navigator.pop(ctx),
+        child: Text(
+          '${channel.name}\n$start — $end\n\n${l.guideDetailsDescription}',
+        ),
       ),
-    ));
+    );
   }
 
-  /// 一次性把所有节目按频道分组并排序(O(n)),避免每行 O(n) 过滤造成 O(频道×节目)。
-  Map<String, List<Programme>> _groupByChannel(List<Programme> all) {
-    final map = <String, List<Programme>>{};
-    for (final p in all) {
-      (map[p.channel.toLowerCase()] ??= <Programme>[]).add(p);
-    }
-    for (final list in map.values) {
-      list.sort((a, b) => a.start.compareTo(b.start));
-    }
-    return map;
+  Widget _programmeList(Channel c, MediaPresentation presentation, bool stale) {
+    final l = AppLocalizations.of(context)!;
+    final programmes = presentation.index
+        .forChannel(c.id)
+        .where((p) => stale || p.stop.isAfter(_now))
+        .take(3);
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 16),
+      child: XpSurface(
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            XpChannelIdentity(channel: presentation.channel(c)),
+            const SizedBox(height: 12),
+            for (final programme in programmes)
+              Padding(
+                padding: const EdgeInsets.only(bottom: 8),
+                child: SizedBox(
+                  height: 108,
+                  child: XpProgrammeBlock(
+                    programme: presentProgramme(programme),
+                    now: _now,
+                    stale: stale,
+                    onPressed: () => _programme(c, presentProgramme(programme)),
+                  ),
+                ),
+              ),
+            if (programmes.isEmpty)
+              Padding(
+                padding: const EdgeInsets.only(bottom: 12),
+                child: Text(l.noMatchingProgrammes),
+              ),
+            XpButton(
+              label: l.watchNamedChannel(c.name),
+              icon: XpSymbol.play,
+              onPressed: () => AppActions.play(context, c),
+              variant: XpButtonVariant.secondary,
+            ),
+          ],
+        ),
+      ),
+    );
   }
 
   @override
   Widget build(BuildContext context) {
     final l = AppLocalizations.of(context)!;
-    final media = Provider.of<MediaProvider>(context);
-    final metrics = EpgMetrics.fromProgrammes(media.programmes, now: _now);
-    final channels = channelsWithEpg(media.channels, media.programmes);
-    final grouped = _groupByChannel(media.programmes);
-    final nowX = metrics.xForTime(_now);
-
-    // 首帧后定位到此刻(只做一次)
-    if (channels.isNotEmpty) {
-      WidgetsBinding.instance
-          .addPostFrameCallback((_) => _scrollToNow(metrics));
-    }
-
-    return Scaffold(
-      backgroundColor: const Color.fromARGB(255, 18, 18, 18),
-      appBar: AppBar(
-        backgroundColor: Colors.transparent,
-        elevation: 0,
-        title: Text(l.epg, style: const TextStyle(color: Colors.white)),
-        iconTheme: const IconThemeData(color: Colors.white),
-      ),
-      body: channels.isEmpty
-          ? _empty(l)
-          : Column(
-              children: [
-                Row(
-                  children: [
-                    SizedBox(
-                        width: metrics.channelColWidth,
-                        height: metrics.timeAxisHeight),
-                    Expanded(
-                      child:
-                          EpgTimeAxis(metrics: metrics, controller: _axisCtrl),
+    final media = context.watch<MediaProvider>();
+    final presentation = MediaPresentation(media, now: _now);
+    final p = XpTheme.of(context).palette;
+    return LayoutBuilder(
+      builder: (context, box) {
+        final compact = box.maxWidth < 600;
+        final timeline = _timeline ?? !compact;
+        final channels = media.channels
+            .where(
+              (c) => '${c.name} ${c.id}'.toLowerCase().contains(
+                _search.text.trim().toLowerCase(),
+              ),
+            )
+            .toList();
+        final pages = (channels.length / _pageSize).ceil().clamp(1, 100000);
+        final page = _page.clamp(0, pages - 1);
+        final visible = channels
+            .skip(page * _pageSize)
+            .take(_pageSize)
+            .toList();
+        final stale = presentation.epgStatus == XpEpgStatus.stale;
+        final base =
+            _anchor ??
+            (stale
+                ? presentation.coverageEnd?.subtract(const Duration(hours: 2))
+                : _now) ??
+            _now;
+        final start = epgWindowStart(base);
+        final end = start.add(const Duration(hours: 3));
+        final owners = <XpProgramme, Channel>{};
+        final rows = [
+          for (final c in visible)
+            XpEpgRowData(
+              channel: presentation.channel(c),
+              programmes: [
+                for (final programme in presentation.index.forChannel(c.id))
+                  if (programme.stop.isAfter(start) &&
+                      programme.start.isBefore(end))
+                    (() {
+                      final ui = presentProgramme(programme);
+                      owners[ui] = c;
+                      return ui;
+                    })(),
+              ],
+            ),
+        ];
+        final content = SingleChildScrollView(
+          key: const PageStorageKey('epg-scroll'),
+          padding: const EdgeInsets.all(20),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              XpSearchField(
+                controller: _search,
+                hint: l.searchGuide,
+                onChanged: (_) => setState(() => _page = 0),
+              ),
+              const SizedBox(height: 18),
+              Wrap(
+                spacing: 8,
+                runSpacing: 8,
+                children: [
+                  XpChip(
+                    label: l.programmeList,
+                    selected: !timeline,
+                    onPressed: () => setState(() => _timeline = false),
+                  ),
+                  XpChip(
+                    label: l.programmeTimeline,
+                    selected: timeline,
+                    onPressed: () => setState(() => _timeline = true),
+                  ),
+                  XpButton(
+                    label: l.currentProgrammes,
+                    onPressed: () => setState(() {
+                      _anchor = null;
+                      _now = DateTime.now();
+                    }),
+                    variant: XpButtonVariant.secondary,
+                  ),
+                  XpIconButton(
+                    icon: XpSymbol.sync,
+                    label: l.refreshProgrammes,
+                    onPressed: media.isRefreshingProgrammes
+                        ? null
+                        : media.refreshProgrammes,
+                  ),
+                  if (timeline) ...[
+                    XpButton(
+                      label: l.guidePreviousHours,
+                      onPressed: () => setState(
+                        () =>
+                            _anchor = start.subtract(const Duration(hours: 3)),
+                      ),
+                      variant: XpButtonVariant.ghost,
+                    ),
+                    XpButton(
+                      label: l.guideNextHours,
+                      onPressed: () => setState(() => _anchor = end),
+                      variant: XpButtonVariant.ghost,
                     ),
                   ],
-                ),
-                Expanded(
-                  child: Row(
-                    children: [
-                      EpgChannelColumn(
-                        channels: channels,
-                        metrics: metrics,
-                        controller: _colCtrl,
-                      ),
-                      // 主区:横向滚一个固定宽容器,内部纵向 ListView.builder 懒构建频道行
-                      Expanded(
-                        child: SingleChildScrollView(
-                          controller: _hCtrl,
-                          scrollDirection: Axis.horizontal,
-                          child: SizedBox(
-                            width: metrics.contentWidth,
-                            child: ListView.builder(
-                              controller: _vCtrl,
-                              itemExtent: metrics.rowHeight,
-                              itemCount: channels.length,
-                              itemBuilder: (ctx, i) {
-                                final c = channels[i];
-                                final progs =
-                                    grouped[c.id.toLowerCase()] ?? const [];
-                                return _row(c, progs, metrics, nowX, media);
-                              },
-                            ),
+                ],
+              ),
+              const SizedBox(height: 18),
+              Text(
+                '${xpShortDate(start, locale: l.localeName)} · ${xpTime(start)} — ${xpTime(end)}',
+                style: TextStyle(color: p.muted),
+              ),
+              const SizedBox(height: 18),
+              if (channels.isEmpty && _search.text.isNotEmpty)
+                XpEmptyState(
+                  title: l.noGuideMatchingChannel,
+                  description: l.noGuideMatchingChannelHint,
+                  icon: XpSymbol.search,
+                  actionLabel: l.clearSearch,
+                  onAction: () => setState(_search.clear),
+                )
+              else
+                XpEpgStateView(
+                  status: presentation.epgStatus,
+                  cachedAt: presentation.cachedAt,
+                  coverageEnd: presentation.coverageEnd,
+                  now: _now,
+                  missingCount: presentation.missingCount,
+                  onWatch: _watch,
+                  onRetry: media.isRefreshingProgrammes
+                      ? null
+                      : media.refreshProgrammes,
+                  onConfigure:
+                      widget.onConfigure ??
+                      () => Navigator.pushNamed(context, '/playlists'),
+                  child: timeline
+                      ? XpEpgTimeline(
+                          rows: rows,
+                          start: start,
+                          end: end,
+                          now: _now,
+                          stale: stale,
+                          onWatchChannel: (channel) => AppActions.play(
+                            context,
+                            visible.firstWhere((c) => c.id == channel.id),
                           ),
+                          onProgramme: (programme) =>
+                              _programme(owners[programme]!, programme),
+                        )
+                      : Column(
+                          children: [
+                            for (final c in visible)
+                              _programmeList(c, presentation, stale),
+                          ],
                         ),
+                ),
+              if (pages > 1)
+                Padding(
+                  padding: const EdgeInsets.only(top: 20),
+                  child: Wrap(
+                    spacing: 12,
+                    runSpacing: 12,
+                    children: [
+                      XpButton(
+                        label: l.previousPage,
+                        onPressed: page == 0
+                            ? null
+                            : () => setState(() => _page = page - 1),
+                        variant: XpButtonVariant.secondary,
+                      ),
+                      Text('${page + 1} / $pages'),
+                      XpButton(
+                        label: l.nextPage,
+                        onPressed: page == pages - 1
+                            ? null
+                            : () => setState(() => _page = page + 1),
+                        variant: XpButtonVariant.secondary,
                       ),
                     ],
                   ),
                 ),
-              ],
-            ),
-    );
-  }
-
-  Widget _row(Channel c, List<Programme> progs, EpgMetrics metrics,
-      double nowX, MediaProvider media) {
-    return SizedBox(
-      width: metrics.contentWidth,
-      height: metrics.rowHeight,
-      child: Stack(
-        clipBehavior: Clip.none,
-        children: [
-          for (final p in progs)
-            Positioned(
-              left: metrics.xForTime(p.start),
-              top: 0,
-              width: metrics.widthForRange(p.start, p.stop),
-              height: metrics.rowHeight,
-              child: EpgProgrammeBlock(
-                programme: p,
-                live: isLive(p, _now),
-                onTap: () => _openChannel(c, media),
-              ),
-            ),
-          // 本行的「现在」线段(各行对齐 → 视觉上连成一条竖线)
-          Positioned(
-            left: nowX,
-            top: 0,
-            height: metrics.rowHeight,
-            width: 2,
-            child: Container(color: Colors.redAccent),
+            ],
           ),
-        ],
-      ),
-    );
-  }
-
-  Widget _empty(AppLocalizations l) {
-    return Center(
-      child: Padding(
-        padding: const EdgeInsets.all(32),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            const Icon(Icons.event_busy, color: Colors.white54, size: 64),
-            const SizedBox(height: 16),
-            Text(l.epgEmptyTitle,
-                textAlign: TextAlign.center,
-                style: const TextStyle(color: Colors.white, fontSize: 16)),
-            const SizedBox(height: 8),
-            Text(l.epgEmptyHint,
-                textAlign: TextAlign.center,
-                style: TextStyle(
-                    color: Colors.white.withOpacity(0.6), fontSize: 13)),
-          ],
-        ),
-      ),
+        );
+        return widget.embedded
+            ? content
+            : Scaffold(
+                appBar: AppBar(title: Text(l.epg)),
+                body: content,
+              );
+      },
     );
   }
 }

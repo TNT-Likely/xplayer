@@ -36,7 +36,7 @@ class PlaylistUtil {
 
     for (int i = 0; i < channelProgrammes.length; i++) {
       final programme = channelProgrammes[i];
-      if (programme.start.isBefore(currentTime) &&
+      if (!programme.start.isAfter(currentTime) &&
           programme.stop.isAfter(currentTime)) {
         currentProgramme = programme;
         currentIndex = i;

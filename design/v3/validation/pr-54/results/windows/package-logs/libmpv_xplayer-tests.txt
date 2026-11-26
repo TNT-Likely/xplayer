@@ -1,0 +1,16 @@
+
+✅ /<package-staging>/engines/complete_codec/test/android_gpu_capabilities_test.dart: retains exact EGL probe evidence for the affected driver
+✅ /<package-staging>/engines/complete_codec/test/android_gpu_capabilities_test.dart: normal driver keeps its normal context
+✅ /<package-staging>/engines/complete_codec/test/android_gpu_capabilities_test.dart: older hosts without the channel can still open media
+✅ /<package-staging>/engines/complete_codec/test/android_gpu_capabilities_test.dart: native probe errors do not block playback
+✅ /<package-staging>/engines/complete_codec/test/android_gpu_capabilities_test.dart: concurrent players share an immutable native probe result
+✅ /<package-staging>/engines/complete_codec/test/android_gpu_capabilities_test.dart: a stuck driver probe has a bounded startup cost
+✅ /<package-staging>/engines/complete_codec/test/native_library_pins_test.dart: ios registers its own video bridge without legacy package names
+✅ /<package-staging>/engines/complete_codec/test/native_library_pins_test.dart: ios shipping adapter uses the same full artifact as decoder CI
+✅ /<package-staging>/engines/complete_codec/test/native_library_pins_test.dart: macos registers its own video bridge without legacy package names
+✅ /<package-staging>/engines/complete_codec/test/native_library_pins_test.dart: macos shipping adapter uses the same full artifact as decoder CI
+✅ /<package-staging>/engines/complete_codec/test/native_library_pins_test.dart: Windows shipping DLL/ANGLE pins agree with decoder CI
+✅ /<package-staging>/engines/complete_codec/test/native_library_pins_test.dart: native package configures before the Windows video plugin
+✅ /<package-staging>/engines/complete_codec/test/native_library_pins_test.dart: Android reads the packaged manifest and retains the helper JNI ABI
+
+🎉 13 tests passed.

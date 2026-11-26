@@ -87,7 +87,9 @@ class XIconButton extends StatelessWidget {
           child: Icon(
             icon,
             size: _getIconSize(),
-            color: iconColor ?? Colors.white,
+            color: iconColor ?? (type == XIconButtonType.primary
+                ? Theme.of(context).colorScheme.onPrimary
+                : AppTokens.textPrimary),
           ),
         );
 

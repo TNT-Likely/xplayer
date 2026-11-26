@@ -1,0 +1,9 @@
+{
+  "device": "tv-failure",
+  "passed": true,
+  "retryRequestsIncreased": true,
+  "sourcePicker": true,
+  "channelPicker": true,
+  "noFailedMiniPlayer": true,
+  "tvKeyboardRetry": true
+}

@@ -1447,6 +1447,816 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Dropped frames / audio path / A-V sync need a later pass (ExoPlayer analytics)'**
   String get infoTier2Hint;
+
+  /// No description provided for @home.
+  ///
+  /// In en, this message translates to:
+  /// **'Home'**
+  String get home;
+
+  /// No description provided for @channelsShort.
+  ///
+  /// In en, this message translates to:
+  /// **'Channels'**
+  String get channelsShort;
+
+  /// No description provided for @playlistChannelCount.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =1{1 channel} other{{count} channels}}'**
+  String playlistChannelCount(int count);
+
+  /// No description provided for @favoritesChannelCount.
+  ///
+  /// In en, this message translates to:
+  /// **'Favorites · {count, plural, =1{1 channel} other{{count} channels}}'**
+  String favoritesChannelCount(int count);
+
+  /// No description provided for @watchChannelLive.
+  ///
+  /// In en, this message translates to:
+  /// **'Watch live'**
+  String get watchChannelLive;
+
+  /// No description provided for @playbackSourceCount.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =1{1 source} other{{count} sources}}'**
+  String playbackSourceCount(int count);
+
+  /// No description provided for @noCurrentProgramme.
+  ///
+  /// In en, this message translates to:
+  /// **'No current programme information'**
+  String get noCurrentProgramme;
+
+  /// No description provided for @channelStillAvailable.
+  ///
+  /// In en, this message translates to:
+  /// **'The live channel is still available.'**
+  String get channelStillAvailable;
+
+  /// No description provided for @remoteModeLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Remote control mode'**
+  String get remoteModeLabel;
+
+  /// No description provided for @homeDiscoveryLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Find something to watch'**
+  String get homeDiscoveryLabel;
+
+  /// No description provided for @managePlaylists.
+  ///
+  /// In en, this message translates to:
+  /// **'Manage playlists'**
+  String get managePlaylists;
+
+  /// No description provided for @loadingChannels.
+  ///
+  /// In en, this message translates to:
+  /// **'Loading channels'**
+  String get loadingChannels;
+
+  /// No description provided for @loadingPlaylistHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Reading your playlist.'**
+  String get loadingPlaylistHint;
+
+  /// No description provided for @noFavoritesTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Save your favorite channels here'**
+  String get noFavoritesTitle;
+
+  /// No description provided for @noFavoritesHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Use the favorite button on a channel card to find it faster next time.'**
+  String get noFavoritesHint;
+
+  /// No description provided for @browseChannels.
+  ///
+  /// In en, this message translates to:
+  /// **'Browse channels'**
+  String get browseChannels;
+
+  /// No description provided for @openPlaylistFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'Unable to load channels'**
+  String get openPlaylistFailed;
+
+  /// No description provided for @openPlaylistFailedHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Check the playlist URL or your connection and try again.'**
+  String get openPlaylistFailedHint;
+
+  /// No description provided for @addChannelSource.
+  ///
+  /// In en, this message translates to:
+  /// **'Add a channel source'**
+  String get addChannelSource;
+
+  /// No description provided for @addChannelSourceHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Import an M3U URL or a local file to start watching.'**
+  String get addChannelSourceHint;
+
+  /// No description provided for @retryLoading.
+  ///
+  /// In en, this message translates to:
+  /// **'Retry loading'**
+  String get retryLoading;
+
+  /// No description provided for @homeRecommendedSources.
+  ///
+  /// In en, this message translates to:
+  /// **'Recommended sources'**
+  String get homeRecommendedSources;
+
+  /// No description provided for @switchPlaylist.
+  ///
+  /// In en, this message translates to:
+  /// **'Switch playlist'**
+  String get switchPlaylist;
+
+  /// No description provided for @favoriteChannels.
+  ///
+  /// In en, this message translates to:
+  /// **'Favorite channels'**
+  String get favoriteChannels;
+
+  /// No description provided for @liveChannels.
+  ///
+  /// In en, this message translates to:
+  /// **'Live now'**
+  String get liveChannels;
+
+  /// No description provided for @clearHistory.
+  ///
+  /// In en, this message translates to:
+  /// **'Clear history'**
+  String get clearHistory;
+
+  /// No description provided for @allFavorites.
+  ///
+  /// In en, this message translates to:
+  /// **'All favorites'**
+  String get allFavorites;
+
+  /// No description provided for @clearPlayHistoryTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Clear playback history?'**
+  String get clearPlayHistoryTitle;
+
+  /// No description provided for @confirmClearHistory.
+  ///
+  /// In en, this message translates to:
+  /// **'Clear history'**
+  String get confirmClearHistory;
+
+  /// No description provided for @clearHistoryHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Your playlists and favorites will be kept.'**
+  String get clearHistoryHint;
+
+  /// No description provided for @searchFavorites.
+  ///
+  /// In en, this message translates to:
+  /// **'Search favorite channels'**
+  String get searchFavorites;
+
+  /// No description provided for @searchChannelDetails.
+  ///
+  /// In en, this message translates to:
+  /// **'Search by name, number or group'**
+  String get searchChannelDetails;
+
+  /// No description provided for @cancelChannelTest.
+  ///
+  /// In en, this message translates to:
+  /// **'Stop testing {progress}'**
+  String cancelChannelTest(String progress);
+
+  /// No description provided for @channelTest.
+  ///
+  /// In en, this message translates to:
+  /// **'Test channels'**
+  String get channelTest;
+
+  /// No description provided for @channelTestFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'Channel test failed. Try again.'**
+  String get channelTestFailed;
+
+  /// No description provided for @hideUnavailableChannels.
+  ///
+  /// In en, this message translates to:
+  /// **'Hide unavailable channels'**
+  String get hideUnavailableChannels;
+
+  /// No description provided for @channelDisplaySize.
+  ///
+  /// In en, this message translates to:
+  /// **'Channel display size'**
+  String get channelDisplaySize;
+
+  /// No description provided for @refreshingChannels.
+  ///
+  /// In en, this message translates to:
+  /// **'Updating channels'**
+  String get refreshingChannels;
+
+  /// No description provided for @refreshingChannelsHint.
+  ///
+  /// In en, this message translates to:
+  /// **'You can keep watching your current channels while they update.'**
+  String get refreshingChannelsHint;
+
+  /// No description provided for @playlistUpdateFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'Update failed. Existing channels were kept'**
+  String get playlistUpdateFailed;
+
+  /// No description provided for @playlistUpdateFailedHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Try again later. Your channels are still available.'**
+  String get playlistUpdateFailedHint;
+
+  /// No description provided for @retryPlaylistUpdate.
+  ///
+  /// In en, this message translates to:
+  /// **'Retry update'**
+  String get retryPlaylistUpdate;
+
+  /// No description provided for @noMatchingChannels.
+  ///
+  /// In en, this message translates to:
+  /// **'No matching channels'**
+  String get noMatchingChannels;
+
+  /// No description provided for @noMatchingChannelsHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Try another search term or clear the filters.'**
+  String get noMatchingChannelsHint;
+
+  /// No description provided for @clearFilters.
+  ///
+  /// In en, this message translates to:
+  /// **'Clear filters'**
+  String get clearFilters;
+
+  /// No description provided for @closeProgrammeDetails.
+  ///
+  /// In en, this message translates to:
+  /// **'Close programme details'**
+  String get closeProgrammeDetails;
+
+  /// No description provided for @guideDetailsDescription.
+  ///
+  /// In en, this message translates to:
+  /// **'Watch live opens this channel’s current broadcast.'**
+  String get guideDetailsDescription;
+
+  /// No description provided for @noMatchingProgrammes.
+  ///
+  /// In en, this message translates to:
+  /// **'No matching programmes'**
+  String get noMatchingProgrammes;
+
+  /// No description provided for @watchNamedChannel.
+  ///
+  /// In en, this message translates to:
+  /// **'Watch {channel}'**
+  String watchNamedChannel(String channel);
+
+  /// No description provided for @searchGuide.
+  ///
+  /// In en, this message translates to:
+  /// **'Search channel schedules'**
+  String get searchGuide;
+
+  /// No description provided for @programmeList.
+  ///
+  /// In en, this message translates to:
+  /// **'Programme list'**
+  String get programmeList;
+
+  /// No description provided for @programmeTimeline.
+  ///
+  /// In en, this message translates to:
+  /// **'Timeline'**
+  String get programmeTimeline;
+
+  /// No description provided for @currentProgrammes.
+  ///
+  /// In en, this message translates to:
+  /// **'Now'**
+  String get currentProgrammes;
+
+  /// No description provided for @guidePreviousHours.
+  ///
+  /// In en, this message translates to:
+  /// **'Previous 3 hours'**
+  String get guidePreviousHours;
+
+  /// No description provided for @guideNextHours.
+  ///
+  /// In en, this message translates to:
+  /// **'Next 3 hours'**
+  String get guideNextHours;
+
+  /// No description provided for @noGuideMatchingChannel.
+  ///
+  /// In en, this message translates to:
+  /// **'No matching channels'**
+  String get noGuideMatchingChannel;
+
+  /// No description provided for @noGuideMatchingChannelHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Try a different search term or clear the search.'**
+  String get noGuideMatchingChannelHint;
+
+  /// No description provided for @clearSearch.
+  ///
+  /// In en, this message translates to:
+  /// **'Clear search'**
+  String get clearSearch;
+
+  /// No description provided for @previousPage.
+  ///
+  /// In en, this message translates to:
+  /// **'Previous page'**
+  String get previousPage;
+
+  /// No description provided for @nextPage.
+  ///
+  /// In en, this message translates to:
+  /// **'Next page'**
+  String get nextPage;
+
+  /// No description provided for @done.
+  ///
+  /// In en, this message translates to:
+  /// **'Done'**
+  String get done;
+
+  /// No description provided for @settingsPlaybackRecovery.
+  ///
+  /// In en, this message translates to:
+  /// **'Playback and recovery'**
+  String get settingsPlaybackRecovery;
+
+  /// No description provided for @settingsAppearanceLanguage.
+  ///
+  /// In en, this message translates to:
+  /// **'Appearance and language'**
+  String get settingsAppearanceLanguage;
+
+  /// No description provided for @settingsPlaylistsGuide.
+  ///
+  /// In en, this message translates to:
+  /// **'Playlists and guide'**
+  String get settingsPlaylistsGuide;
+
+  /// No description provided for @settingsAutoUpdateChannels.
+  ///
+  /// In en, this message translates to:
+  /// **'Update channels on launch'**
+  String get settingsAutoUpdateChannels;
+
+  /// No description provided for @settingsAutoUpdateGuide.
+  ///
+  /// In en, this message translates to:
+  /// **'Update the TV guide on launch'**
+  String get settingsAutoUpdateGuide;
+
+  /// No description provided for @settingsDevicesSync.
+  ///
+  /// In en, this message translates to:
+  /// **'Devices and sync'**
+  String get settingsDevicesSync;
+
+  /// No description provided for @phoneRemoteAddress.
+  ///
+  /// In en, this message translates to:
+  /// **'Phone remote connection address'**
+  String get phoneRemoteAddress;
+
+  /// No description provided for @preparingLanService.
+  ///
+  /// In en, this message translates to:
+  /// **'Starting the local network service…'**
+  String get preparingLanService;
+
+  /// No description provided for @settingsDiagnosticsSystem.
+  ///
+  /// In en, this message translates to:
+  /// **'Diagnostics and system'**
+  String get settingsDiagnosticsSystem;
+
+  /// No description provided for @removePlaylistTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Remove “{playlist}”?'**
+  String removePlaylistTitle(String playlist);
+
+  /// No description provided for @confirmRemovePlaylist.
+  ///
+  /// In en, this message translates to:
+  /// **'Remove'**
+  String get confirmRemovePlaylist;
+
+  /// No description provided for @removePlaylistHint.
+  ///
+  /// In en, this message translates to:
+  /// **'This removes the playlist and its cached channels. Favorites will be kept.'**
+  String get removePlaylistHint;
+
+  /// No description provided for @removePlaylistFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'Unable to remove the playlist. Try again.'**
+  String get removePlaylistFailed;
+
+  /// No description provided for @firstPlaylistTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Add your first playlist'**
+  String get firstPlaylistTitle;
+
+  /// No description provided for @firstPlaylistHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Import an M3U URL or local file to organize your channels.'**
+  String get firstPlaylistHint;
+
+  /// No description provided for @playlistNameRequired.
+  ///
+  /// In en, this message translates to:
+  /// **'Enter a name for the playlist.'**
+  String get playlistNameRequired;
+
+  /// No description provided for @playlistAddressInvalid.
+  ///
+  /// In en, this message translates to:
+  /// **'Enter a valid HTTP or HTTPS URL, or choose a local M3U file.'**
+  String get playlistAddressInvalid;
+
+  /// No description provided for @guideAddressInvalid.
+  ///
+  /// In en, this message translates to:
+  /// **'The TV guide URL must start with HTTP or HTTPS.'**
+  String get guideAddressInvalid;
+
+  /// No description provided for @duplicatePlaylistName.
+  ///
+  /// In en, this message translates to:
+  /// **'A playlist with this name already exists. Choose another name.'**
+  String get duplicatePlaylistName;
+
+  /// No description provided for @savePlaylistFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'Unable to save the playlist. Try again.'**
+  String get savePlaylistFailed;
+
+  /// No description provided for @readPlaylistFileFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'Unable to read the file. Choose it again.'**
+  String get readPlaylistFileFailed;
+
+  /// No description provided for @playlistAddress.
+  ///
+  /// In en, this message translates to:
+  /// **'Playlist URL'**
+  String get playlistAddress;
+
+  /// No description provided for @optionalGuideAddress.
+  ///
+  /// In en, this message translates to:
+  /// **'TV guide URL (optional)'**
+  String get optionalGuideAddress;
+
+  /// No description provided for @optionalGuideAddressHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Leave blank to use the guide URL in the M3U header.'**
+  String get optionalGuideAddressHint;
+
+  /// No description provided for @playlistNotSaved.
+  ///
+  /// In en, this message translates to:
+  /// **'Playlist could not be saved'**
+  String get playlistNotSaved;
+
+  /// No description provided for @channelHasNoSource.
+  ///
+  /// In en, this message translates to:
+  /// **'This channel has no available playback source'**
+  String get channelHasNoSource;
+
+  /// No description provided for @saveFavoriteFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'Unable to save the favorite. Try again.'**
+  String get saveFavoriteFailed;
+
+  /// No description provided for @savedPlaylistReadFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'Playlist saved. You can retry loading it from the Playlists page.'**
+  String get savedPlaylistReadFailed;
+
+  /// No description provided for @closePlayerPanel.
+  ///
+  /// In en, this message translates to:
+  /// **'Close {title}'**
+  String closePlayerPanel(String title);
+
+  /// No description provided for @numberedSource.
+  ///
+  /// In en, this message translates to:
+  /// **'Source {index}'**
+  String numberedSource(int index);
+
+  /// No description provided for @returnToChannels.
+  ///
+  /// In en, this message translates to:
+  /// **'Back to channels'**
+  String get returnToChannels;
+
+  /// No description provided for @playbackDiagnostics.
+  ///
+  /// In en, this message translates to:
+  /// **'Playback diagnostics'**
+  String get playbackDiagnostics;
+
+  /// No description provided for @remoteManualAddressInvalid.
+  ///
+  /// In en, this message translates to:
+  /// **'Enter the IP address and port shown on the TV, for example 192.168.1.8:8080.'**
+  String get remoteManualAddressInvalid;
+
+  /// No description provided for @remoteManualTv.
+  ///
+  /// In en, this message translates to:
+  /// **'Manually connected TV'**
+  String get remoteManualTv;
+
+  /// No description provided for @remoteTextSent.
+  ///
+  /// In en, this message translates to:
+  /// **'Text sent. Further edits sync as you type.'**
+  String get remoteTextSent;
+
+  /// No description provided for @remoteNotConnected.
+  ///
+  /// In en, this message translates to:
+  /// **'Connect to a TV first.'**
+  String get remoteNotConnected;
+
+  /// No description provided for @remoteCommandSent.
+  ///
+  /// In en, this message translates to:
+  /// **'Sent: {key}'**
+  String remoteCommandSent(String key);
+
+  /// No description provided for @remoteReconnectHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Disconnected. Connect again.'**
+  String get remoteReconnectHint;
+
+  /// No description provided for @televisionRemote.
+  ///
+  /// In en, this message translates to:
+  /// **'TV remote'**
+  String get televisionRemote;
+
+  /// No description provided for @remoteConnectionNotice.
+  ///
+  /// In en, this message translates to:
+  /// **'Connection notice'**
+  String get remoteConnectionNotice;
+
+  /// No description provided for @nearbyDevices.
+  ///
+  /// In en, this message translates to:
+  /// **'Nearby devices'**
+  String get nearbyDevices;
+
+  /// No description provided for @searchNearbyAgain.
+  ///
+  /// In en, this message translates to:
+  /// **'Search again'**
+  String get searchNearbyAgain;
+
+  /// No description provided for @connectingToTv.
+  ///
+  /// In en, this message translates to:
+  /// **'Connecting to TV'**
+  String get connectingToTv;
+
+  /// No description provided for @connectingToTvHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Establishing a connection…'**
+  String get connectingToTvHint;
+
+  /// No description provided for @remoteDisconnect.
+  ///
+  /// In en, this message translates to:
+  /// **'Disconnect'**
+  String get remoteDisconnect;
+
+  /// No description provided for @remoteTvAddress.
+  ///
+  /// In en, this message translates to:
+  /// **'TV address (IP:port)'**
+  String get remoteTvAddress;
+
+  /// No description provided for @remoteConnectByAddress.
+  ///
+  /// In en, this message translates to:
+  /// **'Connect by address'**
+  String get remoteConnectByAddress;
+
+  /// No description provided for @remoteTextLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Send text to TV'**
+  String get remoteTextLabel;
+
+  /// No description provided for @remoteTextHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Playlist URL, search terms…'**
+  String get remoteTextHint;
+
+  /// No description provided for @remoteSendText.
+  ///
+  /// In en, this message translates to:
+  /// **'Send text'**
+  String get remoteSendText;
+
+  /// No description provided for @remoteDiscoveryFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'Unable to find devices. Check local network permissions and your connection.'**
+  String get remoteDiscoveryFailed;
+
+  /// No description provided for @remoteConnectionLost.
+  ///
+  /// In en, this message translates to:
+  /// **'The connection to the TV was lost.'**
+  String get remoteConnectionLost;
+
+  /// No description provided for @remoteConnectionFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'Unable to connect. Check that the TV is still on the same network.'**
+  String get remoteConnectionFailed;
+
+  /// No description provided for @syncPlaylistExists.
+  ///
+  /// In en, this message translates to:
+  /// **'Already added'**
+  String get syncPlaylistExists;
+
+  /// No description provided for @syncPlaylistMissing.
+  ///
+  /// In en, this message translates to:
+  /// **'Not added'**
+  String get syncPlaylistMissing;
+
+  /// No description provided for @syncFavoriteMissing.
+  ///
+  /// In en, this message translates to:
+  /// **'Not favorited'**
+  String get syncFavoriteMissing;
+
+  /// No description provided for @syncDefaultValue.
+  ///
+  /// In en, this message translates to:
+  /// **'Default'**
+  String get syncDefaultValue;
+
+  /// No description provided for @syncProxyNotConfigured.
+  ///
+  /// In en, this message translates to:
+  /// **'Not configured'**
+  String get syncProxyNotConfigured;
+
+  /// No description provided for @syncDevicePreview.
+  ///
+  /// In en, this message translates to:
+  /// **'Sync preview · {device}'**
+  String syncDevicePreview(String device);
+
+  /// No description provided for @syncReadFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'Unable to read the current settings'**
+  String get syncReadFailed;
+
+  /// No description provided for @syncReadFailedHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Your settings are unchanged. Retry now or return later.'**
+  String get syncReadFailedHint;
+
+  /// No description provided for @syncReadAgain.
+  ///
+  /// In en, this message translates to:
+  /// **'Read again'**
+  String get syncReadAgain;
+
+  /// No description provided for @syncAddFavorite.
+  ///
+  /// In en, this message translates to:
+  /// **'Add to favorites'**
+  String get syncAddFavorite;
+
+  /// No description provided for @probeInProgress.
+  ///
+  /// In en, this message translates to:
+  /// **'Checking…'**
+  String get probeInProgress;
+
+  /// No description provided for @probeNonHls.
+  ///
+  /// In en, this message translates to:
+  /// **'Direct stream (non-HLS)'**
+  String get probeNonHls;
+
+  /// No description provided for @probeFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'Check failed: {error}'**
+  String probeFailed(String error);
+
+  /// No description provided for @probeSingleVariant.
+  ///
+  /// In en, this message translates to:
+  /// **'Single variant (no other bitrates)'**
+  String get probeSingleVariant;
+
+  /// No description provided for @probeHighestVariant.
+  ///
+  /// In en, this message translates to:
+  /// **'Highest ★'**
+  String get probeHighestVariant;
+
+  /// No description provided for @hardwareDecoder.
+  ///
+  /// In en, this message translates to:
+  /// **'{decoder} (hardware)'**
+  String hardwareDecoder(String decoder);
+
+  /// No description provided for @softwareDecoder.
+  ///
+  /// In en, this message translates to:
+  /// **'{decoder} (software)'**
+  String softwareDecoder(String decoder);
+
+  /// No description provided for @audioSoftwareEnabled.
+  ///
+  /// In en, this message translates to:
+  /// **'Enabled (current track uses software decoding)'**
+  String get audioSoftwareEnabled;
+
+  /// No description provided for @enabled.
+  ///
+  /// In en, this message translates to:
+  /// **'Enabled'**
+  String get enabled;
+
+  /// No description provided for @yes.
+  ///
+  /// In en, this message translates to:
+  /// **'Yes'**
+  String get yes;
+
+  /// No description provided for @no.
+  ///
+  /// In en, this message translates to:
+  /// **'No'**
+  String get no;
 }
 
 class _AppLocalizationsDelegate

@@ -1,0 +1,590 @@
+[
+  {
+    "device": "phone",
+    "error": false,
+    "overflow": false,
+    "panel": true,
+    "state": "epg-loading"
+  },
+  {
+    "device": "phone",
+    "error": false,
+    "overflow": false,
+    "panel": true,
+    "state": "epg-unconfigured"
+  },
+  {
+    "device": "phone",
+    "error": false,
+    "overflow": false,
+    "panel": true,
+    "state": "epg-none"
+  },
+  {
+    "device": "phone",
+    "error": false,
+    "overflow": false,
+    "panel": true,
+    "state": "epg-error"
+  },
+  {
+    "device": "phone",
+    "error": false,
+    "overflow": false,
+    "panel": true,
+    "state": "epg-error-cache"
+  },
+  {
+    "device": "phone",
+    "error": false,
+    "overflow": false,
+    "panel": true,
+    "state": "epg-stale"
+  },
+  {
+    "device": "phone",
+    "error": false,
+    "overflow": false,
+    "panel": true,
+    "state": "epg-partial"
+  },
+  {
+    "device": "phone",
+    "error": false,
+    "overflow": false,
+    "panel": true,
+    "state": "network-offline"
+  },
+  {
+    "device": "phone",
+    "error": false,
+    "overflow": false,
+    "panel": true,
+    "state": "list-empty"
+  },
+  {
+    "device": "phone",
+    "error": false,
+    "overflow": false,
+    "panel": true,
+    "state": "list-no-channels"
+  },
+  {
+    "device": "phone",
+    "error": false,
+    "overflow": false,
+    "panel": true,
+    "state": "import-error"
+  },
+  {
+    "device": "phone",
+    "error": false,
+    "overflow": false,
+    "panel": true,
+    "state": "search-empty"
+  },
+  {
+    "device": "phone",
+    "error": false,
+    "overflow": false,
+    "panel": true,
+    "state": "favorites-empty"
+  },
+  {
+    "device": "phone",
+    "error": false,
+    "overflow": false,
+    "panel": true,
+    "state": "player-connecting"
+  },
+  {
+    "device": "phone",
+    "error": false,
+    "overflow": false,
+    "panel": true,
+    "state": "player-buffering"
+  },
+  {
+    "device": "phone",
+    "error": false,
+    "overflow": false,
+    "panel": true,
+    "state": "player-error"
+  },
+  {
+    "device": "phone",
+    "error": false,
+    "overflow": false,
+    "panel": true,
+    "state": "player-unsupported"
+  },
+  {
+    "device": "phone",
+    "error": false,
+    "overflow": false,
+    "panel": true,
+    "state": "player-audio-only"
+  },
+  {
+    "device": "phone",
+    "error": false,
+    "overflow": false,
+    "panel": true,
+    "state": "remote-none"
+  },
+  {
+    "device": "phone",
+    "error": false,
+    "overflow": false,
+    "panel": true,
+    "state": "remote-permission"
+  },
+  {
+    "device": "phone",
+    "error": false,
+    "overflow": false,
+    "panel": true,
+    "state": "sync-conflict"
+  },
+  {
+    "device": "ipad",
+    "error": false,
+    "overflow": false,
+    "panel": true,
+    "state": "epg-loading"
+  },
+  {
+    "device": "ipad",
+    "error": false,
+    "overflow": false,
+    "panel": true,
+    "state": "epg-unconfigured"
+  },
+  {
+    "device": "ipad",
+    "error": false,
+    "overflow": false,
+    "panel": true,
+    "state": "epg-none"
+  },
+  {
+    "device": "ipad",
+    "error": false,
+    "overflow": false,
+    "panel": true,
+    "state": "epg-error"
+  },
+  {
+    "device": "ipad",
+    "error": false,
+    "overflow": false,
+    "panel": true,
+    "state": "epg-error-cache"
+  },
+  {
+    "device": "ipad",
+    "error": false,
+    "overflow": false,
+    "panel": true,
+    "state": "epg-stale"
+  },
+  {
+    "device": "ipad",
+    "error": false,
+    "overflow": false,
+    "panel": true,
+    "state": "epg-partial"
+  },
+  {
+    "device": "ipad",
+    "error": false,
+    "overflow": false,
+    "panel": true,
+    "state": "network-offline"
+  },
+  {
+    "device": "ipad",
+    "error": false,
+    "overflow": false,
+    "panel": true,
+    "state": "list-empty"
+  },
+  {
+    "device": "ipad",
+    "error": false,
+    "overflow": false,
+    "panel": true,
+    "state": "list-no-channels"
+  },
+  {
+    "device": "ipad",
+    "error": false,
+    "overflow": false,
+    "panel": true,
+    "state": "import-error"
+  },
+  {
+    "device": "ipad",
+    "error": false,
+    "overflow": false,
+    "panel": true,
+    "state": "search-empty"
+  },
+  {
+    "device": "ipad",
+    "error": false,
+    "overflow": false,
+    "panel": true,
+    "state": "favorites-empty"
+  },
+  {
+    "device": "ipad",
+    "error": false,
+    "overflow": false,
+    "panel": true,
+    "state": "player-connecting"
+  },
+  {
+    "device": "ipad",
+    "error": false,
+    "overflow": false,
+    "panel": true,
+    "state": "player-buffering"
+  },
+  {
+    "device": "ipad",
+    "error": false,
+    "overflow": false,
+    "panel": true,
+    "state": "player-error"
+  },
+  {
+    "device": "ipad",
+    "error": false,
+    "overflow": false,
+    "panel": true,
+    "state": "player-unsupported"
+  },
+  {
+    "device": "ipad",
+    "error": false,
+    "overflow": false,
+    "panel": true,
+    "state": "player-audio-only"
+  },
+  {
+    "device": "ipad",
+    "error": false,
+    "overflow": false,
+    "panel": true,
+    "state": "remote-none"
+  },
+  {
+    "device": "ipad",
+    "error": false,
+    "overflow": false,
+    "panel": true,
+    "state": "remote-permission"
+  },
+  {
+    "device": "ipad",
+    "error": false,
+    "overflow": false,
+    "panel": true,
+    "state": "sync-conflict"
+  },
+  {
+    "device": "desktop",
+    "error": false,
+    "overflow": false,
+    "panel": true,
+    "state": "epg-loading"
+  },
+  {
+    "device": "desktop",
+    "error": false,
+    "overflow": false,
+    "panel": true,
+    "state": "epg-unconfigured"
+  },
+  {
+    "device": "desktop",
+    "error": false,
+    "overflow": false,
+    "panel": true,
+    "state": "epg-none"
+  },
+  {
+    "device": "desktop",
+    "error": false,
+    "overflow": false,
+    "panel": true,
+    "state": "epg-error"
+  },
+  {
+    "device": "desktop",
+    "error": false,
+    "overflow": false,
+    "panel": true,
+    "state": "epg-error-cache"
+  },
+  {
+    "device": "desktop",
+    "error": false,
+    "overflow": false,
+    "panel": true,
+    "state": "epg-stale"
+  },
+  {
+    "device": "desktop",
+    "error": false,
+    "overflow": false,
+    "panel": true,
+    "state": "epg-partial"
+  },
+  {
+    "device": "desktop",
+    "error": false,
+    "overflow": false,
+    "panel": true,
+    "state": "network-offline"
+  },
+  {
+    "device": "desktop",
+    "error": false,
+    "overflow": false,
+    "panel": true,
+    "state": "list-empty"
+  },
+  {
+    "device": "desktop",
+    "error": false,
+    "overflow": false,
+    "panel": true,
+    "state": "list-no-channels"
+  },
+  {
+    "device": "desktop",
+    "error": false,
+    "overflow": false,
+    "panel": true,
+    "state": "import-error"
+  },
+  {
+    "device": "desktop",
+    "error": false,
+    "overflow": false,
+    "panel": true,
+    "state": "search-empty"
+  },
+  {
+    "device": "desktop",
+    "error": false,
+    "overflow": false,
+    "panel": true,
+    "state": "favorites-empty"
+  },
+  {
+    "device": "desktop",
+    "error": false,
+    "overflow": false,
+    "panel": true,
+    "state": "player-connecting"
+  },
+  {
+    "device": "desktop",
+    "error": false,
+    "overflow": false,
+    "panel": true,
+    "state": "player-buffering"
+  },
+  {
+    "device": "desktop",
+    "error": false,
+    "overflow": false,
+    "panel": true,
+    "state": "player-error"
+  },
+  {
+    "device": "desktop",
+    "error": false,
+    "overflow": false,
+    "panel": true,
+    "state": "player-unsupported"
+  },
+  {
+    "device": "desktop",
+    "error": false,
+    "overflow": false,
+    "panel": true,
+    "state": "player-audio-only"
+  },
+  {
+    "device": "desktop",
+    "error": false,
+    "overflow": false,
+    "panel": true,
+    "state": "remote-none"
+  },
+  {
+    "device": "desktop",
+    "error": false,
+    "overflow": false,
+    "panel": true,
+    "state": "remote-permission"
+  },
+  {
+    "device": "desktop",
+    "error": false,
+    "overflow": false,
+    "panel": true,
+    "state": "sync-conflict"
+  },
+  {
+    "device": "tv",
+    "error": false,
+    "overflow": false,
+    "panel": true,
+    "state": "epg-loading"
+  },
+  {
+    "device": "tv",
+    "error": false,
+    "overflow": false,
+    "panel": true,
+    "state": "epg-unconfigured"
+  },
+  {
+    "device": "tv",
+    "error": false,
+    "overflow": false,
+    "panel": true,
+    "state": "epg-none"
+  },
+  {
+    "device": "tv",
+    "error": false,
+    "overflow": false,
+    "panel": true,
+    "state": "epg-error"
+  },
+  {
+    "device": "tv",
+    "error": false,
+    "overflow": false,
+    "panel": true,
+    "state": "epg-error-cache"
+  },
+  {
+    "device": "tv",
+    "error": false,
+    "overflow": false,
+    "panel": true,
+    "state": "epg-stale"
+  },
+  {
+    "device": "tv",
+    "error": false,
+    "overflow": false,
+    "panel": true,
+    "state": "epg-partial"
+  },
+  {
+    "device": "tv",
+    "error": false,
+    "overflow": false,
+    "panel": true,
+    "state": "network-offline"
+  },
+  {
+    "device": "tv",
+    "error": false,
+    "overflow": false,
+    "panel": true,
+    "state": "list-empty"
+  },
+  {
+    "device": "tv",
+    "error": false,
+    "overflow": false,
+    "panel": true,
+    "state": "list-no-channels"
+  },
+  {
+    "device": "tv",
+    "error": false,
+    "overflow": false,
+    "panel": true,
+    "state": "import-error"
+  },
+  {
+    "device": "tv",
+    "error": false,
+    "overflow": false,
+    "panel": true,
+    "state": "search-empty"
+  },
+  {
+    "device": "tv",
+    "error": false,
+    "overflow": false,
+    "panel": true,
+    "state": "favorites-empty"
+  },
+  {
+    "device": "tv",
+    "error": false,
+    "overflow": false,
+    "panel": true,
+    "state": "player-connecting"
+  },
+  {
+    "device": "tv",
+    "error": false,
+    "overflow": false,
+    "panel": true,
+    "state": "player-buffering"
+  },
+  {
+    "device": "tv",
+    "error": false,
+    "overflow": false,
+    "panel": true,
+    "state": "player-error"
+  },
+  {
+    "device": "tv",
+    "error": false,
+    "overflow": false,
+    "panel": true,
+    "state": "player-unsupported"
+  },
+  {
+    "device": "tv",
+    "error": false,
+    "overflow": false,
+    "panel": true,
+    "state": "player-audio-only"
+  },
+  {
+    "device": "tv",
+    "error": false,
+    "overflow": false,
+    "panel": true,
+    "state": "remote-none"
+  },
+  {
+    "device": "tv",
+    "error": false,
+    "overflow": false,
+    "panel": true,
+    "state": "remote-permission"
+  },
+  {
+    "device": "tv",
+    "error": false,
+    "overflow": false,
+    "panel": true,
+    "state": "sync-conflict"
+  }
+]

@@ -4,7 +4,7 @@ description: "Cross-platform IPTV/M3U player with channel grouping, search, EPG 
 # Prevent accidental publishing to pub.dev.
 publish_to: 'none'
 
-version: 1.0.0+1
+version: 3.0.0+1
 
 environment:
   sdk: '>=3.11.0 <4.0.0'
@@ -15,6 +15,9 @@ workspace:
   - packages/xplayer_player/example
 
 dependencies:
+  xplayer_ui:
+    path: packages/xplayer_ui
+  crypto: ^3.0.6
   xplayer_player: ^0.1.0-beta.1
   bot_toast: ^4.1.3
   cached_network_image: ^3.3.1
@@ -56,6 +59,10 @@ dependencies:
   wakelock_plus: ^1.2.10
 
 dev_dependencies:
+  flutter_driver:
+    sdk: flutter
+  integration_test:
+    sdk: flutter
   flutter_test:
     sdk: flutter
 

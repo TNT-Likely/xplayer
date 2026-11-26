@@ -1,0 +1,79 @@
+{
+  "commit": "372ba310eec9fa83525ce6737e3f811b56655f4c",
+  "verificationRequested": true,
+  "buildPlatform": "windows",
+  "sourceDirty": false,
+  "resolution": "latest",
+  "packages": [
+    {
+      "name": "libmpv_xplayer",
+      "version": "0.1.0-beta.1",
+      "archive": "libmpv_xplayer-0.1.0-beta.1.tar.gz",
+      "sha256": "f2fb7d205d977688ef27b0634678f6341235a68235a0e757432fceef926f1940"
+    },
+    {
+      "name": "xplayer_player",
+      "version": "0.1.0-beta.1",
+      "archive": "xplayer_player-0.1.0-beta.1.tar.gz",
+      "sha256": "6bb62d28018c79320160174712bb01529faa9b955b76a84b05643e4009fcac1b"
+    }
+  ],
+  "checks": [
+    {
+      "name": "resolve-external-workspace",
+      "exitCode": 0,
+      "log": "package-logs/resolve-external-workspace.txt"
+    },
+    {
+      "name": "resolve-standalone-example",
+      "exitCode": 0,
+      "log": "package-logs/resolve-standalone-example.txt"
+    },
+    {
+      "name": "libmpv_xplayer-publish-dry-run",
+      "exitCode": 0,
+      "log": "package-logs/libmpv_xplayer-publish-dry-run.txt"
+    },
+    {
+      "name": "libmpv_xplayer-analyze",
+      "exitCode": 0,
+      "log": "package-logs/libmpv_xplayer-analyze.txt"
+    },
+    {
+      "name": "libmpv_xplayer-tests",
+      "exitCode": 0,
+      "log": "package-logs/libmpv_xplayer-tests.txt"
+    },
+    {
+      "name": "xplayer_player-publish-dry-run",
+      "exitCode": 0,
+      "log": "package-logs/xplayer_player-publish-dry-run.txt"
+    },
+    {
+      "name": "xplayer_player-analyze",
+      "exitCode": 0,
+      "log": "package-logs/xplayer_player-analyze.txt"
+    },
+    {
+      "name": "xplayer_player-tests",
+      "exitCode": 0,
+      "log": "package-logs/xplayer_player-tests.txt"
+    },
+    {
+      "name": "standalone-example-analyze",
+      "exitCode": 0,
+      "log": "package-logs/standalone-example-analyze.txt"
+    },
+    {
+      "name": "standalone-example-test",
+      "exitCode": 0,
+      "log": "package-logs/standalone-example-test.txt"
+    },
+    {
+      "name": "standalone-example-build-windows",
+      "exitCode": 0,
+      "log": "package-logs/standalone-example-build-windows.txt"
+    }
+  ],
+  "passed": true
+}

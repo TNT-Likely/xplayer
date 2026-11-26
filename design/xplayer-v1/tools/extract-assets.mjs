@@ -1,0 +1,21 @@
+import fs from 'node:fs';
+import path from 'node:path';
+import vm from 'node:vm';
+import crypto from 'node:crypto';
+import { fileURLToPath } from 'node:url';
+const root=path.resolve(path.dirname(fileURLToPath(import.meta.url)),'..');
+const app=fs.readFileSync(path.join(root,'prototype/app.js'),'utf8');
+const sandbox={};vm.runInNewContext(app.slice(0,app.indexOf('const params='))+';globalThis.exportedIcons=icons;',sandbox);
+const icons=sandbox.exportedIcons;
+for(const [name,body] of Object.entries(icons))fs.writeFileSync(path.join(root,'assets/icons',name+'.svg'),`<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.65" stroke-linecap="round" stroke-linejoin="round">${body}</svg>\n`);
+const css=fs.readFileSync(path.join(root,'prototype/app.css'),'utf8');
+const parse=s=>Object.fromEntries([...s.matchAll(/--([\w-]+):([^;}]+)/g)].map(m=>[m[1],m[2].trim()]));
+const base=parse(css.match(/html\{([^}]+)\}/)[1]);
+const themes={};for(const [key,name,status] of [['nocturne','A · 静夜','primary'],['paper','B · 留白','retained-alternative'],['signal','C · 信号','retained-alternative']]){const block=css.match(new RegExp('html\\[data-style='+key+'\\]\\{([^}]+)\\}'));themes[key]={name,status,values:{...base,...parse(block?.[1]||'')}}}
+const tokens={version:'1.0.0',confirmedOn:'2026-10-25',primaryTheme:'nocturne',sourceOfTruth:'经用户确认的 HTML 交互设计稿',themes,spacing:[4,8,12,16,20,24,28,32,36,44,48,60,84],typography:{web:['Inter','-apple-system','BlinkMacSystemFont','PingFang SC','Microsoft YaHei','sans-serif'],figma:{latin:'Inter',cjk:'Noto Sans SC',note:'Figma 云端未提供 PingFang SC，中文采用 Noto Sans SC；布局以 HTML 为准。'},roles:{pageTitle:{phone:27,ipad:29,desktop:29,tv:39},sectionTitle:{phone:18,ipad:18,desktop:18,tv:28},heroTitle:{phone:39,ipad:37,desktop:44,tv:65}}},devices:{phone:{width:390,height:844,navigation:'bottom',touchTarget:44},ipad:{width:1194,height:834,navigation:'rail',sidebar:82},desktop:{width:1440,height:960,navigation:'sidebar',sidebar:216},tv:{width:1920,height:1080,navigation:'top',focusRing:4,focusOffset:5}},motion:{fast:150,normal:200,imageHover:500,reducedMotion:true}};
+fs.writeFileSync(path.join(root,'tokens/xplayer.tokens.json'),JSON.stringify(tokens,null,2)+'\n');
+let tokenCSS='/* 从已确认设计稿抽取，保留 A/B/C 三套语义变量。 */\n';for(const [key,t] of Object.entries(themes)){tokenCSS+=(key==='nocturne'?':root, ':'')+`[data-style="${key}"] {\n`+Object.entries(t.values).map(([k,v])=>`  --${k}: ${v};`).join('\n')+'\n}\n'}fs.writeFileSync(path.join(root,'tokens/xplayer.tokens.css'),tokenCSS);
+const photos={forest:'photo-1441974231531-c6227db76b6e',mountain:'photo-1464822759023-fed622ff2c3b',ocean:'photo-1518837695005-2083093ee35b',city:'photo-1519501025264-65ba15a82390',sport:'photo-1574629810360-7efbbe195018'};
+const manifest={version:'1.0.0',primaryDirection:'A',preservedDirections:['B','C'],confirmedOn:'2026-10-25',preview:'https://xplayer-design-studio-oct25.ivory-fox-4792.chatgpt.site',sourceCommit:'f85733a91d12fc4eee85fac712cca16d11c4e6c3',figma:{fileKey:'g3InwuNMSszxmeHHWGKd2R',url:'https://www.figma.com/design/g3InwuNMSszxmeHHWGKd2R',status:'in-progress'},prototype:{entry:'prototype/index.html',standalone:'prototype/preview.html',styles:Object.keys(themes),devices:Object.keys(tokens.devices),pages:['home','channels','guide','favorites','sources','remote','settings']},icons:{count:Object.keys(icons).length,folder:'assets/icons',size:24,stroke:1.65},imagery:Object.entries(photos).map(([name,id])=>({name,path:`assets/imagery/${name}.jpg`,source:`https://images.unsplash.com/${id}`,purpose:'设计演示素材',sha256:crypto.createHash('sha256').update(fs.readFileSync(path.join(root,'assets/imagery',name+'.jpg'))).digest('hex')}))};
+fs.writeFileSync(path.join(root,'manifest.json'),JSON.stringify(manifest,null,2)+'\n');
+console.log(JSON.stringify({icons:Object.keys(icons).length,themes:Object.keys(themes),images:manifest.imagery.length}));

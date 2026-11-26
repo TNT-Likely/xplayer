@@ -1,0 +1,31 @@
+{
+  "device": "Android TV API 36",
+  "display": "1920×1080 / 320 dpi",
+  "entrypoint": "lib/main.dart",
+  "input": "ADB KEYCODE_DPAD events",
+  "verification": "Android UIAutomator focus tree and InputMethod state",
+  "passed": true,
+  "featuredProgrammeDetailsOpened": true,
+  "channelsPageOpened": true,
+  "searchBrowseImeShown": false,
+  "searchEditImeShown": true,
+  "systemBackImeShown": false,
+  "systemBackRetainedEditorFocusUntilDirectionalExit": true,
+  "queryPreservedOnReturnToEdit": true,
+  "searchReturnedToSidebar": true,
+  "keyFocus": {
+    "normal-home": "首页",
+    "featured-favourite": "取消收藏 验收一台",
+    "featured-play": "立即观看",
+    "featured-details": "节目详情",
+    "featured-play-return": "立即观看",
+    "featured-favourite-return": "取消收藏 验收一台",
+    "channel-search-nav": "搜索频道名称、编号或分组，按确认输入",
+    "channel-search-browse-down": "体育",
+    "channel-search-edit": "android.widget.EditText",
+    "channel-search-back": "qa",
+    "channel-search-down-after-back": "体育",
+    "channel-search-reopen-query": "qa",
+    "channel-search-return-sidebar": "频道"
+  }
+}

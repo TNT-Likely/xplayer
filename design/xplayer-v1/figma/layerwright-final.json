@@ -1,0 +1,379 @@
+{
+  "phone": {
+    "success": true,
+    "created": [
+      "24:807",
+      "24:963",
+      "24:1030",
+      "24:1096",
+      "24:1167",
+      "24:1485",
+      "24:1805"
+    ],
+    "links": [
+      "https://www.figma.com/design/g3InwuNMSszxmeHHWGKd2R/XPlayer-%C2%B7-%E5%A4%9A%E7%AB%AF%E8%AE%BE%E8%AE%A1%E8%B5%84%E6%BA%90%E5%BA%93-%C2%B7-A-%E4%B8%BB%E6%96%B9%E6%A1%88-B-C-%E5%A4%87%E9%80%89?node-id=24-807",
+      "https://www.figma.com/design/g3InwuNMSszxmeHHWGKd2R/XPlayer-%C2%B7-%E5%A4%9A%E7%AB%AF%E8%AE%BE%E8%AE%A1%E8%B5%84%E6%BA%90%E5%BA%93-%C2%B7-A-%E4%B8%BB%E6%96%B9%E6%A1%88-B-C-%E5%A4%87%E9%80%89?node-id=24-963",
+      "https://www.figma.com/design/g3InwuNMSszxmeHHWGKd2R/XPlayer-%C2%B7-%E5%A4%9A%E7%AB%AF%E8%AE%BE%E8%AE%A1%E8%B5%84%E6%BA%90%E5%BA%93-%C2%B7-A-%E4%B8%BB%E6%96%B9%E6%A1%88-B-C-%E5%A4%87%E9%80%89?node-id=24-1030",
+      "https://www.figma.com/design/g3InwuNMSszxmeHHWGKd2R/XPlayer-%C2%B7-%E5%A4%9A%E7%AB%AF%E8%AE%BE%E8%AE%A1%E8%B5%84%E6%BA%90%E5%BA%93-%C2%B7-A-%E4%B8%BB%E6%96%B9%E6%A1%88-B-C-%E5%A4%87%E9%80%89?node-id=24-1096",
+      "https://www.figma.com/design/g3InwuNMSszxmeHHWGKd2R/XPlayer-%C2%B7-%E5%A4%9A%E7%AB%AF%E8%AE%BE%E8%AE%A1%E8%B5%84%E6%BA%90%E5%BA%93-%C2%B7-A-%E4%B8%BB%E6%96%B9%E6%A1%88-B-C-%E5%A4%87%E9%80%89?node-id=24-1167",
+      "https://www.figma.com/design/g3InwuNMSszxmeHHWGKd2R/XPlayer-%C2%B7-%E5%A4%9A%E7%AB%AF%E8%AE%BE%E8%AE%A1%E8%B5%84%E6%BA%90%E5%BA%93-%C2%B7-A-%E4%B8%BB%E6%96%B9%E6%A1%88-B-C-%E5%A4%87%E9%80%89?node-id=24-1485",
+      "https://www.figma.com/design/g3InwuNMSszxmeHHWGKd2R/XPlayer-%C2%B7-%E5%A4%9A%E7%AB%AF%E8%AE%BE%E8%AE%A1%E8%B5%84%E6%BA%90%E5%BA%93-%C2%B7-A-%E4%B8%BB%E6%96%B9%E6%A1%88-B-C-%E5%A4%87%E9%80%89?node-id=24-1805"
+    ],
+    "page": "10 · A 静夜 · 主方案",
+    "run": "smvnils4g.1",
+    "nodeCount": 1131,
+    "warnings": [],
+    "verification": {
+      "passed": false,
+      "byIssue": {
+        "size far from the source's rendered box": 6
+      },
+      "mismatches": [
+        {
+          "path": "screens[4].children[0].children[1].children[0].children[1].children[1].children[2]",
+          "nodeId": "24:1198",
+          "issue": "size far from the source's rendered box",
+          "expected": "302×37",
+          "actual": "302×44"
+        },
+        {
+          "path": "screens[4].children[0].children[1].children[0].children[1].children[1].children[4]",
+          "nodeId": "24:1233",
+          "issue": "size far from the source's rendered box",
+          "expected": "297×25",
+          "actual": "297×13"
+        },
+        {
+          "path": "screens[5].children[0].children[1].children[0].children[1].children[1].children[2]",
+          "nodeId": "24:1516",
+          "issue": "size far from the source's rendered box",
+          "expected": "302×37",
+          "actual": "302×44"
+        },
+        {
+          "path": "screens[5].children[0].children[1].children[0].children[1].children[1].children[4]",
+          "nodeId": "24:1551",
+          "issue": "size far from the source's rendered box",
+          "expected": "297×25",
+          "actual": "297×13"
+        },
+        {
+          "path": "screens[6].children[0].children[1].children[0].children[1].children[1].children[2]",
+          "nodeId": "24:1836",
+          "issue": "size far from the source's rendered box",
+          "expected": "302×37",
+          "actual": "302×44"
+        },
+        {
+          "path": "screens[6].children[0].children[1].children[0].children[1].children[1].children[4]",
+          "nodeId": "24:1871",
+          "issue": "size far from the source's rendered box",
+          "expected": "297×25",
+          "actual": "297×13"
+        }
+      ],
+      "total": 6
+    },
+    "next": "Check it visually with figma_export_image (pass compareWith: { html } for an HTML import)."
+  },
+  "desktop": {
+    "imported": [
+      {
+        "name": "nocturne-desktop-epg-unconfigured",
+        "width": 1440,
+        "height": 960,
+        "nodes": 94
+      },
+      {
+        "name": "nocturne-desktop-epg-none",
+        "width": 1440,
+        "height": 960,
+        "nodes": 94
+      },
+      {
+        "name": "nocturne-desktop-epg-loading",
+        "width": 1440,
+        "height": 960,
+        "nodes": 92
+      },
+      {
+        "name": "nocturne-desktop-epg-error",
+        "width": 1440,
+        "height": 960,
+        "nodes": 95
+      },
+      {
+        "name": "nocturne-desktop-epg-error-cache",
+        "width": 1440,
+        "height": 960,
+        "nodes": 271
+      },
+      {
+        "name": "nocturne-desktop-epg-stale",
+        "width": 1440,
+        "height": 960,
+        "nodes": 260
+      },
+      {
+        "name": "nocturne-desktop-epg-partial",
+        "width": 1440,
+        "height": 960,
+        "nodes": 229
+      }
+    ],
+    "page": "10 · A 静夜 · 主方案",
+    "sectionId": "24:6478",
+    "screens": [
+      {
+        "id": "24:6479",
+        "name": "nocturne-desktop-epg-unconfigured",
+        "width": 1440,
+        "height": 960
+      },
+      {
+        "id": "24:6599",
+        "name": "nocturne-desktop-epg-none",
+        "width": 1440,
+        "height": 960
+      },
+      {
+        "id": "24:6719",
+        "name": "nocturne-desktop-epg-loading",
+        "width": 1440,
+        "height": 960
+      },
+      {
+        "id": "24:6837",
+        "name": "nocturne-desktop-epg-error",
+        "width": 1440,
+        "height": 960
+      },
+      {
+        "id": "24:6958",
+        "name": "nocturne-desktop-epg-error-cache",
+        "width": 1440,
+        "height": 960
+      },
+      {
+        "id": "24:7255",
+        "name": "nocturne-desktop-epg-stale",
+        "width": 1440,
+        "height": 960
+      },
+      {
+        "id": "24:7541",
+        "name": "nocturne-desktop-epg-partial",
+        "width": 1440,
+        "height": 960
+      }
+    ],
+    "warnings": [],
+    "verification": {
+      "passed": true,
+      "byIssue": {},
+      "mismatches": [],
+      "total": 0
+    },
+    "next": "Check it visually with figma_export_image({ nodeId, compareWith: { html } })."
+  },
+  "ipad": {
+    "imported": [
+      {
+        "name": "nocturne-ipad-epg-unconfigured",
+        "width": 1194,
+        "height": 834,
+        "nodes": 75
+      },
+      {
+        "name": "nocturne-ipad-epg-none",
+        "width": 1194,
+        "height": 834,
+        "nodes": 75
+      },
+      {
+        "name": "nocturne-ipad-epg-loading",
+        "width": 1194,
+        "height": 834,
+        "nodes": 73
+      },
+      {
+        "name": "nocturne-ipad-epg-error",
+        "width": 1194,
+        "height": 834,
+        "nodes": 76
+      },
+      {
+        "name": "nocturne-ipad-epg-error-cache",
+        "width": 1194,
+        "height": 834,
+        "nodes": 252
+      },
+      {
+        "name": "nocturne-ipad-epg-stale",
+        "width": 1194,
+        "height": 834,
+        "nodes": 241
+      },
+      {
+        "name": "nocturne-ipad-epg-partial",
+        "width": 1194,
+        "height": 834,
+        "nodes": 210
+      }
+    ],
+    "page": "10 · A 静夜 · 主方案",
+    "sectionId": "24:7805",
+    "screens": [
+      {
+        "id": "24:7806",
+        "name": "nocturne-ipad-epg-unconfigured",
+        "width": 1194,
+        "height": 834
+      },
+      {
+        "id": "24:7906",
+        "name": "nocturne-ipad-epg-none",
+        "width": 1194,
+        "height": 834
+      },
+      {
+        "id": "24:8006",
+        "name": "nocturne-ipad-epg-loading",
+        "width": 1194,
+        "height": 834
+      },
+      {
+        "id": "24:8104",
+        "name": "nocturne-ipad-epg-error",
+        "width": 1194,
+        "height": 834
+      },
+      {
+        "id": "24:8205",
+        "name": "nocturne-ipad-epg-error-cache",
+        "width": 1194,
+        "height": 834
+      },
+      {
+        "id": "24:8482",
+        "name": "nocturne-ipad-epg-stale",
+        "width": 1194,
+        "height": 834
+      },
+      {
+        "id": "24:8748",
+        "name": "nocturne-ipad-epg-partial",
+        "width": 1194,
+        "height": 834
+      }
+    ],
+    "warnings": [],
+    "verification": {
+      "passed": true,
+      "byIssue": {},
+      "mismatches": [],
+      "total": 0
+    },
+    "next": "Check it visually with figma_export_image({ nodeId, compareWith: { html } })."
+  },
+  "tv": {
+    "imported": [
+      {
+        "name": "nocturne-tv-epg-unconfigured",
+        "width": 1920,
+        "height": 1080,
+        "nodes": 62
+      },
+      {
+        "name": "nocturne-tv-epg-none",
+        "width": 1920,
+        "height": 1080,
+        "nodes": 62
+      },
+      {
+        "name": "nocturne-tv-epg-loading",
+        "width": 1920,
+        "height": 1080,
+        "nodes": 60
+      },
+      {
+        "name": "nocturne-tv-epg-error",
+        "width": 1920,
+        "height": 1080,
+        "nodes": 63
+      },
+      {
+        "name": "nocturne-tv-epg-error-cache",
+        "width": 1920,
+        "height": 1080,
+        "nodes": 239
+      },
+      {
+        "name": "nocturne-tv-epg-stale",
+        "width": 1920,
+        "height": 1080,
+        "nodes": 228
+      },
+      {
+        "name": "nocturne-tv-epg-partial",
+        "width": 1920,
+        "height": 1080,
+        "nodes": 197
+      }
+    ],
+    "page": "10 · A 静夜 · 主方案",
+    "sectionId": "24:8992",
+    "screens": [
+      {
+        "id": "24:8993",
+        "name": "nocturne-tv-epg-unconfigured",
+        "width": 1920,
+        "height": 1080
+      },
+      {
+        "id": "24:9075",
+        "name": "nocturne-tv-epg-none",
+        "width": 1920,
+        "height": 1080
+      },
+      {
+        "id": "24:9157",
+        "name": "nocturne-tv-epg-loading",
+        "width": 1920,
+        "height": 1080
+      },
+      {
+        "id": "24:9237",
+        "name": "nocturne-tv-epg-error",
+        "width": 1920,
+        "height": 1080
+      },
+      {
+        "id": "24:9320",
+        "name": "nocturne-tv-epg-error-cache",
+        "width": 1920,
+        "height": 1080
+      },
+      {
+        "id": "24:9579",
+        "name": "nocturne-tv-epg-stale",
+        "width": 1920,
+        "height": 1080
+      },
+      {
+        "id": "24:9827",
+        "name": "nocturne-tv-epg-partial",
+        "width": 1920,
+        "height": 1080
+      }
+    ],
+    "warnings": [],
+    "verification": {
+      "passed": true,
+      "byIssue": {},
+      "mismatches": [],
+      "total": 0
+    },
+    "next": "Check it visually with figma_export_image({ nodeId, compareWith: { html } })."
+  }
+}

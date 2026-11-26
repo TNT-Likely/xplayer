@@ -66,7 +66,7 @@ class Playlist {
       name: name ?? this.name,
       url: url ?? this.url,
       channels: channels ?? this.channels,
-      epgUrl: epgUrl ?? epgUrl,
+      epgUrl: epgUrl ?? this.epgUrl,
       createdAt: createdAt ?? this.createdAt,
       updatedAt: updatedAt ?? this.updatedAt,
     );

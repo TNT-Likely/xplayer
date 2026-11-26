@@ -5,6 +5,11 @@ import 'package:xplayer/localization/app_localizations.dart';
 import 'package:xplayer/presentation/widgets/playlist_dialog.dart';
 
 void main() {
+  Finder field(String key) => find.descendant(
+    of: find.byKey(ValueKey(key)),
+    matching: find.byType(TextField),
+  );
+
   Future<void> showAddPlaylist(WidgetTester tester) async {
     await tester.pumpWidget(
       const MaterialApp(
@@ -47,22 +52,25 @@ void main() {
         await tester.pump();
       }
 
-      final fields = find.byType(TextField);
-      const values = ['我的清单', 'https://example.com/playlist.m3u'];
-      for (var index = 0; index < values.length; index++) {
-        final field = fields.at(index);
-        final value = values[index];
-        await tester.tap(field);
+      const values = {
+        'playlist-name': '我的清单',
+        'playlist-url': 'https://example.com/playlist.m3u',
+        'playlist-epg': 'https://example.com/epg.xml',
+      };
+      for (final entry in values.entries) {
+        final input = field(entry.key);
+        await tester.ensureVisible(input);
+        await tester.tap(input);
         await tester.pump();
 
-        clipboard = value;
+        clipboard = entry.value;
         await pressCtrl(LogicalKeyboardKey.keyV);
-        expect(tester.widget<TextField>(field).controller!.text, value);
+        expect(tester.widget<TextField>(input).controller!.text, entry.value);
 
         clipboard = null;
         await pressCtrl(LogicalKeyboardKey.keyA);
         await pressCtrl(LogicalKeyboardKey.keyC);
-        expect(clipboard, value);
+        expect(clipboard, entry.value);
       }
     },
     variant: const TargetPlatformVariant({TargetPlatform.windows}),
@@ -72,9 +80,22 @@ void main() {
     'Android directional keys still move focus between the playlist fields',
     (tester) async {
       await showAddPlaylist(tester);
-      final fields = find.byType(TextField);
-      final name = tester.widget<TextField>(fields.at(0)).focusNode!;
-      final url = tester.widget<TextField>(fields.at(1)).focusNode!;
+      FocusNode focusOf(String key) => tester
+          .widget<EditableText>(
+            find.descendant(
+              of: field(key),
+              matching: find.byType(EditableText),
+            ),
+          )
+          .focusNode;
+      final name = focusOf('playlist-name');
+      final url = focusOf('playlist-url');
+      final localizations = AppLocalizations.of(
+        tester.element(find.byType(PlaylistDialog)),
+      )!;
+      final picker = Focus.of(
+        tester.element(find.text(localizations.pickLocalM3u)),
+      );
 
       expect(name.hasPrimaryFocus, isTrue);
       await tester.sendKeyEvent(LogicalKeyboardKey.arrowDown);
@@ -83,7 +104,7 @@ void main() {
 
       await tester.sendKeyEvent(LogicalKeyboardKey.arrowDown);
       await tester.pump();
-      expect(url.hasFocus, isFalse);
+      expect(picker.hasFocus, isTrue);
 
       await tester.sendKeyEvent(LogicalKeyboardKey.arrowUp);
       await tester.pump();

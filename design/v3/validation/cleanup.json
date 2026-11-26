@@ -1,0 +1,78 @@
+{
+  "date": "2026-10-26",
+  "removedDevices": [
+    {
+      "platform": "ios",
+      "name": "XPlayer UI QA Phone",
+      "oldId": "A1463E35-66F6-444B-8C7F-838A81314D44",
+      "runtime": "iOS 26.5",
+      "deviceType": "iPhone-17-Pro"
+    },
+    {
+      "platform": "ios",
+      "name": "XPlayer UI QA iPad",
+      "oldId": "489B023C-9BF8-4367-A8C5-29ACEE04C1F5",
+      "runtime": "iOS 26.5",
+      "deviceType": "iPad-Pro-11-inch-M5-12GB"
+    },
+    {
+      "platform": "android",
+      "name": "XPlayer_V3_UI_TV",
+      "oldId": "emulator-5556",
+      "image": "system-images;android-36;android-tv;arm64-v8a",
+      "keyboard": "yes"
+    }
+  ],
+  "removedLocalPaths": [
+    ".dart_tool/v3-package-analyze.log",
+    ".dart_tool/v3-extra-analyze.log",
+    ".dart_tool/v3-remote-analyze.log",
+    ".dart_tool/v3-extra-tests.log",
+    ".dart_tool/v3-all-tests.log",
+    ".dart_tool/v3-artwork-tests.log",
+    ".dart_tool/v3-ios-build.log",
+    ".dart_tool/v3-mini-analyze.log",
+    ".dart_tool/v3-live-audit",
+    ".dart_tool/v3-epg-probe",
+    ".dart_tool/v3-changed-analyze.log",
+    ".dart_tool/v3-gallery-tests.log",
+    ".dart_tool/v3-analyze.log",
+    ".dart_tool/v3-final-tests.log",
+    ".dart_tool/v3-full-analyze.log",
+    ".dart_tool/v3-artwork-pub.log",
+    ".dart_tool/v3-tests.log",
+    ".dart_tool/v3-artwork-analyze.log",
+    ".dart_tool/v3-artwork-final-tests.log",
+    ".dart_tool/v3-player-analyze.log",
+    ".dart_tool/v3-artwork-regressions.log",
+    ".dart_tool/v3-artwork-gallery.log",
+    ".dart_tool/v3-finishing-analyze.log",
+    ".dart_tool/v3-qa",
+    ".dart_tool/v3-viewport-final.log",
+    ".dart_tool/v3-mini-tests.log",
+    ".dart_tool/v3-ui-package-analyze.log",
+    ".dart_tool/v3-artwork-package-analyze.log",
+    "build",
+    ".dart_tool/flutter_build",
+    "packages/xplayer_ui/build",
+    "packages/xplayer_ui/example/build",
+    "packages/xplayer_ui/example/.dart_tool/flutter_build",
+    ".dart_tool/preserve_player_layout.py"
+  ],
+  "kept": [
+    "v3 worktree and branch",
+    "tracked source/design/validation artifacts",
+    "local releases and publishing outputs",
+    "installed SDKs and simulator runtimes",
+    "other projects simulators and existing AVDs",
+    "physical Android device and LAN server",
+    "Layerwright connection"
+  ],
+  "verification": {
+    "ownedDevicesAbsent": true,
+    "otherBootedSimulatorPreserved": true,
+    "physicalAndroidPreserved": true,
+    "trackedFilesDeleted": false,
+    "fixtureServersRunning": false
+  }
+}

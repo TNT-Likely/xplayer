@@ -18,10 +18,10 @@ class AppTokens {
   static Color get brand => themeColor.value;
 
   // ========== 文字 Text ==========
-  static const Color textPrimary = Colors.white;
-  static const Color textSecondary = Colors.white70;
-  static const Color textTertiary = Colors.white54;
-  static const Color textDisabled = Colors.white38;
+  static const Color textPrimary = Color(0xffedf2e9);
+  static const Color textSecondary = Color(0xff8d9c8d);
+  static const Color textTertiary = Color(0xff8d9c8d);
+  static const Color textDisabled = Color(0xff627566);
 
   // ========== 图标 Icon ==========
   static const Color iconPrimary = Colors.white;
@@ -29,7 +29,7 @@ class AppTokens {
 
   // ========== 背景 / 表面 Surface ==========
   /// 抽屉、对话框等深色面板背景（rgb 34,34,34）。
-  static const Color surfacePanel = Color(0xFF222222);
+  static const Color surfacePanel = Color(0xff14211b);
 
   /// 频道项缩略图背景（半透明黑 0.35）。
   static const Color surfaceThumb = Color(0x59000000);
