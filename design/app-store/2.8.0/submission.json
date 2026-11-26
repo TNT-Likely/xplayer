@@ -1,0 +1,74 @@
+{
+  "checkedAt": "2026-11-26T23:35:30+00:00",
+  "version": "2.8.0",
+  "build": "67",
+  "sourceCommit": "751d2e153c040c2c6b85023da9d46f8a9567a6e9",
+  "platforms": {
+    "IOS": {
+      "state": "WAITING_FOR_REVIEW",
+      "build": "67",
+      "releaseType": "AFTER_APPROVAL",
+      "review": "WAITING_FOR_REVIEW"
+    },
+    "MAC_OS": {
+      "state": "WAITING_FOR_REVIEW",
+      "build": "67",
+      "releaseType": "AFTER_APPROVAL",
+      "review": "WAITING_FOR_REVIEW"
+    }
+  },
+  "reviewSubmissions": {
+    "IOS": "83e8d11b-b1d6-4383-8a93-2544d9c3e2cb",
+    "MAC_OS": "c8e82235-18da-4a2d-8c3e-0ebb4d90419a"
+  },
+  "products": {
+    "lifetime": {
+      "productId": "com.tntlikely.xplayer.pro.lifetime",
+      "stateAtSubmission": "WAITING_FOR_REVIEW",
+      "reviewScreenshot": "review/pro-lifetime.png",
+      "appleSourceChecksum": "4c3f56ea1ce22a831bc47a9b7c582893",
+      "sha256": "1f87d1e1e4e306366a06ec46dfb9f7e3e3139a8c89f845aafee13fe6590c0f61"
+    },
+    "yearly": {
+      "productId": "com.tntlikely.xplayer.pro.yearly",
+      "stateAtSubmission": "WAITING_FOR_REVIEW",
+      "reviewScreenshot": "review/pro-yearly.png",
+      "appleSourceChecksum": "ebbcb6098568201484848cc97ac04a3f",
+      "sha256": "f176b2eb79a70f43f5a454a64c41ba633f3c6e1f747073eb0aec13a29555f09d"
+    },
+    "monthly": {
+      "productId": "com.tntlikely.xplayer.pro.monthly",
+      "stateAtSubmission": "WAITING_FOR_REVIEW",
+      "reviewScreenshot": "review/pro-monthly.png",
+      "appleSourceChecksum": "f896cbc75a0e0efae32da925b74ca598",
+      "sha256": "11afbc88aa134a83ccc290dd287724e01dee10da5aeabd338a28f6fe22316584"
+    }
+  },
+  "verifiedStorefrontPrices": {
+    "CHN": {
+      "monthly": "6.0",
+      "yearly": "22.0",
+      "lifetime": "30.0"
+    },
+    "HKG": {
+      "monthly": "8.0",
+      "yearly": "22.0",
+      "lifetime": "32.0"
+    },
+    "TWN": {
+      "monthly": "30",
+      "yearly": "90",
+      "lifetime": "120"
+    },
+    "USA": {
+      "monthly": "0.99",
+      "yearly": "2.99",
+      "lifetime": "3.99"
+    }
+  },
+  "publicVersionAtSubmission": {
+    "us": "2.7.0",
+    "hk": "2.7.0",
+    "tw": "2.7.0"
+  }
+}
