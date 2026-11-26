@@ -7,13 +7,13 @@ import FlutterMacOS
 #endif
 
 public final class XPlayerStorePlugin: NSObject, FlutterPlugin {
-    private let channel: FlutterMethodChannel
+    private let notifyChanges: () -> Void
     private var updates: Task<Void, Never>?
     private let tiers: Set<String> = ["monthly", "yearly", "lifetime"]
     private let prefix = "com.tntlikely.xplayer.pro."
 
-    init(channel: FlutterMethodChannel) {
-        self.channel = channel
+    init(notifyChanges: @escaping () -> Void) {
+        self.notifyChanges = notifyChanges
     }
 
     public static func register(with registrar: FlutterPluginRegistrar) {
@@ -23,7 +23,8 @@ public final class XPlayerStorePlugin: NSObject, FlutterPlugin {
         let messenger = registrar.messenger
         #endif
         let channel = FlutterMethodChannel(name: "xplayer/membership", binaryMessenger: messenger)
-        registrar.addMethodCallDelegate(XPlayerStorePlugin(channel: channel), channel: channel)
+        let instance = XPlayerStorePlugin { channel.invokeMethod("changed", arguments: nil) }
+        registrar.addMethodCallDelegate(instance, channel: channel)
     }
 
     deinit { updates?.cancel() }
@@ -99,7 +100,21 @@ public final class XPlayerStorePlugin: NSObject, FlutterPlugin {
     @MainActor private func receive(_ change: VerificationResult<Transaction>) async {
         guard case .verified(let transaction) = change, recognizes(transaction.productID) else { return }
         await transaction.finish()
-        channel.invokeMethod("changed", arguments: nil)
+        notifyChanges()
+    }
+
+    @available(iOS 15, macOS 12, *)
+    private func subscriptionEnd(for transaction: Transaction) async -> Date? {
+        // If StoreKit is offline, use the expiry of the locally verified transaction.
+        guard let status = await transaction.subscriptionStatus else { return transaction.expirationDate }
+        guard case .verified(let latest) = status.transaction,
+              latest.productID == transaction.productID, latest.revocationDate == nil, !latest.isUpgraded else {
+            return nil
+        }
+        if status.state == .inGracePeriod, case .verified(let renewal) = status.renewalInfo {
+            return renewal.gracePeriodExpirationDate
+        }
+        return status.state == .subscribed ? latest.expirationDate : nil
     }
 
     @available(iOS 15, macOS 12, *)
@@ -110,8 +125,11 @@ public final class XPlayerStorePlugin: NSObject, FlutterPlugin {
         for await entitlement in Transaction.currentEntitlements {
             guard case .verified(let tx) = entitlement, recognizes(tx.productID),
                   tx.revocationDate == nil, !tx.isUpgraded else { continue }
+            if tx.productType == .autoRenewable {
+                guard let end = await subscriptionEnd(for: tx), end > Date() else { continue }
+                expirations.append(end)
+            }
             active.append(tx.productID)
-            if let end = tx.expirationDate { expirations.append(end) }
         }
         var data: [String: Any] = ["supported": true, "active": active]
         if let end = expirations.min() {

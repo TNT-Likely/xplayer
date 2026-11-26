@@ -17,9 +17,7 @@ final class RunnerTests: XCTestCase {
         session.storefront = "USA"
         defer { session.clearTransactions() }
 
-        let engine = FlutterEngine(name: "storekit-test")
-        let channel = FlutterMethodChannel(name: "xplayer/test-entitlements", binaryMessenger: engine.binaryMessenger)
-        let store = XPlayerStorePlugin(channel: channel)
+        let store = XPlayerStorePlugin(notifyChanges: {})
         func call(_ method: String, _ args: String? = nil) async throws -> Any? {
             try await withCheckedThrowingContinuation { continuation in
                 store.handle(FlutterMethodCall(methodName: method, arguments: args)) { value in
@@ -29,7 +27,7 @@ final class RunnerTests: XCTestCase {
                 }
             }
         }
-        func waitFor(_ plans: [String]) async throws {
+        func waitFor(_ plans: [String], line: UInt = #line) async throws {
             let target = Set(plans.map { prefix + $0 })
             var current: Set<String> = []
             for _ in 0..<40 {
@@ -38,7 +36,7 @@ final class RunnerTests: XCTestCase {
                 if current == target { return }
                 try await Task.sleep(nanoseconds: 200_000_000)
             }
-            XCTAssertEqual(current, target)
+            XCTAssertEqual(current, target, line: line)
         }
 
         let products = try await call("products") as? [String: String]
@@ -47,6 +45,8 @@ final class RunnerTests: XCTestCase {
         let monthly = try await call("buy", prefix + "monthly") as? String
         XCTAssertEqual(monthly, "purchased")
         try await waitFor(["monthly"])
+        let monthlyTx = try XCTUnwrap(session.allTransactions().first { $0.productIdentifier == prefix + "monthly" })
+        try session.disableAutoRenewForTransaction(identifier: monthlyTx.identifier)
         try session.expireSubscription(productIdentifier: prefix + "monthly")
         try await waitFor([])
 
@@ -59,6 +59,8 @@ final class RunnerTests: XCTestCase {
         let restored = try await call("restore") as? [String: Any]
         XCTAssertTrue((restored?["active"] as? [String] ?? []).contains(prefix + "lifetime"))
 
+        let yearlyTx = try XCTUnwrap(session.allTransactions().first { $0.productIdentifier == prefix + "yearly" })
+        try session.disableAutoRenewForTransaction(identifier: yearlyTx.identifier)
         try session.expireSubscription(productIdentifier: prefix + "yearly")
         try await waitFor(["lifetime"])
         let transaction = try XCTUnwrap(session.allTransactions().first { $0.productIdentifier == prefix + "lifetime" })

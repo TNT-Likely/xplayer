@@ -36,7 +36,10 @@ target 'Runner' do
   end
 end
 
+require_relative '../tool/bonsoir_darwin_pods'
+
 post_install do |installer|
+  fix_bonsoir_broadcast(installer)
   installer.pods_project.targets.each do |target|
     flutter_additional_macos_build_settings(target)
   end

@@ -64,12 +64,11 @@ class _HomeScreenState extends State<HomeScreen> {
     // 数据已在启动屏加载，这里只需启动远程输入服务
     final globalProvider = Provider.of<GlobalProvider>(context, listen: false);
     WidgetsBinding.instance.addPostFrameCallback((_) async {
-      if (!globalProvider.isMobile) {
-        try {
-          await Provider.of<RemoteProvider>(context, listen: false)
-              .startServer(serviceName: 'XPlayer TV');
-        } catch (_) {}
-      }
+      try {
+        await globalProvider.loadDeviceInfo();
+        if (!mounted || globalProvider.isMobile) return;
+        await context.read<RemoteProvider>().startServer(serviceName: 'XPlayer TV');
+      } catch (_) {}
     });
   }
 
@@ -329,6 +328,7 @@ class _HomeScreenState extends State<HomeScreen> {
         appBar: AppBar(
           leading: XIconButton(
             icon: Icons.menu,
+            tooltipMessage: MaterialLocalizations.of(context).openAppDrawerTooltip,
             hoverBgOnly: true,
             onPressed: () {
               _scaffoldKey.currentState?.openDrawer();

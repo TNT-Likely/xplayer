@@ -7,7 +7,11 @@ class GlobalProvider with ChangeNotifier {
   bool _isMobile = false;
   bool _isTV = false;
 
-  Future<void> loadDeviceInfo() async {
+  Future<void>? _loadingDeviceInfo;
+
+  Future<void> loadDeviceInfo() => _loadingDeviceInfo ??= _loadDeviceInfo();
+
+  Future<void> _loadDeviceInfo() async {
     final deviceInfo = DeviceInfoPlugin();
     if (Platform.isAndroid) {
       final androidInfo = await deviceInfo.androidInfo;
@@ -47,7 +51,7 @@ class GlobalProvider with ChangeNotifier {
       }
     } else if (Platform.isIOS) {
       final iosInfo = await deviceInfo.iosInfo;
-      _isMobile = iosInfo.name.toLowerCase().contains('iphone');
+      _isMobile = iosInfo.model.toLowerCase().contains('iphone');
       _isTV = false; // iOS 不视为 TV
     } else {
       // 其他平台（macOS/Windows/Linux）默认不是 TV，且不是移动端
